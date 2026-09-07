@@ -35,6 +35,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # Spring Boot 백엔드 인증 API(`/api/v1/auth/...`)를 호출하기 위한 HTTP 클라이언트입니다.
+  http: ^1.6.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -58,7 +61,9 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
+  assets:
+    # 앱 실행 환경별 공개 설정값입니다. 민감한 비밀키는 모바일 앱에 넣지 않습니다.
+    - .env
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

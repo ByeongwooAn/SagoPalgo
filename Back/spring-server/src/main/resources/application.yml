@@ -1,0 +1,50 @@
+server:
+  # Flutter Android 에뮬레이터와 로컬 개발 환경에서 접근하기 쉬운 기본 포트입니다.
+  port: ${SAGOPALGO_SERVER_PORT}
+
+spring:
+  application:
+    # 로그와 Actuator 확장 시 앱을 식별하기 위한 서비스 이름입니다.
+    name: sagopalgo-api
+
+  datasource:
+    # 로컬 MySQL에 Back/database/schema.sql을 먼저 실행했다는 가정의 기본 연결값입니다.
+    # 실제 비밀번호와 주소는 환경 변수로 덮어쓸 수 있게 구성했습니다.
+    url: ${SAGOPALGO_DB_URL}
+    username: ${SAGOPALGO_DB_USERNAME}
+    password: ${SAGOPALGO_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jackson:
+    # API 응답의 날짜/시간을 사람이 읽을 수 있는 ISO 문자열로 내려주기 위한 설정입니다.
+    serialization:
+      write-dates-as-timestamps: false
+    # 성공 응답의 error=null, 실패 응답의 data=null처럼 의미 없는 null 필드는 JSON에서 제외합니다.
+    default-property-inclusion: non_null
+
+mybatis:
+  configuration:
+    # DB 컬럼명(user_id)을 Java 필드명(userId)으로 자동 매핑하기 위한 설정입니다.
+    map-underscore-to-camel-case: true
+
+sagopalgo:
+  jwt:
+    # 로컬 개발용 JWT 서명 키입니다. 운영에서는 반드시 SAGOPALGO_JWT_SECRET 환경 변수로 교체해야 합니다.
+    secret: ${SAGOPALGO_JWT_SECRET}
+    # access token은 짧게 유지해 탈취 위험을 줄이고, refresh token으로 재발급합니다.
+    access-token-expiration-minutes: ${SAGOPALGO_ACCESS_TOKEN_MINUTES}
+    # refresh token은 앱 재로그인 빈도를 줄이기 위해 일 단위로 유지합니다.
+    refresh-token-expiration-days: ${SAGOPALGO_REFRESH_TOKEN_DAYS}
+  oauth:
+    google:
+      # Google Cloud Console에서 Android 또는 Web OAuth Client ID를 발급받아 설정합니다.
+      client-id: ${SAGOPALGO_GOOGLE_CLIENT_ID}
+      # Google OpenID Connect Discovery 문서의 jwks_uri 값입니다.
+      jwks-uri: ${SAGOPALGO_GOOGLE_JWKS_URI}
+    naver:
+      # Naver Developers에서 발급받은 Client ID입니다.
+      client-id: ${SAGOPALGO_NAVER_CLIENT_ID}
+      # Naver Developers에서 발급받은 Client Secret입니다.
+      client-secret: ${SAGOPALGO_NAVER_CLIENT_SECRET}
+      # Naver 공식 회원 프로필 조회 API입니다.
+      profile-uri: ${SAGOPALGO_NAVER_PROFILE_URI}

@@ -1,0 +1,26 @@
+name: sagopalgo-prod
+
+services:
+  # 운영 환경에서는 MySQL 포트를 외부에 공개하지 않습니다.
+  # Spring API만 Docker 내부 네트워크의 mysql:3306 주소로 접근합니다.
+  mysql:
+    container_name: sagopalgo-mysql-prod
+
+  # 운영 환경에서는 Spring API 포트를 외부에 직접 공개하지 않습니다.
+  # 외부 요청은 항상 Nginx HTTPS 프록시를 거쳐 내부 spring-api:8080으로 전달됩니다.
+  spring-api:
+    container_name: sagopalgo-spring-api-prod
+
+  # 운영 환경 Nginx는 HTTP 요청을 HTTPS로 리다이렉트하고 443에서 TLS를 종료합니다.
+  # 인증서 파일은 Git에 올리지 않고, 서버의 로컬 디렉터리를 /etc/nginx/certs로 읽기 전용 마운트합니다.
+  reverse-proxy:
+    container_name: sagopalgo-reverse-proxy-prod
+    ports:
+      - "${SAGOPALGO_PROXY_HTTP_PORT}:80"
+      - "${SAGOPALGO_PROXY_HTTPS_PORT}:443"
+    environment:
+      SAGOPALGO_NGINX_SSL_CERTIFICATE_PATH: ${SAGOPALGO_NGINX_SSL_CERTIFICATE_PATH}
+      SAGOPALGO_NGINX_SSL_CERTIFICATE_KEY_PATH: ${SAGOPALGO_NGINX_SSL_CERTIFICATE_KEY_PATH}
+    volumes:
+      - ./docker/nginx/templates-prod:/etc/nginx/templates:ro
+      - ${SAGOPALGO_NGINX_CERTS_DIR}:/etc/nginx/certs:ro

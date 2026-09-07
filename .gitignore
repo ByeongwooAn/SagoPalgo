@@ -16,8 +16,28 @@ desktop.ini
 .env
 .env.*
 !.env.example
+!.env.*.example
+.envrc
 *.local
 local.properties
+
+# Docker local overrides
+docker-compose.override.yml
+docker-compose.*.local.yml
+
+# Certificates, signing keys, and service app configs
+certs/
+**/certs/
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+*.jks
+*.keystore
+**/google-services.json
+**/GoogleService-Info.plist
 
 # Logs
 *.log
@@ -33,6 +53,7 @@ pnpm-debug.log*
 **/.flutter-plugins-dependencies
 **/.packages
 **/build/
+**/build-codex*/
 **/coverage/
 **/doc/api/
 **/ios/Flutter/.last_build_id
@@ -81,6 +102,12 @@ __pycache__/
 .venv/
 venv/
 env/
+
+# Database dumps and local backups
+*.sql.gz
+*.dump
+*.bak
+*.backup
 
 # Generated design previews
 ui-mockups/
