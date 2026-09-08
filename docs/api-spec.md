@@ -86,13 +86,37 @@ Flutter 앱은 Google 로그인 SDK에서 받은 ID token을 서버로 전달합
 
 ### 3.2 Naver 로그인
 
-`POST /api/v1/auth/naver`
+`GET /api/v1/auth/naver/authorization-url`
 
-Flutter 앱은 Naver 로그인 SDK에서 받은 access token을 서버로 전달합니다. 서버는 Naver 회원 프로필 조회 API를 호출해 access token을 검증하고, 응답의 `response.id` 값을 사용자 고유 식별자로 저장합니다.
+Flutter 앱은 로그인 시작 전에 CSRF 방지용 `state`를 생성해 서버에 전달합니다. 서버는 백엔드 환경 변수의 Naver Client ID와 Redirect URI로 authorization URL을 생성합니다. Naver Client Secret은 앱에 포함하지 않습니다.
+
+Query:
+
+```text
+state=random-url-safe-state
+```
+
+응답:
 
 ```json
 {
-  "providerToken": "naver-access-token"
+  "success": true,
+  "data": {
+    "authorizationUrl": "https://nid.naver.com/oauth2.0/authorize?...",
+    "redirectUri": "sagopalgo://oauth/naver"
+  },
+  "message": "Naver 로그인 URL이 생성되었습니다."
+}
+```
+
+`POST /api/v1/auth/naver`
+
+Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버로 전달합니다. 서버는 `.env.dev`/`.env.prod`의 Naver Client Secret으로 access token을 발급받고, Naver 회원 프로필 조회 API 응답의 `response.id` 값을 사용자 고유 식별자로 저장합니다.
+
+```json
+{
+  "authorizationCode": "naver-authorization-code",
+  "state": "random-url-safe-state"
 }
 ```
 
@@ -631,14 +655,15 @@ Flutter 앱은 Naver 로그인 SDK에서 받은 access token을 서버로 전달
 ## 11. 우선 구현 순서
 
 1. `POST /api/v1/auth/google`
-2. `POST /api/v1/auth/naver`
-3. `POST /api/v1/auth/refresh`
-4. `POST /api/v1/auth/logout`
-5. `GET /api/v1/dashboard/snapshot`
-6. `GET/PUT /api/v1/capital`
-7. `GET/POST/DELETE /api/v1/watchlist`
-8. `GET /api/v1/recommendations`
-9. `GET /api/v1/recommendations/{recommendationId}`
-10. `GET/POST/PUT/DELETE /api/v1/holdings`
-11. `POST /api/v1/devices/fcm-token`
-12. `GET/PATCH /api/v1/alerts`
+2. `GET /api/v1/auth/naver/authorization-url`
+3. `POST /api/v1/auth/naver`
+4. `POST /api/v1/auth/refresh`
+5. `POST /api/v1/auth/logout`
+6. `GET /api/v1/dashboard/snapshot`
+7. `GET/PUT /api/v1/capital`
+8. `GET/POST/DELETE /api/v1/watchlist`
+9. `GET /api/v1/recommendations`
+10. `GET /api/v1/recommendations/{recommendationId}`
+11. `GET/POST/PUT/DELETE /api/v1/holdings`
+12. `POST /api/v1/devices/fcm-token`
+13. `GET/PATCH /api/v1/alerts`

@@ -1,6 +1,8 @@
 package com.sagopalgo.api.auth.controller;
 
 import com.sagopalgo.api.auth.dto.AuthTokenResponse;
+import com.sagopalgo.api.auth.dto.NaverAuthorizationUrlResponse;
+import com.sagopalgo.api.auth.dto.NaverLoginRequest;
 import com.sagopalgo.api.auth.dto.RefreshTokenRequest;
 import com.sagopalgo.api.auth.dto.SocialLoginRequest;
 import com.sagopalgo.api.auth.service.AuthService;
@@ -11,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -48,13 +52,27 @@ public class AuthController {
     }
 
     /**
-     * Naver access token으로 로그인하고 사고팔고 JWT 토큰을 발급하는 API입니다.
+     * Naver 로그인 인증 화면 URL을 생성하는 API입니다.
      *
-     * @param request Naver 로그인 SDK에서 받은 access token 요청입니다.
+     * @param state 앱이 생성한 CSRF 방지 상태값입니다.
+     * @return Naver authorization endpoint URL입니다.
+     */
+    @GetMapping("/naver/authorization-url")
+    public ResponseEntity<ApiResponse<NaverAuthorizationUrlResponse>> naverAuthorizationUrl(
+        @RequestParam String state
+    ) {
+        NaverAuthorizationUrlResponse response = authService.naverAuthorizationUrl(state);
+        return ResponseEntity.ok(ApiResponse.success(response, "Naver 로그인 URL이 생성되었습니다."));
+    }
+
+    /**
+     * Naver authorization code로 로그인하고 사고팔고 JWT 토큰을 발급하는 API입니다.
+     *
+     * @param request Naver callback으로 받은 code/state 요청입니다.
      * @return access token, refresh token, 사용자 기본 정보입니다.
      */
     @PostMapping("/naver")
-    public ResponseEntity<ApiResponse<AuthTokenResponse>> loginWithNaver(@Valid @RequestBody SocialLoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthTokenResponse>> loginWithNaver(@Valid @RequestBody NaverLoginRequest request) {
         AuthTokenResponse response = authService.loginWithNaver(request);
         return ResponseEntity.ok(ApiResponse.success(response, "Naver 로그인이 완료되었습니다."));
     }

@@ -35,7 +35,7 @@ class SagoPalgoApp extends StatefulWidget {
   /// `.env`에서 읽은 앱 설정에 따라 실제 사용할 인증 Repository를 결정합니다.
   ///
   /// 현재는 `SAGOPALGO_USE_MOCK_AUTH=true`일 때 Mock 로그인을 사용합니다.
-  /// 실제 Google/Naver SDK 연결 후에는 false일 때 `SpringAuthRepository`를 주입하면 됩니다.
+  /// false일 때는 실제 Google/Naver 로그인 흐름을 사용하는 `SpringAuthRepository`를 주입합니다.
   factory SagoPalgoApp.fromEnvironment() {
     final environment = AppEnvironment.instance;
     if (environment.useMockAuth) {
@@ -44,7 +44,7 @@ class SagoPalgoApp extends StatefulWidget {
 
     return SagoPalgoApp(
       authRepository: SpringAuthRepository(
-        tokenProvider: PendingSdkSocialTokenProvider(environment),
+        tokenProvider: SdkSocialTokenProvider(environment),
       ),
     );
   }

@@ -1,5 +1,6 @@
 package com.sagopalgo.api.oauth.client;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.config.OAuthProperties;
@@ -11,12 +12,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * Naver 공식 프로필 조회 API로 access token을 검증하는 클라이언트입니다.
+ * Naver authorization code를 access token으로 교환하고 공식 프로필 API를 호출하는 클라이언트입니다.
  *
- * <p>Naver 문서 기준으로 access token을 Authorization Bearer 헤더에 담고, 응답의 response.id 값을
- * 사고팔고의 provider_user_id로 사용합니다.</p>
+ * <p>모바일 앱에는 Client Secret을 넣지 않고, 서버가 code/token 교환과 프로필 조회를 담당합니다.
+ * 프로필 응답의 response.id 값을 사고팔고의 provider_user_id로 사용합니다.</p>
  */
 @Component
 public class NaverOAuthClient implements SocialOAuthClient {
@@ -36,20 +38,77 @@ public class NaverOAuthClient implements SocialOAuthClient {
     }
 
     /**
-     * Naver access token으로 프로필 API를 호출하고 내부 사용자 프로필로 변환합니다.
+     * 이미 서버에서 확보한 Naver access token으로 프로필을 조회합니다.
      *
-     * @param providerToken Flutter 앱이 Naver 로그인 SDK에서 받은 access token입니다.
+     * @param providerToken Naver access token입니다.
      * @return 검증된 Naver 사용자 프로필입니다.
      */
     @Override
     public OAuthUserProfile fetchProfile(String providerToken) {
         ensureNaverClientConfigured();
+        ensureText(providerToken, "Naver access token은 필수입니다.");
+        return fetchProfileByAccessToken(providerToken);
+    }
 
+    /**
+     * Naver 로그인 인증 화면 URL을 생성합니다.
+     *
+     * @param state CSRF 방지를 위해 앱이 생성한 상태값입니다.
+     * @return Naver authorization endpoint URL입니다.
+     */
+    public String authorizationUrl(String state) {
+        ensureNaverClientConfigured();
+        ensureText(state, "Naver state는 필수입니다.");
+        ensureText(redirectUri(), "Naver redirect URI는 필수입니다.");
+
+        return UriComponentsBuilder
+            .fromUriString(oauthProperties.naver().authorizeUri())
+            .queryParam("response_type", "code")
+            .queryParam("client_id", oauthProperties.naver().clientId())
+            .queryParam("redirect_uri", redirectUri())
+            .queryParam("state", state)
+            .build()
+            .encode()
+            .toUriString();
+    }
+
+    /**
+     * 서버 환경에 설정된 Naver callback URL입니다.
+     *
+     * @return Naver Developers에 등록한 redirect URI입니다.
+     */
+    public String redirectUri() {
+        return oauthProperties.naver().redirectUri();
+    }
+
+    /**
+     * Naver authorization code를 access token으로 교환한 뒤 프로필 API를 호출합니다.
+     *
+     * @param authorizationCode Naver callback으로 받은 authorization code입니다.
+     * @param state authorization URL 생성 때 사용한 CSRF 방지 상태값입니다.
+     * @return 검증된 Naver 사용자 프로필입니다.
+     */
+    public OAuthUserProfile fetchProfile(String authorizationCode, String state) {
+        ensureNaverClientConfigured();
+        ensureText(authorizationCode, "Naver authorization code는 필수입니다.");
+        ensureText(state, "Naver state는 필수입니다.");
+
+        String accessToken = exchangeAuthorizationCode(authorizationCode, state);
+        return fetchProfileByAccessToken(accessToken);
+    }
+
+    /**
+     * Naver access token으로 프로필 API를 호출하고 내부 사용자 프로필로 변환합니다.
+     *
+     * @param accessToken Naver token API에서 받은 access token입니다.
+     * @return 검증된 Naver 사용자 프로필입니다.
+     */
+    private OAuthUserProfile fetchProfileByAccessToken(String accessToken) {
         NaverProfileResponse profileResponse;
         try {
             profileResponse = restClient.get()
                 .uri(oauthProperties.naver().profileUri())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + providerToken)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                 .header("X-Naver-Client-Id", oauthProperties.naver().clientId())
                 .header("X-Naver-Client-Secret", oauthProperties.naver().clientSecret())
                 .retrieve()
@@ -78,11 +137,58 @@ public class NaverOAuthClient implements SocialOAuthClient {
     }
 
     /**
+     * Naver token API로 authorization code를 access token으로 교환합니다.
+     *
+     * @param authorizationCode Naver callback으로 받은 authorization code입니다.
+     * @param state authorization URL 생성 때 사용한 CSRF 방지 상태값입니다.
+     * @return Naver access token입니다.
+     */
+    private String exchangeAuthorizationCode(String authorizationCode, String state) {
+        NaverTokenResponse tokenResponse;
+        try {
+            tokenResponse = restClient.get()
+                .uri(UriComponentsBuilder
+                    .fromUriString(oauthProperties.naver().tokenUri())
+                    .queryParam("grant_type", "authorization_code")
+                    .queryParam("client_id", oauthProperties.naver().clientId())
+                    .queryParam("client_secret", oauthProperties.naver().clientSecret())
+                    .queryParam("code", authorizationCode)
+                    .queryParam("state", state)
+                    .build()
+                    .encode()
+                    .toUri()
+                )
+                .retrieve()
+                .body(NaverTokenResponse.class);
+        } catch (RestClientException exception) {
+            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "Naver authorization code가 유효하지 않습니다.");
+        }
+
+        if (tokenResponse == null || !StringUtils.hasText(tokenResponse.accessToken())) {
+            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "Naver access token을 발급받지 못했습니다.");
+        }
+
+        return tokenResponse.accessToken();
+    }
+
+    /**
      * Naver Client ID/Secret이 비어 있으면 공식 프로필 API 호출이 불가능하므로 요청을 거부합니다.
      */
     private void ensureNaverClientConfigured() {
         if (!StringUtils.hasText(oauthProperties.naver().clientId()) || !StringUtils.hasText(oauthProperties.naver().clientSecret())) {
             throw new ApiException(ErrorCode.INTERNAL_ERROR, "Naver OAuth Client ID 또는 Secret이 설정되어 있지 않습니다.");
+        }
+    }
+
+    /**
+     * 필수 문자열 요청값을 확인합니다.
+     *
+     * @param value 확인할 문자열입니다.
+     * @param message 비어 있을 때 내려줄 오류 메시지입니다.
+     */
+    private void ensureText(String value, String message) {
+        if (!StringUtils.hasText(value)) {
+            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, message);
         }
     }
 
@@ -94,6 +200,36 @@ public class NaverOAuthClient implements SocialOAuthClient {
      */
     private String asString(Object value) {
         return value == null ? null : String.valueOf(value);
+    }
+
+    /**
+     * Naver access token 발급 API 응답 구조입니다.
+     *
+     * @param accessToken 프로필 조회에 사용할 access token입니다.
+     * @param refreshToken Naver access token 갱신용 refresh token입니다.
+     * @param tokenType token type입니다.
+     * @param expiresIn access token 유효 시간(초)입니다.
+     * @param error 실패 시 Naver가 내려주는 오류 코드입니다.
+     * @param errorDescription 실패 시 Naver가 내려주는 오류 설명입니다.
+     */
+    private record NaverTokenResponse(
+        @JsonProperty("access_token")
+        String accessToken,
+
+        @JsonProperty("refresh_token")
+        String refreshToken,
+
+        @JsonProperty("token_type")
+        String tokenType,
+
+        @JsonProperty("expires_in")
+        Long expiresIn,
+
+        String error,
+
+        @JsonProperty("error_description")
+        String errorDescription
+    ) {
     }
 
     /**

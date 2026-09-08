@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.sagopalgo.api.auth.dto.AuthTokenResponse;
+import com.sagopalgo.api.auth.dto.NaverLoginRequest;
 import com.sagopalgo.api.auth.dto.RefreshTokenRequest;
 import com.sagopalgo.api.auth.dto.SocialLoginRequest;
 import com.sagopalgo.api.common.exception.ApiException;
@@ -96,12 +97,18 @@ class AuthServiceTest {
     @Test
     @DisplayName("Naver 로그인은 기존 Naver 사용자의 프로필을 갱신하고 토큰 쌍을 발급한다")
     void naverLoginUpdatesExistingUserProfile() {
-        SocialLoginRequest request = new SocialLoginRequest("naver-access-token");
+        NaverLoginRequest request = new NaverLoginRequest(
+            "naver-authorization-code",
+            "naver-state"
+        );
         OAuthUserProfile profile = naverProfile();
         User existingUser = socialUser(OAuthProvider.NAVER, "naver-id-1");
         Instant refreshExpiresAt = Instant.parse("2026-09-21T00:00:00Z");
 
-        when(naverOAuthClient.fetchProfile(request.providerToken())).thenReturn(profile);
+        when(naverOAuthClient.fetchProfile(
+            request.authorizationCode(),
+            request.state()
+        )).thenReturn(profile);
         when(userMapper.findByProviderAndProviderUserId("NAVER", "naver-id-1")).thenReturn(Optional.of(existingUser));
         when(jwtTokenProvider.createAccessToken(existingUser)).thenReturn("access-token");
         when(jwtTokenProvider.createRefreshToken(existingUser)).thenReturn("refresh-token");

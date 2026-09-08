@@ -64,7 +64,12 @@ public class SecurityConfig {
                 .accessDeniedHandler(jsonAccessDeniedHandler)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/google", "/api/v1/auth/naver", "/api/v1/auth/refresh").permitAll()
+                .requestMatchers(
+                    "/api/v1/auth/google",
+                    "/api/v1/auth/naver",
+                    "/api/v1/auth/naver/authorization-url",
+                    "/api/v1/auth/refresh"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

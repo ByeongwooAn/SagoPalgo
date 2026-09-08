@@ -18,6 +18,7 @@
 | 기능 | 메서드 | 경로 |
 | --- | --- | --- |
 | Google 로그인 | POST | `/api/v1/auth/google` |
+| Naver 로그인 URL 생성 | GET | `/api/v1/auth/naver/authorization-url` |
 | Naver 로그인 | POST | `/api/v1/auth/naver` |
 | 토큰 재발급 | POST | `/api/v1/auth/refresh` |
 | 로그아웃 | POST | `/api/v1/auth/logout` |
@@ -27,8 +28,8 @@
 - Google 로그인은 앱에서 받은 ID token을 `providerToken`으로 서버에 전달합니다.
 - 서버는 Google OpenID Connect JWKS 공개키로 ID token 서명을 검증하고, `aud`, `iss`, `exp`를 확인합니다.
 - Google 사용자는 이메일이 아니라 Google ID token의 `sub` 값으로 식별합니다.
-- Naver 로그인은 앱에서 받은 access token을 `providerToken`으로 서버에 전달합니다.
-- 서버는 Naver 회원 프로필 조회 API를 호출하고, 응답의 `response.id` 값으로 사용자를 식별합니다.
+- Naver 로그인은 앱이 받은 authorization code와 state를 서버에 전달합니다.
+- 서버는 `.env.dev`/`.env.prod`의 Naver Client Secret으로 access token을 교환한 뒤 회원 프로필 API를 호출하고, 응답의 `response.id` 값으로 사용자를 식별합니다.
 
 ## 다음 구현 후보
 

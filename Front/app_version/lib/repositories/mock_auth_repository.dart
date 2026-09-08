@@ -4,7 +4,7 @@ import 'auth_repository.dart';
 
 /// 실제 소셜 SDK와 백엔드가 연결되기 전까지 앱 로그인 UI를 동작시키는 Mock Repository입니다.
 ///
-/// 버튼을 누르면 MockSocialTokenProvider에서 가짜 provider token을 받은 뒤,
+/// 버튼을 누르면 MockSocialTokenProvider에서 가짜 로그인 값을 받은 뒤,
 /// 백엔드 응답과 같은 형태의 AuthSession을 반환합니다.
 class MockAuthRepository implements AuthRepository {
   /// 소셜 토큰 Provider를 주입받아 실제 구현과 같은 호출 흐름을 유지합니다.
@@ -12,7 +12,7 @@ class MockAuthRepository implements AuthRepository {
     this.tokenProvider = const MockSocialTokenProvider(),
   });
 
-  /// Google/Naver provider token을 가져오는 객체입니다.
+  /// Google/Naver 로그인 값을 가져오는 객체입니다.
   final SocialTokenProvider tokenProvider;
 
   @override
@@ -34,7 +34,7 @@ class MockAuthRepository implements AuthRepository {
 
   @override
   Future<AuthSession> loginWithNaver() async {
-    await tokenProvider.fetchNaverAccessToken();
+    await tokenProvider.fetchNaverAuthorizationCode();
     return const AuthSession(
       accessToken: 'mock-sagopalgo-access-token',
       refreshToken: 'mock-sagopalgo-refresh-token',
