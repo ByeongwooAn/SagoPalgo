@@ -3,9 +3,11 @@ import 'package:app_version/models/app_alert.dart';
 import 'package:app_version/models/holding.dart';
 import 'package:app_version/models/investment_snapshot.dart';
 import 'package:app_version/models/market_summary.dart';
+import 'package:app_version/models/provider_setting.dart';
 import 'package:app_version/models/recommendation.dart';
 import 'package:app_version/repositories/investment_repository.dart';
 import 'package:app_version/repositories/portfolio_repository.dart';
+import 'package:app_version/repositories/provider_settings_repository.dart';
 import 'package:app_version/repositories/watchlist_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +24,8 @@ void main() {
         investmentRepositoryBuilder: (_) => const FakeInvestmentRepository(),
         watchlistRepositoryBuilder: (_) => const FakeWatchlistRepository(),
         portfolioRepositoryBuilder: (_) => const FakePortfolioRepository(),
+        providerSettingsRepositoryBuilder: (_) =>
+            const FakeProviderSettingsRepository(),
       ),
     );
 
@@ -53,6 +57,14 @@ void main() {
 
     /// 다크모드가 되면 버튼 아이콘이 다시 라이트모드 전환 아이콘으로 바뀝니다.
     expect(find.byIcon(Icons.light_mode), findsOneWidget);
+
+    /// 설정 탭에서는 개인용 증권사 연동 상태를 확인할 수 있어야 합니다.
+    await tester.tap(find.text('설정'));
+    await tester.pumpAndSettle();
+    expect(find.text('증권사 연동'), findsOneWidget);
+    expect(find.text('KB증권'), findsOneWidget);
+    expect(find.text('한국투자증권'), findsOneWidget);
+    expect(find.text('토스증권'), findsOneWidget);
   });
 
   testWidgets('app lock requires configured local PIN', (tester) async {
@@ -62,6 +74,8 @@ void main() {
         investmentRepositoryBuilder: (_) => const FakeInvestmentRepository(),
         watchlistRepositoryBuilder: (_) => const FakeWatchlistRepository(),
         portfolioRepositoryBuilder: (_) => const FakePortfolioRepository(),
+        providerSettingsRepositoryBuilder: (_) =>
+            const FakeProviderSettingsRepository(),
       ),
     );
 
@@ -155,6 +169,45 @@ class FakeWatchlistRepository implements WatchlistRepository {
   ) async {
     return WatchlistActionResult(
       message: '${recommendation.stockName} 알림을 켰습니다.',
+    );
+  }
+}
+
+class FakeProviderSettingsRepository implements ProviderSettingsRepository {
+  const FakeProviderSettingsRepository();
+
+  @override
+  Future<ProviderSettingsSnapshot> fetchProviderSettings() async {
+    return const ProviderSettingsSnapshot(
+      providers: [
+        ProviderSetting(
+          code: 'KB',
+          displayName: 'KB증권',
+          marketDataEnabled: false,
+          accountEnabled: true,
+          orderEnabled: false,
+          configured: false,
+          roleDescription: '계좌 조회와 추후 주문 기능의 기준 증권사',
+        ),
+        ProviderSetting(
+          code: 'KIS',
+          displayName: '한국투자증권',
+          marketDataEnabled: true,
+          accountEnabled: false,
+          orderEnabled: false,
+          configured: true,
+          roleDescription: '국내 주식 시세 조회용 데이터 소스',
+        ),
+        ProviderSetting(
+          code: 'TOSS',
+          displayName: '토스증권',
+          marketDataEnabled: true,
+          accountEnabled: false,
+          orderEnabled: false,
+          configured: false,
+          roleDescription: '분석용 시세/종목 정보 보조 데이터 소스',
+        ),
+      ],
     );
   }
 }

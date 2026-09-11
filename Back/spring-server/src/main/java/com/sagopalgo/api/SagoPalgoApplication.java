@@ -1,10 +1,9 @@
 package com.sagopalgo.api;
 
-import com.sagopalgo.api.config.JwtProperties;
 import com.sagopalgo.api.config.KisMarketProperties;
-import com.sagopalgo.api.config.OAuthProperties;
 import com.sagopalgo.api.config.DotEnvLoader;
 import com.sagopalgo.api.config.PersonalModeProperties;
+import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import java.nio.file.Path;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,10 +17,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  */
 @SpringBootApplication
 @EnableConfigurationProperties({
-    JwtProperties.class,
-    OAuthProperties.class,
     KisMarketProperties.class,
-    PersonalModeProperties.class
+    PersonalModeProperties.class,
+    SecuritiesProviderProperties.class
 })
 public class SagoPalgoApplication {
 

@@ -1,5 +1,5 @@
 server:
-  # Flutter Android 에뮬레이터와 로컬 개발 환경에서 접근하기 쉬운 기본 포트입니다.
+  # Flutter Windows 프로그램과 로컬 개발 환경에서 접근하기 쉬운 기본 포트입니다.
   port: ${SAGOPALGO_SERVER_PORT}
 
 spring:
@@ -34,25 +34,19 @@ sagopalgo:
     user-id: ${SAGOPALGO_PERSONAL_MODE_USER_ID:1}
     nickname: ${SAGOPALGO_PERSONAL_MODE_NICKNAME:개인 사용자}
     email: ${SAGOPALGO_PERSONAL_MODE_EMAIL:local@sagopalgo.local}
-  jwt:
-    # 개인용 모드에서는 직접 쓰지 않지만, 기존 JWT 컴포넌트 호환을 위해 기본값을 둡니다.
-    secret: ${SAGOPALGO_JWT_SECRET:local-personal-mode-secret-key-at-least-32-bytes}
-    access-token-expiration-minutes: ${SAGOPALGO_ACCESS_TOKEN_MINUTES:60}
-    refresh-token-expiration-days: ${SAGOPALGO_REFRESH_TOKEN_DAYS:14}
-  oauth:
-    google:
-      # 과거 소셜 로그인 API 호환용 설정입니다. 개인용 모드에서는 비워둘 수 있습니다.
-      client-id: ${SAGOPALGO_GOOGLE_CLIENT_ID:}
-      # Google OpenID Connect Discovery 문서의 jwks_uri 값입니다.
-      jwks-uri: ${SAGOPALGO_GOOGLE_JWKS_URI:https://www.googleapis.com/oauth2/v3/certs}
-    naver:
-      # 과거 소셜 로그인 API 호환용 설정입니다. 개인용 모드에서는 비워둘 수 있습니다.
-      client-id: ${SAGOPALGO_NAVER_CLIENT_ID:}
-      client-secret: ${SAGOPALGO_NAVER_CLIENT_SECRET:}
-      redirect-uri: ${SAGOPALGO_NAVER_REDIRECT_URI:sagopalgo://oauth/naver}
-      authorize-uri: ${SAGOPALGO_NAVER_AUTHORIZE_URI:https://nid.naver.com/oauth2.0/authorize}
-      token-uri: ${SAGOPALGO_NAVER_TOKEN_URI:https://nid.naver.com/oauth2.0/token}
-      profile-uri: ${SAGOPALGO_NAVER_PROFILE_URI:https://openapi.naver.com/v1/nid/me}
+  securities:
+    kb:
+      # KB증권은 계좌 조회와 추후 주문 기능의 단일 담당으로 둡니다.
+      account-enabled: ${SAGOPALGO_KB_ACCOUNT_ENABLED:false}
+      order-enabled: ${SAGOPALGO_KB_ORDER_ENABLED:false}
+      app-key: ${SAGOPALGO_KB_APP_KEY:}
+      app-secret: ${SAGOPALGO_KB_APP_SECRET:}
+      account-number: ${SAGOPALGO_KB_ACCOUNT_NUMBER:}
+    toss:
+      # Toss 증권은 분석용 시세/종목 정보 보조 소스로만 사용합니다.
+      market-data-enabled: ${SAGOPALGO_TOSS_MARKET_DATA_ENABLED:false}
+      app-key: ${SAGOPALGO_TOSS_APP_KEY:}
+      app-secret: ${SAGOPALGO_TOSS_APP_SECRET:}
   market:
     kis:
       # 한국투자증권 Open API 현재가 조회 사용 여부입니다. 키를 설정한 환경에서만 true로 켭니다.

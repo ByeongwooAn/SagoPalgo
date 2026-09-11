@@ -124,7 +124,10 @@ void main() {
         return http.Response(
           jsonEncode({
             'success': false,
-            'error': {'code': 'AUTH_INVALID_TOKEN', 'message': '토큰이 만료되었습니다.'},
+            'error': {
+              'code': 'RESOURCE_NOT_FOUND',
+              'message': '대시보드 데이터를 찾을 수 없습니다.',
+            },
           }),
           401,
           headers: {'content-type': 'application/json; charset=utf-8'},
@@ -138,7 +141,7 @@ void main() {
         isA<InvestmentRepositoryException>().having(
           (exception) => exception.message,
           'message',
-          '토큰이 만료되었습니다.',
+          '대시보드 데이터를 찾을 수 없습니다.',
         ),
       ),
     );

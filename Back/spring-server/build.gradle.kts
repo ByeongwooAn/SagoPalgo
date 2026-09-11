@@ -23,7 +23,7 @@ java {
 }
 
 repositories {
-    // Spring Boot, MyBatis, JWT, MySQL 드라이버를 내려받는 기본 공개 저장소입니다.
+    // Spring Boot, MyBatis, MySQL 드라이버를 내려받는 기본 공개 저장소입니다.
     mavenCentral()
 }
 
@@ -31,19 +31,11 @@ dependencies {
     // REST API 컨트롤러, JSON 직렬화, 내장 Tomcat 실행을 위한 Spring MVC 스타터입니다.
     implementation("org.springframework.boot:spring-boot-starter-web")
 
-    // 회원가입/로그인 비밀번호 암호화와 이후 JWT 인증 필터 확장을 위해 사용합니다.
-    implementation("org.springframework.boot:spring-boot-starter-security")
-
     // DTO 요청값 검증(@NotBlank, @Email 등)을 위한 Jakarta Validation 구현체입니다.
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // MyBatis Mapper 인터페이스를 Spring Bean으로 연결하고 SQL 실행을 담당합니다.
     implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3")
-
-    // JWT access token과 refresh token을 생성하기 위한 JJWT 라이브러리입니다.
-    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
     // MySQL 데이터베이스 연결에 필요한 JDBC 드라이버입니다.
     runtimeOnly("com.mysql:mysql-connector-j:9.7.0")
@@ -51,8 +43,6 @@ dependencies {
     // Spring Boot 테스트, MockMvc, JUnit 5 등 백엔드 테스트 기본 도구입니다.
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-    // Spring Security가 적용된 컨트롤러 테스트를 작성할 때 필요한 보조 도구입니다.
-    testImplementation("org.springframework.security:spring-security-test")
 }
 
 tasks.withType<Test> {

@@ -7,7 +7,7 @@ import org.springframework.web.client.RestClient;
 /**
  * 외부 HTTP API 호출에 사용할 RestClient 설정입니다.
  *
- * <p>Google 공개키 조회와 Naver 프로필 조회처럼 짧은 서버 간 HTTP 호출은 Spring Framework의
+ * <p>KIS 시세 조회, 이후 추가될 KB/Toss 연동처럼 짧은 서버 간 HTTP 호출은 Spring Framework의
  * RestClient를 공통 Bean으로 등록해 재사용합니다.</p>
  */
 @Configuration

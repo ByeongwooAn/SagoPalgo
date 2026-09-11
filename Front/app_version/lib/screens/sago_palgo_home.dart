@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../models/auth_session.dart';
 import '../models/holding.dart';
 import '../models/investment_snapshot.dart';
+import '../models/provider_setting.dart';
 import '../repositories/investment_repository.dart';
 import '../repositories/portfolio_repository.dart';
+import '../repositories/provider_settings_repository.dart';
 import '../repositories/watchlist_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
@@ -12,6 +14,7 @@ import 'alerts_screen.dart';
 import 'dashboard_screen.dart';
 import 'portfolio_screen.dart';
 import 'recommendation_screen.dart';
+import 'settings_screen.dart';
 
 /// 사고팔고 앱의 메인 화면 컨테이너입니다.
 ///
@@ -26,6 +29,7 @@ class SagoPalgoHome extends StatefulWidget {
     required this.repository,
     required this.watchlistRepository,
     required this.portfolioRepository,
+    required this.providerSettingsRepository,
     required this.session,
   });
 
@@ -40,6 +44,9 @@ class SagoPalgoHome extends StatefulWidget {
 
   /// 포트폴리오 화면에서 자본금과 보유 종목을 최신 API로 다시 불러오는 Repository입니다.
   final PortfolioRepository portfolioRepository;
+
+  /// 설정 화면에서 증권사 연동 상태를 조회하는 Repository입니다.
+  final ProviderSettingsRepository providerSettingsRepository;
 
   /// 현재 로컬 사용자 프로필 정보를 담고 있는 세션입니다.
   final AuthSession session;
@@ -61,6 +68,9 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
   /// 포트폴리오 탭에서 별도로 갱신하는 자본금/보유 종목 Future입니다.
   late Future<PortfolioSnapshot> _portfolioFuture;
 
+  /// 설정 탭에서 별도로 갱신하는 증권사 연동 상태 Future입니다.
+  late Future<ProviderSettingsSnapshot> _providerSettingsFuture;
+
   /// 다른 탭의 빈 상태 CTA가 요청한 포트폴리오 초기 작업입니다.
   PortfolioSetupAction? _pendingPortfolioSetupAction;
 
@@ -71,6 +81,8 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     /// 초기 화면을 구성할 데이터를 Repository에서 비동기로 요청합니다.
     _snapshotFuture = widget.repository.fetchSnapshot();
     _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
+    _providerSettingsFuture = widget.providerSettingsRepository
+        .fetchProviderSettings();
   }
 
   @override
@@ -110,8 +122,10 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       snapshot: snapshot.data!,
                       watchlistRepository: widget.watchlistRepository,
                       portfolioRepository: widget.portfolioRepository,
+                      providerSettingsFuture: _providerSettingsFuture,
                       portfolioFuture: _portfolioFuture,
                       onPortfolioRetry: _reloadPortfolio,
+                      onProviderSettingsRetry: _reloadProviderSettings,
                       onPortfolioChanged: _reloadAllInvestmentData,
                       pendingPortfolioSetupAction: _pendingPortfolioSetupAction,
                       onCapitalSetupOpen: () =>
@@ -155,6 +169,14 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     });
   }
 
+  /// 설정 탭에서 증권사 연동 상태만 다시 요청합니다.
+  void _reloadProviderSettings() {
+    setState(() {
+      _providerSettingsFuture = widget.providerSettingsRepository
+          .fetchProviderSettings();
+    });
+  }
+
   /// 빈 상태 CTA에서 포트폴리오 관리 탭으로 이동하고 필요한 입력 시트를 엽니다.
   void _openPortfolioSetup(PortfolioSetupAction action) {
     setState(() {
@@ -172,7 +194,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
 /// 상단 브랜드 바입니다.
 ///
 /// 앱 이름, 현재 테마 콘셉트, 테마 전환 버튼을 한곳에 배치해
-/// Android 앱의 첫 인상을 시안 A/B와 맞춥니다.
+/// Windows 프로그램의 첫 인상을 시안 A/B와 맞춥니다.
 class TopBar extends StatelessWidget {
   /// 현재 다크모드 여부와 전환 콜백을 받습니다.
   const TopBar({
@@ -255,7 +277,7 @@ class TopBar extends StatelessWidget {
       return '개인 모드';
     }
 
-    return authProvider == 'NAVER' ? 'Naver 로그인' : 'Google 로그인';
+    return authProvider;
   }
 }
 
@@ -356,8 +378,10 @@ class _TabContent extends StatelessWidget {
     required this.snapshot,
     required this.watchlistRepository,
     required this.portfolioRepository,
+    required this.providerSettingsFuture,
     required this.portfolioFuture,
     required this.onPortfolioRetry,
+    required this.onProviderSettingsRetry,
     required this.onPortfolioChanged,
     required this.pendingPortfolioSetupAction,
     required this.onCapitalSetupOpen,
@@ -377,11 +401,17 @@ class _TabContent extends StatelessWidget {
   /// 포트폴리오 화면 자본금/보유 종목 액션을 처리하는 Repository입니다.
   final PortfolioRepository portfolioRepository;
 
+  /// 설정 화면에서 사용할 증권사 연동 상태 Future입니다.
+  final Future<ProviderSettingsSnapshot> providerSettingsFuture;
+
   /// 포트폴리오 탭에서 사용할 최신 자본금/보유 종목 Future입니다.
   final Future<PortfolioSnapshot> portfolioFuture;
 
   /// 포트폴리오 데이터 재시도 콜백입니다.
   final VoidCallback onPortfolioRetry;
+
+  /// 설정 화면 데이터 재시도 콜백입니다.
+  final VoidCallback onProviderSettingsRetry;
 
   /// 포트폴리오 데이터가 변경됐을 때 전체 투자 데이터를 다시 불러오는 콜백입니다.
   final VoidCallback onPortfolioChanged;
@@ -431,6 +461,10 @@ class _TabContent extends StatelessWidget {
           onPendingSetupActionConsumed: onPendingPortfolioSetupActionConsumed,
         ),
         AlertsScreen(alerts: snapshot.alerts),
+        SettingsScreen(
+          providerSettingsFuture: providerSettingsFuture,
+          onRetry: onProviderSettingsRetry,
+        ),
       ],
     );
   }

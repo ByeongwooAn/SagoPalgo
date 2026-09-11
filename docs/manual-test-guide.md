@@ -29,11 +29,21 @@ SAGOPALGO_PERSONAL_MODE_USER_ID=1
 SAGOPALGO_PERSONAL_MODE_NICKNAME=개인 사용자
 SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 
+SAGOPALGO_KB_ACCOUNT_ENABLED=false
+SAGOPALGO_KB_ORDER_ENABLED=false
+SAGOPALGO_KB_APP_KEY=
+SAGOPALGO_KB_APP_SECRET=
+SAGOPALGO_KB_ACCOUNT_NUMBER=
+
 SAGOPALGO_KIS_ENABLED=true
 SAGOPALGO_KIS_BASE_URL=https://openapivts.koreainvestment.com:29443
 SAGOPALGO_KIS_APP_KEY=발급받은-app-key
 SAGOPALGO_KIS_APP_SECRET=발급받은-app-secret
 SAGOPALGO_KIS_PRICE_TR_ID=FHKST01010100
+
+SAGOPALGO_TOSS_MARKET_DATA_ENABLED=false
+SAGOPALGO_TOSS_APP_KEY=
+SAGOPALGO_TOSS_APP_SECRET=
 ```
 
 ```powershell
@@ -51,6 +61,16 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.d
 ## 3. API 직접 테스트
 
 개인용 모드에서는 JWT 없이 대시보드, 자본금, 보유 종목, 관심 종목 API를 호출할 수 있습니다. 서버는 `SAGOPALGO_PERSONAL_MODE_USER_ID`에 지정된 로컬 사용자 ID를 현재 사용자로 사용합니다.
+
+증권사 설정 조회:
+
+```powershell
+Invoke-RestMethod `
+  -Method Get `
+  -Uri http://localhost:8081/api/v1/settings/providers
+```
+
+응답에는 KB/KIS/Toss의 역할, 활성화 여부, 필수 설정값 입력 여부만 표시되어야 합니다. API Key, App Secret, 계좌번호 원문은 응답에 포함되면 안 됩니다.
 
 자본금 수정:
 
@@ -129,7 +149,8 @@ flutter run -d windows
 8. 추천 탭에서 `관심 등록`을 누른 뒤 성공 메시지가 나오는지 확인합니다.
 9. 추천 탭에서 `알림 설정`을 눌러 관심 종목 알림이 켜지는지 확인합니다.
 10. 포트폴리오 탭에서 자본금 기준 카드와 보유 종목 손익이 한국투자증권 현재가 기준으로 동기화되는지 확인합니다.
-11. 서버를 잠시 내린 뒤 포트폴리오 탭의 재시도 배너가 보이는지 확인합니다.
+11. 설정 탭에서 KB증권, 한국투자증권, 토스증권 연동 상태가 표시되는지 확인합니다.
+12. 서버를 잠시 내린 뒤 포트폴리오 탭의 재시도 배너가 보이는지 확인합니다.
 
 앱 잠금 확인이 필요하면 `Front/app_version/.env`에 `SAGOPALGO_APP_LOCK_PIN=1234`처럼 값을 넣고 다시 실행합니다. 시작 시 PIN 잠금 화면이 표시되고, 같은 값을 입력하면 홈 화면에 진입해야 합니다.
 
