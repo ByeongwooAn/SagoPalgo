@@ -39,6 +39,25 @@ class InvestmentRecommendation {
 
   /// RSI, MACD, 뉴스처럼 점수를 만든 세부 근거 목록입니다.
   final List<RecommendationReason> reasons;
+
+  /// 백엔드 대시보드 스냅샷의 `recommendation` JSON을 앱 모델로 변환합니다.
+  factory InvestmentRecommendation.fromJson(Map<String, dynamic> json) {
+    return InvestmentRecommendation(
+      stockName: json['stockName'] as String,
+      stockCode: json['stockCode'] as String,
+      status: json['status'] as String,
+      score: _readInt(json['score']),
+      entryPrice: _readInt(json['entryPrice']),
+      stopLossRate: _readDouble(json['stopLossRate']),
+      aiSummary: json['aiSummary'] as String,
+      reasons: (json['reasons'] as List<dynamic>)
+          .map(
+            (reason) =>
+                RecommendationReason.fromJson(reason as Map<String, dynamic>),
+          )
+          .toList(),
+    );
+  }
 }
 
 /// 추천 점수에 영향을 준 단일 근거입니다.
@@ -58,6 +77,15 @@ class RecommendationReason {
 
   /// 화면에서 어떤 색상으로 강조할지 결정하는 분류값입니다.
   final RecommendationReasonType type;
+
+  /// 추천 사유 JSON을 앱 모델로 변환합니다.
+  factory RecommendationReason.fromJson(Map<String, dynamic> json) {
+    return RecommendationReason(
+      label: json['label'] as String,
+      description: json['description'] as String,
+      type: _recommendationReasonTypeFromApiValue(json['type'] as String?),
+    );
+  }
 }
 
 /// 추천 근거별 강조색을 안정적으로 고르기 위한 타입입니다.
@@ -70,4 +98,31 @@ enum RecommendationReasonType {
 
   /// 포인트 컬러를 쓰는 뉴스/호재 근거입니다.
   news,
+}
+
+/// 백엔드 reason type 문자열을 화면 색상 분류로 변환합니다.
+RecommendationReasonType _recommendationReasonTypeFromApiValue(String? value) {
+  return switch (value) {
+    'TECHNICAL' || 'RSI' || 'VOLUME' => RecommendationReasonType.technical,
+    'NEWS' => RecommendationReasonType.news,
+    _ => RecommendationReasonType.trend,
+  };
+}
+
+int _readInt(Object? value) {
+  return switch (value) {
+    int number => number,
+    double number => number.round(),
+    String text => double.parse(text).round(),
+    _ => throw FormatException('정수로 변환할 수 없는 값입니다: $value'),
+  };
+}
+
+double _readDouble(Object? value) {
+  return switch (value) {
+    int number => number.toDouble(),
+    double number => number,
+    String text => double.parse(text),
+    _ => throw FormatException('실수로 변환할 수 없는 값입니다: $value'),
+  };
 }

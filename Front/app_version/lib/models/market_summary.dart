@@ -39,4 +39,38 @@ class MarketSummary {
 
   /// 대시보드 막대 그래프에 사용할 0~1 사이의 시장 지표 값들입니다.
   final List<double> marketBars;
+
+  /// 백엔드 대시보드 스냅샷의 `marketSummary` JSON을 앱 모델로 변환합니다.
+  factory MarketSummary.fromJson(Map<String, dynamic> json) {
+    return MarketSummary(
+      availableCapital: _readInt(json['availableCapital']),
+      monthlyReturnRate: _readDouble(json['monthlyReturnRate']),
+      recommendedPositionRange: json['recommendedPositionRange'] as String,
+      marketTrend: json['marketTrend'] as String,
+      marketScore: _readInt(json['marketScore']),
+      newsSentiment: json['newsSentiment'] as String,
+      positiveNewsCount: _readInt(json['positiveNewsCount']),
+      marketBars: (json['marketBars'] as List<dynamic>)
+          .map(_readDouble)
+          .toList(),
+    );
+  }
+}
+
+int _readInt(Object? value) {
+  return switch (value) {
+    int number => number,
+    double number => number.round(),
+    String text => double.parse(text).round(),
+    _ => throw FormatException('정수로 변환할 수 없는 값입니다: $value'),
+  };
+}
+
+double _readDouble(Object? value) {
+  return switch (value) {
+    int number => number.toDouble(),
+    double number => number,
+    String text => double.parse(text),
+    _ => throw FormatException('실수로 변환할 수 없는 값입니다: $value'),
+  };
 }

@@ -30,6 +30,18 @@ class Holding {
 
   /// 보유, 부분 익절, 손절 감시 같은 운영 상태입니다.
   final String status;
+
+  /// 백엔드 보유 종목 JSON을 앱 모델로 변환합니다.
+  factory Holding.fromJson(Map<String, dynamic> json) {
+    return Holding(
+      stockName: json['stockName'] as String,
+      stockCode: json['stockCode'] as String,
+      buyPrice: _readInt(json['buyPrice']),
+      quantity: _readInt(json['quantity']),
+      profitRate: _readDouble(json['profitRate']),
+      status: json['statusLabel'] as String? ?? json['status'] as String,
+    );
+  }
 }
 
 /// 보유 종목 화면 상단의 전체 손익 요약입니다.
@@ -53,4 +65,32 @@ class PortfolioSummary {
 
   /// 오늘 사용한 위험 한도 비율이며 0~1 사이 값으로 관리합니다.
   final double riskUsageRate;
+
+  /// 백엔드 포트폴리오 요약 JSON을 앱 모델로 변환합니다.
+  factory PortfolioSummary.fromJson(Map<String, dynamic> json) {
+    return PortfolioSummary(
+      totalProfit: _readInt(json['totalProfit']),
+      profitRate: _readDouble(json['profitRate']),
+      maxAllowedLoss: _readInt(json['maxAllowedLoss']),
+      riskUsageRate: _readDouble(json['riskUsageRate']),
+    );
+  }
+}
+
+int _readInt(Object? value) {
+  return switch (value) {
+    int number => number,
+    double number => number.round(),
+    String text => double.parse(text).round(),
+    _ => throw FormatException('정수로 변환할 수 없는 값입니다: $value'),
+  };
+}
+
+double _readDouble(Object? value) {
+  return switch (value) {
+    int number => number.toDouble(),
+    double number => number,
+    String text => double.parse(text),
+    _ => throw FormatException('실수로 변환할 수 없는 값입니다: $value'),
+  };
 }

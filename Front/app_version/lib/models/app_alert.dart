@@ -22,6 +22,16 @@ class AppAlert {
 
   /// 아이콘과 강조색을 결정하는 알림 분류입니다.
   final AppAlertType type;
+
+  /// 백엔드 대시보드 스냅샷의 알림 JSON을 앱 모델로 변환합니다.
+  factory AppAlert.fromJson(Map<String, dynamic> json) {
+    return AppAlert(
+      title: json['title'] as String,
+      body: json['body'] as String,
+      timeLabel: json['timeLabel'] as String,
+      type: _appAlertTypeFromApiValue(json['type'] as String?),
+    );
+  }
 }
 
 /// 알림의 의미를 화면 스타일과 연결하기 위한 분류값입니다.
@@ -34,4 +44,13 @@ enum AppAlertType {
 
   /// 시장 흐름 변화 알림입니다.
   market,
+}
+
+/// 백엔드 alert type 문자열을 화면 분류로 변환합니다.
+AppAlertType _appAlertTypeFromApiValue(String? value) {
+  return switch (value) {
+    'SELL' || 'RISK' => AppAlertType.sell,
+    'CANDIDATE' || 'BUY' => AppAlertType.candidate,
+    _ => AppAlertType.market,
+  };
 }
