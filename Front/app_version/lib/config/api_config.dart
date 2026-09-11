@@ -14,4 +14,7 @@ class ApiConfig {
 
   /// 인증 API가 공통으로 사용하는 `/api/v1/auth` 기본 경로입니다.
   String get authBaseUrl => '$baseUrl/api/v1/auth';
+
+  /// 대시보드 API가 공통으로 사용하는 `/api/v1/dashboard` 기본 경로입니다.
+  String get dashboardBaseUrl => '$baseUrl/api/v1/dashboard';
 }

@@ -31,4 +31,25 @@ class InvestmentSnapshot {
 
   /// 알림 탭에 표시되는 최근 추천/시장 알림 목록입니다.
   final List<AppAlert> alerts;
+
+  /// 백엔드 `/api/v1/dashboard/snapshot`의 `data` JSON을 앱 모델로 변환합니다.
+  factory InvestmentSnapshot.fromJson(Map<String, dynamic> json) {
+    return InvestmentSnapshot(
+      marketSummary: MarketSummary.fromJson(
+        json['marketSummary'] as Map<String, dynamic>,
+      ),
+      recommendation: InvestmentRecommendation.fromJson(
+        json['recommendation'] as Map<String, dynamic>,
+      ),
+      portfolioSummary: PortfolioSummary.fromJson(
+        json['portfolioSummary'] as Map<String, dynamic>,
+      ),
+      holdings: (json['holdings'] as List<dynamic>)
+          .map((holding) => Holding.fromJson(holding as Map<String, dynamic>))
+          .toList(),
+      alerts: (json['alerts'] as List<dynamic>)
+          .map((alert) => AppAlert.fromJson(alert as Map<String, dynamic>))
+          .toList(),
+    );
+  }
 }

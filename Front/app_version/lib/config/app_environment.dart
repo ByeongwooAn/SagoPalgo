@@ -60,6 +60,15 @@ class AppEnvironment {
     return _optional('SAGOPALGO_USE_MOCK_AUTH', fallback: 'true') == 'true';
   }
 
+  /// 현재 앱이 Mock 투자 데이터 Repository를 사용할지 결정합니다.
+  bool get useMockInvestment {
+    return _optional(
+          'SAGOPALGO_USE_MOCK_INVESTMENT',
+          fallback: useMockAuth ? 'true' : 'false',
+        ) ==
+        'true';
+  }
+
   /// Google SDK 초기화에 사용할 server client id입니다.
   ///
   /// 실제 Google SDK 연결 단계에서 `google_sign_in` 초기화에 전달합니다.
@@ -122,6 +131,9 @@ class AppEnvironment {
       ),
       'SAGOPALGO_USE_MOCK_AUTH': String.fromEnvironment(
         'SAGOPALGO_USE_MOCK_AUTH',
+      ),
+      'SAGOPALGO_USE_MOCK_INVESTMENT': String.fromEnvironment(
+        'SAGOPALGO_USE_MOCK_INVESTMENT',
       ),
       'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID': String.fromEnvironment(
         'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID',

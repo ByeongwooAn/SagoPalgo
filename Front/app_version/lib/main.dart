@@ -5,6 +5,7 @@ import 'models/auth_session.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/mock_auth_repository.dart';
 import 'repositories/mock_investment_repository.dart';
+import 'repositories/spring_investment_repository.dart';
 import 'repositories/spring_auth_repository.dart';
 import 'screens/login_screen.dart';
 import 'screens/sago_palgo_home.dart';
@@ -30,6 +31,7 @@ class SagoPalgoApp extends StatefulWidget {
   const SagoPalgoApp({
     super.key,
     this.authRepository = const MockAuthRepository(),
+    this.useMockInvestment = true,
   });
 
   /// `.env`에서 읽은 앱 설정에 따라 실제 사용할 인증 Repository를 결정합니다.
@@ -39,18 +41,22 @@ class SagoPalgoApp extends StatefulWidget {
   factory SagoPalgoApp.fromEnvironment() {
     final environment = AppEnvironment.instance;
     if (environment.useMockAuth) {
-      return const SagoPalgoApp();
+      return SagoPalgoApp(useMockInvestment: environment.useMockInvestment);
     }
 
     return SagoPalgoApp(
       authRepository: SpringAuthRepository(
         tokenProvider: SdkSocialTokenProvider(environment),
       ),
+      useMockInvestment: environment.useMockInvestment,
     );
   }
 
   /// Google/Naver 로그인과 refresh/logout을 처리하는 인증 Repository입니다.
   final AuthRepository authRepository;
+
+  /// true이면 홈 화면 투자 데이터를 Mock Repository에서 불러옵니다.
+  final bool useMockInvestment;
 
   @override
   State<SagoPalgoApp> createState() => _SagoPalgoAppState();
@@ -117,7 +123,11 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
           : SagoPalgoHome(
               onThemeToggle: _toggleTheme,
               onLogout: _handleLogout,
-              repository: const MockInvestmentRepository(),
+              repository: widget.useMockInvestment
+                  ? const MockInvestmentRepository()
+                  : SpringInvestmentRepository(
+                      accessToken: _session!.accessToken,
+                    ),
               session: _session!,
             ),
     );
