@@ -51,9 +51,55 @@ class SpringPortfolioRepository implements PortfolioRepository {
     );
   }
 
+  @override
+  Future<CapitalSettings> updateCapital(CapitalInput input) async {
+    final response = await client.put(
+      Uri.parse(config.capitalBaseUrl),
+      headers: _jsonHeaders,
+      body: jsonEncode(input.toJson()),
+    );
+    final data = _decodeResponse(response)['data'] as Map<String, dynamic>;
+    return CapitalSettings.fromJson(data);
+  }
+
+  @override
+  Future<void> createHolding(HoldingInput input) async {
+    final response = await client.post(
+      Uri.parse(config.holdingsBaseUrl),
+      headers: _jsonHeaders,
+      body: jsonEncode(input.toJson()),
+    );
+    _decodeResponse(response);
+  }
+
+  @override
+  Future<Holding> updateHolding(int holdingId, HoldingInput input) async {
+    final response = await client.put(
+      Uri.parse('${config.holdingsBaseUrl}/$holdingId'),
+      headers: _jsonHeaders,
+      body: jsonEncode(input.toJson()),
+    );
+    final data = _decodeResponse(response)['data'] as Map<String, dynamic>;
+    return Holding.fromJson(data);
+  }
+
+  @override
+  Future<void> deleteHolding(int holdingId) async {
+    final response = await client.delete(
+      Uri.parse('${config.holdingsBaseUrl}/$holdingId'),
+      headers: _headers,
+    );
+    _decodeResponse(response);
+  }
+
   Map<String, String> get _headers => {
     'Accept': 'application/json',
     'Authorization': 'Bearer $accessToken',
+  };
+
+  Map<String, String> get _jsonHeaders => {
+    ..._headers,
+    'Content-Type': 'application/json',
   };
 
   /// 공통 API 응답을 확인하고 성공이면 디코딩된 JSON 전체를 반환합니다.

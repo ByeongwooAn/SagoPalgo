@@ -2,6 +2,7 @@ package com.sagopalgo.api.holding.dto;
 
 import com.sagopalgo.api.holding.model.Holding;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  * 보유 종목 목록과 수정 응답의 단일 항목 DTO입니다.
@@ -13,6 +14,7 @@ public record HoldingResponse(
     String market,
     BigDecimal buyPrice,
     BigDecimal quantity,
+    LocalDate buyDate,
     BigDecimal currentPrice,
     BigDecimal profitRate,
     BigDecimal stopLossRate,
@@ -29,6 +31,7 @@ public record HoldingResponse(
             holding.getMarket(),
             holding.getBuyPrice().stripTrailingZeros(),
             holding.getQuantity().stripTrailingZeros(),
+            holding.getBuyDate(),
             currentPrice.stripTrailingZeros(),
             profitRate.stripTrailingZeros(),
             holding.getStopLossRate().stripTrailingZeros(),

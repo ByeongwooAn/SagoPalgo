@@ -470,6 +470,7 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
         "market": "KOSPI",
         "buyPrice": 69100,
         "quantity": 12,
+        "buyDate": "2026-09-12",
         "currentPrice": 75300,
         "profitRate": 8.97,
         "stopLossRate": -5.0,

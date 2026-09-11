@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:app_version/config/api_config.dart';
+import 'package:app_version/models/holding.dart';
 import 'package:app_version/repositories/portfolio_repository.dart';
 import 'package:app_version/repositories/spring_portfolio_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,22 +34,7 @@ void main() {
             'maxAllowedLoss': 60000,
             'riskUsageRate': 0.4,
           },
-          'items': [
-            {
-              'holdingId': 21,
-              'stockCode': '005930',
-              'stockName': '삼성전자',
-              'market': 'KOSPI',
-              'buyPrice': 69100,
-              'quantity': 12,
-              'currentPrice': 75300,
-              'profitRate': 8.97,
-              'stopLossRate': -5,
-              'takeProfitRate': 9,
-              'status': 'HOLDING',
-              'statusLabel': '보유',
-            },
-          ],
+          'items': [_holdingJson()],
         });
       }),
     );
@@ -63,7 +49,92 @@ void main() {
     expect(portfolio.capital.recommendedMaxPosition, 600000);
     expect(portfolio.summary.totalProfit, 74400);
     expect(portfolio.holdings.single.stockCode, '005930');
+    expect(portfolio.holdings.single.buyDate, DateTime.parse('2026-09-12'));
     expect(portfolio.holdings.single.profitRate, 8.97);
+  });
+
+  test('updateCapital sends capital payload to API', () async {
+    final repository = SpringPortfolioRepository(
+      accessToken: 'access-token',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient((request) async {
+        expect(request.method, 'PUT');
+        expect(request.url.toString(), 'http://localhost:8080/api/v1/capital');
+        expect(request.headers['Authorization'], 'Bearer access-token');
+        expect(request.headers['Content-Type'], 'application/json');
+        expect(jsonDecode(request.body), {
+          'availableCapital': 5000000,
+          'riskPerTradeRate': 0.015,
+        });
+
+        return _success({
+          'availableCapital': 5000000,
+          'recommendedMinPosition': 500000,
+          'recommendedMaxPosition': 1000000,
+          'riskPerTradeRate': 0.015,
+        });
+      }),
+    );
+
+    final capital = await repository.updateCapital(
+      const CapitalInput(availableCapital: 5000000, riskPerTradeRate: 0.015),
+    );
+
+    expect(capital.availableCapital, 5000000);
+    expect(capital.recommendedMaxPosition, 1000000);
+  });
+
+  test('createHolding posts holding payload to API', () async {
+    final repository = SpringPortfolioRepository(
+      accessToken: 'access-token',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient((request) async {
+        expect(request.method, 'POST');
+        expect(request.url.toString(), 'http://localhost:8080/api/v1/holdings');
+        expect(jsonDecode(request.body), _holdingInputJson());
+        return _success({'holdingId': 21});
+      }),
+    );
+
+    await repository.createHolding(_holdingInput());
+  });
+
+  test('updateHolding puts holding payload and maps response', () async {
+    final repository = SpringPortfolioRepository(
+      accessToken: 'access-token',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient((request) async {
+        expect(request.method, 'PUT');
+        expect(
+          request.url.toString(),
+          'http://localhost:8080/api/v1/holdings/21',
+        );
+        expect(jsonDecode(request.body), _holdingInputJson());
+        return _success(_holdingJson());
+      }),
+    );
+
+    final holding = await repository.updateHolding(21, _holdingInput());
+
+    expect(holding.holdingId, 21);
+    expect(holding.stockName, '삼성전자');
+  });
+
+  test('deleteHolding deletes holding by id', () async {
+    final repository = SpringPortfolioRepository(
+      accessToken: 'access-token',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient((request) async {
+        expect(request.method, 'DELETE');
+        expect(
+          request.url.toString(),
+          'http://localhost:8080/api/v1/holdings/21',
+        );
+        return _success(null);
+      }),
+    );
+
+    await repository.deleteHolding(21);
   });
 
   test('fetchPortfolio throws readable exception when an API fails', () async {
@@ -93,6 +164,50 @@ void main() {
       ),
     );
   });
+}
+
+HoldingInput _holdingInput() {
+  return HoldingInput(
+    stockCode: '005930',
+    stockName: '삼성전자',
+    market: 'KOSPI',
+    buyPrice: 69100,
+    quantity: 12,
+    buyDate: DateTime.parse('2026-09-12'),
+    stopLossRate: -5,
+    takeProfitRate: 9,
+  );
+}
+
+Map<String, dynamic> _holdingInputJson() {
+  return {
+    'stockCode': '005930',
+    'stockName': '삼성전자',
+    'market': 'KOSPI',
+    'buyPrice': 69100,
+    'quantity': 12.0,
+    'buyDate': '2026-09-12',
+    'stopLossRate': -5.0,
+    'takeProfitRate': 9.0,
+  };
+}
+
+Map<String, dynamic> _holdingJson() {
+  return {
+    'holdingId': 21,
+    'stockCode': '005930',
+    'stockName': '삼성전자',
+    'market': 'KOSPI',
+    'buyPrice': 69100,
+    'quantity': 12,
+    'buyDate': '2026-09-12',
+    'currentPrice': 75300,
+    'profitRate': 8.97,
+    'stopLossRate': -5,
+    'takeProfitRate': 9,
+    'status': 'HOLDING',
+    'statusLabel': '보유',
+  };
 }
 
 http.Response _success(Object? data) {

@@ -72,6 +72,7 @@ void main() {
                   'market': 'KOSPI',
                   'buyPrice': 69100,
                   'quantity': 12,
+                  'buyDate': '2026-09-12',
                   'currentPrice': 72000,
                   'profitRate': 4.2,
                   'stopLossRate': -5,

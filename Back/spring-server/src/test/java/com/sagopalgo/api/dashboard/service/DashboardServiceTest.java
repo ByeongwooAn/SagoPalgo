@@ -11,6 +11,7 @@ import com.sagopalgo.api.holding.dto.HoldingsListResponse;
 import com.sagopalgo.api.holding.dto.PortfolioSummaryResponse;
 import com.sagopalgo.api.holding.service.HoldingService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -109,6 +110,7 @@ class DashboardServiceTest {
             market,
             new BigDecimal("69100"),
             new BigDecimal("12"),
+            LocalDate.parse("2026-09-12"),
             new BigDecimal(currentPrice),
             new BigDecimal("0"),
             new BigDecimal("-5"),

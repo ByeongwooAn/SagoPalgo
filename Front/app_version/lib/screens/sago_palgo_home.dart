@@ -111,8 +111,10 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       selectedIndex: _selectedIndex,
                       snapshot: snapshot.data!,
                       watchlistRepository: widget.watchlistRepository,
+                      portfolioRepository: widget.portfolioRepository,
                       portfolioFuture: _portfolioFuture,
                       onPortfolioRetry: _reloadPortfolio,
+                      onPortfolioChanged: _reloadAllInvestmentData,
                     );
                   },
                 ),
@@ -130,6 +132,11 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
 
   /// 오류 화면에서 재시도 버튼을 눌렀을 때 데이터를 다시 요청합니다.
   void _reloadSnapshot() {
+    _reloadAllInvestmentData();
+  }
+
+  /// 자본금/보유 종목 변경 후 대시보드와 포트폴리오 데이터를 함께 다시 요청합니다.
+  void _reloadAllInvestmentData() {
     setState(() {
       _snapshotFuture = widget.repository.fetchSnapshot();
       _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
@@ -336,8 +343,10 @@ class _TabContent extends StatelessWidget {
     required this.selectedIndex,
     required this.snapshot,
     required this.watchlistRepository,
+    required this.portfolioRepository,
     required this.portfolioFuture,
     required this.onPortfolioRetry,
+    required this.onPortfolioChanged,
   });
 
   /// 현재 선택된 하단 탭 인덱스입니다.
@@ -349,11 +358,17 @@ class _TabContent extends StatelessWidget {
   /// 추천 화면 관심 종목 액션을 처리하는 Repository입니다.
   final WatchlistRepository watchlistRepository;
 
+  /// 포트폴리오 화면 자본금/보유 종목 액션을 처리하는 Repository입니다.
+  final PortfolioRepository portfolioRepository;
+
   /// 포트폴리오 탭에서 사용할 최신 자본금/보유 종목 Future입니다.
   final Future<PortfolioSnapshot> portfolioFuture;
 
   /// 포트폴리오 데이터 재시도 콜백입니다.
   final VoidCallback onPortfolioRetry;
+
+  /// 포트폴리오 데이터가 변경됐을 때 전체 투자 데이터를 다시 불러오는 콜백입니다.
+  final VoidCallback onPortfolioChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -374,8 +389,10 @@ class _TabContent extends StatelessWidget {
           ),
           summary: snapshot.portfolioSummary,
           holdings: snapshot.holdings,
+          repository: portfolioRepository,
           portfolioFuture: portfolioFuture,
           onRetry: onPortfolioRetry,
+          onChanged: onPortfolioChanged,
         ),
         AlertsScreen(alerts: snapshot.alerts),
       ],

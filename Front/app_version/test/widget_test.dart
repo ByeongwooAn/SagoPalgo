@@ -100,12 +100,46 @@ class FakePortfolioRepository implements PortfolioRepository {
 
   @override
   Future<PortfolioSnapshot> fetchPortfolio() async {
-    return const PortfolioSnapshot(
+    return PortfolioSnapshot(
       capital: _testCapital,
       summary: _testPortfolioSummary,
       holdings: _testHoldings,
     );
   }
+
+  @override
+  Future<CapitalSettings> updateCapital(CapitalInput input) async {
+    return CapitalSettings(
+      availableCapital: input.availableCapital,
+      recommendedMinPosition: (input.availableCapital * 0.1).round(),
+      recommendedMaxPosition: (input.availableCapital * 0.2).round(),
+      riskPerTradeRate: input.riskPerTradeRate,
+    );
+  }
+
+  @override
+  Future<void> createHolding(HoldingInput input) async {}
+
+  @override
+  Future<Holding> updateHolding(int holdingId, HoldingInput input) async {
+    return Holding(
+      holdingId: holdingId,
+      stockName: input.stockName,
+      stockCode: input.stockCode,
+      market: input.market,
+      buyPrice: input.buyPrice,
+      quantity: input.quantity,
+      buyDate: input.buyDate,
+      currentPrice: input.buyPrice,
+      profitRate: 0,
+      stopLossRate: input.stopLossRate,
+      takeProfitRate: input.takeProfitRate,
+      status: '보유',
+    );
+  }
+
+  @override
+  Future<void> deleteHolding(int holdingId) async {}
 }
 
 class FakeWatchlistRepository implements WatchlistRepository {
@@ -157,19 +191,27 @@ const _testPortfolioSummary = PortfolioSummary(
   riskUsageRate: .42,
 );
 
-const _testHoldings = [
+final _testHoldings = [
   Holding(
+    holdingId: 21,
     stockName: '삼성전자',
     stockCode: '005930',
+    market: 'KOSPI',
     buyPrice: 69100,
     quantity: 12,
+    buyDate: _testBuyDate,
+    currentPrice: 75300,
     profitRate: 9.0,
+    stopLossRate: -5.0,
+    takeProfitRate: 9.0,
     status: '부분 익절',
   ),
 ];
 
-const _testSnapshot = InvestmentSnapshot(
-  marketSummary: MarketSummary(
+final _testBuyDate = DateTime.parse('2026-09-12');
+
+final _testSnapshot = InvestmentSnapshot(
+  marketSummary: const MarketSummary(
     availableCapital: 3000000,
     monthlyReturnRate: 3.8,
     recommendedPositionRange: '30~60만원',
@@ -179,7 +221,7 @@ const _testSnapshot = InvestmentSnapshot(
     positiveNewsCount: 12,
     marketBars: [.42, .68, .54],
   ),
-  recommendation: InvestmentRecommendation(
+  recommendation: const InvestmentRecommendation(
     stockName: '삼성전자',
     stockCode: '005930',
     market: 'KOSPI',
@@ -198,7 +240,7 @@ const _testSnapshot = InvestmentSnapshot(
   ),
   portfolioSummary: _testPortfolioSummary,
   holdings: _testHoldings,
-  alerts: [
+  alerts: const [
     AppAlert(
       title: '테스트 알림',
       body: '테스트 알림 본문입니다.',
