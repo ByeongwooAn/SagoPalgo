@@ -21,7 +21,15 @@ flutter test --no-pub
 
 ## 2. 개발 서버 실행
 
-루트 `.env.dev.example`을 `.env.dev`로 복사한 뒤 DB 비밀번호, JWT secret, Google/Naver OAuth 값을 개발용 값으로 채웁니다.
+루트 `.env.dev.example`을 `.env.dev`로 복사한 뒤 DB 비밀번호, JWT secret, Google/Naver OAuth 값을 개발용 값으로 채웁니다. 실제 현재가를 함께 확인하려면 한국투자증권 Open API App Key/Secret도 입력하고 `SAGOPALGO_KIS_ENABLED=true`로 바꿉니다.
+
+```dotenv
+SAGOPALGO_KIS_ENABLED=true
+SAGOPALGO_KIS_BASE_URL=https://openapivts.koreainvestment.com:29443
+SAGOPALGO_KIS_APP_KEY=발급받은-app-key
+SAGOPALGO_KIS_APP_SECRET=발급받은-app-secret
+SAGOPALGO_KIS_PRICE_TR_ID=FHKST01010100
+```
 
 ```powershell
 docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d --build
@@ -70,6 +78,8 @@ Invoke-RestMethod `
   -Uri http://localhost:8081/api/v1/holdings `
   -Headers @{ Authorization = "Bearer $token" }
 ```
+
+응답의 `items[].currentPrice`가 등록한 `buyPrice`가 아니라 한국투자증권 현재가로 내려오는지 확인합니다. KIS 설정이 켜져 있는데 키가 비어 있거나 API 호출에 실패하면 서버는 `EXTERNAL_DATA_ERROR`를 반환합니다.
 
 대시보드 스냅샷 조회:
 
@@ -125,11 +135,12 @@ flutter run
 7. 대시보드에서 투자 가능 자본금과 실제 보유 종목 기반 대표 추천이 표시되는지 확인합니다.
 8. 추천 탭에서 `관심 등록`을 누른 뒤 성공 메시지가 나오는지 확인합니다.
 9. 추천 탭에서 `알림 설정`을 눌러 관심 종목 알림이 켜지는지 확인합니다.
-10. 포트폴리오 탭에서 자본금 기준 카드와 보유 종목 손익이 API 값으로 동기화되는지 확인합니다.
+10. 포트폴리오 탭에서 자본금 기준 카드와 보유 종목 손익이 한국투자증권 현재가 기준으로 동기화되는지 확인합니다.
 11. 서버를 잠시 내린 뒤 포트폴리오 탭의 재시도 배너가 보이는지 확인합니다.
 
 ## 5. 현재 MVP 제약
 
-- 현재가는 실제 시세 API가 아직 연결되지 않았으므로 사용자가 등록한 매수가와 같은 값으로 반환합니다. 임의 샘플 가격은 사용하지 않습니다.
+- 현재가는 한국투자증권 Open API 설정이 켜진 KOSPI/KOSDAQ/KONEX 종목이면 실제 현재가로 반환합니다.
+- KIS 설정이 꺼져 있거나 아직 지원하지 않는 해외 시장 종목이면 임의 샘플 가격을 만들지 않고 사용자가 등록한 매수가를 기준값으로 반환합니다.
 - 추천은 실제 보유 종목이 있을 때만 `DashboardRecommendationEngine`의 규칙 기반 MVP 로직으로 생성합니다. Python AI 서버가 연결되면 같은 응답 계약으로 대체합니다.
 - 추천 목록/상세 API와 FCM 알림 API는 명세만 있으며, 현재 앱은 대시보드 스냅샷의 대표 추천과 알림 데이터를 사용합니다.

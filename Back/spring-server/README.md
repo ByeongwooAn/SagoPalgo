@@ -6,8 +6,9 @@
 
 1. MySQL에서 `Back/database/schema.sql`을 실행해 `sagopalgo` 데이터베이스와 기본 테이블을 생성합니다.
 2. `.env.example`을 참고해 `Back/spring-server/.env`에 DB 접속 정보, JWT secret, 소셜 로그인 설정을 입력합니다.
-3. 서버 시작 시 `.env`가 자동으로 로드되며, 배포 환경에서는 OS 환경 변수가 `.env`보다 우선합니다.
-4. 아래 명령으로 테스트를 실행합니다.
+3. 실제 국내 주식 현재가를 확인하려면 한국투자증권 Open API App Key/Secret을 입력하고 `SAGOPALGO_KIS_ENABLED=true`로 켭니다.
+4. 서버 시작 시 `.env`가 자동으로 로드되며, 배포 환경에서는 OS 환경 변수가 `.env`보다 우선합니다.
+5. 아래 명령으로 테스트를 실행합니다.
 
 ```powershell
 .\gradlew.bat '-Dorg.gradle.project.buildDir=build-codex' test --no-daemon
@@ -36,10 +37,12 @@
 
 ## MVP 추천/시세 기준
 
-- `MarketPriceService`는 외부 시세 API가 붙기 전까지 임의 샘플 가격을 만들지 않고, 사용자가 등록한 매수가를 현재가로 반환합니다.
+- `MarketPriceService`는 한국투자증권 Open API 설정이 켜진 KOSPI/KOSDAQ/KONEX 종목이면 `/oauth2/tokenP`로 access token을 발급받고 국내주식 현재가 시세 API에서 현재가를 조회합니다.
+- KIS 설정이 꺼져 있거나 아직 지원하지 않는 해외 시장 종목이면 임의 샘플 가격을 만들지 않고, 사용자가 등록한 매수가를 기준값으로 반환합니다.
+- KIS 설정이 켜진 국내 종목에서 토큰 발급 또는 현재가 조회가 실패하면 `EXTERNAL_DATA_ERROR`를 반환해 외부 데이터 오류를 숨기지 않습니다.
 - `DashboardRecommendationEngine`은 실제 보유 종목이 있을 때만 수익률, 손절 기준, 익절 기준을 보고 `보유 유지`, `부분 익절 검토`, `손절 감시` 중 하나를 대표 추천으로 반환합니다.
 - 보유 종목이 없으면 대시보드 스냅샷의 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
-- Python AI 서버가 붙으면 이 두 서비스 경계를 실제 시세/AI 분석 클라이언트로 교체하고, `/api/v1/dashboard/snapshot` 응답 계약은 유지하는 방향입니다.
+- Python AI 서버가 붙으면 추천 서비스 경계를 실제 AI 분석 클라이언트로 교체하고, `/api/v1/dashboard/snapshot` 응답 계약은 유지하는 방향입니다.
 
 ## 소셜 로그인 토큰 기준
 
@@ -52,7 +55,7 @@
 ## 다음 구현 후보
 
 1. 실제 Google/Naver SDK callback을 Android 기기에서 검증
-2. 실제 시세 API 또는 Python AI 서버 컨테이너 연결
+2. Python AI 서버 컨테이너 연결
 3. 추천 목록/상세 API와 알림 API 구현
 4. 통합 테스트용 테스트 DB 구성
 5. 인증된 사용자 ID를 공통으로 꺼내는 컨트롤러 헬퍼 정리

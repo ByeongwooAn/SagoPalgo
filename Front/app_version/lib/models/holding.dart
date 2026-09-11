@@ -40,7 +40,7 @@ class Holding {
   /// 사용자가 기록한 매수일입니다.
   final DateTime buyDate;
 
-  /// 현재가입니다. 실제 시세 API가 붙기 전에는 서버가 매수가와 같은 값을 내려줍니다.
+  /// 현재가입니다. 서버의 실제 시세 API 설정에 따라 외부 현재가 또는 매수가 기준값을 내려줍니다.
   final int currentPrice;
 
   /// 현재가 기준 수익률입니다.
