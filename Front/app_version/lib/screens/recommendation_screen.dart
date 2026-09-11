@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/recommendation.dart';
+import '../repositories/watchlist_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_text.dart';
@@ -14,15 +15,32 @@ import 'dashboard_screen.dart';
 ///
 /// 사용자가 AI 추천을 맹목적으로 따르지 않도록 점수, 진입 가격,
 /// 손절 기준, 추천 사유, AI 설명을 한 화면에 함께 배치합니다.
-class RecommendationScreen extends StatelessWidget {
+class RecommendationScreen extends StatefulWidget {
   /// 화면에 표시할 대표 추천 데이터를 받습니다.
-  const RecommendationScreen({super.key, required this.recommendation});
+  const RecommendationScreen({
+    super.key,
+    required this.recommendation,
+    required this.watchlistRepository,
+  });
 
   /// Repository에서 받은 매수 추천 모델입니다.
   final InvestmentRecommendation recommendation;
 
+  /// 관심 종목 등록과 알림 설정 액션을 처리하는 Repository입니다.
+  final WatchlistRepository watchlistRepository;
+
+  @override
+  State<RecommendationScreen> createState() => _RecommendationScreenState();
+}
+
+class _RecommendationScreenState extends State<RecommendationScreen> {
+  bool _addingWatchlist = false;
+  bool _enablingAlert = false;
+
   @override
   Widget build(BuildContext context) {
+    final recommendation = widget.recommendation;
+
     return AppScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,22 +71,30 @@ class RecommendationScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: GradientActionButton(
                   label: '관심 등록',
                   icon: Icons.star_rounded,
                   gradient: AppGradients.main,
+                  busy: _addingWatchlist,
+                  onTap: _addingWatchlist || _enablingAlert
+                      ? null
+                      : _addRecommendation,
                 ),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(
                 child: GradientActionButton(
                   label: '알림 켜기',
                   icon: Icons.notifications_active_rounded,
                   gradient: AppGradients.point,
                   darkText: true,
+                  busy: _enablingAlert,
+                  onTap: _addingWatchlist || _enablingAlert
+                      ? null
+                      : _enableAlert,
                 ),
               ),
             ],
@@ -77,6 +103,52 @@ class RecommendationScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _addRecommendation() async {
+    await _runAction(
+      setBusy: (busy) => _addingWatchlist = busy,
+      action: () =>
+          widget.watchlistRepository.addRecommendation(widget.recommendation),
+    );
+  }
+
+  Future<void> _enableAlert() async {
+    await _runAction(
+      setBusy: (busy) => _enablingAlert = busy,
+      action: () =>
+          widget.watchlistRepository.enableAlert(widget.recommendation),
+    );
+  }
+
+  Future<void> _runAction({
+    required ValueChanged<bool> setBusy,
+    required Future<WatchlistActionResult> Function() action,
+  }) async {
+    setState(() => setBusy(true));
+
+    try {
+      final result = await action();
+      if (!mounted) {
+        return;
+      }
+      _showMessage(result.message);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      _showMessage(error.toString());
+    } finally {
+      if (mounted) {
+        setState(() => setBusy(false));
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 }
 

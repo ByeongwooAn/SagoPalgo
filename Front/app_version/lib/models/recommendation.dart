@@ -8,6 +8,7 @@ class InvestmentRecommendation {
   const InvestmentRecommendation({
     required this.stockName,
     required this.stockCode,
+    required this.market,
     required this.status,
     required this.score,
     required this.entryPrice,
@@ -21,6 +22,9 @@ class InvestmentRecommendation {
 
   /// 실제 API 호출과 DB 저장에 사용할 종목 코드입니다.
   final String stockCode;
+
+  /// 관심 종목 등록과 추천 API에서 사용할 시장 코드입니다.
+  final String market;
 
   /// 80점 이상일 때의 "강한 매수" 같은 추천 상태입니다.
   final String status;
@@ -45,6 +49,7 @@ class InvestmentRecommendation {
     return InvestmentRecommendation(
       stockName: json['stockName'] as String,
       stockCode: json['stockCode'] as String,
+      market: json['market'] as String? ?? 'KOSPI',
       status: json['status'] as String,
       score: _readInt(json['score']),
       entryPrice: _readInt(json['entryPrice']),

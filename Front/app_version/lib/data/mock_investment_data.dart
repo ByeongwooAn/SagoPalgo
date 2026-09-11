@@ -22,6 +22,7 @@ const mockInvestmentSnapshot = InvestmentSnapshot(
   recommendation: InvestmentRecommendation(
     stockName: '삼성전자',
     stockCode: '005930',
+    market: 'KOSPI',
     status: '강한 매수',
     score: 87,
     entryPrice: 72000,

@@ -17,4 +17,7 @@ class ApiConfig {
 
   /// 대시보드 API가 공통으로 사용하는 `/api/v1/dashboard` 기본 경로입니다.
   String get dashboardBaseUrl => '$baseUrl/api/v1/dashboard';
+
+  /// 관심 종목 API가 공통으로 사용하는 `/api/v1/watchlist` 기본 경로입니다.
+  String get watchlistBaseUrl => '$baseUrl/api/v1/watchlist';
 }

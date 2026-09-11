@@ -9,7 +9,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('SagoPalgo UI renders and navigates', (tester) async {
     /// 앱 루트를 테스트 환경에 올려 실제 Android 앱과 같은 위젯 트리를 만듭니다.
-    await tester.pumpWidget(const SagoPalgoApp());
+    await tester.pumpWidget(
+      const SagoPalgoApp(useMockInvestment: true, useMockWatchlist: true),
+    );
 
     /// 앱은 로그인 화면에서 시작하므로 Google Mock 로그인 버튼이 보이는지 먼저 확인합니다.
     await tester.pumpAndSettle();
@@ -31,6 +33,12 @@ void main() {
     /// 추천 상세 화면에는 매수 추천 제목과 강한 매수 상태가 보여야 합니다.
     expect(find.text('매수 추천'), findsOneWidget);
     expect(find.text('강한 매수'), findsOneWidget);
+
+    /// 관심 등록 버튼은 Mock Repository를 통해 성공 피드백을 보여줍니다.
+    await tester.ensureVisible(find.text('관심 등록'));
+    await tester.tap(find.text('관심 등록'));
+    await tester.pumpAndSettle();
+    expect(find.text('삼성전자 관심 종목에 등록했습니다.'), findsOneWidget);
 
     /// 라이트모드에서 다크모드로 전환되는지 상단 테마 버튼을 눌러 확인합니다.
     await tester.tap(find.byIcon(Icons.dark_mode));

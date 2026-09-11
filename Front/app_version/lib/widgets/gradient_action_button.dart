@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// 추천 화면에서 사용하는 그라데이션 액션 버튼입니다.
-///
-/// 아직 API 연결 전이라 실제 클릭 로직은 없지만, 버튼 자체를 위젯으로
-/// 분리해 두면 관심 등록/알림 설정 API를 붙일 때 `onTap`만 추가하면 됩니다.
 class GradientActionButton extends StatelessWidget {
   /// 버튼의 표시 문구, 아이콘, 배경 그라데이션을 받습니다.
   const GradientActionButton({
@@ -12,6 +9,8 @@ class GradientActionButton extends StatelessWidget {
     required this.icon,
     required this.gradient,
     this.darkText = false,
+    this.onTap,
+    this.busy = false,
   });
 
   /// 버튼에 표시되는 명령 문구입니다.
@@ -26,34 +25,60 @@ class GradientActionButton extends StatelessWidget {
   /// 밝은 배경 버튼일 때 글자색을 어둡게 바꾸는 옵션입니다.
   final bool darkText;
 
+  /// 사용자가 버튼을 눌렀을 때 실행할 콜백입니다.
+  final VoidCallback? onTap;
+
+  /// API 요청 중 중복 클릭을 막고 진행 상태를 표시합니다.
+  final bool busy;
+
   @override
   Widget build(BuildContext context) {
     final foreground = darkText ? const Color(0xff21120a) : Colors.white;
 
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        gradient: gradient,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: foreground, size: 18),
-          const SizedBox(width: 7),
-          Flexible(
-            child: Text(
-              label,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: foreground,
-                fontSize: 15,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0,
-              ),
+    return Material(
+      color: Colors.transparent,
+      child: Ink(
+        height: 48,
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: InkWell(
+          onTap: busy ? null : onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Opacity(
+            opacity: busy ? .72 : 1,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (busy)
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.4,
+                      color: foreground,
+                    ),
+                  )
+                else
+                  Icon(icon, color: foreground, size: 18),
+                const SizedBox(width: 7),
+                Flexible(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: foreground,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

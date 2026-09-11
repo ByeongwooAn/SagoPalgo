@@ -37,6 +37,7 @@ void main() {
               'recommendation': {
                 'stockName': '삼성전자',
                 'stockCode': '005930',
+                'market': 'KOSPI',
                 'status': '강한 매수',
                 'score': 87,
                 'entryPrice': 72000,
@@ -100,6 +101,7 @@ void main() {
 
     expect(snapshot.marketSummary.availableCapital, 3000000);
     expect(snapshot.recommendation.stockCode, '005930');
+    expect(snapshot.recommendation.market, 'KOSPI');
     expect(
       snapshot.recommendation.reasons.first.type,
       RecommendationReasonType.technical,

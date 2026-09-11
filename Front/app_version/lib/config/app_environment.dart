@@ -57,15 +57,18 @@ class AppEnvironment {
 
   /// 현재 앱이 Mock 인증 Repository를 사용할지 결정합니다.
   bool get useMockAuth {
-    return _optional('SAGOPALGO_USE_MOCK_AUTH', fallback: 'true') == 'true';
+    return _optional('SAGOPALGO_USE_MOCK_AUTH', fallback: 'false') == 'true';
   }
 
   /// 현재 앱이 Mock 투자 데이터 Repository를 사용할지 결정합니다.
   bool get useMockInvestment {
-    return _optional(
-          'SAGOPALGO_USE_MOCK_INVESTMENT',
-          fallback: useMockAuth ? 'true' : 'false',
-        ) ==
+    return _optional('SAGOPALGO_USE_MOCK_INVESTMENT', fallback: 'false') ==
+        'true';
+  }
+
+  /// 현재 앱이 Mock 관심 종목 Repository를 사용할지 결정합니다.
+  bool get useMockWatchlist {
+    return _optional('SAGOPALGO_USE_MOCK_WATCHLIST', fallback: 'false') ==
         'true';
   }
 
@@ -134,6 +137,9 @@ class AppEnvironment {
       ),
       'SAGOPALGO_USE_MOCK_INVESTMENT': String.fromEnvironment(
         'SAGOPALGO_USE_MOCK_INVESTMENT',
+      ),
+      'SAGOPALGO_USE_MOCK_WATCHLIST': String.fromEnvironment(
+        'SAGOPALGO_USE_MOCK_WATCHLIST',
       ),
       'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID': String.fromEnvironment(
         'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID',
