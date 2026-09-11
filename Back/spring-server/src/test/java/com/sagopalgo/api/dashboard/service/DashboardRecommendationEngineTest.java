@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.sagopalgo.api.dashboard.dto.DashboardRecommendationResponse;
 import com.sagopalgo.api.holding.dto.HoldingResponse;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,7 @@ class DashboardRecommendationEngineTest {
             "KOSPI",
             new BigDecimal("70000"),
             new BigDecimal("10"),
+            LocalDate.parse("2026-09-12"),
             new BigDecimal("76000"),
             new BigDecimal(profitRate),
             new BigDecimal(stopLossRate),

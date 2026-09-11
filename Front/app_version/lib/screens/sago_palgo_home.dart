@@ -65,6 +65,9 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
   /// 포트폴리오 탭에서 별도로 갱신하는 자본금/보유 종목 Future입니다.
   late Future<PortfolioSnapshot> _portfolioFuture;
 
+  /// 다른 탭의 빈 상태 CTA가 요청한 포트폴리오 초기 작업입니다.
+  PortfolioSetupAction? _pendingPortfolioSetupAction;
+
   @override
   void initState() {
     super.initState();
@@ -111,8 +114,17 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       selectedIndex: _selectedIndex,
                       snapshot: snapshot.data!,
                       watchlistRepository: widget.watchlistRepository,
+                      portfolioRepository: widget.portfolioRepository,
                       portfolioFuture: _portfolioFuture,
                       onPortfolioRetry: _reloadPortfolio,
+                      onPortfolioChanged: _reloadAllInvestmentData,
+                      pendingPortfolioSetupAction: _pendingPortfolioSetupAction,
+                      onCapitalSetupOpen: () =>
+                          _openPortfolioSetup(PortfolioSetupAction.editCapital),
+                      onHoldingSetupOpen: () =>
+                          _openPortfolioSetup(PortfolioSetupAction.addHolding),
+                      onPendingPortfolioSetupActionConsumed:
+                          _clearPendingPortfolioSetupAction,
                     );
                   },
                 ),
@@ -130,6 +142,11 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
 
   /// 오류 화면에서 재시도 버튼을 눌렀을 때 데이터를 다시 요청합니다.
   void _reloadSnapshot() {
+    _reloadAllInvestmentData();
+  }
+
+  /// 자본금/보유 종목 변경 후 대시보드와 포트폴리오 데이터를 함께 다시 요청합니다.
+  void _reloadAllInvestmentData() {
     setState(() {
       _snapshotFuture = widget.repository.fetchSnapshot();
       _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
@@ -141,6 +158,19 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     setState(() {
       _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
     });
+  }
+
+  /// 빈 상태 CTA에서 포트폴리오 관리 탭으로 이동하고 필요한 입력 시트를 엽니다.
+  void _openPortfolioSetup(PortfolioSetupAction action) {
+    setState(() {
+      _selectedIndex = 2;
+      _pendingPortfolioSetupAction = action;
+    });
+  }
+
+  /// 포트폴리오 입력 시트를 연 뒤 pending action을 비웁니다.
+  void _clearPendingPortfolioSetupAction() {
+    setState(() => _pendingPortfolioSetupAction = null);
   }
 }
 
@@ -336,8 +366,14 @@ class _TabContent extends StatelessWidget {
     required this.selectedIndex,
     required this.snapshot,
     required this.watchlistRepository,
+    required this.portfolioRepository,
     required this.portfolioFuture,
     required this.onPortfolioRetry,
+    required this.onPortfolioChanged,
+    required this.pendingPortfolioSetupAction,
+    required this.onCapitalSetupOpen,
+    required this.onHoldingSetupOpen,
+    required this.onPendingPortfolioSetupActionConsumed,
   });
 
   /// 현재 선택된 하단 탭 인덱스입니다.
@@ -349,21 +385,45 @@ class _TabContent extends StatelessWidget {
   /// 추천 화면 관심 종목 액션을 처리하는 Repository입니다.
   final WatchlistRepository watchlistRepository;
 
+  /// 포트폴리오 화면 자본금/보유 종목 액션을 처리하는 Repository입니다.
+  final PortfolioRepository portfolioRepository;
+
   /// 포트폴리오 탭에서 사용할 최신 자본금/보유 종목 Future입니다.
   final Future<PortfolioSnapshot> portfolioFuture;
 
   /// 포트폴리오 데이터 재시도 콜백입니다.
   final VoidCallback onPortfolioRetry;
 
+  /// 포트폴리오 데이터가 변경됐을 때 전체 투자 데이터를 다시 불러오는 콜백입니다.
+  final VoidCallback onPortfolioChanged;
+
+  /// 다른 탭의 빈 상태 CTA가 요청한 포트폴리오 초기 작업입니다.
+  final PortfolioSetupAction? pendingPortfolioSetupAction;
+
+  /// 데이터 없음 상태에서 자본금 수정 시트를 여는 콜백입니다.
+  final VoidCallback onCapitalSetupOpen;
+
+  /// 데이터 없음 상태에서 보유 종목 추가 시트를 여는 콜백입니다.
+  final VoidCallback onHoldingSetupOpen;
+
+  /// 포트폴리오 초기 작업을 실행한 뒤 pending 상태를 비우는 콜백입니다.
+  final VoidCallback onPendingPortfolioSetupActionConsumed;
+
   @override
   Widget build(BuildContext context) {
     return IndexedStack(
       index: selectedIndex,
       children: [
-        DashboardScreen(snapshot: snapshot),
+        DashboardScreen(
+          snapshot: snapshot,
+          onCapitalSetupOpen: onCapitalSetupOpen,
+          onHoldingSetupOpen: onHoldingSetupOpen,
+        ),
         RecommendationScreen(
           recommendation: snapshot.recommendation,
           watchlistRepository: watchlistRepository,
+          onCapitalSetupOpen: onCapitalSetupOpen,
+          onHoldingSetupOpen: onHoldingSetupOpen,
         ),
         PortfolioScreen(
           capital: CapitalSettings(
@@ -374,8 +434,12 @@ class _TabContent extends StatelessWidget {
           ),
           summary: snapshot.portfolioSummary,
           holdings: snapshot.holdings,
+          repository: portfolioRepository,
           portfolioFuture: portfolioFuture,
+          pendingSetupAction: pendingPortfolioSetupAction,
           onRetry: onPortfolioRetry,
+          onChanged: onPortfolioChanged,
+          onPendingSetupActionConsumed: onPendingPortfolioSetupActionConsumed,
         ),
         AlertsScreen(alerts: snapshot.alerts),
       ],

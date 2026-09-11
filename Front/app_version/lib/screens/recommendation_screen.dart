@@ -21,6 +21,8 @@ class RecommendationScreen extends StatefulWidget {
     super.key,
     required this.recommendation,
     required this.watchlistRepository,
+    required this.onCapitalSetupOpen,
+    required this.onHoldingSetupOpen,
   });
 
   /// Repository에서 받은 매수 추천 모델입니다.
@@ -28,6 +30,12 @@ class RecommendationScreen extends StatefulWidget {
 
   /// 관심 종목 등록과 알림 설정 액션을 처리하는 Repository입니다.
   final WatchlistRepository watchlistRepository;
+
+  /// 자본금 수정 화면으로 이동하는 콜백입니다.
+  final VoidCallback onCapitalSetupOpen;
+
+  /// 보유 종목 추가 화면으로 이동하는 콜백입니다.
+  final VoidCallback onHoldingSetupOpen;
 
   @override
   State<RecommendationScreen> createState() => _RecommendationScreenState();
@@ -41,7 +49,10 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   Widget build(BuildContext context) {
     final recommendation = widget.recommendation;
     if (recommendation == null) {
-      return const _EmptyRecommendationState();
+      return _EmptyRecommendationState(
+        onCapitalTap: widget.onCapitalSetupOpen,
+        onHoldingTap: widget.onHoldingSetupOpen,
+      );
     }
 
     return AppScrollView(
@@ -156,7 +167,13 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
 }
 
 class _EmptyRecommendationState extends StatelessWidget {
-  const _EmptyRecommendationState();
+  const _EmptyRecommendationState({
+    required this.onCapitalTap,
+    required this.onHoldingTap,
+  });
+
+  final VoidCallback onCapitalTap;
+  final VoidCallback onHoldingTap;
 
   @override
   Widget build(BuildContext context) {
@@ -173,21 +190,47 @@ class _EmptyRecommendationState extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           AppCard(
-            child: Row(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.info_outline_rounded, color: AppTheme.main),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    '아직 서버에 추천할 실제 데이터가 없습니다. 자본금과 보유 종목을 등록한 뒤 대시보드 스냅샷을 다시 조회하면 추천 판단이 표시됩니다.',
-                    style: TextStyle(
-                      color: palette.text,
-                      fontSize: 14,
-                      height: 1.4,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: AppTheme.main,
                     ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '아직 서버에 추천할 실제 데이터가 없습니다. 자본금과 보유 종목을 등록하면 실제 계정 데이터 기준으로 추천 판단이 표시됩니다.',
+                        style: TextStyle(
+                          color: palette.text,
+                          fontSize: 14,
+                          height: 1.4,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: onCapitalTap,
+                    icon: const Icon(Icons.savings_rounded),
+                    label: const Text('자본금 설정하기'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: onHoldingTap,
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('보유 종목 추가하기'),
                   ),
                 ),
               ],

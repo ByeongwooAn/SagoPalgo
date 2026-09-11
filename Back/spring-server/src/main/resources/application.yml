@@ -54,3 +54,19 @@ sagopalgo:
       token-uri: ${SAGOPALGO_NAVER_TOKEN_URI:https://nid.naver.com/oauth2.0/token}
       # Naver 공식 회원 프로필 조회 API입니다.
       profile-uri: ${SAGOPALGO_NAVER_PROFILE_URI}
+  market:
+    kis:
+      # 한국투자증권 Open API 현재가 조회 사용 여부입니다. 키를 설정한 환경에서만 true로 켭니다.
+      enabled: ${SAGOPALGO_KIS_ENABLED:false}
+      # 실전 REST: https://openapi.koreainvestment.com:9443, 모의 REST: https://openapivts.koreainvestment.com:29443
+      base-url: ${SAGOPALGO_KIS_BASE_URL:https://openapi.koreainvestment.com:9443}
+      # 한국투자증권 개발자센터에서 발급받은 App Key/Secret입니다.
+      app-key: ${SAGOPALGO_KIS_APP_KEY:}
+      app-secret: ${SAGOPALGO_KIS_APP_SECRET:}
+      # OAuth2 client_credentials 토큰 발급 설정입니다.
+      grant-type: ${SAGOPALGO_KIS_GRANT_TYPE:client_credentials}
+      token-path: ${SAGOPALGO_KIS_TOKEN_PATH:/oauth2/tokenP}
+      # 국내주식 현재가 시세 API 설정입니다.
+      price-path: ${SAGOPALGO_KIS_PRICE_PATH:/uapi/domestic-stock/v1/quotations/inquire-price}
+      transaction-id: ${SAGOPALGO_KIS_PRICE_TR_ID:FHKST01010100}
+      customer-type: ${SAGOPALGO_KIS_CUSTOMER_TYPE:P}
