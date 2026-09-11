@@ -1,6 +1,17 @@
 # SagoPalgo
 
-사고팔고는 Flutter Android 앱, Spring Boot API 서버, MySQL DB, 이후 Python AI 서버로 확장되는 AI 투자 어시스턴트 프로젝트입니다.
+SagoPalgo는 개인이 Windows PC에서 실행해 사용하는 투자 분석 보조 프로그램입니다.
+Flutter Windows 앱을 중심으로 KB증권 계좌 데이터, KIS/Toss 시세 데이터, 뉴스/공시, AI 분석, 알림 기능을 한 곳에 모으는 것을 목표로 합니다.
+
+## 프로젝트 방향
+
+- 공개 앱스토어 출시나 상용 SaaS 운영이 아닌 개인용 Windows 프로그램을 우선합니다.
+- 실제 계좌 조회, 주문, 체결 등 금융 업무는 KB증권 Open API만 사용합니다.
+- KIS와 Toss Open API는 계좌/주문 연동 없이 읽기 전용 시장 데이터 Provider로 사용합니다.
+- 같은 현재가를 여러 증권사에서 매번 합치지 않고, 기본 Provider와 fallback Provider를 분리합니다.
+- 자동매매는 장기 기능으로만 열어두고, 모의매매와 승인형 주문을 먼저 거칩니다.
+
+자세한 구조와 개발 로드맵은 [개인용 Windows 투자 어시스턴트 설계 문서](docs/personal-windows-investment-assistant.md)를 참고합니다.
 
 ## 개인 사용 및 책임 고지
 
@@ -9,25 +20,35 @@
 사용자는 각 증권사 Open API 약관과 관련 법령을 직접 확인한 뒤 본인 책임하에 사용해야 합니다.
 API Key, 계좌정보, 토큰 등 민감정보를 저장소에 커밋하지 마세요.
 
-## Docker 구조
+## 목표 기능
 
-Docker Compose는 공통 파일과 환경별 override 파일로 나누어 관리합니다.
+- KB증권 계좌 조회, 보유 주식 조회, 평가손익 분석
+- 국내/해외 주식 현재가, 캔들, 거래량, 시장 지표 조회
+- 뉴스와 공시 기반 종목별 AI 분석
+- 관심종목, 보유종목, 리스크 신호 알림
+- 항상 화면 위에 띄울 수 있는 미니 위젯 모드
+- 추후 모의매매, 승인형 주문, 제한적 자동매매
+
+## 현재 기술 구조
 
 ```text
-docker-compose.yml       MySQL, Spring API, Nginx 공통 서비스 정의
-docker-compose.dev.yml   개발용 포트 공개와 HTTP Nginx 템플릿
-docker-compose.prod.yml  운영용 80/443 공개와 HTTPS Nginx 템플릿
+Front/app_version      Flutter 앱. Windows 데스크톱 실행 파일을 우선 대상으로 전환합니다.
+Back/spring-server     Spring Boot API 서버. 초기에는 기존 API와 데이터 구조를 활용합니다.
+docs                   설계, API, 수동 테스트, 로드맵 문서를 관리합니다.
+docker                 Docker/Nginx 템플릿과 실행 보조 파일을 관리합니다.
 ```
 
-Flutter 앱은 Android 에뮬레이터/기기 연결 때문에 Docker 밖에서 실행합니다. 앱은 `.env`의 API 주소로 Docker Compose에서 열린 백엔드에 접근합니다.
+초기 단계에서는 기존 Spring Boot 백엔드를 유지해 빠르게 Windows 실행 버전을 만들고, 이후 개인용 구조에 맞춰 로컬 저장소와 데스크톱 기능을 점진적으로 정리합니다.
 
 ## 개발 환경 실행
+
+백엔드 개발 환경:
 
 ```powershell
 docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d --build
 ```
 
-개발 환경 상태 확인:
+백엔드 상태 확인:
 
 ```powershell
 docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev ps
@@ -35,46 +56,39 @@ Invoke-WebRequest -Uri http://localhost:8081/health -UseBasicParsing
 docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev logs --tail=100 spring-api
 ```
 
-직접 API 서버에 접근할 때는 `http://localhost:8080`, Nginx 프록시를 통해 접근할 때는 `http://localhost:8081`을 사용합니다.
+Flutter Windows 실행:
 
-API와 Flutter 앱을 실제로 연결해 확인하는 자세한 절차는 [실제 기능 테스트 가이드](docs/manual-test-guide.md)를 참고합니다.
+Windows `.exe` 빌드를 위해 Visual Studio Installer에서 `Desktop development with C++` 워크로드와 `C++ CMake tools for Windows`, `Windows 10 SDK`가 필요합니다.
 
-## 운영 환경 실행
-
-운영 서버에서는 `.env.prod`의 비밀번호, JWT secret, OAuth 값, 인증서 경로를 실제 운영 값으로 교체한 뒤 실행합니다.
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d --build
+```powershell
+cd Front/app_version
+flutter config --enable-windows-desktop
+flutter pub get
+flutter run -d windows
 ```
 
-운영 환경 상태 확인:
+Windows 릴리즈 빌드:
 
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod ps
-curl -i https://api.sagopalgo.app/health
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod logs --tail=100 reverse-proxy
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod logs --tail=100 spring-api
+```powershell
+cd Front/app_version
+flutter build windows
 ```
-
-운영 환경에서는 Nginx에서 HTTPS를 종료하고 Spring Boot는 Docker 내부 네트워크에서 HTTP로 통신합니다.
-
-## 도메인 기준
-
-사고팔고가 Portal-IT와 별도 서비스라면 새 도메인을 Cloudflare에서 구매하는 것을 권장합니다. 초기 테스트나 내부 개발 단계에서는 기존 Portal-IT 도메인의 서브도메인으로 시작할 수 있습니다.
-
-```text
-api.sagopalgo.app
-app.sagopalgo.app
-www.sagopalgo.app
-```
-
-도메인은 `sagopalgo.app`으로 확정했으므로 운영 API 주소는 `https://api.sagopalgo.app`을 기준으로 둡니다.
 
 ## 환경 변수
 
 - `.env.dev`: Docker 개발 환경이 읽는 값입니다.
-- `.env.prod`: Docker 운영 환경이 읽는 값입니다.
+- `.env.prod`: 과거 운영 배포용 값입니다. 현재 방향에서는 개인용 실행을 우선합니다.
 - `.env.dev.example`, `.env.prod.example`: Git에 올리는 예시 파일입니다.
 - `Back/spring-server/.env`: Docker 없이 Spring Boot를 직접 실행할 때 쓰는 값입니다.
-- `Front/app_version/.env`: Flutter 앱에 포함되는 공개 설정값입니다.
+- `Front/app_version/.env`: Flutter 앱의 공개 설정값입니다.
 - 실제 `.env*` 파일은 Git에 올리지 않고, `.env*.example`만 추적합니다.
+
+API Key, access token, 계좌번호, 인증서, 로컬 DB 백업 같은 민감정보는 저장소에 커밋하지 않습니다.
+
+## 참고 문서
+
+- [개인용 Windows 투자 어시스턴트 설계](docs/personal-windows-investment-assistant.md)
+- [API 명세](docs/api-spec.md)
+- [데이터베이스 스키마](docs/database-schema.md)
+- [Docker 구조](docs/docker-architecture.md)
+- [실제 기능 테스트 가이드](docs/manual-test-guide.md)

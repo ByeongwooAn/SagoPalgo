@@ -17,7 +17,7 @@ import 'theme/app_theme.dart';
 
 /// Flutter 애플리케이션의 시작점입니다.
 ///
-/// Android에서 앱이 실행되면 가장 먼저 이 함수가 호출되고,
+/// Android와 Windows에서 앱이 실행되면 가장 먼저 이 함수가 호출되고,
 /// `SagoPalgoApp`을 Flutter 위젯 트리의 루트로 올립니다.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -115,7 +115,7 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: '사고팔고',
+      title: 'SagoPalgo',
       themeMode: _themeMode,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
