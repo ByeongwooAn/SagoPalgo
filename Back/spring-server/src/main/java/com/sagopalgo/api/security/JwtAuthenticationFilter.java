@@ -1,5 +1,6 @@
 package com.sagopalgo.api.security;
 
+import com.sagopalgo.api.config.PersonalModeProperties;
 import com.sagopalgo.api.token.service.JwtTokenProvider;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -27,14 +28,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final PersonalModeProperties personalModeProperties;
 
     /**
      * JWT 파싱과 검증을 담당하는 컴포넌트를 주입받습니다.
      *
      * @param jwtTokenProvider JWT 생성/검증 컴포넌트입니다.
      */
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+    public JwtAuthenticationFilter(
+        JwtTokenProvider jwtTokenProvider,
+        PersonalModeProperties personalModeProperties
+    ) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.personalModeProperties = personalModeProperties;
     }
 
     /**
@@ -56,6 +62,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null) {
             authenticate(token);
+        }
+
+        if (SecurityContextHolder.getContext().getAuthentication() == null && personalModeProperties.enabled()) {
+            authenticateLocalOwner();
         }
 
         filterChain.doFilter(request, response);
@@ -94,5 +104,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (JwtException | IllegalArgumentException exception) {
             SecurityContextHolder.clearContext();
         }
+    }
+
+    /**
+     * 개인용 모드에서는 별도 로그인 없이 로컬 소유자 한 명으로 요청을 처리합니다.
+     */
+    private void authenticateLocalOwner() {
+        JwtAuthenticatedUser authenticatedUser = new JwtAuthenticatedUser(
+            personalModeProperties.userId(),
+            personalModeProperties.email(),
+            personalModeProperties.nickname(),
+            "USER"
+        );
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+            authenticatedUser,
+            null,
+            List.of(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

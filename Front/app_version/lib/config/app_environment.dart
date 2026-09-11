@@ -2,7 +2,8 @@ import 'package:flutter/services.dart';
 
 /// Flutter 앱이 `.env` 파일에서 읽은 설정값을 보관하는 전역 환경 설정입니다.
 ///
-/// 모바일 앱에 포함되는 `.env` 값은 APK 안에 함께 들어가므로 진짜 비밀키를 넣으면 안 됩니다.
+/// Windows 실행 번들에 포함되는 `.env` 값은 사용자 PC에 남으므로 진짜 비밀키는 이후 로컬 보안 저장소로
+/// 옮기는 것을 목표로 합니다.
 /// 이 파일은 API 주소와 공개 가능한 client id처럼 앱에 노출되어도 되는 값만 관리합니다.
 class AppEnvironment {
   /// `.env` 파일을 읽은 뒤 만들어지는 설정 Map입니다.
@@ -55,16 +56,11 @@ class AppEnvironment {
     );
   }
 
-  /// Google SDK 초기화에 사용할 server client id입니다.
+  /// 앱 시작 시 사용할 선택형 로컬 잠금 PIN입니다.
   ///
-  /// 실제 Google SDK 연결 단계에서 `google_sign_in` 초기화에 전달합니다.
-  String? get googleServerClientId {
-    return _blankToNull(
-      _optional(
-        'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID',
-        fallback: _optional('SAGOPALGO_GOOGLE_CLIENT_ID'),
-      ),
-    );
+  /// 값이 없으면 개인용 프로그램은 별도 잠금 화면 없이 바로 홈으로 진입합니다.
+  String? get appLockPin {
+    return _blankToNull(_optional('SAGOPALGO_APP_LOCK_PIN'));
   }
 
   /// 선택 환경 변수를 읽고 없으면 fallback을 반환합니다.
@@ -115,11 +111,8 @@ class AppEnvironment {
       'SAGOPALGO_NGINX_SERVER_NAME': String.fromEnvironment(
         'SAGOPALGO_NGINX_SERVER_NAME',
       ),
-      'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID': String.fromEnvironment(
-        'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID',
-      ),
-      'SAGOPALGO_GOOGLE_CLIENT_ID': String.fromEnvironment(
-        'SAGOPALGO_GOOGLE_CLIENT_ID',
+      'SAGOPALGO_APP_LOCK_PIN': String.fromEnvironment(
+        'SAGOPALGO_APP_LOCK_PIN',
       ),
     };
 

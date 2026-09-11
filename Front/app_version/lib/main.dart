@@ -2,17 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'config/app_environment.dart';
 import 'models/auth_session.dart';
-import 'repositories/auth_repository.dart';
 import 'repositories/investment_repository.dart';
 import 'repositories/portfolio_repository.dart';
 import 'repositories/spring_investment_repository.dart';
-import 'repositories/spring_auth_repository.dart';
 import 'repositories/spring_portfolio_repository.dart';
 import 'repositories/spring_watchlist_repository.dart';
 import 'repositories/watchlist_repository.dart';
-import 'screens/login_screen.dart';
+import 'screens/app_lock_screen.dart';
 import 'screens/sago_palgo_home.dart';
-import 'services/social_token_provider.dart';
 import 'theme/app_theme.dart';
 
 /// Flutter 애플리케이션의 시작점입니다.
@@ -30,27 +27,21 @@ Future<void> main() async {
 /// 이 위젯은 MaterialApp, 다크/라이트 테마, Repository 주입을 담당합니다.
 /// 실제 화면 구현은 `SagoPalgoHome` 아래로 내려서 main 파일이 앱 조립만 맡도록 했습니다.
 class SagoPalgoApp extends StatefulWidget {
-  /// 테스트나 실제 API 연동 단계에서 인증 Repository를 교체할 수 있게 주입받습니다.
+  /// 테스트나 실제 API 연동 단계에서 데이터 Repository를 교체할 수 있게 주입받습니다.
   const SagoPalgoApp({
     super.key,
-    required this.authRepository,
     this.investmentRepositoryBuilder,
     this.watchlistRepositoryBuilder,
     this.portfolioRepositoryBuilder,
+    this.session = AuthSession.personal,
+    this.appLockPin,
   });
 
-  /// `.env`에서 읽은 API 주소와 SDK 설정으로 실제 Spring 연동 Repository를 구성합니다.
+  /// `.env`에서 읽은 API 주소로 실제 Spring 연동 Repository를 구성합니다.
   factory SagoPalgoApp.fromEnvironment() {
     final environment = AppEnvironment.instance;
-    return SagoPalgoApp(
-      authRepository: SpringAuthRepository(
-        tokenProvider: SdkSocialTokenProvider(environment),
-      ),
-    );
+    return SagoPalgoApp(appLockPin: environment.appLockPin);
   }
-
-  /// Google/Naver 로그인과 refresh/logout을 처리하는 인증 Repository입니다.
-  final AuthRepository authRepository;
 
   /// 테스트에서 투자 데이터 Repository를 교체하기 위한 빌더입니다.
   final InvestmentRepository Function(AuthSession session)?
@@ -64,6 +55,12 @@ class SagoPalgoApp extends StatefulWidget {
   final PortfolioRepository Function(AuthSession session)?
   portfolioRepositoryBuilder;
 
+  /// 개인용 프로그램에서 사용할 로컬 프로필 세션입니다.
+  final AuthSession session;
+
+  /// 설정되어 있으면 앱 시작 시 로컬 PIN 잠금 화면을 표시합니다.
+  final String? appLockPin;
+
   @override
   State<SagoPalgoApp> createState() => _SagoPalgoAppState();
 }
@@ -72,11 +69,8 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
   /// 시스템 설정을 기본으로 따르되, 사용자가 상단 버튼을 누르면 명시적으로 바뀝니다.
   ThemeMode _themeMode = ThemeMode.system;
 
-  /// 로그인 성공 후 앱이 보관하는 현재 인증 세션입니다.
-  ///
-  /// null이면 아직 로그인하지 않은 상태라 로그인 화면을 보여주고,
-  /// 값이 있으면 기존 투자 대시보드 화면으로 진입합니다.
-  AuthSession? _session;
+  /// 앱 잠금 PIN이 설정된 경우 홈 화면 진입 전 잠금 해제를 기다립니다.
+  late bool _isLocked = widget.appLockPin != null;
 
   /// 현재 화면 밝기를 기준으로 반대 테마를 선택합니다.
   ///
@@ -90,58 +84,41 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
     });
   }
 
-  /// 로그인 화면에서 인증에 성공했을 때 세션을 저장하고 홈 화면으로 전환합니다.
-  void _handleSignedIn(AuthSession session) {
-    setState(() {
-      _session = session;
-    });
-  }
-
-  /// 홈 화면에서 로그아웃을 누르면 서버 로그아웃을 요청한 뒤 로컬 세션을 비웁니다.
-  ///
-  /// 실제 Repository가 Spring Boot의 `/api/v1/auth/logout` API를 호출합니다.
-  Future<void> _handleLogout() async {
-    final session = _session;
-    if (session != null) {
-      await widget.authRepository.logout(session.accessToken);
-    }
-
-    setState(() {
-      _session = null;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final session = widget.session;
+    final appLockPin = widget.appLockPin;
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'SagoPalgo',
       themeMode: _themeMode,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      home: _session == null
-          ? LoginScreen(
-              authRepository: widget.authRepository,
-              onSignedIn: _handleSignedIn,
+      home: _isLocked && appLockPin != null
+          ? AppLockScreen(
+              pin: appLockPin,
+              onUnlocked: _unlockApp,
               onThemeToggle: _toggleTheme,
             )
           : SagoPalgoHome(
               onThemeToggle: _toggleTheme,
-              onLogout: _handleLogout,
               repository:
-                  widget.investmentRepositoryBuilder?.call(_session!) ??
-                  SpringInvestmentRepository(
-                    accessToken: _session!.accessToken,
-                  ),
+                  widget.investmentRepositoryBuilder?.call(session) ??
+                  SpringInvestmentRepository(accessToken: session.accessToken),
               watchlistRepository:
-                  widget.watchlistRepositoryBuilder?.call(_session!) ??
-                  SpringWatchlistRepository(accessToken: _session!.accessToken),
+                  widget.watchlistRepositoryBuilder?.call(session) ??
+                  SpringWatchlistRepository(accessToken: session.accessToken),
               portfolioRepository:
-                  widget.portfolioRepositoryBuilder?.call(_session!) ??
-                  SpringPortfolioRepository(accessToken: _session!.accessToken),
-              session: _session!,
+                  widget.portfolioRepositoryBuilder?.call(session) ??
+                  SpringPortfolioRepository(accessToken: session.accessToken),
+              session: session,
             ),
     );
+  }
+
+  void _unlockApp() {
+    setState(() => _isLocked = false);
   }
 }
 

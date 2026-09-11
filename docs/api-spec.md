@@ -5,9 +5,11 @@
 ## 1. 기본 원칙
 
 - API 서버는 Spring Boot가 담당한다.
-- 앱은 모든 사용자 데이터 요청을 Spring Boot API로 보낸다.
+- 개인용 Windows 프로그램은 로그인 없이 로컬 사용자 1명으로 실행한다.
+- 앱은 모든 개인 투자 데이터 요청을 Spring Boot API로 보낸다.
 - Python AI 서버는 Spring Boot 내부 서버 간 호출 대상으로 둔다.
-- Android 앱은 JWT access token을 `Authorization: Bearer {token}` 형식으로 전달한다.
+- `SAGOPALGO_PERSONAL_MODE_ENABLED=true`이면 JWT 없이 API를 호출할 수 있고, 서버는 로컬 사용자 ID를 주입한다.
+- 기존 Auth API와 JWT 흐름은 레거시 호환용으로 남긴다.
 - 모든 날짜/시간은 서버 내부에서는 UTC로 저장하고, 앱 표시 시 사용자 로컬 시간대로 변환한다.
 - 추천 결과는 점수와 추천 사유를 반드시 함께 내려준다.
 - 주문 자동화는 MVP 범위에서 제외하고, 4단계에서 사용자 승인 기반으로 별도 구현한다.
@@ -50,6 +52,8 @@
 | `INTERNAL_ERROR` | 서버 내부 오류 | 500 |
 
 ## 3. 인증 API
+
+현재 개인용 Windows 프로그램 화면에서는 아래 인증 API를 사용하지 않습니다. 로그인 없는 개인용 모드가 기본이며, 아래 API는 과거 소셜 로그인 구조와 테스트 호환을 위해 남긴 레거시 계약입니다.
 
 ### 3.1 Google 로그인
 

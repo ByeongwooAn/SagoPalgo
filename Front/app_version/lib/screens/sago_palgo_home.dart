@@ -23,7 +23,6 @@ class SagoPalgoHome extends StatefulWidget {
   const SagoPalgoHome({
     super.key,
     required this.onThemeToggle,
-    required this.onLogout,
     required this.repository,
     required this.watchlistRepository,
     required this.portfolioRepository,
@@ -32,9 +31,6 @@ class SagoPalgoHome extends StatefulWidget {
 
   /// 상단 버튼을 눌렀을 때 앱 루트에 테마 변경을 요청하는 콜백입니다.
   final ValueChanged<Brightness> onThemeToggle;
-
-  /// 상단 로그아웃 버튼을 눌렀을 때 앱 루트에 세션 종료를 요청하는 콜백입니다.
-  final Future<void> Function() onLogout;
 
   /// 시장, 추천, 보유 종목, 알림 데이터를 제공하는 Repository입니다.
   final InvestmentRepository repository;
@@ -45,7 +41,7 @@ class SagoPalgoHome extends StatefulWidget {
   /// 포트폴리오 화면에서 자본금과 보유 종목을 최신 API로 다시 불러오는 Repository입니다.
   final PortfolioRepository portfolioRepository;
 
-  /// 현재 로그인한 사용자와 토큰 정보를 담고 있는 인증 세션입니다.
+  /// 현재 로컬 사용자 프로필 정보를 담고 있는 세션입니다.
   final AuthSession session;
 
   @override
@@ -93,7 +89,6 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                 user: widget.session.user,
                 onThemeToggle: () =>
                     widget.onThemeToggle(Theme.of(context).brightness),
-                onLogout: widget.onLogout,
               ),
               Expanded(
                 child: FutureBuilder<InvestmentSnapshot>(
@@ -185,7 +180,6 @@ class TopBar extends StatelessWidget {
     required this.isDark,
     required this.user,
     required this.onThemeToggle,
-    required this.onLogout,
   });
 
   /// true이면 A 시안 콘셉트인 AI 트레이딩 콘솔 문구를 보여줍니다.
@@ -196,9 +190,6 @@ class TopBar extends StatelessWidget {
 
   /// 사용자가 아이콘 버튼을 눌렀을 때 실행되는 테마 전환 콜백입니다.
   final VoidCallback onThemeToggle;
-
-  /// 사용자가 로그아웃 아이콘 버튼을 눌렀을 때 실행되는 콜백입니다.
-  final Future<void> Function() onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -237,7 +228,7 @@ class TopBar extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${user.nickname} · ${_providerLabel(user.authProvider)}',
+                  '${user.nickname} · ${_profileLabel(user.authProvider)}',
                   style: TextStyle(
                     color: palette.muted,
                     fontSize: 12,
@@ -253,19 +244,17 @@ class TopBar extends StatelessWidget {
             tooltip: isDark ? '라이트모드로 전환' : '다크모드로 전환',
             icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
           ),
-          const SizedBox(width: 6),
-          IconButton.filledTonal(
-            onPressed: onLogout,
-            tooltip: '로그아웃',
-            icon: const Icon(Icons.logout_rounded),
-          ),
         ],
       ),
     );
   }
 
-  /// 백엔드에서 내려준 provider 코드를 화면에 표시할 짧은 한글 라벨로 변환합니다.
-  String _providerLabel(String authProvider) {
+  /// 프로필 출처 코드를 화면에 표시할 짧은 한글 라벨로 변환합니다.
+  String _profileLabel(String authProvider) {
+    if (authProvider == 'LOCAL') {
+      return '개인 모드';
+    }
+
     return authProvider == 'NAVER' ? 'Naver 로그인' : 'Google 로그인';
   }
 }

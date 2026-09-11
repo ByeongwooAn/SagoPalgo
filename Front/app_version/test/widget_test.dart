@@ -1,11 +1,9 @@
 import 'package:app_version/main.dart';
 import 'package:app_version/models/app_alert.dart';
-import 'package:app_version/models/auth_session.dart';
 import 'package:app_version/models/holding.dart';
 import 'package:app_version/models/investment_snapshot.dart';
 import 'package:app_version/models/market_summary.dart';
 import 'package:app_version/models/recommendation.dart';
-import 'package:app_version/repositories/auth_repository.dart';
 import 'package:app_version/repositories/investment_repository.dart';
 import 'package:app_version/repositories/portfolio_repository.dart';
 import 'package:app_version/repositories/watchlist_repository.dart';
@@ -21,24 +19,18 @@ void main() {
     /// 앱 루트를 테스트 환경에 올려 실제 Android 앱과 같은 위젯 트리를 만듭니다.
     await tester.pumpWidget(
       SagoPalgoApp(
-        authRepository: const FakeAuthRepository(),
         investmentRepositoryBuilder: (_) => const FakeInvestmentRepository(),
         watchlistRepositoryBuilder: (_) => const FakeWatchlistRepository(),
         portfolioRepositoryBuilder: (_) => const FakePortfolioRepository(),
       ),
     );
 
-    /// 앱은 로그인 화면에서 시작하므로 Google 로그인 버튼이 보이는지 먼저 확인합니다.
-    await tester.pumpAndSettle();
-    expect(find.text('Google로 계속하기'), findsOneWidget);
-
-    /// Google 로그인 버튼을 눌러 테스트 세션을 만들고 홈 화면으로 진입합니다.
-    await tester.tap(find.text('Google로 계속하기'));
+    /// 개인용 프로그램은 로그인 없이 바로 홈 화면으로 진입합니다.
     await tester.pumpAndSettle();
 
-    /// 홈 화면에는 앱 브랜드명, 로그인 사용자명, 자본금 카드가 보여야 합니다.
+    /// 홈 화면에는 앱 브랜드명, 로컬 사용자명, 자본금 카드가 보여야 합니다.
     expect(find.text('사고팔고'), findsAtLeastNWidgets(1));
-    expect(find.text('구글사용자 · Google 로그인'), findsOneWidget);
+    expect(find.text('개인 사용자 · 개인 모드'), findsOneWidget);
     expect(find.text('3,000,000원'), findsOneWidget);
 
     /// 하단 네비게이션의 추천 탭을 눌러 추천 상세 화면으로 이동합니다.
@@ -62,28 +54,31 @@ void main() {
     /// 다크모드가 되면 버튼 아이콘이 다시 라이트모드 전환 아이콘으로 바뀝니다.
     expect(find.byIcon(Icons.light_mode), findsOneWidget);
   });
-}
 
-class FakeAuthRepository implements AuthRepository {
-  const FakeAuthRepository();
+  testWidgets('app lock requires configured local PIN', (tester) async {
+    await tester.pumpWidget(
+      SagoPalgoApp(
+        appLockPin: '1234',
+        investmentRepositoryBuilder: (_) => const FakeInvestmentRepository(),
+        watchlistRepositoryBuilder: (_) => const FakeWatchlistRepository(),
+        portfolioRepositoryBuilder: (_) => const FakePortfolioRepository(),
+      ),
+    );
 
-  @override
-  Future<AuthSession> loginWithGoogle() async {
-    return _testSession;
-  }
+    await tester.pumpAndSettle();
+    expect(find.text('SagoPalgo 잠금'), findsOneWidget);
+    expect(find.text('개인 사용자 · 개인 모드'), findsNothing);
 
-  @override
-  Future<AuthSession> loginWithNaver() async {
-    return _testSession;
-  }
+    await tester.enterText(find.byType(TextField), '0000');
+    await tester.tap(find.text('잠금 해제'));
+    await tester.pumpAndSettle();
+    expect(find.text('PIN이 일치하지 않습니다.'), findsOneWidget);
 
-  @override
-  Future<AuthSession> refresh(String refreshToken) async {
-    return _testSession;
-  }
-
-  @override
-  Future<void> logout(String accessToken) async {}
+    await tester.enterText(find.byType(TextField), '1234');
+    await tester.tap(find.text('잠금 해제'));
+    await tester.pumpAndSettle();
+    expect(find.text('개인 사용자 · 개인 모드'), findsOneWidget);
+  });
 }
 
 class FakeInvestmentRepository implements InvestmentRepository {
@@ -163,19 +158,6 @@ class FakeWatchlistRepository implements WatchlistRepository {
     );
   }
 }
-
-const _testSession = AuthSession(
-  accessToken: 'test-access-token',
-  refreshToken: 'test-refresh-token',
-  expiresIn: 3600,
-  user: AuthUser(
-    userId: 1,
-    authProvider: 'GOOGLE',
-    email: 'user@example.com',
-    nickname: '구글사용자',
-    profileImageUrl: null,
-  ),
-);
 
 const _testCapital = CapitalSettings(
   availableCapital: 3000000,
