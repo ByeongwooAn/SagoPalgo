@@ -5,7 +5,7 @@ enum SocialLoginProvider {
   /// Google ID token 기반 로그인을 의미합니다.
   google,
 
-  /// Naver access token 기반 로그인을 의미합니다.
+  /// Naver authorization code 기반 로그인을 의미합니다.
   naver,
 }
 

@@ -30,15 +30,21 @@ public record OAuthProperties(
     }
 
     /**
-     * Naver 프로필 API 호출에 필요한 설정입니다.
+     * Naver authorization code 교환과 프로필 API 호출에 필요한 설정입니다.
      *
      * @param clientId Naver Developers에서 발급받은 Client ID입니다.
      * @param clientSecret Naver Developers에서 발급받은 Client Secret입니다.
+     * @param redirectUri Naver Developers에 등록한 callback URL입니다.
+     * @param authorizeUri Naver 로그인 인증 요청 API 엔드포인트입니다.
+     * @param tokenUri Naver access token 발급 API 엔드포인트입니다.
      * @param profileUri Naver 회원 프로필 조회 API 엔드포인트입니다.
      */
     public record Naver(
         String clientId,
         String clientSecret,
+        String redirectUri,
+        String authorizeUri,
+        String tokenUri,
         String profileUri
     ) {
     }

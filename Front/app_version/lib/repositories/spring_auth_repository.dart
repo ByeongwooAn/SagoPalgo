@@ -9,8 +9,8 @@ import 'auth_repository.dart';
 
 /// Spring Boot 백엔드 인증 API와 실제로 통신하는 Repository입니다.
 ///
-/// 이 클래스는 Google/Naver SDK에서 받은 provider token을 `/api/v1/auth/google`,
-/// `/api/v1/auth/naver`로 전달하고, 백엔드가 발급한 사고팔고 JWT 세션을 앱 모델로 변환합니다.
+/// 이 클래스는 Google ID token과 Naver authorization code를 인증 API로 전달하고,
+/// 백엔드가 발급한 사고팔고 JWT 세션을 앱 모델로 변환합니다.
 class SpringAuthRepository implements AuthRepository {
   /// API 설정, HTTP 클라이언트, 소셜 토큰 Provider를 외부에서 주입받습니다.
   SpringAuthRepository({
@@ -37,8 +37,11 @@ class SpringAuthRepository implements AuthRepository {
 
   @override
   Future<AuthSession> loginWithNaver() async {
-    final providerToken = await tokenProvider.fetchNaverAccessToken();
-    return _postAuthSession('/naver', {'providerToken': providerToken});
+    final authorization = await tokenProvider.fetchNaverAuthorizationCode();
+    return _postAuthSession('/naver', {
+      'authorizationCode': authorization.authorizationCode,
+      'state': authorization.state,
+    });
   }
 
   @override

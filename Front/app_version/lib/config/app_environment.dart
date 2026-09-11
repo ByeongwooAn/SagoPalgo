@@ -19,7 +19,7 @@ class AppEnvironment {
   /// @param assetPath pubspec.yaml assets에 등록된 `.env` 파일 경로입니다.
   static Future<void> load({String assetPath = '.env'}) async {
     final raw = await rootBundle.loadString(assetPath);
-    _instance = AppEnvironment._(_parse(raw));
+    _instance = AppEnvironment._({..._parse(raw), ..._dartDefines()});
   }
 
   /// 초기화된 환경 설정을 반환합니다.
@@ -36,7 +36,24 @@ class AppEnvironment {
   }
 
   /// Spring Boot 백엔드의 기본 API 주소입니다.
-  String get apiBaseUrl => _required('SAGOPALGO_API_BASE_URL');
+  String get apiBaseUrl {
+    final explicitBaseUrl = _blankToNull(_optional('SAGOPALGO_API_BASE_URL'));
+    if (explicitBaseUrl != null) {
+      return explicitBaseUrl;
+    }
+
+    final serverName = _blankToNull(_optional('SAGOPALGO_NGINX_SERVER_NAME'));
+    final proxyPort = _blankToNull(_optional('SAGOPALGO_PROXY_HTTP_PORT'));
+    final apiPort = _blankToNull(_optional('SAGOPALGO_API_PORT'));
+    final port = proxyPort ?? apiPort;
+    if (serverName != null && port != null) {
+      return 'http://$serverName:$port';
+    }
+
+    throw StateError(
+      'SAGOPALGO_API_BASE_URL 또는 SAGOPALGO_NGINX_SERVER_NAME/SAGOPALGO_PROXY_HTTP_PORT 환경 변수가 필요합니다.',
+    );
+  }
 
   /// 현재 앱이 Mock 인증 Repository를 사용할지 결정합니다.
   bool get useMockAuth {
@@ -47,24 +64,12 @@ class AppEnvironment {
   ///
   /// 실제 Google SDK 연결 단계에서 `google_sign_in` 초기화에 전달합니다.
   String? get googleServerClientId {
-    return _blankToNull(_optional('SAGOPALGO_GOOGLE_SERVER_CLIENT_ID'));
-  }
-
-  /// Naver SDK 초기화에 사용할 공개 client id입니다.
-  ///
-  /// Naver client secret은 모바일 앱에 넣지 않고 백엔드 `.env`에서만 관리해야 합니다.
-  String? get naverClientId {
-    return _blankToNull(_optional('SAGOPALGO_NAVER_CLIENT_ID'));
-  }
-
-  /// 필수 환경 변수를 읽고 값이 비어 있으면 오류를 던집니다.
-  String _required(String key) {
-    final value = _values[key];
-    if (value == null || value.isBlank) {
-      throw StateError('$key 환경 변수가 .env에 설정되어 있지 않습니다.');
-    }
-
-    return value;
+    return _blankToNull(
+      _optional(
+        'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID',
+        fallback: _optional('SAGOPALGO_GOOGLE_CLIENT_ID'),
+      ),
+    );
   }
 
   /// 선택 환경 변수를 읽고 없으면 fallback을 반환합니다.
@@ -100,6 +105,35 @@ class AppEnvironment {
     }
 
     return values;
+  }
+
+  /// `flutter run --dart-define`으로 넘어온 값이 있으면 asset 값보다 우선합니다.
+  static Map<String, String> _dartDefines() {
+    const values = <String, String>{
+      'SAGOPALGO_API_BASE_URL': String.fromEnvironment(
+        'SAGOPALGO_API_BASE_URL',
+      ),
+      'SAGOPALGO_API_PORT': String.fromEnvironment('SAGOPALGO_API_PORT'),
+      'SAGOPALGO_PROXY_HTTP_PORT': String.fromEnvironment(
+        'SAGOPALGO_PROXY_HTTP_PORT',
+      ),
+      'SAGOPALGO_NGINX_SERVER_NAME': String.fromEnvironment(
+        'SAGOPALGO_NGINX_SERVER_NAME',
+      ),
+      'SAGOPALGO_USE_MOCK_AUTH': String.fromEnvironment(
+        'SAGOPALGO_USE_MOCK_AUTH',
+      ),
+      'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID': String.fromEnvironment(
+        'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID',
+      ),
+      'SAGOPALGO_GOOGLE_CLIENT_ID': String.fromEnvironment(
+        'SAGOPALGO_GOOGLE_CLIENT_ID',
+      ),
+    };
+
+    return Map.fromEntries(
+      values.entries.where((entry) => entry.value.trim().isNotEmpty),
+    );
   }
 
   /// 작은따옴표나 큰따옴표로 감싼 값에서 바깥 따옴표만 제거합니다.

@@ -46,5 +46,11 @@ sagopalgo:
       client-id: ${SAGOPALGO_NAVER_CLIENT_ID}
       # Naver Developers에서 발급받은 Client Secret입니다.
       client-secret: ${SAGOPALGO_NAVER_CLIENT_SECRET}
+      # Naver Developers에 등록한 모바일 callback URL입니다.
+      redirect-uri: ${SAGOPALGO_NAVER_REDIRECT_URI:sagopalgo://oauth/naver}
+      # Naver 공식 로그인 인증 요청 API입니다.
+      authorize-uri: ${SAGOPALGO_NAVER_AUTHORIZE_URI:https://nid.naver.com/oauth2.0/authorize}
+      # Naver 공식 access token 발급 API입니다.
+      token-uri: ${SAGOPALGO_NAVER_TOKEN_URI:https://nid.naver.com/oauth2.0/token}
       # Naver 공식 회원 프로필 조회 API입니다.
       profile-uri: ${SAGOPALGO_NAVER_PROFILE_URI}

@@ -1,6 +1,8 @@
 package com.sagopalgo.api.auth.service;
 
 import com.sagopalgo.api.auth.dto.AuthTokenResponse;
+import com.sagopalgo.api.auth.dto.NaverAuthorizationUrlResponse;
+import com.sagopalgo.api.auth.dto.NaverLoginRequest;
 import com.sagopalgo.api.auth.dto.RefreshTokenRequest;
 import com.sagopalgo.api.auth.dto.SocialLoginRequest;
 import com.sagopalgo.api.auth.dto.UserResponse;
@@ -39,7 +41,7 @@ public class AuthService {
      *
      * @param userMapper users 테이블 접근 Mapper입니다.
      * @param googleOAuthClient Google ID token 검증 클라이언트입니다.
-     * @param naverOAuthClient Naver access token 검증 클라이언트입니다.
+     * @param naverOAuthClient Naver authorization code 교환과 프로필 조회 클라이언트입니다.
      * @param jwtTokenProvider JWT 생성 컴포넌트입니다.
      * @param refreshTokenService refresh token 저장 서비스입니다.
      */
@@ -71,14 +73,30 @@ public class AuthService {
     }
 
     /**
-     * Naver access token을 검증하고 사고팔고 JWT 토큰 쌍을 발급합니다.
+     * Naver 로그인 인증 화면 URL을 생성합니다.
      *
-     * @param request Naver access token을 담은 요청 DTO입니다.
+     * @param state 앱이 생성한 CSRF 방지 상태값입니다.
+     * @return Naver authorization endpoint URL입니다.
+     */
+    public NaverAuthorizationUrlResponse naverAuthorizationUrl(String state) {
+        return new NaverAuthorizationUrlResponse(
+            naverOAuthClient.authorizationUrl(state),
+            naverOAuthClient.redirectUri()
+        );
+    }
+
+    /**
+     * Naver authorization code를 access token으로 교환하고 사고팔고 JWT 토큰 쌍을 발급합니다.
+     *
+     * @param request Naver callback으로 받은 authorization code 요청 DTO입니다.
      * @return 앱에서 사용할 사고팔고 access token과 refresh token입니다.
      */
     @Transactional
-    public AuthTokenResponse loginWithNaver(SocialLoginRequest request) {
-        OAuthUserProfile profile = naverOAuthClient.fetchProfile(request.providerToken());
+    public AuthTokenResponse loginWithNaver(NaverLoginRequest request) {
+        OAuthUserProfile profile = naverOAuthClient.fetchProfile(
+            request.authorizationCode(),
+            request.state()
+        );
         User user = findOrCreateSocialUser(profile);
         return issueTokenPair(user);
     }
