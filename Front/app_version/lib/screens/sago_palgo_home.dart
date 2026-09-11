@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/auth_session.dart';
 import '../models/investment_snapshot.dart';
 import '../repositories/investment_repository.dart';
+import '../repositories/watchlist_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
 import 'alerts_screen.dart';
@@ -22,6 +23,7 @@ class SagoPalgoHome extends StatefulWidget {
     required this.onThemeToggle,
     required this.onLogout,
     required this.repository,
+    required this.watchlistRepository,
     required this.session,
   });
 
@@ -33,6 +35,9 @@ class SagoPalgoHome extends StatefulWidget {
 
   /// 시장, 추천, 보유 종목, 알림 데이터를 제공하는 Repository입니다.
   final InvestmentRepository repository;
+
+  /// 추천 화면에서 관심 종목 등록과 알림 설정을 처리하는 Repository입니다.
+  final WatchlistRepository watchlistRepository;
 
   /// 현재 로그인한 사용자와 토큰 정보를 담고 있는 인증 세션입니다.
   final AuthSession session;
@@ -95,6 +100,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                     return _TabContent(
                       selectedIndex: _selectedIndex,
                       snapshot: snapshot.data!,
+                      watchlistRepository: widget.watchlistRepository,
                     );
                   },
                 ),
@@ -306,7 +312,11 @@ class ErrorState extends StatelessWidget {
 /// 하단 탭 선택에 따라 실제 화면을 교체하는 콘텐츠 영역입니다.
 class _TabContent extends StatelessWidget {
   /// 선택된 탭 인덱스와 로딩 완료된 투자 데이터를 받습니다.
-  const _TabContent({required this.selectedIndex, required this.snapshot});
+  const _TabContent({
+    required this.selectedIndex,
+    required this.snapshot,
+    required this.watchlistRepository,
+  });
 
   /// 현재 선택된 하단 탭 인덱스입니다.
   final int selectedIndex;
@@ -314,13 +324,19 @@ class _TabContent extends StatelessWidget {
   /// 모든 화면에 나눠 전달할 투자 데이터 묶음입니다.
   final InvestmentSnapshot snapshot;
 
+  /// 추천 화면 관심 종목 액션을 처리하는 Repository입니다.
+  final WatchlistRepository watchlistRepository;
+
   @override
   Widget build(BuildContext context) {
     return IndexedStack(
       index: selectedIndex,
       children: [
         DashboardScreen(snapshot: snapshot),
-        RecommendationScreen(recommendation: snapshot.recommendation),
+        RecommendationScreen(
+          recommendation: snapshot.recommendation,
+          watchlistRepository: watchlistRepository,
+        ),
         PortfolioScreen(
           summary: snapshot.portfolioSummary,
           holdings: snapshot.holdings,

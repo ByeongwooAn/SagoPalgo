@@ -5,8 +5,10 @@ import 'models/auth_session.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/mock_auth_repository.dart';
 import 'repositories/mock_investment_repository.dart';
+import 'repositories/mock_watchlist_repository.dart';
 import 'repositories/spring_investment_repository.dart';
 import 'repositories/spring_auth_repository.dart';
+import 'repositories/spring_watchlist_repository.dart';
 import 'screens/login_screen.dart';
 import 'screens/sago_palgo_home.dart';
 import 'services/social_token_provider.dart';
@@ -31,7 +33,8 @@ class SagoPalgoApp extends StatefulWidget {
   const SagoPalgoApp({
     super.key,
     this.authRepository = const MockAuthRepository(),
-    this.useMockInvestment = true,
+    this.useMockInvestment = false,
+    this.useMockWatchlist = false,
   });
 
   /// `.env`에서 읽은 앱 설정에 따라 실제 사용할 인증 Repository를 결정합니다.
@@ -41,7 +44,10 @@ class SagoPalgoApp extends StatefulWidget {
   factory SagoPalgoApp.fromEnvironment() {
     final environment = AppEnvironment.instance;
     if (environment.useMockAuth) {
-      return SagoPalgoApp(useMockInvestment: environment.useMockInvestment);
+      return SagoPalgoApp(
+        useMockInvestment: environment.useMockInvestment,
+        useMockWatchlist: environment.useMockWatchlist,
+      );
     }
 
     return SagoPalgoApp(
@@ -49,6 +55,7 @@ class SagoPalgoApp extends StatefulWidget {
         tokenProvider: SdkSocialTokenProvider(environment),
       ),
       useMockInvestment: environment.useMockInvestment,
+      useMockWatchlist: environment.useMockWatchlist,
     );
   }
 
@@ -57,6 +64,9 @@ class SagoPalgoApp extends StatefulWidget {
 
   /// true이면 홈 화면 투자 데이터를 Mock Repository에서 불러옵니다.
   final bool useMockInvestment;
+
+  /// true이면 추천 화면 관심 종목 액션을 Mock Repository에서 처리합니다.
+  final bool useMockWatchlist;
 
   @override
   State<SagoPalgoApp> createState() => _SagoPalgoAppState();
@@ -126,6 +136,11 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
               repository: widget.useMockInvestment
                   ? const MockInvestmentRepository()
                   : SpringInvestmentRepository(
+                      accessToken: _session!.accessToken,
+                    ),
+              watchlistRepository: widget.useMockWatchlist
+                  ? const MockWatchlistRepository()
+                  : SpringWatchlistRepository(
                       accessToken: _session!.accessToken,
                     ),
               session: _session!,
