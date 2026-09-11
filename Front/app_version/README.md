@@ -10,6 +10,9 @@
 - `SAGOPALGO_USE_MOCK_AUTH=false`이면 `SpringAuthRepository`가 실제 Google ID token과 Naver authorization code를 Spring Boot 인증 API로 전달합니다.
 - 로그인 성공 후에는 기존 대시보드, 추천, 포트폴리오, 알림 탭으로 진입합니다.
 - 홈 상단 로그아웃 버튼을 누르면 인증 세션을 비우고 로그인 화면으로 돌아갑니다.
+- `SAGOPALGO_USE_MOCK_INVESTMENT=false`이면 대시보드 스냅샷과 포트폴리오 탭이 Spring API에서 데이터를 불러옵니다.
+- 포트폴리오 탭은 `/api/v1/capital`, `/api/v1/holdings`를 별도로 호출해 자본금, 권장 투자금, 보유 종목 손익을 최신화합니다.
+- 추천 화면의 관심 등록/알림 설정 버튼은 `SAGOPALGO_USE_MOCK_WATCHLIST=false`일 때 Spring 관심 종목 API로 동작합니다.
 
 ## 실제 소셜 SDK 연결 지점
 

@@ -32,10 +32,12 @@ class DashboardServiceTest {
     private HoldingService holdingService;
 
     private DashboardService dashboardService;
+    private DashboardRecommendationEngine recommendationEngine;
 
     @BeforeEach
     void setUp() {
-        dashboardService = new DashboardService(capitalService, holdingService);
+        recommendationEngine = new DashboardRecommendationEngine();
+        dashboardService = new DashboardService(capitalService, holdingService, recommendationEngine);
     }
 
     @Test
@@ -64,6 +66,7 @@ class DashboardServiceTest {
         assertThat(response.marketSummary().recommendedPositionRange()).isEqualTo("30~60만원");
         assertThat(response.recommendation().stockName()).isEqualTo("삼성전자");
         assertThat(response.recommendation().entryPrice()).isEqualByComparingTo("69100");
+        assertThat(response.recommendation().status()).isEqualTo("보유 유지");
         assertThat(response.portfolioSummary()).isSameAs(summary);
         assertThat(response.holdings()).containsExactly(holding);
         assertThat(response.alerts()).hasSize(3);

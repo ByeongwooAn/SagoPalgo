@@ -30,6 +30,8 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.d
 
 직접 API 서버에 접근할 때는 `http://localhost:8080`, Nginx 프록시를 통해 접근할 때는 `http://localhost:8081`을 사용합니다.
 
+API와 Flutter 앱을 실제로 연결해 확인하는 자세한 절차는 [실제 기능 테스트 가이드](docs/manual-test-guide.md)를 참고합니다.
+
 ## 운영 환경 실행
 
 운영 서버에서는 `.env.prod`의 비밀번호, JWT secret, OAuth 값, 인증서 경로를 실제 운영 값으로 교체한 뒤 실행합니다.

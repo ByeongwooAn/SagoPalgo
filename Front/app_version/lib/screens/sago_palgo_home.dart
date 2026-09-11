@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../models/auth_session.dart';
+import '../models/holding.dart';
 import '../models/investment_snapshot.dart';
 import '../repositories/investment_repository.dart';
+import '../repositories/portfolio_repository.dart';
 import '../repositories/watchlist_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
@@ -24,6 +26,7 @@ class SagoPalgoHome extends StatefulWidget {
     required this.onLogout,
     required this.repository,
     required this.watchlistRepository,
+    required this.portfolioRepository,
     required this.session,
   });
 
@@ -38,6 +41,9 @@ class SagoPalgoHome extends StatefulWidget {
 
   /// 추천 화면에서 관심 종목 등록과 알림 설정을 처리하는 Repository입니다.
   final WatchlistRepository watchlistRepository;
+
+  /// 포트폴리오 화면에서 자본금과 보유 종목을 최신 API로 다시 불러오는 Repository입니다.
+  final PortfolioRepository portfolioRepository;
 
   /// 현재 로그인한 사용자와 토큰 정보를 담고 있는 인증 세션입니다.
   final AuthSession session;
@@ -56,12 +62,16 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
   /// `initState`에서 생성한 Future를 보관합니다.
   late Future<InvestmentSnapshot> _snapshotFuture;
 
+  /// 포트폴리오 탭에서 별도로 갱신하는 자본금/보유 종목 Future입니다.
+  late Future<PortfolioSnapshot> _portfolioFuture;
+
   @override
   void initState() {
     super.initState();
 
     /// 초기 화면을 구성할 데이터를 Repository에서 비동기로 요청합니다.
     _snapshotFuture = widget.repository.fetchSnapshot();
+    _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
   }
 
   @override
@@ -101,6 +111,8 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       selectedIndex: _selectedIndex,
                       snapshot: snapshot.data!,
                       watchlistRepository: widget.watchlistRepository,
+                      portfolioFuture: _portfolioFuture,
+                      onPortfolioRetry: _reloadPortfolio,
                     );
                   },
                 ),
@@ -120,6 +132,14 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
   void _reloadSnapshot() {
     setState(() {
       _snapshotFuture = widget.repository.fetchSnapshot();
+      _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
+    });
+  }
+
+  /// 포트폴리오 탭에서 최신 자본금/보유 종목만 다시 요청합니다.
+  void _reloadPortfolio() {
+    setState(() {
+      _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
     });
   }
 }
@@ -316,6 +336,8 @@ class _TabContent extends StatelessWidget {
     required this.selectedIndex,
     required this.snapshot,
     required this.watchlistRepository,
+    required this.portfolioFuture,
+    required this.onPortfolioRetry,
   });
 
   /// 현재 선택된 하단 탭 인덱스입니다.
@@ -326,6 +348,12 @@ class _TabContent extends StatelessWidget {
 
   /// 추천 화면 관심 종목 액션을 처리하는 Repository입니다.
   final WatchlistRepository watchlistRepository;
+
+  /// 포트폴리오 탭에서 사용할 최신 자본금/보유 종목 Future입니다.
+  final Future<PortfolioSnapshot> portfolioFuture;
+
+  /// 포트폴리오 데이터 재시도 콜백입니다.
+  final VoidCallback onPortfolioRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -338,8 +366,16 @@ class _TabContent extends StatelessWidget {
           watchlistRepository: watchlistRepository,
         ),
         PortfolioScreen(
+          capital: CapitalSettings(
+            availableCapital: snapshot.marketSummary.availableCapital,
+            recommendedMinPosition: 0,
+            recommendedMaxPosition: 0,
+            riskPerTradeRate: 0.02,
+          ),
           summary: snapshot.portfolioSummary,
           holdings: snapshot.holdings,
+          portfolioFuture: portfolioFuture,
+          onRetry: onPortfolioRetry,
         ),
         AlertsScreen(alerts: snapshot.alerts),
       ],

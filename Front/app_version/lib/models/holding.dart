@@ -44,6 +44,58 @@ class Holding {
   }
 }
 
+/// 포트폴리오 화면에서 자본금과 보유 종목을 함께 다루기 위한 데이터 묶음입니다.
+class PortfolioSnapshot {
+  /// API에서 따로 내려오는 자본금 설정, 손익 요약, 보유 종목 목록을 함께 받습니다.
+  const PortfolioSnapshot({
+    required this.capital,
+    required this.summary,
+    required this.holdings,
+  });
+
+  /// 투자 가능 자본금과 종목당 권장 투자금 설정입니다.
+  final CapitalSettings capital;
+
+  /// 보유 종목 전체 손익 요약입니다.
+  final PortfolioSummary summary;
+
+  /// 사용자가 현재 보유한 종목 목록입니다.
+  final List<Holding> holdings;
+}
+
+/// 사용자 자본금과 리스크 설정입니다.
+class CapitalSettings {
+  /// 포트폴리오 화면에서 표시할 자본금/리스크 기준을 받습니다.
+  const CapitalSettings({
+    required this.availableCapital,
+    required this.recommendedMinPosition,
+    required this.recommendedMaxPosition,
+    required this.riskPerTradeRate,
+  });
+
+  /// 사용자가 투자 가능하다고 설정한 총 자본금입니다.
+  final int availableCapital;
+
+  /// 종목당 최소 권장 투자금입니다.
+  final int recommendedMinPosition;
+
+  /// 종목당 최대 권장 투자금입니다.
+  final int recommendedMaxPosition;
+
+  /// 1회 거래에서 허용할 손실 비율입니다. 예: 0.02는 2%입니다.
+  final double riskPerTradeRate;
+
+  /// 백엔드 자본금 JSON을 앱 모델로 변환합니다.
+  factory CapitalSettings.fromJson(Map<String, dynamic> json) {
+    return CapitalSettings(
+      availableCapital: _readInt(json['availableCapital']),
+      recommendedMinPosition: _readInt(json['recommendedMinPosition']),
+      recommendedMaxPosition: _readInt(json['recommendedMaxPosition']),
+      riskPerTradeRate: _readDouble(json['riskPerTradeRate']),
+    );
+  }
+}
+
 /// 보유 종목 화면 상단의 전체 손익 요약입니다.
 class PortfolioSummary {
   /// 포트폴리오 전체 지표를 한 번에 주입합니다.

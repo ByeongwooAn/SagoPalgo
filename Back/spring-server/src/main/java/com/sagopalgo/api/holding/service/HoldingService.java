@@ -10,6 +10,7 @@ import com.sagopalgo.api.holding.dto.HoldingsListResponse;
 import com.sagopalgo.api.holding.dto.PortfolioSummaryResponse;
 import com.sagopalgo.api.holding.mapper.HoldingMapper;
 import com.sagopalgo.api.holding.model.Holding;
+import com.sagopalgo.api.market.service.MarketPriceService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -28,10 +29,16 @@ public class HoldingService {
 
     private final HoldingMapper holdingMapper;
     private final CapitalService capitalService;
+    private final MarketPriceService marketPriceService;
 
-    public HoldingService(HoldingMapper holdingMapper, CapitalService capitalService) {
+    public HoldingService(
+        HoldingMapper holdingMapper,
+        CapitalService capitalService,
+        MarketPriceService marketPriceService
+    ) {
         this.holdingMapper = holdingMapper;
         this.capitalService = capitalService;
+        this.marketPriceService = marketPriceService;
     }
 
     @Transactional(readOnly = true)
@@ -131,7 +138,7 @@ public class HoldingService {
     }
 
     private BigDecimal currentPrice(Holding holding) {
-        return holding.getBuyPrice();
+        return marketPriceService.currentPrice(holding);
     }
 
     private BigDecimal normalizeMoney(BigDecimal value) {

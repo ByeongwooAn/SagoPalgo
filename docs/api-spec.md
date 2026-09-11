@@ -200,6 +200,8 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
 
 이 API는 현재 Flutter의 `InvestmentSnapshot` 모델과 맞춘 통합 응답입니다. MVP에서는 앱 첫 화면을 빠르게 띄우기 위해 여러 화면의 데이터를 한 번에 내려줍니다.
 
+현재 구현은 `CapitalService`, `HoldingService`, `DashboardRecommendationEngine`을 조합합니다. 별도 추천 목록 API가 붙기 전까지 대표 추천은 대시보드 스냅샷 안에서 반환합니다.
+
 응답:
 
 ```json
@@ -221,17 +223,17 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
       "stockName": "삼성전자",
       "stockCode": "005930",
       "market": "KOSPI",
-      "status": "강한 매수",
-      "score": 87,
-      "entryPrice": 72000,
+      "status": "부분 익절 검토",
+      "score": 82,
+      "entryPrice": 75300,
       "stopLossRate": -5.0,
-      "aiSummary": "시장 강세와 거래량 증가가 동시에 나타나 단기 관심 종목으로 분류됩니다.",
+      "aiSummary": "삼성전자 수익률이 익절 기준에 가까워졌습니다. 보유 수량 일부를 줄이고 남은 물량은 추세를 확인하세요.",
       "reasons": [
         {
-          "label": "RSI",
-          "description": "과매도 구간에서 반등 신호가 확인되었습니다.",
-          "type": "TECHNICAL",
-          "score": 20
+          "label": "수익률",
+          "description": "현재 수익률 8.97%로 목표 수익 구간에 접근했습니다.",
+          "type": "TREND",
+          "score": 25
         }
       ]
     },
@@ -373,6 +375,8 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
 
 ## 7. 추천 API
 
+이 절의 추천 목록/상세 API는 다음 구현 단계의 명세입니다. 현재 앱에서 실제로 사용하는 대표 추천은 `GET /api/v1/dashboard/snapshot`의 `recommendation` 필드로 제공됩니다.
+
 ### 7.1 추천 목록 조회
 
 `GET /api/v1/recommendations?status=BUY_STRONG&page=0&size=20`
@@ -471,10 +475,10 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
   "success": true,
   "data": {
     "summary": {
-      "totalProfit": 128400,
-      "profitRate": 4.2,
+      "totalProfit": 74400,
+      "profitRate": 8.97,
       "maxAllowedLoss": 60000,
-      "riskUsageRate": 0.42
+      "riskUsageRate": 0
     },
     "items": [
       {
@@ -484,12 +488,12 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
         "market": "KOSPI",
         "buyPrice": 69100,
         "quantity": 12,
-        "currentPrice": 75319,
-        "profitRate": 9.0,
+        "currentPrice": 75300,
+        "profitRate": 8.97,
         "stopLossRate": -5.0,
         "takeProfitRate": 9.0,
-        "status": "PARTIAL_TAKE_PROFIT",
-        "statusLabel": "부분 익절"
+        "status": "HOLDING",
+        "statusLabel": "보유"
       }
     ]
   },
@@ -529,6 +533,8 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
 인증 필요: 예
 
 ## 9. 알림 API
+
+이 절의 알림 API는 다음 구현 단계의 명세입니다. 현재 앱 알림 탭의 데이터는 `GET /api/v1/dashboard/snapshot`의 `alerts` 필드로 제공됩니다.
 
 ### 9.1 FCM 토큰 등록
 
@@ -582,6 +588,8 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
 ## 10. AI 서버 연동 API
 
 아래 API는 앱이 직접 호출하지 않고 Spring Boot가 Python AI 서버를 호출할 때 사용하는 내부 계약입니다.
+
+현재 구현에서는 Python AI 서버가 아직 붙지 않았으므로 `DashboardRecommendationEngine`이 보유 종목 수익률, 손절 기준, 익절 기준을 조합해 설명 가능한 MVP 추천을 생성합니다.
 
 ### 10.1 종목 분석 요청
 
@@ -662,8 +670,8 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
 6. `GET /api/v1/dashboard/snapshot`
 7. `GET/PUT /api/v1/capital`
 8. `GET/POST/DELETE /api/v1/watchlist`
-9. `GET /api/v1/recommendations`
-10. `GET /api/v1/recommendations/{recommendationId}`
-11. `GET/POST/PUT/DELETE /api/v1/holdings`
+9. `GET/POST/PUT/DELETE /api/v1/holdings`
+10. `GET /api/v1/recommendations`
+11. `GET /api/v1/recommendations/{recommendationId}`
 12. `POST /api/v1/devices/fcm-token`
 13. `GET/PATCH /api/v1/alerts`

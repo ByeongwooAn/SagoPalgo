@@ -72,6 +72,10 @@ class DashboardScreen extends StatelessWidget {
           CandidateCard(
             stockName: recommendation.stockName,
             score: recommendation.score,
+            reasonLine: recommendation.reasons
+                .map((reason) => reason.label)
+                .take(3)
+                .join(' + '),
           ),
           const SizedBox(height: 12),
           MarketBarsCard(values: summary.marketBars),
@@ -268,6 +272,7 @@ class CandidateCard extends StatelessWidget {
     super.key,
     required this.stockName,
     required this.score,
+    required this.reasonLine,
   });
 
   /// 대표 추천 후보 종목명입니다.
@@ -275,6 +280,9 @@ class CandidateCard extends StatelessWidget {
 
   /// 대표 추천 후보의 AI 점수입니다.
   final int score;
+
+  /// 대표 추천 후보를 만든 핵심 근거 요약입니다.
+  final String reasonLine;
 
   @override
   Widget build(BuildContext context) {
@@ -303,7 +311,7 @@ class CandidateCard extends StatelessWidget {
           ScoreProgress(value: score / 100),
           const SizedBox(height: 10),
           Text(
-            'RSI 과매도 탈출 + 거래량 2.1배 + 긍정 뉴스 증가',
+            reasonLine,
             style: TextStyle(
               color: palette.text,
               fontSize: 13,

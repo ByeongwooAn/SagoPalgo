@@ -4,7 +4,6 @@ import com.sagopalgo.api.capital.dto.CapitalResponse;
 import com.sagopalgo.api.capital.service.CapitalService;
 import com.sagopalgo.api.dashboard.dto.DashboardAlertResponse;
 import com.sagopalgo.api.dashboard.dto.DashboardMarketSummaryResponse;
-import com.sagopalgo.api.dashboard.dto.DashboardRecommendationReasonResponse;
 import com.sagopalgo.api.dashboard.dto.DashboardRecommendationResponse;
 import com.sagopalgo.api.dashboard.dto.DashboardSnapshotResponse;
 import com.sagopalgo.api.holding.dto.HoldingResponse;
@@ -28,23 +27,30 @@ public class DashboardService {
 
     private final CapitalService capitalService;
     private final HoldingService holdingService;
+    private final DashboardRecommendationEngine recommendationEngine;
 
-    public DashboardService(CapitalService capitalService, HoldingService holdingService) {
+    public DashboardService(
+        CapitalService capitalService,
+        HoldingService holdingService,
+        DashboardRecommendationEngine recommendationEngine
+    ) {
         this.capitalService = capitalService;
         this.holdingService = holdingService;
+        this.recommendationEngine = recommendationEngine;
     }
 
     @Transactional(readOnly = true)
     public DashboardSnapshotResponse getSnapshot(Long userId) {
         CapitalResponse capital = capitalService.findByUserId(userId);
         HoldingsListResponse holdings = holdingService.findAll(userId);
+        DashboardRecommendationResponse recommendation = recommendationEngine.recommend(holdings.items());
 
         return new DashboardSnapshotResponse(
             marketSummary(capital),
-            recommendation(holdings.items()),
+            recommendation,
             holdings.summary(),
             holdings.items(),
-            alerts(holdings.items())
+            alerts(recommendation)
         );
     }
 
@@ -68,55 +74,13 @@ public class DashboardService {
         );
     }
 
-    private DashboardRecommendationResponse recommendation(List<HoldingResponse> holdings) {
-        HoldingResponse primaryHolding = holdings.isEmpty() ? null : holdings.get(0);
-        String stockName = primaryHolding == null ? "삼성전자" : primaryHolding.stockName();
-        String stockCode = primaryHolding == null ? "005930" : primaryHolding.stockCode();
-        String market = primaryHolding == null ? "KOSPI" : primaryHolding.market();
-        BigDecimal entryPrice = primaryHolding == null ? new BigDecimal("72000") : primaryHolding.currentPrice();
-
-        return new DashboardRecommendationResponse(
-            null,
-            stockName,
-            stockCode,
-            market,
-            "강한 매수",
-            87,
-            entryPrice.stripTrailingZeros(),
-            new BigDecimal("-5").stripTrailingZeros(),
-            "시장 강세와 거래량 증가가 동시에 나타나 단기 관심 종목으로 분류됩니다. 전체 자산의 1~2% 손실 제한을 유지하세요.",
-            List.of(
-                new DashboardRecommendationReasonResponse(
-                    "RSI",
-                    "과매도 구간에서 반등 신호가 확인되었습니다.",
-                    "TECHNICAL",
-                    20
-                ),
-                new DashboardRecommendationReasonResponse(
-                    "MACD",
-                    "골든크로스 초기 구간으로 추세 전환 가능성이 있습니다.",
-                    "TREND",
-                    20
-                ),
-                new DashboardRecommendationReasonResponse(
-                    "뉴스",
-                    "AI 반도체 수주 관련 긍정 감성이 증가했습니다.",
-                    "NEWS",
-                    15
-                )
-            )
-        );
-    }
-
-    private List<DashboardAlertResponse> alerts(List<HoldingResponse> holdings) {
-        String sellCandidate = holdings.isEmpty() ? "삼성전자" : holdings.get(0).stockName();
-
+    private List<DashboardAlertResponse> alerts(DashboardRecommendationResponse recommendation) {
         return List.of(
             new DashboardAlertResponse(
-                sellCandidate + " 매도 검토",
-                "현재 수익률이 목표 구간에 가까워 부분 익절 여부를 확인해 보세요.",
+                recommendation.stockName() + " " + recommendation.status(),
+                recommendation.aiSummary(),
                 "방금 전",
-                "SELL"
+                alertType(recommendation.status())
             ),
             new DashboardAlertResponse(
                 "관심 종목 신규 후보",
@@ -131,6 +95,16 @@ public class DashboardService {
                 "MARKET"
             )
         );
+    }
+
+    private String alertType(String recommendationStatus) {
+        if (recommendationStatus.contains("손절")) {
+            return "RISK";
+        }
+        if (recommendationStatus.contains("익절")) {
+            return "SELL";
+        }
+        return "CANDIDATE";
     }
 
     private String positionRange(BigDecimal minPosition, BigDecimal maxPosition) {

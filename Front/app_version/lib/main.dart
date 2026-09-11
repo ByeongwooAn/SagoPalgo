@@ -5,9 +5,11 @@ import 'models/auth_session.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/mock_auth_repository.dart';
 import 'repositories/mock_investment_repository.dart';
+import 'repositories/mock_portfolio_repository.dart';
 import 'repositories/mock_watchlist_repository.dart';
 import 'repositories/spring_investment_repository.dart';
 import 'repositories/spring_auth_repository.dart';
+import 'repositories/spring_portfolio_repository.dart';
 import 'repositories/spring_watchlist_repository.dart';
 import 'screens/login_screen.dart';
 import 'screens/sago_palgo_home.dart';
@@ -141,6 +143,11 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
               watchlistRepository: widget.useMockWatchlist
                   ? const MockWatchlistRepository()
                   : SpringWatchlistRepository(
+                      accessToken: _session!.accessToken,
+                    ),
+              portfolioRepository: widget.useMockInvestment
+                  ? const MockPortfolioRepository()
+                  : SpringPortfolioRepository(
                       accessToken: _session!.accessToken,
                     ),
               session: _session!,

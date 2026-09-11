@@ -20,4 +20,10 @@ class ApiConfig {
 
   /// 관심 종목 API가 공통으로 사용하는 `/api/v1/watchlist` 기본 경로입니다.
   String get watchlistBaseUrl => '$baseUrl/api/v1/watchlist';
+
+  /// 자본금 API가 공통으로 사용하는 `/api/v1/capital` 기본 경로입니다.
+  String get capitalBaseUrl => '$baseUrl/api/v1/capital';
+
+  /// 보유 종목 API가 공통으로 사용하는 `/api/v1/holdings` 기본 경로입니다.
+  String get holdingsBaseUrl => '$baseUrl/api/v1/holdings';
 }

@@ -17,9 +17,15 @@ class PortfolioScreen extends StatelessWidget {
   /// 포트폴리오 요약과 보유 종목 리스트를 받습니다.
   const PortfolioScreen({
     super.key,
+    required this.capital,
     required this.summary,
     required this.holdings,
+    required this.portfolioFuture,
+    required this.onRetry,
   });
+
+  /// 대시보드 스냅샷에서 즉시 표시할 자본금 설정입니다.
+  final CapitalSettings capital;
 
   /// 전체 평가 손익과 위험 한도 사용률입니다.
   final PortfolioSummary summary;
@@ -27,8 +33,53 @@ class PortfolioScreen extends StatelessWidget {
   /// 사용자가 보유한 종목 목록입니다.
   final List<Holding> holdings;
 
+  /// 자본금/보유 종목 API에서 다시 불러오는 최신 포트폴리오 데이터입니다.
+  final Future<PortfolioSnapshot> portfolioFuture;
+
+  /// 최신 포트폴리오 데이터 요청이 실패했을 때 다시 시도하는 콜백입니다.
+  final VoidCallback onRetry;
+
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<PortfolioSnapshot>(
+      future: portfolioFuture,
+      builder: (context, snapshot) {
+        final portfolio =
+            snapshot.data ??
+            PortfolioSnapshot(
+              capital: capital,
+              summary: summary,
+              holdings: holdings,
+            );
+
+        return _PortfolioContent(
+          portfolio: portfolio,
+          isRefreshing: snapshot.connectionState != ConnectionState.done,
+          hasRefreshError: snapshot.hasError,
+          onRetry: onRetry,
+        );
+      },
+    );
+  }
+}
+
+class _PortfolioContent extends StatelessWidget {
+  const _PortfolioContent({
+    required this.portfolio,
+    required this.isRefreshing,
+    required this.hasRefreshError,
+    required this.onRetry,
+  });
+
+  final PortfolioSnapshot portfolio;
+  final bool isRefreshing;
+  final bool hasRefreshError;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final holdings = portfolio.holdings;
+
     return AppScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,7 +93,17 @@ class PortfolioScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          ProfitCard(summary: summary),
+          if (isRefreshing || hasRefreshError) ...[
+            PortfolioSyncBanner(
+              isRefreshing: isRefreshing,
+              hasRefreshError: hasRefreshError,
+              onRetry: onRetry,
+            ),
+            const SizedBox(height: 12),
+          ],
+          CapitalRuleSummaryCard(capital: portfolio.capital),
+          const SizedBox(height: 12),
+          ProfitCard(summary: portfolio.summary),
           const SizedBox(height: 12),
           for (final holding in holdings) ...[
             PortfolioRow(holding: holding),
@@ -50,10 +111,158 @@ class PortfolioScreen extends StatelessWidget {
           ],
           const SellAlertCard(),
           const SizedBox(height: 12),
-          RiskRuleCard(riskUsageRate: summary.riskUsageRate),
+          RiskRuleCard(riskUsageRate: portfolio.summary.riskUsageRate),
           const SizedBox(height: 20),
         ],
       ),
+    );
+  }
+}
+
+/// 포트폴리오 최신화 상태를 짧게 알려주는 배너입니다.
+class PortfolioSyncBanner extends StatelessWidget {
+  /// 로딩/오류 상태와 재시도 콜백을 받습니다.
+  const PortfolioSyncBanner({
+    super.key,
+    required this.isRefreshing,
+    required this.hasRefreshError,
+    required this.onRetry,
+  });
+
+  final bool isRefreshing;
+  final bool hasRefreshError;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
+    return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      soft: true,
+      child: Row(
+        children: [
+          if (isRefreshing)
+            const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else
+            const Icon(Icons.cloud_off_rounded, color: AppTheme.sub, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              isRefreshing ? '최신 포트폴리오를 동기화하는 중입니다' : '최신 포트폴리오 동기화에 실패했습니다',
+              style: TextStyle(
+                color: palette.text,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0,
+              ),
+            ),
+          ),
+          if (hasRefreshError)
+            TextButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('재시도'),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 자본금과 종목당 권장 투자 범위를 보여주는 카드입니다.
+class CapitalRuleSummaryCard extends StatelessWidget {
+  /// 사용자의 자본금 설정을 받습니다.
+  const CapitalRuleSummaryCard({super.key, required this.capital});
+
+  final CapitalSettings capital;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const LabelText('자본금 기준'),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _CapitalMetric(
+                  label: '투자 가능',
+                  value: '${formatCurrency(capital.availableCapital)}원',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _CapitalMetric(
+                  label: '1회 손실 한도',
+                  value:
+                      '${(capital.riskPerTradeRate * 100).toStringAsFixed(1)}%',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '종목당 권장 투자금 ${_positionRange(capital)}',
+            style: TextStyle(
+              color: palette.text,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _positionRange(CapitalSettings capital) {
+    if (capital.recommendedMinPosition == 0 &&
+        capital.recommendedMaxPosition == 0) {
+      return '동기화 후 표시';
+    }
+
+    return '${formatCurrency(capital.recommendedMinPosition)}~${formatCurrency(capital.recommendedMaxPosition)}원';
+  }
+}
+
+class _CapitalMetric extends StatelessWidget {
+  const _CapitalMetric({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextCaption(label),
+        const SizedBox(height: 4),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            value,
+            style: TextStyle(
+              color: palette.text,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
