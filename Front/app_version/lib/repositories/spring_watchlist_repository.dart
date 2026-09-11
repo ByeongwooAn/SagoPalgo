@@ -9,7 +9,7 @@ import 'watchlist_repository.dart';
 
 /// Spring Boot 관심 종목 API와 통신하는 Repository입니다.
 class SpringWatchlistRepository implements WatchlistRepository {
-  /// JWT access token, API 설정, HTTP 클라이언트를 주입받습니다.
+  /// 개인용 모드의 선택 access token, API 설정, HTTP 클라이언트를 주입받습니다.
   SpringWatchlistRepository({
     required this.accessToken,
     ApiConfig? config,
@@ -17,7 +17,7 @@ class SpringWatchlistRepository implements WatchlistRepository {
   }) : config = config ?? ApiConfig(),
        client = client ?? http.Client();
 
-  /// 인증 후 백엔드 API 요청에 사용하는 JWT access token입니다.
+  /// 백엔드 API 요청에 선택적으로 사용하는 access token입니다.
   final String accessToken;
 
   /// 백엔드 기본 URL과 관심 종목 경로 설정입니다.
@@ -123,7 +123,7 @@ class SpringWatchlistRepository implements WatchlistRepository {
   Map<String, String> _headers({bool contentType = false}) {
     return {
       'Accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
+      if (accessToken.trim().isNotEmpty) 'Authorization': 'Bearer $accessToken',
       if (contentType) 'Content-Type': 'application/json',
     };
   }

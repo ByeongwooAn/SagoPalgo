@@ -1,5 +1,5 @@
 server:
-  # Flutter Android 에뮬레이터와 로컬 개발 환경에서 접근하기 쉬운 기본 포트입니다.
+  # Flutter Windows 프로그램과 로컬 개발 환경에서 접근하기 쉬운 기본 포트입니다.
   port: ${SAGOPALGO_SERVER_PORT}
 
 spring:
@@ -28,32 +28,25 @@ mybatis:
     map-underscore-to-camel-case: true
 
 sagopalgo:
-  jwt:
-    # 로컬 개발용 JWT 서명 키입니다. 운영에서는 반드시 SAGOPALGO_JWT_SECRET 환경 변수로 교체해야 합니다.
-    secret: ${SAGOPALGO_JWT_SECRET}
-    # access token은 짧게 유지해 탈취 위험을 줄이고, refresh token으로 재발급합니다.
-    access-token-expiration-minutes: ${SAGOPALGO_ACCESS_TOKEN_MINUTES}
-    # refresh token은 앱 재로그인 빈도를 줄이기 위해 일 단위로 유지합니다.
-    refresh-token-expiration-days: ${SAGOPALGO_REFRESH_TOKEN_DAYS}
-  oauth:
-    google:
-      # Google Cloud Console에서 Android 또는 Web OAuth Client ID를 발급받아 설정합니다.
-      client-id: ${SAGOPALGO_GOOGLE_CLIENT_ID}
-      # Google OpenID Connect Discovery 문서의 jwks_uri 값입니다.
-      jwks-uri: ${SAGOPALGO_GOOGLE_JWKS_URI}
-    naver:
-      # Naver Developers에서 발급받은 Client ID입니다.
-      client-id: ${SAGOPALGO_NAVER_CLIENT_ID}
-      # Naver Developers에서 발급받은 Client Secret입니다.
-      client-secret: ${SAGOPALGO_NAVER_CLIENT_SECRET}
-      # Naver Developers에 등록한 모바일 callback URL입니다.
-      redirect-uri: ${SAGOPALGO_NAVER_REDIRECT_URI:sagopalgo://oauth/naver}
-      # Naver 공식 로그인 인증 요청 API입니다.
-      authorize-uri: ${SAGOPALGO_NAVER_AUTHORIZE_URI:https://nid.naver.com/oauth2.0/authorize}
-      # Naver 공식 access token 발급 API입니다.
-      token-uri: ${SAGOPALGO_NAVER_TOKEN_URI:https://nid.naver.com/oauth2.0/token}
-      # Naver 공식 회원 프로필 조회 API입니다.
-      profile-uri: ${SAGOPALGO_NAVER_PROFILE_URI}
+  personal:
+    # 개인용 Windows 프로그램에서는 소셜 로그인 없이 로컬 사용자 1명으로 API를 사용합니다.
+    enabled: ${SAGOPALGO_PERSONAL_MODE_ENABLED:true}
+    user-id: ${SAGOPALGO_PERSONAL_MODE_USER_ID:1}
+    nickname: ${SAGOPALGO_PERSONAL_MODE_NICKNAME:개인 사용자}
+    email: ${SAGOPALGO_PERSONAL_MODE_EMAIL:local@sagopalgo.local}
+  securities:
+    kb:
+      # KB증권은 계좌 조회와 추후 주문 기능의 단일 담당으로 둡니다.
+      account-enabled: ${SAGOPALGO_KB_ACCOUNT_ENABLED:false}
+      order-enabled: ${SAGOPALGO_KB_ORDER_ENABLED:false}
+      app-key: ${SAGOPALGO_KB_APP_KEY:}
+      app-secret: ${SAGOPALGO_KB_APP_SECRET:}
+      account-number: ${SAGOPALGO_KB_ACCOUNT_NUMBER:}
+    toss:
+      # Toss 증권은 분석용 시세/종목 정보 보조 소스로만 사용합니다.
+      market-data-enabled: ${SAGOPALGO_TOSS_MARKET_DATA_ENABLED:false}
+      app-key: ${SAGOPALGO_TOSS_APP_KEY:}
+      app-secret: ${SAGOPALGO_TOSS_APP_SECRET:}
   market:
     kis:
       # 한국투자증권 Open API 현재가 조회 사용 여부입니다. 키를 설정한 환경에서만 true로 켭니다.

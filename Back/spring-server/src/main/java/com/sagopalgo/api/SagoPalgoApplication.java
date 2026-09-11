@@ -1,9 +1,9 @@
 package com.sagopalgo.api;
 
-import com.sagopalgo.api.config.JwtProperties;
 import com.sagopalgo.api.config.KisMarketProperties;
-import com.sagopalgo.api.config.OAuthProperties;
 import com.sagopalgo.api.config.DotEnvLoader;
+import com.sagopalgo.api.config.PersonalModeProperties;
+import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import java.nio.file.Path;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -16,7 +16,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * 애플리케이션 Bean을 등록한 뒤 내장 Tomcat으로 REST API 서버를 띄웁니다.</p>
  */
 @SpringBootApplication
-@EnableConfigurationProperties({JwtProperties.class, OAuthProperties.class, KisMarketProperties.class})
+@EnableConfigurationProperties({
+    KisMarketProperties.class,
+    PersonalModeProperties.class,
+    SecuritiesProviderProperties.class
+})
 public class SagoPalgoApplication {
 
     /**

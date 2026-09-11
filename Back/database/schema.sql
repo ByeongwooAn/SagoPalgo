@@ -8,39 +8,26 @@ CREATE DATABASE IF NOT EXISTS sagopalgo
 
 USE sagopalgo;
 
--- 사용자 계정 테이블입니다.
--- Google/Naver 소셜 로그인, JWT 인증, 사용자별 투자 데이터 분리를 위한 루트 테이블 역할을 합니다.
+-- 개인용 로컬 사용자 테이블입니다.
+-- 로그인 계정이 아니라 보유/관심/자본금 데이터를 하나의 로컬 소유자로 묶는 루트 테이블입니다.
 CREATE TABLE IF NOT EXISTS users (
   user_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '사용자 PK',
-  auth_provider VARCHAR(20) NOT NULL COMMENT '소셜 로그인 제공자: GOOGLE, NAVER',
-  provider_user_id VARCHAR(100) NOT NULL COMMENT '제공자가 보장하는 사용자 고유 ID, Google sub 또는 Naver response.id',
-  email VARCHAR(255) NULL COMMENT '소셜 제공자에서 동의받아 내려준 이메일, 제공자 정책에 따라 NULL 가능',
-  nickname VARCHAR(50) NOT NULL COMMENT '앱에 표시할 사용자 이름',
-  profile_image_url VARCHAR(500) NULL COMMENT '소셜 제공자 프로필 이미지 URL',
-  role VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT '권한: USER, ADMIN',
-  status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '계정 상태: ACTIVE, SUSPENDED, DELETED',
+  auth_provider VARCHAR(20) NOT NULL COMMENT '프로필 출처: LOCAL',
+  provider_user_id VARCHAR(100) NOT NULL COMMENT '로컬 소유자 식별값',
+  email VARCHAR(255) NULL COMMENT '로컬 사용자 식별용 이메일',
+  nickname VARCHAR(50) NOT NULL COMMENT '프로그램에 표시할 로컬 사용자 이름',
+  profile_image_url VARCHAR(500) NULL COMMENT '현재 개인용 모드에서는 사용하지 않음',
+  role VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT '로컬 권한: USER',
+  status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '로컬 프로필 상태: ACTIVE',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 시각',
   PRIMARY KEY (user_id),
   UNIQUE KEY uk_users_provider_user (auth_provider, provider_user_id),
   KEY idx_users_email (email)
-) ENGINE=InnoDB COMMENT='사용자 계정';
+) ENGINE=InnoDB COMMENT='개인용 로컬 사용자';
 
--- JWT refresh token 저장 테이블입니다.
--- access token 만료 후 재발급과 로그아웃 시 토큰 무효화를 처리하기 위해 사용합니다.
-CREATE TABLE IF NOT EXISTS refresh_tokens (
-  refresh_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'refresh token PK',
-  user_id BIGINT NOT NULL COMMENT '토큰 소유 사용자',
-  token_hash VARCHAR(255) NOT NULL COMMENT '원본 토큰 대신 저장하는 해시값',
-  expires_at DATETIME NOT NULL COMMENT 'refresh token 만료 시각',
-  revoked_at DATETIME NULL COMMENT '로그아웃 또는 강제 만료 시각',
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
-  PRIMARY KEY (refresh_token_id),
-  KEY idx_refresh_tokens_user_id (user_id),
-  CONSTRAINT fk_refresh_tokens_user
-    FOREIGN KEY (user_id) REFERENCES users (user_id)
-    ON DELETE CASCADE
-) ENGINE=InnoDB COMMENT='JWT refresh token';
+INSERT IGNORE INTO users (user_id, auth_provider, provider_user_id, email, nickname, profile_image_url, role, status)
+VALUES (1, 'LOCAL', 'personal-owner', 'local@sagopalgo.local', '개인 사용자', NULL, 'USER', 'ACTIVE');
 
 -- 사용자 자본금과 리스크 설정 테이블입니다.
 -- 기획서의 핵심 원칙인 종목당 투자 비율과 1회 거래 손실 제한을 계산하는 기준이 됩니다.
@@ -173,13 +160,13 @@ CREATE TABLE IF NOT EXISTS recommendation_reasons (
     ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT='AI 추천 점수 산출 근거';
 
--- 사용자 기기 FCM 토큰 테이블입니다.
--- Android 푸시 알림 발송을 위해 사용자별 기기 토큰을 관리합니다.
+-- 알림 대상 장치 토큰 테이블입니다.
+-- Windows 로컬 알림 구현 전까지는 향후 외부 푸시/장치 연동 확장 지점으로 둡니다.
 CREATE TABLE IF NOT EXISTS device_tokens (
   device_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '기기 토큰 PK',
   user_id BIGINT NOT NULL COMMENT '토큰 소유 사용자',
-  fcm_token VARCHAR(500) NOT NULL COMMENT 'Firebase Cloud Messaging 토큰',
-  device_type VARCHAR(20) NOT NULL DEFAULT 'ANDROID' COMMENT '기기 유형: ANDROID, IOS',
+  fcm_token VARCHAR(500) NOT NULL COMMENT '외부 푸시 또는 장치 알림 토큰',
+  device_type VARCHAR(20) NOT NULL DEFAULT 'WINDOWS' COMMENT '기기 유형: WINDOWS, ANDROID, IOS',
   is_active BOOLEAN NOT NULL DEFAULT TRUE COMMENT '현재 알림 발송에 사용할 수 있는 토큰인지 여부',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 시각',
@@ -189,10 +176,10 @@ CREATE TABLE IF NOT EXISTS device_tokens (
   CONSTRAINT fk_device_tokens_user
     FOREIGN KEY (user_id) REFERENCES users (user_id)
     ON DELETE CASCADE
-) ENGINE=InnoDB COMMENT='사용자 FCM 기기 토큰';
+) ENGINE=InnoDB COMMENT='사용자 장치 알림 토큰';
 
 -- 앱 알림 히스토리 테이블입니다.
--- FCM 발송 여부와 앱 내 읽음 상태를 함께 관리합니다.
+-- 로컬 프로그램 표시 여부와 읽음 상태를 함께 관리합니다.
 CREATE TABLE IF NOT EXISTS alerts (
   alert_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 PK',
   user_id BIGINT NOT NULL COMMENT '알림 수신 사용자',
@@ -201,7 +188,7 @@ CREATE TABLE IF NOT EXISTS alerts (
   title VARCHAR(100) NOT NULL COMMENT '알림 제목',
   body VARCHAR(500) NOT NULL COMMENT '알림 본문',
   is_read BOOLEAN NOT NULL DEFAULT FALSE COMMENT '앱 내 읽음 여부',
-  sent_at DATETIME NULL COMMENT 'FCM 발송 시각',
+  sent_at DATETIME NULL COMMENT '외부 푸시 또는 로컬 알림 발송 시각',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 시각',
   PRIMARY KEY (alert_id),

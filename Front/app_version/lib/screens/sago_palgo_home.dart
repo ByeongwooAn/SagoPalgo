@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../models/auth_session.dart';
 import '../models/holding.dart';
 import '../models/investment_snapshot.dart';
+import '../models/provider_setting.dart';
 import '../repositories/investment_repository.dart';
 import '../repositories/portfolio_repository.dart';
+import '../repositories/provider_settings_repository.dart';
 import '../repositories/watchlist_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
@@ -12,6 +14,7 @@ import 'alerts_screen.dart';
 import 'dashboard_screen.dart';
 import 'portfolio_screen.dart';
 import 'recommendation_screen.dart';
+import 'settings_screen.dart';
 
 /// 사고팔고 앱의 메인 화면 컨테이너입니다.
 ///
@@ -23,18 +26,15 @@ class SagoPalgoHome extends StatefulWidget {
   const SagoPalgoHome({
     super.key,
     required this.onThemeToggle,
-    required this.onLogout,
     required this.repository,
     required this.watchlistRepository,
     required this.portfolioRepository,
+    required this.providerSettingsRepository,
     required this.session,
   });
 
   /// 상단 버튼을 눌렀을 때 앱 루트에 테마 변경을 요청하는 콜백입니다.
   final ValueChanged<Brightness> onThemeToggle;
-
-  /// 상단 로그아웃 버튼을 눌렀을 때 앱 루트에 세션 종료를 요청하는 콜백입니다.
-  final Future<void> Function() onLogout;
 
   /// 시장, 추천, 보유 종목, 알림 데이터를 제공하는 Repository입니다.
   final InvestmentRepository repository;
@@ -45,7 +45,10 @@ class SagoPalgoHome extends StatefulWidget {
   /// 포트폴리오 화면에서 자본금과 보유 종목을 최신 API로 다시 불러오는 Repository입니다.
   final PortfolioRepository portfolioRepository;
 
-  /// 현재 로그인한 사용자와 토큰 정보를 담고 있는 인증 세션입니다.
+  /// 설정 화면에서 증권사 연동 상태를 조회하는 Repository입니다.
+  final ProviderSettingsRepository providerSettingsRepository;
+
+  /// 현재 로컬 사용자 프로필 정보를 담고 있는 세션입니다.
   final AuthSession session;
 
   @override
@@ -65,6 +68,9 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
   /// 포트폴리오 탭에서 별도로 갱신하는 자본금/보유 종목 Future입니다.
   late Future<PortfolioSnapshot> _portfolioFuture;
 
+  /// 설정 탭에서 별도로 갱신하는 증권사 연동 상태 Future입니다.
+  late Future<ProviderSettingsSnapshot> _providerSettingsFuture;
+
   /// 다른 탭의 빈 상태 CTA가 요청한 포트폴리오 초기 작업입니다.
   PortfolioSetupAction? _pendingPortfolioSetupAction;
 
@@ -75,6 +81,8 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     /// 초기 화면을 구성할 데이터를 Repository에서 비동기로 요청합니다.
     _snapshotFuture = widget.repository.fetchSnapshot();
     _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
+    _providerSettingsFuture = widget.providerSettingsRepository
+        .fetchProviderSettings();
   }
 
   @override
@@ -93,7 +101,6 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                 user: widget.session.user,
                 onThemeToggle: () =>
                     widget.onThemeToggle(Theme.of(context).brightness),
-                onLogout: widget.onLogout,
               ),
               Expanded(
                 child: FutureBuilder<InvestmentSnapshot>(
@@ -115,8 +122,10 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       snapshot: snapshot.data!,
                       watchlistRepository: widget.watchlistRepository,
                       portfolioRepository: widget.portfolioRepository,
+                      providerSettingsFuture: _providerSettingsFuture,
                       portfolioFuture: _portfolioFuture,
                       onPortfolioRetry: _reloadPortfolio,
+                      onProviderSettingsRetry: _reloadProviderSettings,
                       onPortfolioChanged: _reloadAllInvestmentData,
                       pendingPortfolioSetupAction: _pendingPortfolioSetupAction,
                       onCapitalSetupOpen: () =>
@@ -160,6 +169,14 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     });
   }
 
+  /// 설정 탭에서 증권사 연동 상태만 다시 요청합니다.
+  void _reloadProviderSettings() {
+    setState(() {
+      _providerSettingsFuture = widget.providerSettingsRepository
+          .fetchProviderSettings();
+    });
+  }
+
   /// 빈 상태 CTA에서 포트폴리오 관리 탭으로 이동하고 필요한 입력 시트를 엽니다.
   void _openPortfolioSetup(PortfolioSetupAction action) {
     setState(() {
@@ -177,7 +194,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
 /// 상단 브랜드 바입니다.
 ///
 /// 앱 이름, 현재 테마 콘셉트, 테마 전환 버튼을 한곳에 배치해
-/// Android 앱의 첫 인상을 시안 A/B와 맞춥니다.
+/// Windows 프로그램의 첫 인상을 시안 A/B와 맞춥니다.
 class TopBar extends StatelessWidget {
   /// 현재 다크모드 여부와 전환 콜백을 받습니다.
   const TopBar({
@@ -185,7 +202,6 @@ class TopBar extends StatelessWidget {
     required this.isDark,
     required this.user,
     required this.onThemeToggle,
-    required this.onLogout,
   });
 
   /// true이면 A 시안 콘셉트인 AI 트레이딩 콘솔 문구를 보여줍니다.
@@ -196,9 +212,6 @@ class TopBar extends StatelessWidget {
 
   /// 사용자가 아이콘 버튼을 눌렀을 때 실행되는 테마 전환 콜백입니다.
   final VoidCallback onThemeToggle;
-
-  /// 사용자가 로그아웃 아이콘 버튼을 눌렀을 때 실행되는 콜백입니다.
-  final Future<void> Function() onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -237,7 +250,7 @@ class TopBar extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${user.nickname} · ${_providerLabel(user.authProvider)}',
+                  '${user.nickname} · ${_profileLabel(user.authProvider)}',
                   style: TextStyle(
                     color: palette.muted,
                     fontSize: 12,
@@ -253,20 +266,18 @@ class TopBar extends StatelessWidget {
             tooltip: isDark ? '라이트모드로 전환' : '다크모드로 전환',
             icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
           ),
-          const SizedBox(width: 6),
-          IconButton.filledTonal(
-            onPressed: onLogout,
-            tooltip: '로그아웃',
-            icon: const Icon(Icons.logout_rounded),
-          ),
         ],
       ),
     );
   }
 
-  /// 백엔드에서 내려준 provider 코드를 화면에 표시할 짧은 한글 라벨로 변환합니다.
-  String _providerLabel(String authProvider) {
-    return authProvider == 'NAVER' ? 'Naver 로그인' : 'Google 로그인';
+  /// 프로필 출처 코드를 화면에 표시할 짧은 한글 라벨로 변환합니다.
+  String _profileLabel(String authProvider) {
+    if (authProvider == 'LOCAL') {
+      return '개인 모드';
+    }
+
+    return authProvider;
   }
 }
 
@@ -367,8 +378,10 @@ class _TabContent extends StatelessWidget {
     required this.snapshot,
     required this.watchlistRepository,
     required this.portfolioRepository,
+    required this.providerSettingsFuture,
     required this.portfolioFuture,
     required this.onPortfolioRetry,
+    required this.onProviderSettingsRetry,
     required this.onPortfolioChanged,
     required this.pendingPortfolioSetupAction,
     required this.onCapitalSetupOpen,
@@ -388,11 +401,17 @@ class _TabContent extends StatelessWidget {
   /// 포트폴리오 화면 자본금/보유 종목 액션을 처리하는 Repository입니다.
   final PortfolioRepository portfolioRepository;
 
+  /// 설정 화면에서 사용할 증권사 연동 상태 Future입니다.
+  final Future<ProviderSettingsSnapshot> providerSettingsFuture;
+
   /// 포트폴리오 탭에서 사용할 최신 자본금/보유 종목 Future입니다.
   final Future<PortfolioSnapshot> portfolioFuture;
 
   /// 포트폴리오 데이터 재시도 콜백입니다.
   final VoidCallback onPortfolioRetry;
+
+  /// 설정 화면 데이터 재시도 콜백입니다.
+  final VoidCallback onProviderSettingsRetry;
 
   /// 포트폴리오 데이터가 변경됐을 때 전체 투자 데이터를 다시 불러오는 콜백입니다.
   final VoidCallback onPortfolioChanged;
@@ -442,6 +461,10 @@ class _TabContent extends StatelessWidget {
           onPendingSetupActionConsumed: onPendingPortfolioSetupActionConsumed,
         ),
         AlertsScreen(alerts: snapshot.alerts),
+        SettingsScreen(
+          providerSettingsFuture: providerSettingsFuture,
+          onRetry: onProviderSettingsRetry,
+        ),
       ],
     );
   }

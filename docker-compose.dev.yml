@@ -7,14 +7,14 @@ services:
     ports:
       - "${SAGOPALGO_MYSQL_PORT}:3306"
 
-  # 개발 환경에서는 Flutter 앱, Postman, 브라우저에서 API를 바로 확인할 수 있도록 8080을 공개합니다.
+  # 개발 환경에서는 Flutter Windows, Postman, 브라우저에서 API를 바로 확인할 수 있도록 8080을 공개합니다.
   spring-api:
     container_name: sagopalgo-spring-api-dev
     ports:
       - "${SAGOPALGO_API_PORT}:8080"
 
   # 개발 환경 Nginx는 인증서 없이 HTTP 템플릿을 사용합니다.
-  # Android 에뮬레이터에서는 http://10.0.2.2:${SAGOPALGO_PROXY_HTTP_PORT} 주소로 접근할 수 있습니다.
+  # Flutter Windows에서는 http://localhost:${SAGOPALGO_PROXY_HTTP_PORT} 주소로 접근할 수 있습니다.
   reverse-proxy:
     container_name: sagopalgo-reverse-proxy-dev
     ports:

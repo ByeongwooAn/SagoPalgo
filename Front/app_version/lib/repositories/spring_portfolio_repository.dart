@@ -8,7 +8,7 @@ import 'portfolio_repository.dart';
 
 /// Spring Boot 자본금/보유 종목 API에서 포트폴리오 데이터를 불러오는 Repository입니다.
 class SpringPortfolioRepository implements PortfolioRepository {
-  /// JWT access token, API 설정, HTTP 클라이언트를 주입받습니다.
+  /// 개인용 모드의 선택 access token, API 설정, HTTP 클라이언트를 주입받습니다.
   SpringPortfolioRepository({
     required this.accessToken,
     ApiConfig? config,
@@ -16,7 +16,7 @@ class SpringPortfolioRepository implements PortfolioRepository {
   }) : config = config ?? ApiConfig(),
        client = client ?? http.Client();
 
-  /// 인증 후 백엔드 API 요청에 사용하는 JWT access token입니다.
+  /// 백엔드 API 요청에 선택적으로 사용하는 access token입니다.
   final String accessToken;
 
   /// 백엔드 기본 URL과 포트폴리오 관련 경로 설정입니다.
@@ -94,7 +94,7 @@ class SpringPortfolioRepository implements PortfolioRepository {
 
   Map<String, String> get _headers => {
     'Accept': 'application/json',
-    'Authorization': 'Bearer $accessToken',
+    if (accessToken.trim().isNotEmpty) 'Authorization': 'Bearer $accessToken',
   };
 
   Map<String, String> get _jsonHeaders => {

@@ -38,9 +38,6 @@ dependencies:
   # Spring Boot 백엔드 인증 API(`/api/v1/auth/...`)를 호출하기 위한 HTTP 클라이언트입니다.
   http: ^1.6.0
 
-  # Google 로그인 SDK에서 백엔드가 검증할 ID token을 가져옵니다.
-  google_sign_in: ^7.2.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

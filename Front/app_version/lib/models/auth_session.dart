@@ -1,7 +1,7 @@
-/// 로그인 성공 후 앱이 보관해야 하는 인증 세션 모델입니다.
+/// 개인용 프로그램에서 앱이 사용하는 로컬 프로필 세션 모델입니다.
 ///
-/// 백엔드의 `AuthTokenResponse`와 구조를 맞췄습니다. 지금은 메모리에만 들고 있지만,
-/// 실제 앱에서는 보안 저장소에 accessToken과 refreshToken을 저장하는 단계가 이어져야 합니다.
+/// 과거 소셜 로그인 기반 백엔드 응답과의 호환을 위해 토큰 필드는 남겨두지만,
+/// 개인용 모드에서는 빈 토큰과 로컬 사용자 프로필로 바로 홈 화면에 진입합니다.
 class AuthSession {
   /// 토큰과 사용자 정보를 모두 명시적으로 받습니다.
   const AuthSession({
@@ -11,16 +11,32 @@ class AuthSession {
     required this.user,
   });
 
-  /// API 요청의 `Authorization: Bearer` 헤더에 넣을 사고팔고 JWT access token입니다.
+  /// 로그인 없이 앱을 실행할 때 사용하는 기본 개인 프로필입니다.
+  static const personal = AuthSession(
+    accessToken: '',
+    refreshToken: '',
+    expiresIn: 0,
+    user: AuthUser(
+      userId: 1,
+      authProvider: 'LOCAL',
+      email: null,
+      nickname: '개인 사용자',
+      profileImageUrl: null,
+    ),
+  );
+
+  /// API 요청의 `Authorization: Bearer` 헤더에 넣을 토큰입니다.
+  ///
+  /// 개인용 모드에서는 빈 문자열이며, Repository는 Authorization 헤더를 생략합니다.
   final String accessToken;
 
-  /// access token 만료 시 `/auth/refresh`에 전달할 사고팔고 refresh token입니다.
+  /// 과거 refresh 흐름과의 호환을 위해 남겨둔 refresh token입니다.
   final String refreshToken;
 
-  /// access token이 만료되기까지 남은 시간입니다. 백엔드는 초 단위로 내려줍니다.
+  /// access token이 만료되기까지 남은 시간입니다.
   final int expiresIn;
 
-  /// 현재 로그인한 사용자 프로필입니다.
+  /// 현재 로컬 사용자 프로필입니다.
   final AuthUser user;
 
   /// 백엔드 JSON 응답의 `data` 객체를 앱 모델로 변환합니다.
@@ -51,7 +67,7 @@ class AuthUser {
   /// 사고팔고 DB의 사용자 PK입니다.
   final int userId;
 
-  /// 사용자가 로그인한 소셜 제공자입니다. 현재는 `GOOGLE` 또는 `NAVER`입니다.
+  /// 사용자 프로필 출처입니다. 개인용 모드에서는 `LOCAL`입니다.
   final String authProvider;
 
   /// 소셜 제공자에서 동의받아 내려준 이메일입니다. 제공자 정책에 따라 없을 수 있습니다.
