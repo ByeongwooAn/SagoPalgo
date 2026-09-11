@@ -10,6 +10,9 @@ import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
 import 'dashboard_screen.dart';
 
+/// 다른 탭의 빈 상태 CTA에서 포트폴리오 탭으로 전달하는 초기 작업입니다.
+enum PortfolioSetupAction { editCapital, addHolding }
+
 /// 보유 종목과 리스크 상태를 보여주는 화면입니다.
 ///
 /// 기획서에서 "수익보다 생존이 우선"이라고 정의했기 때문에,
@@ -23,8 +26,10 @@ class PortfolioScreen extends StatelessWidget {
     required this.holdings,
     required this.repository,
     required this.portfolioFuture,
+    required this.pendingSetupAction,
     required this.onRetry,
     required this.onChanged,
+    required this.onPendingSetupActionConsumed,
   });
 
   /// 대시보드 스냅샷에서 즉시 표시할 자본금 설정입니다.
@@ -42,11 +47,17 @@ class PortfolioScreen extends StatelessWidget {
   /// 자본금/보유 종목 API에서 다시 불러오는 최신 포트폴리오 데이터입니다.
   final Future<PortfolioSnapshot> portfolioFuture;
 
+  /// 다른 탭에서 요청한 자본금 수정 또는 보유 종목 추가 작업입니다.
+  final PortfolioSetupAction? pendingSetupAction;
+
   /// 최신 포트폴리오 데이터 요청이 실패했을 때 다시 시도하는 콜백입니다.
   final VoidCallback onRetry;
 
   /// 자본금/보유 종목이 변경됐을 때 상위 화면에 갱신을 요청하는 콜백입니다.
   final VoidCallback onChanged;
+
+  /// 요청된 초기 작업을 한 번 실행한 뒤 상위 상태를 비우는 콜백입니다.
+  final VoidCallback onPendingSetupActionConsumed;
 
   @override
   Widget build(BuildContext context) {
@@ -66,8 +77,10 @@ class PortfolioScreen extends StatelessWidget {
           isRefreshing: snapshot.connectionState != ConnectionState.done,
           hasRefreshError: snapshot.hasError,
           repository: repository,
+          pendingSetupAction: pendingSetupAction,
           onRetry: onRetry,
           onChanged: onChanged,
+          onPendingSetupActionConsumed: onPendingSetupActionConsumed,
         );
       },
     );
@@ -80,20 +93,25 @@ class _PortfolioContent extends StatelessWidget {
     required this.isRefreshing,
     required this.hasRefreshError,
     required this.repository,
+    required this.pendingSetupAction,
     required this.onRetry,
     required this.onChanged,
+    required this.onPendingSetupActionConsumed,
   });
 
   final PortfolioSnapshot portfolio;
   final bool isRefreshing;
   final bool hasRefreshError;
   final PortfolioRepository repository;
+  final PortfolioSetupAction? pendingSetupAction;
   final VoidCallback onRetry;
   final VoidCallback onChanged;
+  final VoidCallback onPendingSetupActionConsumed;
 
   @override
   Widget build(BuildContext context) {
     final holdings = portfolio.holdings;
+    _schedulePendingSetupAction(context);
 
     return AppScrollView(
       child: Column(
@@ -105,11 +123,6 @@ class _PortfolioContent extends StatelessWidget {
             action: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                StatusChip(
-                  label: '${holdings.length}종목',
-                  icon: Icons.account_balance_wallet_rounded,
-                ),
-                const SizedBox(width: 6),
                 IconButton.filledTonal(
                   onPressed: () => _openCapitalEditor(context),
                   tooltip: '자본금 수정',
@@ -156,6 +169,26 @@ class _PortfolioContent extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _schedulePendingSetupAction(BuildContext context) {
+    final action = pendingSetupAction;
+    if (action == null) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) {
+        return;
+      }
+      onPendingSetupActionConsumed();
+      switch (action) {
+        case PortfolioSetupAction.editCapital:
+          _openCapitalEditor(context);
+        case PortfolioSetupAction.addHolding:
+          _openHoldingEditor(context);
+      }
+    });
   }
 
   Future<void> _openCapitalEditor(BuildContext context) async {

@@ -16,10 +16,21 @@ import '../widgets/status_chip.dart';
 /// 사용자가 앱을 열자마자 오늘 판단해야 할 핵심 정보를 파악하게 합니다.
 class DashboardScreen extends StatelessWidget {
   /// 전체 투자 스냅샷을 받아 홈 화면에 필요한 데이터만 골라 사용합니다.
-  const DashboardScreen({super.key, required this.snapshot});
+  const DashboardScreen({
+    super.key,
+    required this.snapshot,
+    required this.onCapitalSetupOpen,
+    required this.onHoldingSetupOpen,
+  });
 
   /// Repository가 내려준 시장/추천/보유/알림 데이터 묶음입니다.
   final InvestmentSnapshot snapshot;
+
+  /// 자본금 수정 화면으로 이동하는 콜백입니다.
+  final VoidCallback onCapitalSetupOpen;
+
+  /// 보유 종목 추가 화면으로 이동하는 콜백입니다.
+  final VoidCallback onHoldingSetupOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +57,13 @@ class DashboardScreen extends StatelessWidget {
             monthlyReturnRate: summary.monthlyReturnRate,
             recommendedPositionRange: summary.recommendedPositionRange,
           ),
+          if (_needsSetup) ...[
+            const SizedBox(height: 12),
+            DashboardSetupCard(
+              onCapitalTap: onCapitalSetupOpen,
+              onHoldingTap: onHoldingSetupOpen,
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
@@ -86,6 +104,12 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
+
+  bool get _needsSetup {
+    return snapshot.marketSummary.availableCapital == 0 ||
+        snapshot.holdings.isEmpty ||
+        snapshot.recommendation == null;
+  }
 }
 
 /// 모든 주요 화면에서 같은 스크롤 여백을 사용하기 위한 래퍼입니다.
@@ -102,6 +126,69 @@ class AppScrollView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
       physics: const BouncingScrollPhysics(),
       child: child,
+    );
+  }
+}
+
+/// 실제 데이터가 부족할 때 다음 설정 행동을 안내하는 카드입니다.
+class DashboardSetupCard extends StatelessWidget {
+  /// 포트폴리오 관리 탭으로 이동할 콜백을 받습니다.
+  const DashboardSetupCard({
+    super.key,
+    required this.onCapitalTap,
+    required this.onHoldingTap,
+  });
+
+  final VoidCallback onCapitalTap;
+  final VoidCallback onHoldingTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
+    return AppCard(
+      soft: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.playlist_add_check_rounded, color: AppTheme.main),
+              SizedBox(width: 8),
+              Expanded(child: CardTitle('실제 데이터 시작하기', fontSize: 20)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '자본금과 보유 종목을 입력하면 대시보드 수익률, 포트폴리오 손익, 추천 판단이 실제 계정 데이터로 채워집니다.',
+            style: TextStyle(
+              color: palette.text,
+              fontSize: 13,
+              height: 1.4,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: onCapitalTap,
+              icon: const Icon(Icons.savings_rounded),
+              label: const Text('자본금 설정하기'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: onHoldingTap,
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('보유 종목 추가하기'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
