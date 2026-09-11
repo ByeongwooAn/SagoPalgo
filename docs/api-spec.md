@@ -200,7 +200,7 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
 
 이 API는 현재 Flutter의 `InvestmentSnapshot` 모델과 맞춘 통합 응답입니다. MVP에서는 앱 첫 화면을 빠르게 띄우기 위해 여러 화면의 데이터를 한 번에 내려줍니다.
 
-현재 구현은 `CapitalService`, `HoldingService`, `DashboardRecommendationEngine`을 조합합니다. 별도 추천 목록 API가 붙기 전까지 대표 추천은 대시보드 스냅샷 안에서 반환합니다.
+현재 구현은 `CapitalService`, `HoldingService`, `DashboardRecommendationEngine`을 조합합니다. 별도 추천 목록 API가 붙기 전까지 대표 추천은 대시보드 스냅샷 안에서 반환합니다. 실제 보유 종목이 없으면 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
 
 응답:
 
@@ -210,38 +210,20 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
   "data": {
     "marketSummary": {
       "availableCapital": 3000000,
-      "monthlyReturnRate": 3.8,
+      "monthlyReturnRate": 0,
       "recommendedPositionRange": "30~60만원",
-      "marketTrend": "강세",
-      "marketScore": 76,
-      "newsSentiment": "긍정",
-      "positiveNewsCount": 12,
-      "marketBars": [0.42, 0.68, 0.54, 0.82, 0.61, 0.94]
+      "marketTrend": "데이터 없음",
+      "marketScore": 0,
+      "newsSentiment": "데이터 없음",
+      "positiveNewsCount": 0,
+      "marketBars": []
     },
-    "recommendation": {
-      "recommendationId": 101,
-      "stockName": "삼성전자",
-      "stockCode": "005930",
-      "market": "KOSPI",
-      "status": "부분 익절 검토",
-      "score": 82,
-      "entryPrice": 75300,
-      "stopLossRate": -5.0,
-      "aiSummary": "삼성전자 수익률이 익절 기준에 가까워졌습니다. 보유 수량 일부를 줄이고 남은 물량은 추세를 확인하세요.",
-      "reasons": [
-        {
-          "label": "수익률",
-          "description": "현재 수익률 8.97%로 목표 수익 구간에 접근했습니다.",
-          "type": "TREND",
-          "score": 25
-        }
-      ]
-    },
+    "recommendation": null,
     "portfolioSummary": {
-      "totalProfit": 128400,
-      "profitRate": 4.2,
+      "totalProfit": 0,
+      "profitRate": 0,
       "maxAllowedLoss": 60000,
-      "riskUsageRate": 0.42
+      "riskUsageRate": 0
     },
     "holdings": [],
     "alerts": []
@@ -589,7 +571,7 @@ Flutter 앱은 Naver callback으로 받은 authorization code와 state를 서버
 
 아래 API는 앱이 직접 호출하지 않고 Spring Boot가 Python AI 서버를 호출할 때 사용하는 내부 계약입니다.
 
-현재 구현에서는 Python AI 서버가 아직 붙지 않았으므로 `DashboardRecommendationEngine`이 보유 종목 수익률, 손절 기준, 익절 기준을 조합해 설명 가능한 MVP 추천을 생성합니다.
+현재 구현에서는 Python AI 서버가 아직 붙지 않았으므로 `DashboardRecommendationEngine`이 실제 보유 종목 수익률, 손절 기준, 익절 기준을 조합해 설명 가능한 MVP 추천을 생성합니다. 실제 보유 종목이 없으면 임의 추천을 생성하지 않습니다.
 
 ### 10.1 종목 분석 요청
 

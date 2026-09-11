@@ -64,6 +64,8 @@ class DashboardServiceTest {
 
         assertThat(response.marketSummary().availableCapital()).isEqualByComparingTo("3000000");
         assertThat(response.marketSummary().recommendedPositionRange()).isEqualTo("30~60만원");
+        assertThat(response.marketSummary().monthlyReturnRate()).isEqualByComparingTo("4.2");
+        assertThat(response.marketSummary().marketTrend()).isEqualTo("데이터 없음");
         assertThat(response.recommendation().stockName()).isEqualTo("삼성전자");
         assertThat(response.recommendation().entryPrice()).isEqualByComparingTo("69100");
         assertThat(response.recommendation().status()).isEqualTo("보유 유지");
@@ -73,7 +75,7 @@ class DashboardServiceTest {
     }
 
     @Test
-    @DisplayName("보유 종목이 없어도 기본 추천과 알림이 포함된 스냅샷을 반환한다")
+    @DisplayName("보유 종목이 없으면 추천과 알림 없이 실제 빈 스냅샷을 반환한다")
     void getSnapshotReturnsDefaultRecommendationWhenHoldingsAreEmpty() {
         long userId = 2L;
         PortfolioSummaryResponse summary = new PortfolioSummaryResponse(
@@ -94,9 +96,9 @@ class DashboardServiceTest {
         DashboardSnapshotResponse response = dashboardService.getSnapshot(userId);
 
         assertThat(response.marketSummary().recommendedPositionRange()).isEqualTo("0원~0원");
-        assertThat(response.recommendation().stockCode()).isEqualTo("005930");
-        assertThat(response.recommendation().reasons()).hasSize(3);
+        assertThat(response.recommendation()).isNull();
         assertThat(response.holdings()).isEmpty();
+        assertThat(response.alerts()).isEmpty();
     }
 
     private HoldingResponse holding(String stockCode, String stockName, String market, String currentPrice) {

@@ -1,4 +1,14 @@
 import 'package:app_version/main.dart';
+import 'package:app_version/models/app_alert.dart';
+import 'package:app_version/models/auth_session.dart';
+import 'package:app_version/models/holding.dart';
+import 'package:app_version/models/investment_snapshot.dart';
+import 'package:app_version/models/market_summary.dart';
+import 'package:app_version/models/recommendation.dart';
+import 'package:app_version/repositories/auth_repository.dart';
+import 'package:app_version/repositories/investment_repository.dart';
+import 'package:app_version/repositories/portfolio_repository.dart';
+import 'package:app_version/repositories/watchlist_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -10,14 +20,19 @@ void main() {
   testWidgets('SagoPalgo UI renders and navigates', (tester) async {
     /// 앱 루트를 테스트 환경에 올려 실제 Android 앱과 같은 위젯 트리를 만듭니다.
     await tester.pumpWidget(
-      const SagoPalgoApp(useMockInvestment: true, useMockWatchlist: true),
+      SagoPalgoApp(
+        authRepository: const FakeAuthRepository(),
+        investmentRepositoryBuilder: (_) => const FakeInvestmentRepository(),
+        watchlistRepositoryBuilder: (_) => const FakeWatchlistRepository(),
+        portfolioRepositoryBuilder: (_) => const FakePortfolioRepository(),
+      ),
     );
 
-    /// 앱은 로그인 화면에서 시작하므로 Google Mock 로그인 버튼이 보이는지 먼저 확인합니다.
+    /// 앱은 로그인 화면에서 시작하므로 Google 로그인 버튼이 보이는지 먼저 확인합니다.
     await tester.pumpAndSettle();
     expect(find.text('Google로 계속하기'), findsOneWidget);
 
-    /// Google 로그인 버튼을 눌러 Mock AuthSession을 만들고 홈 화면으로 진입합니다.
+    /// Google 로그인 버튼을 눌러 테스트 세션을 만들고 홈 화면으로 진입합니다.
     await tester.tap(find.text('Google로 계속하기'));
     await tester.pumpAndSettle();
 
@@ -34,7 +49,7 @@ void main() {
     expect(find.text('매수 추천'), findsOneWidget);
     expect(find.text('강한 매수'), findsOneWidget);
 
-    /// 관심 등록 버튼은 Mock Repository를 통해 성공 피드백을 보여줍니다.
+    /// 관심 등록 버튼은 테스트 Repository를 통해 성공 피드백을 보여줍니다.
     await tester.ensureVisible(find.text('관심 등록'));
     await tester.tap(find.text('관심 등록'));
     await tester.pumpAndSettle();
@@ -48,3 +63,147 @@ void main() {
     expect(find.byIcon(Icons.light_mode), findsOneWidget);
   });
 }
+
+class FakeAuthRepository implements AuthRepository {
+  const FakeAuthRepository();
+
+  @override
+  Future<AuthSession> loginWithGoogle() async {
+    return _testSession;
+  }
+
+  @override
+  Future<AuthSession> loginWithNaver() async {
+    return _testSession;
+  }
+
+  @override
+  Future<AuthSession> refresh(String refreshToken) async {
+    return _testSession;
+  }
+
+  @override
+  Future<void> logout(String accessToken) async {}
+}
+
+class FakeInvestmentRepository implements InvestmentRepository {
+  const FakeInvestmentRepository();
+
+  @override
+  Future<InvestmentSnapshot> fetchSnapshot() async {
+    return _testSnapshot;
+  }
+}
+
+class FakePortfolioRepository implements PortfolioRepository {
+  const FakePortfolioRepository();
+
+  @override
+  Future<PortfolioSnapshot> fetchPortfolio() async {
+    return const PortfolioSnapshot(
+      capital: _testCapital,
+      summary: _testPortfolioSummary,
+      holdings: _testHoldings,
+    );
+  }
+}
+
+class FakeWatchlistRepository implements WatchlistRepository {
+  const FakeWatchlistRepository();
+
+  @override
+  Future<WatchlistActionResult> addRecommendation(
+    InvestmentRecommendation recommendation,
+  ) async {
+    return WatchlistActionResult(
+      message: '${recommendation.stockName} 관심 종목에 등록했습니다.',
+    );
+  }
+
+  @override
+  Future<WatchlistActionResult> enableAlert(
+    InvestmentRecommendation recommendation,
+  ) async {
+    return WatchlistActionResult(
+      message: '${recommendation.stockName} 알림을 켰습니다.',
+    );
+  }
+}
+
+const _testSession = AuthSession(
+  accessToken: 'test-access-token',
+  refreshToken: 'test-refresh-token',
+  expiresIn: 3600,
+  user: AuthUser(
+    userId: 1,
+    authProvider: 'GOOGLE',
+    email: 'user@example.com',
+    nickname: '구글사용자',
+    profileImageUrl: null,
+  ),
+);
+
+const _testCapital = CapitalSettings(
+  availableCapital: 3000000,
+  recommendedMinPosition: 300000,
+  recommendedMaxPosition: 600000,
+  riskPerTradeRate: 0.02,
+);
+
+const _testPortfolioSummary = PortfolioSummary(
+  totalProfit: 128400,
+  profitRate: 4.2,
+  maxAllowedLoss: 60000,
+  riskUsageRate: .42,
+);
+
+const _testHoldings = [
+  Holding(
+    stockName: '삼성전자',
+    stockCode: '005930',
+    buyPrice: 69100,
+    quantity: 12,
+    profitRate: 9.0,
+    status: '부분 익절',
+  ),
+];
+
+const _testSnapshot = InvestmentSnapshot(
+  marketSummary: MarketSummary(
+    availableCapital: 3000000,
+    monthlyReturnRate: 3.8,
+    recommendedPositionRange: '30~60만원',
+    marketTrend: '강세',
+    marketScore: 76,
+    newsSentiment: '긍정',
+    positiveNewsCount: 12,
+    marketBars: [.42, .68, .54],
+  ),
+  recommendation: InvestmentRecommendation(
+    stockName: '삼성전자',
+    stockCode: '005930',
+    market: 'KOSPI',
+    status: '강한 매수',
+    score: 87,
+    entryPrice: 72000,
+    stopLossRate: -5,
+    aiSummary: '테스트 추천 설명입니다.',
+    reasons: [
+      RecommendationReason(
+        label: '수익률',
+        description: '테스트 추천 사유입니다.',
+        type: RecommendationReasonType.trend,
+      ),
+    ],
+  ),
+  portfolioSummary: _testPortfolioSummary,
+  holdings: _testHoldings,
+  alerts: [
+    AppAlert(
+      title: '테스트 알림',
+      body: '테스트 알림 본문입니다.',
+      timeLabel: '방금 전',
+      type: AppAlertType.candidate,
+    ),
+  ],
+);

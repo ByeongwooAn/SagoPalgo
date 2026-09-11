@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 import 'config/app_environment.dart';
 import 'models/auth_session.dart';
 import 'repositories/auth_repository.dart';
-import 'repositories/mock_auth_repository.dart';
-import 'repositories/mock_investment_repository.dart';
-import 'repositories/mock_portfolio_repository.dart';
-import 'repositories/mock_watchlist_repository.dart';
+import 'repositories/investment_repository.dart';
+import 'repositories/portfolio_repository.dart';
 import 'repositories/spring_investment_repository.dart';
 import 'repositories/spring_auth_repository.dart';
 import 'repositories/spring_portfolio_repository.dart';
 import 'repositories/spring_watchlist_repository.dart';
+import 'repositories/watchlist_repository.dart';
 import 'screens/login_screen.dart';
 import 'screens/sago_palgo_home.dart';
 import 'services/social_token_provider.dart';
@@ -34,41 +33,36 @@ class SagoPalgoApp extends StatefulWidget {
   /// 테스트나 실제 API 연동 단계에서 인증 Repository를 교체할 수 있게 주입받습니다.
   const SagoPalgoApp({
     super.key,
-    this.authRepository = const MockAuthRepository(),
-    this.useMockInvestment = false,
-    this.useMockWatchlist = false,
+    required this.authRepository,
+    this.investmentRepositoryBuilder,
+    this.watchlistRepositoryBuilder,
+    this.portfolioRepositoryBuilder,
   });
 
-  /// `.env`에서 읽은 앱 설정에 따라 실제 사용할 인증 Repository를 결정합니다.
-  ///
-  /// 현재는 `SAGOPALGO_USE_MOCK_AUTH=true`일 때 Mock 로그인을 사용합니다.
-  /// false일 때는 실제 Google/Naver 로그인 흐름을 사용하는 `SpringAuthRepository`를 주입합니다.
+  /// `.env`에서 읽은 API 주소와 SDK 설정으로 실제 Spring 연동 Repository를 구성합니다.
   factory SagoPalgoApp.fromEnvironment() {
     final environment = AppEnvironment.instance;
-    if (environment.useMockAuth) {
-      return SagoPalgoApp(
-        useMockInvestment: environment.useMockInvestment,
-        useMockWatchlist: environment.useMockWatchlist,
-      );
-    }
-
     return SagoPalgoApp(
       authRepository: SpringAuthRepository(
         tokenProvider: SdkSocialTokenProvider(environment),
       ),
-      useMockInvestment: environment.useMockInvestment,
-      useMockWatchlist: environment.useMockWatchlist,
     );
   }
 
   /// Google/Naver 로그인과 refresh/logout을 처리하는 인증 Repository입니다.
   final AuthRepository authRepository;
 
-  /// true이면 홈 화면 투자 데이터를 Mock Repository에서 불러옵니다.
-  final bool useMockInvestment;
+  /// 테스트에서 투자 데이터 Repository를 교체하기 위한 빌더입니다.
+  final InvestmentRepository Function(AuthSession session)?
+  investmentRepositoryBuilder;
 
-  /// true이면 추천 화면 관심 종목 액션을 Mock Repository에서 처리합니다.
-  final bool useMockWatchlist;
+  /// 테스트에서 관심 종목 Repository를 교체하기 위한 빌더입니다.
+  final WatchlistRepository Function(AuthSession session)?
+  watchlistRepositoryBuilder;
+
+  /// 테스트에서 포트폴리오 Repository를 교체하기 위한 빌더입니다.
+  final PortfolioRepository Function(AuthSession session)?
+  portfolioRepositoryBuilder;
 
   @override
   State<SagoPalgoApp> createState() => _SagoPalgoAppState();
@@ -105,8 +99,7 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
 
   /// 홈 화면에서 로그아웃을 누르면 서버 로그아웃을 요청한 뒤 로컬 세션을 비웁니다.
   ///
-  /// Mock Repository에서는 즉시 성공하고, 실제 Repository에서는 Spring Boot의
-  /// `/api/v1/auth/logout` API를 호출합니다.
+  /// 실제 Repository가 Spring Boot의 `/api/v1/auth/logout` API를 호출합니다.
   Future<void> _handleLogout() async {
     final session = _session;
     if (session != null) {
@@ -135,21 +128,17 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
           : SagoPalgoHome(
               onThemeToggle: _toggleTheme,
               onLogout: _handleLogout,
-              repository: widget.useMockInvestment
-                  ? const MockInvestmentRepository()
-                  : SpringInvestmentRepository(
-                      accessToken: _session!.accessToken,
-                    ),
-              watchlistRepository: widget.useMockWatchlist
-                  ? const MockWatchlistRepository()
-                  : SpringWatchlistRepository(
-                      accessToken: _session!.accessToken,
-                    ),
-              portfolioRepository: widget.useMockInvestment
-                  ? const MockPortfolioRepository()
-                  : SpringPortfolioRepository(
-                      accessToken: _session!.accessToken,
-                    ),
+              repository:
+                  widget.investmentRepositoryBuilder?.call(_session!) ??
+                  SpringInvestmentRepository(
+                    accessToken: _session!.accessToken,
+                  ),
+              watchlistRepository:
+                  widget.watchlistRepositoryBuilder?.call(_session!) ??
+                  SpringWatchlistRepository(accessToken: _session!.accessToken),
+              portfolioRepository:
+                  widget.portfolioRepositoryBuilder?.call(_session!) ??
+                  SpringPortfolioRepository(accessToken: _session!.accessToken),
               session: _session!,
             ),
     );

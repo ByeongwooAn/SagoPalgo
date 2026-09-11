@@ -24,7 +24,7 @@ class RecommendationScreen extends StatefulWidget {
   });
 
   /// Repository에서 받은 매수 추천 모델입니다.
-  final InvestmentRecommendation recommendation;
+  final InvestmentRecommendation? recommendation;
 
   /// 관심 종목 등록과 알림 설정 액션을 처리하는 Repository입니다.
   final WatchlistRepository watchlistRepository;
@@ -40,6 +40,9 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   @override
   Widget build(BuildContext context) {
     final recommendation = widget.recommendation;
+    if (recommendation == null) {
+      return const _EmptyRecommendationState();
+    }
 
     return AppScrollView(
       child: Column(
@@ -109,7 +112,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     await _runAction(
       setBusy: (busy) => _addingWatchlist = busy,
       action: () =>
-          widget.watchlistRepository.addRecommendation(widget.recommendation),
+          widget.watchlistRepository.addRecommendation(widget.recommendation!),
     );
   }
 
@@ -117,7 +120,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     await _runAction(
       setBusy: (busy) => _enablingAlert = busy,
       action: () =>
-          widget.watchlistRepository.enableAlert(widget.recommendation),
+          widget.watchlistRepository.enableAlert(widget.recommendation!),
     );
   }
 
@@ -149,6 +152,50 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _EmptyRecommendationState extends StatelessWidget {
+  const _EmptyRecommendationState();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
+    return AppScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(
+            eyebrow: '매수 추천',
+            title: '추천 데이터 없음',
+            action: StatusChip(label: '대기', icon: Icons.hourglass_empty),
+          ),
+          const SizedBox(height: 18),
+          AppCard(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.info_outline_rounded, color: AppTheme.main),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '아직 서버에 추천할 실제 데이터가 없습니다. 자본금과 보유 종목을 등록한 뒤 대시보드 스냅샷을 다시 조회하면 추천 판단이 표시됩니다.',
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: 14,
+                      height: 1.4,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

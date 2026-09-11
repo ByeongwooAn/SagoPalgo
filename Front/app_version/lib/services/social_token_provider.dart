@@ -40,28 +40,6 @@ abstract class SocialTokenProvider {
   Future<NaverAuthorizationCode> fetchNaverAuthorizationCode();
 }
 
-/// 실제 SDK 없이 앱 UI와 인증 흐름을 확인하기 위한 Mock 토큰 Provider입니다.
-///
-/// 이 Provider는 진짜 Google ID token이나 Naver authorization code를 만들지 않습니다.
-class MockSocialTokenProvider implements SocialTokenProvider {
-  /// Mock 객체는 외부 상태가 없으므로 const 생성자로 충분합니다.
-  const MockSocialTokenProvider();
-
-  @override
-  Future<String> fetchGoogleIdToken() async {
-    return 'mock-google-id-token';
-  }
-
-  @override
-  Future<NaverAuthorizationCode> fetchNaverAuthorizationCode() async {
-    return const NaverAuthorizationCode(
-      authorizationCode: 'mock-naver-authorization-code',
-      state: 'mock-naver-state',
-      redirectUri: 'sagopalgo://oauth/naver',
-    );
-  }
-}
-
 /// Google/Naver SDK에서 실제 provider token을 가져오는 Provider입니다.
 ///
 /// Google은 `google_sign_in`으로 ID token을 받고, Naver는 백엔드가 생성한 authorization URL을

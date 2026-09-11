@@ -14,14 +14,11 @@ class DashboardRecommendationEngineTest {
     private final DashboardRecommendationEngine engine = new DashboardRecommendationEngine();
 
     @Test
-    @DisplayName("보유 종목이 없으면 기본 매수 후보를 반환한다")
+    @DisplayName("보유 종목이 없으면 추천을 반환하지 않는다")
     void recommendsDefaultBuyCandidateWhenHoldingsAreEmpty() {
         DashboardRecommendationResponse response = engine.recommend(List.of());
 
-        assertThat(response.stockCode()).isEqualTo("005930");
-        assertThat(response.status()).isEqualTo("강한 매수");
-        assertThat(response.score()).isEqualTo(87);
-        assertThat(response.reasons()).hasSize(3);
+        assertThat(response).isNull();
     }
 
     @Test

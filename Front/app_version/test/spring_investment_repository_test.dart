@@ -100,14 +100,14 @@ void main() {
     final snapshot = await repository.fetchSnapshot();
 
     expect(snapshot.marketSummary.availableCapital, 3000000);
-    expect(snapshot.recommendation.stockCode, '005930');
-    expect(snapshot.recommendation.market, 'KOSPI');
+    expect(snapshot.recommendation!.stockCode, '005930');
+    expect(snapshot.recommendation!.market, 'KOSPI');
     expect(
-      snapshot.recommendation.reasons.first.type,
+      snapshot.recommendation!.reasons.first.type,
       RecommendationReasonType.technical,
     );
     expect(
-      snapshot.recommendation.reasons.last.type,
+      snapshot.recommendation!.reasons.last.type,
       RecommendationReasonType.news,
     );
     expect(snapshot.portfolioSummary.totalProfit, 128400);

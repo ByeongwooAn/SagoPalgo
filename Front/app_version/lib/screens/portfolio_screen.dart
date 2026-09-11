@@ -109,8 +109,6 @@ class _PortfolioContent extends StatelessWidget {
             PortfolioRow(holding: holding),
             const SizedBox(height: 10),
           ],
-          const SellAlertCard(),
-          const SizedBox(height: 12),
           RiskRuleCard(riskUsageRate: portfolio.summary.riskUsageRate),
           const SizedBox(height: 20),
         ],
@@ -376,53 +374,6 @@ class PortfolioRow extends StatelessWidget {
               const SizedBox(height: 4),
               TextCaption(holding.status),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 매도 검토 알림을 보유 화면 안에서 강조하는 카드입니다.
-class SellAlertCard extends StatelessWidget {
-  /// 현재는 대표 예시 메시지를 보여주고, 이후 매도 추천 API 응답으로 교체합니다.
-  const SellAlertCard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      soft: true,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                LabelText('실시간 알림'),
-                SizedBox(height: 6),
-                CardTitle('매도 검토', fontSize: 24),
-                SizedBox(height: 8),
-                TextBody('삼성전자 현재 수익률 +9%. 목표 수익 도달로 부분 익절을 추천합니다.'),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppTheme.sub,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: const Text(
-              'FCM',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0,
-              ),
-            ),
           ),
         ],
       ),

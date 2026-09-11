@@ -21,10 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DashboardService {
 
-    private static final BigDecimal MONTHLY_RETURN_RATE = new BigDecimal("3.8");
-    private static final int MARKET_SCORE = 76;
-    private static final int POSITIVE_NEWS_COUNT = 12;
-
     private final CapitalService capitalService;
     private final HoldingService holdingService;
     private final DashboardRecommendationEngine recommendationEngine;
@@ -46,7 +42,7 @@ public class DashboardService {
         DashboardRecommendationResponse recommendation = recommendationEngine.recommend(holdings.items());
 
         return new DashboardSnapshotResponse(
-            marketSummary(capital),
+            marketSummary(capital, holdings),
             recommendation,
             holdings.summary(),
             holdings.items(),
@@ -54,27 +50,24 @@ public class DashboardService {
         );
     }
 
-    private DashboardMarketSummaryResponse marketSummary(CapitalResponse capital) {
+    private DashboardMarketSummaryResponse marketSummary(CapitalResponse capital, HoldingsListResponse holdings) {
         return new DashboardMarketSummaryResponse(
             capital.availableCapital(),
-            MONTHLY_RETURN_RATE,
+            holdings.summary().profitRate(),
             positionRange(capital.recommendedMinPosition(), capital.recommendedMaxPosition()),
-            "강세",
-            MARKET_SCORE,
-            "긍정",
-            POSITIVE_NEWS_COUNT,
-            List.of(
-                new BigDecimal("0.42"),
-                new BigDecimal("0.68"),
-                new BigDecimal("0.54"),
-                new BigDecimal("0.82"),
-                new BigDecimal("0.61"),
-                new BigDecimal("0.94")
-            )
+            "데이터 없음",
+            0,
+            "데이터 없음",
+            0,
+            List.of()
         );
     }
 
     private List<DashboardAlertResponse> alerts(DashboardRecommendationResponse recommendation) {
+        if (recommendation == null) {
+            return List.of();
+        }
+
         return List.of(
             new DashboardAlertResponse(
                 recommendation.stockName() + " " + recommendation.status(),

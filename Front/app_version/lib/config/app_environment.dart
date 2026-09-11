@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 /// Flutter 앱이 `.env` 파일에서 읽은 설정값을 보관하는 전역 환경 설정입니다.
 ///
 /// 모바일 앱에 포함되는 `.env` 값은 APK 안에 함께 들어가므로 진짜 비밀키를 넣으면 안 됩니다.
-/// 이 파일은 API 주소, Mock 사용 여부, 공개 가능한 client id처럼 앱에 노출되어도 되는 값만 관리합니다.
+/// 이 파일은 API 주소와 공개 가능한 client id처럼 앱에 노출되어도 되는 값만 관리합니다.
 class AppEnvironment {
   /// `.env` 파일을 읽은 뒤 만들어지는 설정 Map입니다.
   AppEnvironment._(this._values);
@@ -53,23 +53,6 @@ class AppEnvironment {
     throw StateError(
       'SAGOPALGO_API_BASE_URL 또는 SAGOPALGO_NGINX_SERVER_NAME/SAGOPALGO_PROXY_HTTP_PORT 환경 변수가 필요합니다.',
     );
-  }
-
-  /// 현재 앱이 Mock 인증 Repository를 사용할지 결정합니다.
-  bool get useMockAuth {
-    return _optional('SAGOPALGO_USE_MOCK_AUTH', fallback: 'false') == 'true';
-  }
-
-  /// 현재 앱이 Mock 투자 데이터 Repository를 사용할지 결정합니다.
-  bool get useMockInvestment {
-    return _optional('SAGOPALGO_USE_MOCK_INVESTMENT', fallback: 'false') ==
-        'true';
-  }
-
-  /// 현재 앱이 Mock 관심 종목 Repository를 사용할지 결정합니다.
-  bool get useMockWatchlist {
-    return _optional('SAGOPALGO_USE_MOCK_WATCHLIST', fallback: 'false') ==
-        'true';
   }
 
   /// Google SDK 초기화에 사용할 server client id입니다.
@@ -131,15 +114,6 @@ class AppEnvironment {
       ),
       'SAGOPALGO_NGINX_SERVER_NAME': String.fromEnvironment(
         'SAGOPALGO_NGINX_SERVER_NAME',
-      ),
-      'SAGOPALGO_USE_MOCK_AUTH': String.fromEnvironment(
-        'SAGOPALGO_USE_MOCK_AUTH',
-      ),
-      'SAGOPALGO_USE_MOCK_INVESTMENT': String.fromEnvironment(
-        'SAGOPALGO_USE_MOCK_INVESTMENT',
-      ),
-      'SAGOPALGO_USE_MOCK_WATCHLIST': String.fromEnvironment(
-        'SAGOPALGO_USE_MOCK_WATCHLIST',
       ),
       'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID': String.fromEnvironment(
         'SAGOPALGO_GOOGLE_SERVER_CLIENT_ID',

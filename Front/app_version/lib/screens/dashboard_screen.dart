@@ -70,12 +70,14 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           CandidateCard(
-            stockName: recommendation.stockName,
-            score: recommendation.score,
-            reasonLine: recommendation.reasons
-                .map((reason) => reason.label)
-                .take(3)
-                .join(' + '),
+            stockName: recommendation?.stockName,
+            score: recommendation?.score,
+            reasonLine:
+                recommendation?.reasons
+                    .map((reason) => reason.label)
+                    .take(3)
+                    .join(' + ') ??
+                '',
           ),
           const SizedBox(height: 12),
           MarketBarsCard(values: summary.marketBars),
@@ -276,10 +278,10 @@ class CandidateCard extends StatelessWidget {
   });
 
   /// 대표 추천 후보 종목명입니다.
-  final String stockName;
+  final String? stockName;
 
   /// 대표 추천 후보의 AI 점수입니다.
-  final int score;
+  final int? score;
 
   /// 대표 추천 후보를 만든 핵심 근거 요약입니다.
   final String reasonLine;
@@ -287,6 +289,7 @@ class CandidateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = AppPalette.of(context);
+    final candidateScore = score;
 
     return AppCard(
       child: Column(
@@ -300,18 +303,21 @@ class CandidateCard extends StatelessWidget {
                   children: [
                     const LabelText('실시간 후보'),
                     const SizedBox(height: 8),
-                    CardTitle(stockName, fontSize: 24),
+                    CardTitle(stockName ?? '추천 데이터 없음', fontSize: 24),
                   ],
                 ),
               ),
-              ScoreRing(score: score, size: 108),
+              if (candidateScore == null)
+                const StatusChip(label: '대기', icon: Icons.hourglass_empty)
+              else
+                ScoreRing(score: candidateScore, size: 108),
             ],
           ),
           const SizedBox(height: 16),
-          ScoreProgress(value: score / 100),
+          ScoreProgress(value: (candidateScore ?? 0) / 100),
           const SizedBox(height: 10),
           Text(
-            reasonLine,
+            reasonLine.isEmpty ? '보유 종목이나 추천 분석 결과가 아직 없습니다' : reasonLine,
             style: TextStyle(
               color: palette.text,
               fontSize: 13,
@@ -335,6 +341,8 @@ class MarketBarsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
     return AppCard(
       soft: true,
       child: Column(
@@ -346,7 +354,23 @@ class MarketBarsCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          MarketBars(values: values),
+          if (values.isEmpty)
+            SizedBox(
+              height: 112,
+              child: Center(
+                child: Text(
+                  '연동된 시장 지표가 없습니다',
+                  style: TextStyle(
+                    color: palette.muted,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ),
+            )
+          else
+            MarketBars(values: values),
         ],
       ),
     );

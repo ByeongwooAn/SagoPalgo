@@ -16,8 +16,8 @@ import 'recommendation_screen.dart';
 /// 사고팔고 앱의 메인 화면 컨테이너입니다.
 ///
 /// 이 위젯은 직접 투자 데이터를 만들지 않고 `InvestmentRepository`에서 받아옵니다.
-/// 덕분에 현재 Mock Repository를 실제 Spring Boot API Repository로 바꿔도
-/// 하단 탭과 화면 전환 로직은 그대로 유지할 수 있습니다.
+/// 덕분에 Spring Boot API Repository의 내부 호출 방식이 바뀌어도 하단 탭과 화면 전환 로직은
+/// 그대로 유지할 수 있습니다.
 class SagoPalgoHome extends StatefulWidget {
   /// 테마 전환 콜백과 투자 데이터 Repository를 주입받습니다.
   const SagoPalgoHome({

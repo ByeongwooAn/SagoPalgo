@@ -1,10 +1,9 @@
 /// 홈 대시보드가 보여줘야 하는 시장과 사용자 자본 요약 데이터입니다.
 ///
-/// 지금은 Mock 데이터로 채우지만, 나중에 Spring Boot API의
-/// `/capital`, `/market-summary` 같은 응답을 그대로 매핑할 수 있도록
+/// Spring Boot API의 `/dashboard/snapshot` 응답을 그대로 매핑할 수 있도록
 /// 화면 표시값과 계산값을 하나의 모델로 묶어 둡니다.
 class MarketSummary {
-  /// 모든 필드를 필수로 받게 해서 화면이 비어 보이는 상황을 미리 막습니다.
+  /// API 응답의 시장/자본 요약 필드를 받습니다.
   const MarketSummary({
     required this.availableCapital,
     required this.monthlyReturnRate,

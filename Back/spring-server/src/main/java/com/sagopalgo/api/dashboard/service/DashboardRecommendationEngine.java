@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * Python AI 서버가 붙기 전까지 사용할 MVP 추천 엔진입니다.
  *
- * <p>현재는 보유 종목의 수익률, 손절/익절 기준, 시장/뉴스 샘플 점수를 조합해 설명 가능한 대표 추천을
+ * <p>현재는 실제 DB에 저장된 보유 종목의 수익률, 손절/익절 기준을 조합해 설명 가능한 대표 추천을
  * 만듭니다. 이후 AI 서버 응답 DTO를 이 클래스 입력으로 바꾸면 화면 계약은 그대로 유지할 수 있습니다.
  */
 @Component
@@ -19,7 +19,7 @@ public class DashboardRecommendationEngine {
 
     public DashboardRecommendationResponse recommend(List<HoldingResponse> holdings) {
         if (holdings.isEmpty()) {
-            return buyCandidate();
+            return null;
         }
 
         HoldingResponse holding = selectPrimaryHolding(holdings);
@@ -39,40 +39,6 @@ public class DashboardRecommendationEngine {
         return holdings.stream()
             .max(Comparator.comparing(holding -> holding.profitRate().abs()))
             .orElseThrow();
-    }
-
-    private DashboardRecommendationResponse buyCandidate() {
-        return new DashboardRecommendationResponse(
-            null,
-            "삼성전자",
-            "005930",
-            "KOSPI",
-            "강한 매수",
-            87,
-            new BigDecimal("72000").stripTrailingZeros(),
-            new BigDecimal("-5").stripTrailingZeros(),
-            "시장 강세와 거래량 증가가 동시에 나타나 단기 관심 종목으로 분류됩니다. 전체 자산의 1~2% 손실 제한을 유지하세요.",
-            List.of(
-                new DashboardRecommendationReasonResponse(
-                    "RSI",
-                    "과매도 구간에서 반등 신호가 확인되었습니다.",
-                    "TECHNICAL",
-                    20
-                ),
-                new DashboardRecommendationReasonResponse(
-                    "MACD",
-                    "골든크로스 초기 구간으로 추세 전환 가능성이 있습니다.",
-                    "TREND",
-                    20
-                ),
-                new DashboardRecommendationReasonResponse(
-                    "뉴스",
-                    "AI 반도체 수주 관련 긍정 감성이 증가했습니다.",
-                    "NEWS",
-                    15
-                )
-            )
-        );
     }
 
     private DashboardRecommendationResponse takeProfitCandidate(HoldingResponse holding) {

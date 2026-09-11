@@ -36,8 +36,9 @@
 
 ## MVP 추천/시세 기준
 
-- `MarketPriceService`는 외부 시세 API가 붙기 전까지 샘플 종목의 결정적 현재가를 제공합니다.
-- `DashboardRecommendationEngine`은 보유 종목의 수익률, 손절 기준, 익절 기준을 보고 `강한 매수`, `보유 유지`, `부분 익절 검토`, `손절 감시` 중 하나를 대표 추천으로 반환합니다.
+- `MarketPriceService`는 외부 시세 API가 붙기 전까지 임의 샘플 가격을 만들지 않고, 사용자가 등록한 매수가를 현재가로 반환합니다.
+- `DashboardRecommendationEngine`은 실제 보유 종목이 있을 때만 수익률, 손절 기준, 익절 기준을 보고 `보유 유지`, `부분 익절 검토`, `손절 감시` 중 하나를 대표 추천으로 반환합니다.
+- 보유 종목이 없으면 대시보드 스냅샷의 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
 - Python AI 서버가 붙으면 이 두 서비스 경계를 실제 시세/AI 분석 클라이언트로 교체하고, `/api/v1/dashboard/snapshot` 응답 계약은 유지하는 방향입니다.
 
 ## 소셜 로그인 토큰 기준
