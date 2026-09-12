@@ -6,6 +6,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
@@ -163,6 +165,49 @@ class KbSecuritiesAccountClientTest {
 
         assertThatThrownBy(() -> client.fetchHoldings())
             .isInstanceOf(ApiException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("토큰 발급 HTTP 실패는 외부 데이터 오류로 변환한다")
+    void fetchHoldingsThrowsExternalDataErrorWhenTokenRequestFails() {
+        server.expect(requestTo("https://kb.test/oauth2/token"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withStatus(HttpStatus.UNAUTHORIZED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                    {
+                      "rt_cd": "1",
+                      "msg1": "인증 정보를 확인할 수 없습니다.",
+                      "appKey": "echoed-app-key"
+                    }
+                    """));
+
+        assertThatThrownBy(() -> client.fetchHoldings())
+            .isInstanceOf(ApiException.class)
+            .hasMessage("KB증권 access token 발급에 실패했습니다.")
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("토큰 발급 응답에 access token이 없으면 외부 데이터 오류로 변환한다")
+    void fetchHoldingsThrowsExternalDataErrorWhenTokenResponseHasNoAccessToken() {
+        server.expect(requestTo("https://kb.test/oauth2/token"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withSuccess("""
+                {
+                  "rt_cd": "1",
+                  "msg1": "API 권한이 없습니다."
+                }
+                """, MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> client.fetchHoldings())
+            .isInstanceOf(ApiException.class)
+            .hasMessage("KB증권 access token 응답이 올바르지 않습니다.")
             .extracting("errorCode")
             .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
         server.verify();
