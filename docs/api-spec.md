@@ -68,12 +68,17 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 
 민감한 API Key, App Secret, 계좌번호는 응답에 포함하지 않습니다. 이 API는 어떤 증권사를 어떤 역할로 사용할지와 필요한 값이 설정되어 있는지만 보여줍니다.
 
+2단계 기준 민감정보 저장 방식은 `.env` 파일입니다. Windows Credential Manager는 자동 주문 단계 전 다시 검토합니다.
+
 응답:
 
 ```json
 {
   "success": true,
   "data": {
+    "secretStorageType": "ENV_FILE",
+    "secretStorageDescription": ".env 파일과 Docker env-file로 개인용 API Key, App Secret, 계좌번호를 관리합니다.",
+    "orderSafetyMode": "주문 기능 기본 OFF",
     "providers": [
       {
         "code": "KB",

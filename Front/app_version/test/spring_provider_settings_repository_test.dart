@@ -23,6 +23,9 @@ void main() {
           jsonEncode({
             'success': true,
             'data': {
+              'secretStorageType': 'ENV_FILE',
+              'secretStorageDescription': '.env 파일로 민감정보를 관리합니다.',
+              'orderSafetyMode': '주문 기능 기본 OFF',
               'providers': [
                 {
                   'code': 'KB',
@@ -53,6 +56,8 @@ void main() {
 
     final settings = await repository.fetchProviderSettings();
 
+    expect(settings.secretStorageType, 'ENV_FILE');
+    expect(settings.orderSafetyMode, '주문 기능 기본 OFF');
     expect(settings.providers, hasLength(2));
     expect(settings.providers.first.code, 'KB');
     expect(settings.providers.first.accountEnabled, isTrue);

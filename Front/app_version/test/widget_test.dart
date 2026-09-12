@@ -179,6 +179,9 @@ class FakeProviderSettingsRepository implements ProviderSettingsRepository {
   @override
   Future<ProviderSettingsSnapshot> fetchProviderSettings() async {
     return const ProviderSettingsSnapshot(
+      secretStorageType: 'ENV_FILE',
+      secretStorageDescription: '.env 파일로 민감정보를 관리합니다.',
+      orderSafetyMode: '주문 기능 기본 OFF',
       providers: [
         ProviderSetting(
           code: 'KB',

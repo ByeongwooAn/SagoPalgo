@@ -72,6 +72,8 @@ Invoke-WebRequest -Uri http://localhost:8081/health -UseBasicParsing
 
 - `.env`, `.env.dev`, `.env.prod`, `Back/spring-server/.env`는 저장소에 커밋하지 않는다.
 - KB/KIS/Toss API Key, App Secret, 계좌번호는 예시 파일에는 빈 값 또는 placeholder만 둔다.
+- 2단계 기준 민감정보 저장 방식은 `.env`로 확정한다.
+- 자동 주문 기능을 붙이기 전에는 Windows Credential Manager 같은 OS 보안 저장소 전환 여부를 다시 검토한다.
 - 현재 백엔드는 로그인/JWT/OAuth를 사용하지 않는다.
 - Spring API는 개인용 로컬 사용자 ID를 기준으로 보유 종목, 관심 종목, 자본금 데이터를 묶는다.
 

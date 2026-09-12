@@ -37,7 +37,8 @@ class SettingsScreen extends StatelessWidget {
           return _SettingsErrorState(onRetry: onRetry);
         }
 
-        final providers = snapshot.data!.providers;
+        final settings = snapshot.data!;
+        final providers = settings.providers;
 
         return AppScrollView(
           child: Column(
@@ -83,6 +84,29 @@ class SettingsScreen extends StatelessWidget {
                       icon: Icons.dns_rounded,
                       label: 'API',
                       value: '로컬 Spring Boot',
+                    ),
+                    const SizedBox(height: 8),
+                    _SettingLine(
+                      icon: Icons.folder_rounded,
+                      label: '민감정보',
+                      value: settings.secretStorageType,
+                    ),
+                    const SizedBox(height: 8),
+                    _SettingLine(
+                      icon: Icons.block_rounded,
+                      label: '주문',
+                      value: settings.orderSafetyMode,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      settings.secretStorageDescription,
+                      style: TextStyle(
+                        color: palette.muted,
+                        fontSize: 12,
+                        height: 1.35,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0,
+                      ),
                     ),
                   ],
                 ),

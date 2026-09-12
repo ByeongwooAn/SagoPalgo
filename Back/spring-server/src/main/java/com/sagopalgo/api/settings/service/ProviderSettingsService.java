@@ -29,35 +29,40 @@ public class ProviderSettingsService {
         Provider kb = securitiesProviderProperties.getKb();
         Provider toss = securitiesProviderProperties.getToss();
 
-        return new ProviderSettingsResponse(List.of(
-            new ProviderSettingResponse(
-                "KB",
-                "KB증권",
-                kb.isMarketDataEnabled(),
-                kb.isAccountEnabled(),
-                kb.isOrderEnabled(),
-                kb.hasRequiredSecrets() && (!kb.isAccountEnabled() || kb.hasAccountNumber()),
-                "계좌 조회와 추후 주문 기능의 기준 증권사"
-            ),
-            new ProviderSettingResponse(
-                "KIS",
-                "한국투자증권",
-                kisMarketProperties.isEnabled(),
-                false,
-                false,
-                hasText(kisMarketProperties.getAppKey()) && hasText(kisMarketProperties.getAppSecret()),
-                "국내 주식 시세 조회용 데이터 소스"
-            ),
-            new ProviderSettingResponse(
-                "TOSS",
-                "토스증권",
-                toss.isMarketDataEnabled(),
-                false,
-                false,
-                toss.hasRequiredSecrets(),
-                "분석용 시세/종목 정보 보조 데이터 소스"
+        return new ProviderSettingsResponse(
+            "ENV_FILE",
+            ".env 파일과 Docker env-file로 개인용 API Key, App Secret, 계좌번호를 관리합니다.",
+            "주문 기능 기본 OFF",
+            List.of(
+                new ProviderSettingResponse(
+                    "KB",
+                    "KB증권",
+                    kb.isMarketDataEnabled(),
+                    kb.isAccountEnabled(),
+                    kb.isOrderEnabled(),
+                    kb.hasRequiredSecrets() && (!kb.isAccountEnabled() || kb.hasAccountNumber()),
+                    "계좌 조회와 추후 주문 기능의 기준 증권사"
+                ),
+                new ProviderSettingResponse(
+                    "KIS",
+                    "한국투자증권",
+                    kisMarketProperties.isEnabled(),
+                    false,
+                    false,
+                    hasText(kisMarketProperties.getAppKey()) && hasText(kisMarketProperties.getAppSecret()),
+                    "국내 주식 시세 조회용 데이터 소스"
+                ),
+                new ProviderSettingResponse(
+                    "TOSS",
+                    "토스증권",
+                    toss.isMarketDataEnabled(),
+                    false,
+                    false,
+                    toss.hasRequiredSecrets(),
+                    "분석용 시세/종목 정보 보조 데이터 소스"
+                )
             )
-        ));
+        );
     }
 
     private boolean hasText(String value) {

@@ -49,7 +49,21 @@ class ProviderSetting {
 /// 증권사 설정 API의 루트 응답 모델입니다.
 class ProviderSettingsSnapshot {
   /// 설정된 증권사 목록을 받습니다.
-  const ProviderSettingsSnapshot({required this.providers});
+  const ProviderSettingsSnapshot({
+    required this.secretStorageType,
+    required this.secretStorageDescription,
+    required this.orderSafetyMode,
+    required this.providers,
+  });
+
+  /// 민감정보 저장 방식 코드입니다.
+  final String secretStorageType;
+
+  /// 민감정보 저장 방식 설명입니다.
+  final String secretStorageDescription;
+
+  /// 주문 기능 안전 모드 설명입니다.
+  final String orderSafetyMode;
 
   /// 증권사별 설정 상태입니다.
   final List<ProviderSetting> providers;
@@ -58,6 +72,10 @@ class ProviderSettingsSnapshot {
   factory ProviderSettingsSnapshot.fromJson(Map<String, dynamic> json) {
     final providers = json['providers'] as List<dynamic>? ?? const [];
     return ProviderSettingsSnapshot(
+      secretStorageType: json['secretStorageType'] as String? ?? 'ENV_FILE',
+      secretStorageDescription:
+          json['secretStorageDescription'] as String? ?? '.env 파일',
+      orderSafetyMode: json['orderSafetyMode'] as String? ?? '주문 기능 기본 OFF',
       providers: providers
           .map((item) => ProviderSetting.fromJson(item as Map<String, dynamic>))
           .toList(),

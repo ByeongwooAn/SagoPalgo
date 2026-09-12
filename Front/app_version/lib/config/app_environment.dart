@@ -2,9 +2,8 @@ import 'package:flutter/services.dart';
 
 /// Flutter 앱이 `.env` 파일에서 읽은 설정값을 보관하는 전역 환경 설정입니다.
 ///
-/// Windows 실행 번들에 포함되는 `.env` 값은 사용자 PC에 남으므로 진짜 비밀키는 이후 로컬 보안 저장소로
-/// 옮기는 것을 목표로 합니다.
-/// 이 파일은 API 주소와 공개 가능한 client id처럼 앱에 노출되어도 되는 값만 관리합니다.
+/// Flutter 쪽 `.env`는 API 주소와 앱 잠금 PIN처럼 앱 실행에 필요한 값을 관리합니다.
+/// 증권사 API Key, App Secret, 계좌번호는 Spring Boot 또는 Docker 실행용 `.env`에서 관리합니다.
 class AppEnvironment {
   /// `.env` 파일을 읽은 뒤 만들어지는 설정 Map입니다.
   AppEnvironment._(this._values);
