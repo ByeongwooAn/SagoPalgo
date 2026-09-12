@@ -51,6 +51,8 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.d
 docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev ps
 ```
 
+DB volume을 새로 만들 때 `Back/database/schema.sql`은 `.env.dev`의 `SAGOPALGO_MYSQL_DATABASE` 값에 해당하는 DB 안에 테이블을 생성합니다. 예를 들어 `SAGOPALGO_MYSQL_DATABASE=sagopalgo_dev`이면 Spring API도 `sagopalgo_dev`에 접속하고, 테이블도 같은 DB에 생성되어야 합니다.
+
 API 서버 상태:
 
 ```powershell

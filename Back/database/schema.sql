@@ -1,12 +1,8 @@
 -- 사고팔고 MySQL 스키마 1차 초안입니다.
 -- 이 파일은 Spring Boot + MyBatis 백엔드 구현 전에 DB 구조를 고정하기 위한 기준 파일입니다.
+-- Docker Compose에서는 MYSQL_DATABASE로 선택된 DB에 이 파일이 실행됩니다.
+-- 수동 실행 시에는 먼저 CREATE DATABASE와 USE를 실행한 뒤 이 파일을 적용하세요.
 -- 실제 운영 반영 전에는 마이그레이션 도구(Flyway 또는 Liquibase)로 옮겨 관리하는 것을 권장합니다.
-
-CREATE DATABASE IF NOT EXISTS sagopalgo
-  DEFAULT CHARACTER SET utf8mb4
-  DEFAULT COLLATE utf8mb4_0900_ai_ci;
-
-USE sagopalgo;
 
 -- 개인용 로컬 사용자 테이블입니다.
 -- 로그인 계정이 아니라 보유/관심/자본금 데이터를 하나의 로컬 소유자로 묶는 루트 테이블입니다.
