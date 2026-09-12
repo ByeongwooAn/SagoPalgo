@@ -40,7 +40,7 @@ public class ProviderSettingsService {
                     kb.isMarketDataEnabled(),
                     kb.isAccountEnabled(),
                     kb.isOrderEnabled(),
-                    kb.hasRequiredSecrets() && (!kb.isAccountEnabled() || kb.hasAccountNumber()),
+                    kb.hasRequiredSecrets(),
                     "계좌 조회와 추후 주문 기능의 기준 증권사"
                 ),
                 new ProviderSettingResponse(
