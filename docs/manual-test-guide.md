@@ -31,6 +31,10 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 
 SAGOPALGO_KB_ACCOUNT_ENABLED=false
 SAGOPALGO_KB_ORDER_ENABLED=false
+SAGOPALGO_KB_BASE_URL=https://developer.kbsec.com:32484
+SAGOPALGO_KB_TOKEN_PATH=/oauth2/token
+SAGOPALGO_KB_ACCOUNTS_PATH=
+SAGOPALGO_KB_HOLDINGS_PATH=
 SAGOPALGO_KB_APP_KEY=
 SAGOPALGO_KB_APP_SECRET=
 SAGOPALGO_KB_ACCOUNT_NUMBER=
@@ -73,6 +77,15 @@ Invoke-RestMethod `
 ```
 
 응답에는 `secretStorageType=ENV_FILE`, `orderSafetyMode=주문 기능 기본 OFF`, KB/KIS/Toss의 역할, 활성화 여부, 필수 설정값 입력 여부만 표시되어야 합니다. API Key, App Secret, 계좌번호 원문은 응답에 포함되면 안 됩니다.
+
+KB 계좌 연동 확인:
+
+```powershell
+Invoke-WebRequest -Uri http://localhost:8081/api/v1/kb/accounts -UseBasicParsing
+Invoke-WebRequest -Uri http://localhost:8081/api/v1/kb/accounts/primary/holdings -UseBasicParsing
+```
+
+실제 KB 계좌 조회를 확인하려면 KB증권 Open API 포털에서 App Key/App Secret을 발급받고, 포털 문서 다운로드에서 계좌 목록 TR 경로와 보유 주식/잔고 TR 경로를 확인한 뒤 `SAGOPALGO_KB_ACCOUNT_ENABLED=true`, `SAGOPALGO_KB_ACCOUNTS_PATH`, `SAGOPALGO_KB_HOLDINGS_PATH`, 필요 시 `SAGOPALGO_KB_*_TR_ID`, `SAGOPALGO_KB_ACCOUNT_NUMBER_FIELD`, `SAGOPALGO_KB_ACCOUNT_PRODUCT_CODE_FIELD`를 채웁니다. 응답에는 계좌번호가 마스킹되어야 하며, 보유 주식 응답의 `summary`에는 총 매입금액, 총 평가금액, 총 손익, 손익률이 계산되어야 합니다.
 
 자본금 수정:
 

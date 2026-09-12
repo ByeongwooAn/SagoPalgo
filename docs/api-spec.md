@@ -113,9 +113,95 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 }
 ```
 
-## 5. 대시보드 API
+## 5. KB증권 계좌 API
 
-### 5.1 앱 초기 스냅샷 조회
+KB증권 Open API는 App Key/App Secret으로 `POST /oauth2/token`에서 access token을 발급받고, 이후 Bearer Token으로 계좌/잔고 API를 호출합니다. Base URL 기본값은 `https://developer.kbsec.com:32484`입니다.
+
+계좌/잔고 상세 TR 경로와 요청 계좌 필드명은 KB증권 Open API 포털에서 내려받은 최신 API 문서를 기준으로 `.env`에 설정합니다.
+
+```text
+SAGOPALGO_KB_ACCOUNT_ENABLED=true
+SAGOPALGO_KB_BASE_URL=https://developer.kbsec.com:32484
+SAGOPALGO_KB_TOKEN_PATH=/oauth2/token
+SAGOPALGO_KB_ACCOUNTS_PATH=포털 문서의 계좌 목록 TR 경로
+SAGOPALGO_KB_HOLDINGS_PATH=포털 문서의 보유 주식/잔고 TR 경로
+SAGOPALGO_KB_ACCOUNTS_TR_ID=필요 시 계좌 목록 TR ID
+SAGOPALGO_KB_HOLDINGS_TR_ID=필요 시 보유 주식 TR ID
+SAGOPALGO_KB_ACCOUNT_NUMBER=내 KB증권 계좌번호
+SAGOPALGO_KB_ACCOUNT_PRODUCT_CODE=필요 시 상품 코드
+SAGOPALGO_KB_ACCOUNT_NUMBER_FIELD=포털 문서의 계좌번호 요청 필드명
+SAGOPALGO_KB_ACCOUNT_PRODUCT_CODE_FIELD=포털 문서의 상품코드 요청 필드명
+```
+
+### 5.1 KB 계좌 목록 조회
+
+`GET /api/v1/kb/accounts`
+
+`SAGOPALGO_KB_ACCOUNTS_PATH`가 설정되어 있으면 KB 계좌 목록 API를 호출합니다. 아직 포털 문서의 계좌 목록 TR 경로를 입력하지 않았고 `SAGOPALGO_KB_ACCOUNT_NUMBER`만 있는 경우에는 로컬 설정 계좌를 마스킹해 반환합니다.
+
+응답:
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "provider": "KB",
+        "accountAlias": "primary",
+        "maskedAccountNumber": "****7890",
+        "accountProductCode": "01",
+        "accountName": "KB증권 연결 계좌",
+        "accountType": "SECURITIES",
+        "currency": "KRW"
+      }
+    ]
+  },
+  "message": "KB증권 계좌 목록이 조회되었습니다."
+}
+```
+
+### 5.2 KB 보유 주식 조회
+
+`GET /api/v1/kb/accounts/primary/holdings`
+
+KB Open API 보유 주식/잔고 TR을 호출해 종목별 수량, 평균단가, 현재가, 매입금액, 평가금액, 손익, 손익률, 포트폴리오 비중을 내부 표준 모델로 정규화합니다.
+
+응답:
+
+```json
+{
+  "success": true,
+  "data": {
+    "summary": {
+      "totalPurchaseAmount": 1100000,
+      "totalValuationAmount": 1130000,
+      "totalProfitAmount": 30000,
+      "profitRate": 2.73
+    },
+    "items": [
+      {
+        "stockCode": "005930",
+        "stockName": "삼성전자",
+        "market": "KRX",
+        "quantity": 10,
+        "averageBuyPrice": 70000,
+        "currentPrice": 77000,
+        "purchaseAmount": 700000,
+        "valuationAmount": 770000,
+        "profitAmount": 70000,
+        "profitRate": 10,
+        "weightRate": 68.14
+      }
+    ]
+  },
+  "message": "KB증권 보유 주식이 조회되었습니다."
+}
+```
+
+## 6. 대시보드 API
+
+### 6.1 앱 초기 스냅샷 조회
 
 `GET /api/v1/dashboard/snapshot`
 
@@ -123,13 +209,13 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 
 현재 구현은 `CapitalService`, `HoldingService`, `DashboardRecommendationEngine`을 조합합니다. 보유 종목의 `currentPrice`는 KIS 설정이 켜진 국내 주식이면 한국투자증권 Open API 현재가를 사용합니다. 별도 추천 목록 API가 붙기 전까지 대표 추천은 대시보드 스냅샷 안에서 반환합니다. 실제 보유 종목이 없으면 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
 
-## 6. 자본금 API
+## 7. 자본금 API
 
-### 6.1 자본금 조회
+### 7.1 자본금 조회
 
 `GET /api/v1/capital`
 
-### 6.2 자본금 수정
+### 7.2 자본금 수정
 
 `PUT /api/v1/capital`
 
@@ -140,13 +226,13 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 }
 ```
 
-## 7. 관심 종목 API
+## 8. 관심 종목 API
 
-### 7.1 관심 종목 목록 조회
+### 8.1 관심 종목 목록 조회
 
 `GET /api/v1/watchlist`
 
-### 7.2 관심 종목 추가
+### 8.2 관심 종목 추가
 
 `POST /api/v1/watchlist`
 
@@ -159,7 +245,7 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 }
 ```
 
-### 7.3 관심 종목 알림 설정 변경
+### 8.3 관심 종목 알림 설정 변경
 
 `PATCH /api/v1/watchlist/{watchlistId}/alert`
 
@@ -169,19 +255,19 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 }
 ```
 
-### 7.4 관심 종목 삭제
+### 8.4 관심 종목 삭제
 
 `DELETE /api/v1/watchlist/{watchlistId}`
 
-## 8. 보유 종목 API
+## 9. 보유 종목 API
 
-### 8.1 보유 종목 목록 조회
+### 9.1 보유 종목 목록 조회
 
 `GET /api/v1/holdings`
 
 KOSPI/KOSDAQ/KONEX 종목이고 `SAGOPALGO_KIS_ENABLED=true`이면 `currentPrice`와 `profitRate`는 한국투자증권 현재가 기준으로 계산됩니다. KIS 설정이 꺼져 있거나 미지원 시장이면 임의 샘플 가격을 만들지 않고 등록 매수가를 기준값으로 사용합니다. KIS 설정이 켜진 국내 종목 조회 중 토큰 발급 또는 현재가 조회가 실패하면 `EXTERNAL_DATA_ERROR`가 반환됩니다.
 
-### 8.2 보유 종목 등록
+### 9.2 보유 종목 등록
 
 `POST /api/v1/holdings`
 
@@ -198,45 +284,45 @@ KOSPI/KOSDAQ/KONEX 종목이고 `SAGOPALGO_KIS_ENABLED=true`이면 `currentPrice
 }
 ```
 
-### 8.3 보유 종목 수정
+### 9.3 보유 종목 수정
 
 `PUT /api/v1/holdings/{holdingId}`
 
-### 8.4 보유 종목 삭제
+### 9.4 보유 종목 삭제
 
 `DELETE /api/v1/holdings/{holdingId}`
 
-## 9. 추천 API
+## 10. 추천 API
 
 이 절의 추천 목록/상세 API는 다음 구현 단계의 명세입니다. 현재 앱에서 실제로 사용하는 대표 추천은 `GET /api/v1/dashboard/snapshot`의 `recommendation` 필드로 제공됩니다.
 
-### 9.1 추천 목록 조회
+### 10.1 추천 목록 조회
 
 `GET /api/v1/recommendations?status=BUY_STRONG&page=0&size=20`
 
-### 9.2 추천 상세 조회
+### 10.2 추천 상세 조회
 
 `GET /api/v1/recommendations/{recommendationId}`
 
-## 10. 알림 API
+## 11. 알림 API
 
 이 절의 알림 API는 다음 구현 단계의 명세입니다. 현재 앱 알림 탭의 데이터는 `GET /api/v1/dashboard/snapshot`의 `alerts` 필드로 제공됩니다.
 
-### 10.1 알림 목록 조회
+### 11.1 알림 목록 조회
 
 `GET /api/v1/alerts?page=0&size=20`
 
-### 10.2 알림 읽음 처리
+### 11.2 알림 읽음 처리
 
 `PATCH /api/v1/alerts/{alertId}/read`
 
-## 11. AI 서버 연동 API
+## 12. AI 서버 연동 API
 
 아래 API는 앱이 직접 호출하지 않고 Spring Boot가 Python AI 서버를 호출할 때 사용하는 내부 계약입니다.
 
 현재 구현에서는 Python AI 서버가 아직 붙지 않았으므로 `DashboardRecommendationEngine`이 실제 보유 종목 수익률, 손절 기준, 익절 기준을 조합해 설명 가능한 MVP 추천을 생성합니다. 실제 보유 종목이 없으면 임의 추천을 생성하지 않습니다.
 
-### 11.1 종목 분석 요청
+### 12.1 종목 분석 요청
 
 `POST /internal/ai/analyze-stock`
 
@@ -249,7 +335,7 @@ KOSPI/KOSDAQ/KONEX 종목이고 `SAGOPALGO_KIS_ENABLED=true`이면 `currentPrice
 }
 ```
 
-### 11.2 뉴스 감성 분석 요청
+### 12.2 뉴스 감성 분석 요청
 
 `POST /internal/ai/analyze-news`
 
@@ -267,12 +353,11 @@ KOSPI/KOSDAQ/KONEX 종목이고 `SAGOPALGO_KIS_ENABLED=true`이면 `currentPrice
 }
 ```
 
-## 12. 다음 구현 순서
+## 13. 다음 구현 순서
 
-1. `GET /api/v1/settings/providers`
-2. KB증권 계좌 조회 연동 설정과 응답 모델
-3. KIS 국내/해외 시세 조회 확장
-4. Toss 분석용 시세/종목 정보 연동
-5. AI 분석 서버와 추천 결과 저장
-6. Windows 로컬 알림
-7. 자동 주문 설계와 수동 승인 기반 주문 실행
+1. KB 계좌 데이터를 Flutter 포트폴리오 화면에 읽기 전용으로 표시
+2. KIS 국내/해외 시세 조회 확장
+3. Toss 분석용 시세/종목 정보 연동
+4. AI 분석 서버와 추천 결과 저장
+5. Windows 로컬 알림
+6. 자동 주문 설계와 수동 승인 기반 주문 실행
