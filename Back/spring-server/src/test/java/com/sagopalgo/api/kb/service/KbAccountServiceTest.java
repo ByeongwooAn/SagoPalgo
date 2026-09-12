@@ -66,6 +66,14 @@ class KbAccountServiceTest {
         assertThat(service.accounts().items().get(0).maskedAccountNumber()).isEqualTo("****7890");
     }
 
+    @Test
+    @DisplayName("계좌 목록 경로와 설정 계좌가 모두 없으면 빈 계좌 목록을 반환한다")
+    void accountsReturnsEmptyItemsWhenPathAndConfiguredAccountAreMissing() {
+        KbAccountService service = new KbAccountService(new FixtureKbClient(null, false));
+
+        assertThat(service.accounts().items()).isEmpty();
+    }
+
     private static JsonNode json(String value) throws Exception {
         return new ObjectMapper().readTree(value);
     }
@@ -74,7 +82,11 @@ class KbAccountServiceTest {
         private final JsonNode holdingsResponse;
 
         FixtureKbClient(JsonNode holdingsResponse) {
-            super(properties(), RestClient.builder().build());
+            this(holdingsResponse, true);
+        }
+
+        FixtureKbClient(JsonNode holdingsResponse, boolean hasAccountNumber) {
+            super(properties(hasAccountNumber), RestClient.builder().build());
             this.holdingsResponse = holdingsResponse;
         }
 
@@ -83,12 +95,14 @@ class KbAccountServiceTest {
             return holdingsResponse;
         }
 
-        private static SecuritiesProviderProperties properties() {
+        private static SecuritiesProviderProperties properties(boolean hasAccountNumber) {
             SecuritiesProviderProperties properties = new SecuritiesProviderProperties();
             Provider kb = new Provider();
             kb.setAccountEnabled(true);
-            kb.setAccountNumber("1234567890");
-            kb.setAccountProductCode("01");
+            if (hasAccountNumber) {
+                kb.setAccountNumber("1234567890");
+                kb.setAccountProductCode("01");
+            }
             properties.setKb(kb);
             return properties;
         }

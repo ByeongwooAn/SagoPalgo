@@ -74,10 +74,11 @@ public class KbSecuritiesAccountClient {
     public JsonNode fetchHoldings() {
         ensureAccountConfigured();
         ensurePathConfigured(properties.getHoldingsPath(), "KB증권 보유 주식 API 경로 설정이 필요합니다.");
-        ensureText(properties.getAccountNumber(), "KB증권 계좌번호 설정이 필요합니다.");
 
         Map<String, Object> dataBody = new LinkedHashMap<>();
-        dataBody.put(accountNumberField(), properties.getAccountNumber());
+        if (StringUtils.hasText(properties.getAccountNumber())) {
+            dataBody.put(accountNumberField(), properties.getAccountNumber());
+        }
         if (StringUtils.hasText(properties.getAccountProductCode())) {
             dataBody.put(accountProductCodeField(), properties.getAccountProductCode());
         }
@@ -176,10 +177,17 @@ public class KbSecuritiesAccountClient {
         JsonNode body = child(response, "dataBody");
         JsonNode searchRoot = body == null ? response : body;
         List<JsonNode> preferred = findArrays(searchRoot, List.of(preferredArrayNames));
+        if (containsArray(searchRoot, List.of(preferredArrayNames))) {
+            return preferred;
+        }
         if (!preferred.isEmpty()) {
             return preferred;
         }
-        List<JsonNode> generic = findArrays(searchRoot, List.of("items", "list", "accounts", "accountList", "holdings", "holdingList", "output", "output1"));
+        List<String> genericArrayNames = List.of("items", "list", "accounts", "accountList", "holdings", "holdingList", "output", "output1");
+        List<JsonNode> generic = findArrays(searchRoot, genericArrayNames);
+        if (containsArray(searchRoot, genericArrayNames)) {
+            return generic;
+        }
         if (!generic.isEmpty()) {
             return generic;
         }
@@ -209,6 +217,31 @@ public class KbSecuritiesAccountClient {
         List<JsonNode> found = new ArrayList<>();
         collectArrays(node, fieldNames, found);
         return found;
+    }
+
+    private boolean containsArray(JsonNode node, List<String> fieldNames) {
+        if (node == null || node.isNull()) {
+            return false;
+        }
+        if (node.isArray()) {
+            return true;
+        }
+        if (!node.isObject()) {
+            return false;
+        }
+        for (String fieldName : fieldNames) {
+            JsonNode child = child(node, fieldName);
+            if (child != null && child.isArray()) {
+                return true;
+            }
+        }
+        Iterator<JsonNode> children = node.elements();
+        while (children.hasNext()) {
+            if (containsArray(children.next(), fieldNames)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void collectArrays(JsonNode node, List<String> fieldNames, List<JsonNode> found) {

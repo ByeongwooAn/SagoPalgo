@@ -33,6 +33,9 @@ public class KbAccountService {
         if (!kbClient.hasAccountsPath() && kbClient.hasConfiguredAccountFallback()) {
             return new KbAccountListResponse(List.of(configuredAccount()));
         }
+        if (!kbClient.hasAccountsPath()) {
+            return new KbAccountListResponse(List.of());
+        }
 
         JsonNode response = kbClient.fetchAccounts();
         List<KbAccountResponse> accounts = kbClient.items(response, "accounts", "accountList")

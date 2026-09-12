@@ -96,6 +96,50 @@ class KbSecuritiesAccountClientTest {
     }
 
     @Test
+    @DisplayName("계좌번호가 비어 있으면 보유 주식 조회 요청 body에 계좌 필드를 보내지 않는다")
+    void fetchHoldingsAllowsMissingAccountNumber() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer localServer = MockRestServiceServer.bindTo(builder).build();
+        KbSecuritiesAccountClient localClient = new KbSecuritiesAccountClient(
+            securitiesPropertiesWithoutAccountNumber(),
+            builder.build()
+        );
+
+        localServer.expect(requestTo("https://kb.test/oauth2/token"))
+            .andRespond(withSuccess("""
+                {
+                  "access_token": "access-token",
+                  "expires_in": 3600
+                }
+                """, MediaType.APPLICATION_JSON));
+        localServer.expect(requestTo("https://kb.test/api/v1/holdings"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+            .andExpect(content().json("""
+                {
+                  "dataHeader": {
+                    "tr_id": "HOLDINGS_TR",
+                    "custtype": "P"
+                  },
+                  "dataBody": {}
+                }
+                """))
+            .andRespond(withSuccess("""
+                {
+                  "rt_cd": "0",
+                  "dataBody": {
+                    "holdings": []
+                  }
+                }
+                """, MediaType.APPLICATION_JSON));
+
+        JsonNode response = localClient.fetchHoldings();
+
+        assertThat(localClient.items(response, "holdings")).isEmpty();
+        localServer.verify();
+    }
+
+    @Test
     @DisplayName("KB 실패 코드는 외부 데이터 오류로 변환한다")
     void fetchHoldingsThrowsExternalDataErrorWhenKbFails() {
         server.expect(requestTo("https://kb.test/oauth2/token"))
@@ -137,6 +181,13 @@ class KbSecuritiesAccountClientTest {
         kb.setAccountNumberField("acct_no");
         kb.setAccountProductCodeField("acct_prdt_cd");
         properties.setKb(kb);
+        return properties;
+    }
+
+    private SecuritiesProviderProperties securitiesPropertiesWithoutAccountNumber() {
+        SecuritiesProviderProperties properties = securitiesProperties();
+        properties.getKb().setAccountNumber("");
+        properties.getKb().setAccountProductCode("");
         return properties;
     }
 }
