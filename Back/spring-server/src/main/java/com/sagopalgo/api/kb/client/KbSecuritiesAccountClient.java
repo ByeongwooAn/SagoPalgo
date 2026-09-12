@@ -9,9 +9,13 @@ import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties.Provider;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -169,6 +173,7 @@ public class KbSecuritiesAccountClient {
 
         JsonNode response;
         try {
+            printKbTokenRequestCredentialDebug(grantType, appKey, appSecret);
             response = restClient.post()
                 .uri(endpoint(properties.getTokenPath()))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -203,6 +208,49 @@ public class KbSecuritiesAccountClient {
 
         long expiresIn = tokenExpiresIn(response);
         return new AccessToken(accessToken, Instant.now().plusSeconds(expiresIn));
+    }
+
+    private void printKbTokenRequestCredentialDebug(String grantType, String appKey, String appSecret) {
+        if (Boolean.parseBoolean(System.getenv("SAGOPALGO_KB_DEBUG_PRINT_SECRETS"))) {
+            log.warn(
+                "[TEMP-KB-DEBUG] KB token request credentials grantType={} appKey={} appSecret={}",
+                grantType,
+                appKey,
+                appSecret
+            );
+            return;
+        }
+
+        log.warn(
+            "[TEMP-KB-DEBUG] KB token request credentials grantType={} appKey={} appKeyLen={} appKeySha256={} appSecret={} appSecretLen={} appSecretSha256={}",
+            grantType,
+            previewSecret(appKey),
+            appKey.length(),
+            sha256Fingerprint(appKey),
+            previewSecret(appSecret),
+            appSecret.length(),
+            sha256Fingerprint(appSecret)
+        );
+    }
+
+    private String previewSecret(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "(blank)";
+        }
+        if (value.length() <= 8) {
+            return "***";
+        }
+        return value.substring(0, 4) + "***" + value.substring(value.length() - 4);
+    }
+
+    private String sha256Fingerprint(String value) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                .digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest).substring(0, 16);
+        } catch (NoSuchAlgorithmException exception) {
+            return "unavailable";
+        }
     }
 
     private long tokenExpiresIn(JsonNode response) {
