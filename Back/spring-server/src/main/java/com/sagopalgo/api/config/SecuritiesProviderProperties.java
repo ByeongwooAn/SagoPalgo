@@ -31,9 +31,20 @@ public class SecuritiesProviderProperties {
         private boolean marketDataEnabled = false;
         private boolean accountEnabled = false;
         private boolean orderEnabled = false;
+        private String baseUrl = "";
+        private String grantType = "client_credentials";
+        private String tokenPath = "";
+        private String accountsPath = "";
+        private String holdingsPath = "";
+        private String accountsTransactionId = "";
+        private String holdingsTransactionId = "";
+        private String customerType = "P";
         private String appKey = "";
         private String appSecret = "";
         private String accountNumber = "";
+        private String accountProductCode = "";
+        private String accountNumberField = "accountNumber";
+        private String accountProductCodeField = "accountProductCode";
 
         public boolean isMarketDataEnabled() {
             return marketDataEnabled;
@@ -57,6 +68,70 @@ public class SecuritiesProviderProperties {
 
         public void setOrderEnabled(boolean orderEnabled) {
             this.orderEnabled = orderEnabled;
+        }
+
+        public String getBaseUrl() {
+            return baseUrl;
+        }
+
+        public void setBaseUrl(String baseUrl) {
+            this.baseUrl = baseUrl;
+        }
+
+        public String getGrantType() {
+            return grantType;
+        }
+
+        public void setGrantType(String grantType) {
+            this.grantType = grantType;
+        }
+
+        public String getTokenPath() {
+            return tokenPath;
+        }
+
+        public void setTokenPath(String tokenPath) {
+            this.tokenPath = tokenPath;
+        }
+
+        public String getAccountsPath() {
+            return accountsPath;
+        }
+
+        public void setAccountsPath(String accountsPath) {
+            this.accountsPath = accountsPath;
+        }
+
+        public String getHoldingsPath() {
+            return holdingsPath;
+        }
+
+        public void setHoldingsPath(String holdingsPath) {
+            this.holdingsPath = holdingsPath;
+        }
+
+        public String getAccountsTransactionId() {
+            return accountsTransactionId;
+        }
+
+        public void setAccountsTransactionId(String accountsTransactionId) {
+            this.accountsTransactionId = accountsTransactionId;
+        }
+
+        public String getHoldingsTransactionId() {
+            return holdingsTransactionId;
+        }
+
+        public void setHoldingsTransactionId(String holdingsTransactionId) {
+            this.holdingsTransactionId = holdingsTransactionId;
+        }
+
+        public String getCustomerType() {
+            return customerType;
+        }
+
+        public void setCustomerType(String customerType) {
+            this.customerType = customerType;
         }
 
         public String getAppKey() {
@@ -89,6 +164,30 @@ public class SecuritiesProviderProperties {
 
         public boolean hasAccountNumber() {
             return hasText(accountNumber);
+        }
+
+        public String getAccountProductCode() {
+            return accountProductCode;
+        }
+
+        public void setAccountProductCode(String accountProductCode) {
+            this.accountProductCode = accountProductCode;
+        }
+
+        public String getAccountNumberField() {
+            return accountNumberField;
+        }
+
+        public void setAccountNumberField(String accountNumberField) {
+            this.accountNumberField = accountNumberField;
+        }
+
+        public String getAccountProductCodeField() {
+            return accountProductCodeField;
+        }
+
+        public void setAccountProductCodeField(String accountProductCodeField) {
+            this.accountProductCodeField = accountProductCodeField;
         }
 
         private boolean hasText(String value) {
