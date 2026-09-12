@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'config/app_environment.dart';
 import 'models/auth_session.dart';
 import 'repositories/investment_repository.dart';
+import 'repositories/kb_account_repository.dart';
 import 'repositories/portfolio_repository.dart';
 import 'repositories/provider_settings_repository.dart';
 import 'repositories/spring_investment_repository.dart';
+import 'repositories/spring_kb_account_repository.dart';
 import 'repositories/spring_portfolio_repository.dart';
 import 'repositories/spring_provider_settings_repository.dart';
 import 'repositories/spring_watchlist_repository.dart';
@@ -36,6 +38,7 @@ class SagoPalgoApp extends StatefulWidget {
     this.watchlistRepositoryBuilder,
     this.portfolioRepositoryBuilder,
     this.providerSettingsRepositoryBuilder,
+    this.kbAccountRepositoryBuilder,
     this.session = AuthSession.personal,
     this.appLockPin,
   });
@@ -61,6 +64,10 @@ class SagoPalgoApp extends StatefulWidget {
   /// 테스트에서 증권사 설정 Repository를 교체하기 위한 빌더입니다.
   final ProviderSettingsRepository Function(AuthSession session)?
   providerSettingsRepositoryBuilder;
+
+  /// 테스트에서 KB증권 계좌 Repository를 교체하기 위한 빌더입니다.
+  final KbAccountRepository Function(AuthSession session)?
+  kbAccountRepositoryBuilder;
 
   /// 개인용 프로그램에서 사용할 로컬 프로필 세션입니다.
   final AuthSession session;
@@ -124,6 +131,9 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
                   SpringProviderSettingsRepository(
                     accessToken: session.accessToken,
                   ),
+              kbAccountRepository:
+                  widget.kbAccountRepositoryBuilder?.call(session) ??
+                  SpringKbAccountRepository(accessToken: session.accessToken),
               session: session,
             ),
     );

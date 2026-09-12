@@ -5,6 +5,7 @@ import '../models/holding.dart';
 import '../models/investment_snapshot.dart';
 import '../models/provider_setting.dart';
 import '../repositories/investment_repository.dart';
+import '../repositories/kb_account_repository.dart';
 import '../repositories/portfolio_repository.dart';
 import '../repositories/provider_settings_repository.dart';
 import '../repositories/watchlist_repository.dart';
@@ -30,6 +31,7 @@ class SagoPalgoHome extends StatefulWidget {
     required this.watchlistRepository,
     required this.portfolioRepository,
     required this.providerSettingsRepository,
+    required this.kbAccountRepository,
     required this.session,
   });
 
@@ -47,6 +49,9 @@ class SagoPalgoHome extends StatefulWidget {
 
   /// 설정 화면에서 증권사 연동 상태를 조회하는 Repository입니다.
   final ProviderSettingsRepository providerSettingsRepository;
+
+  /// 설정 화면에서 KB 계좌 조회 결과를 확인하는 Repository입니다.
+  final KbAccountRepository kbAccountRepository;
 
   /// 현재 로컬 사용자 프로필 정보를 담고 있는 세션입니다.
   final AuthSession session;
@@ -122,6 +127,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       snapshot: snapshot.data!,
                       watchlistRepository: widget.watchlistRepository,
                       portfolioRepository: widget.portfolioRepository,
+                      kbAccountRepository: widget.kbAccountRepository,
                       providerSettingsFuture: _providerSettingsFuture,
                       portfolioFuture: _portfolioFuture,
                       onPortfolioRetry: _reloadPortfolio,
@@ -378,6 +384,7 @@ class _TabContent extends StatelessWidget {
     required this.snapshot,
     required this.watchlistRepository,
     required this.portfolioRepository,
+    required this.kbAccountRepository,
     required this.providerSettingsFuture,
     required this.portfolioFuture,
     required this.onPortfolioRetry,
@@ -400,6 +407,9 @@ class _TabContent extends StatelessWidget {
 
   /// 포트폴리오 화면 자본금/보유 종목 액션을 처리하는 Repository입니다.
   final PortfolioRepository portfolioRepository;
+
+  /// 설정 화면 KB 계좌 조회 액션을 처리하는 Repository입니다.
+  final KbAccountRepository kbAccountRepository;
 
   /// 설정 화면에서 사용할 증권사 연동 상태 Future입니다.
   final Future<ProviderSettingsSnapshot> providerSettingsFuture;
@@ -463,6 +473,7 @@ class _TabContent extends StatelessWidget {
         AlertsScreen(alerts: snapshot.alerts),
         SettingsScreen(
           providerSettingsFuture: providerSettingsFuture,
+          kbAccountRepository: kbAccountRepository,
           onRetry: onProviderSettingsRetry,
         ),
       ],

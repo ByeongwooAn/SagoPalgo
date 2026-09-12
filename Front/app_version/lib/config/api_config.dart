@@ -26,4 +26,15 @@ class ApiConfig {
 
   /// 증권사 연동 설정 API가 사용하는 `/api/v1/settings/providers` 경로입니다.
   String get providerSettingsUrl => '$baseUrl/api/v1/settings/providers';
+
+  /// KB증권 보유 주식 조회 API 경로입니다.
+  String get kbHoldingsUrl => '$baseUrl/api/v1/kb/accounts/primary/holdings';
+
+  /// KB증권 결제기준 잔고 현황 조회 API 경로입니다.
+  String get kbSettlementBalanceUrl =>
+      '$baseUrl/api/v1/kb/accounts/primary/balances/settlement';
+
+  /// KB증권 체결기준 잔고 현황 조회 API 경로입니다.
+  String get kbExecutionBalanceUrl =>
+      '$baseUrl/api/v1/kb/accounts/primary/balances/execution';
 }

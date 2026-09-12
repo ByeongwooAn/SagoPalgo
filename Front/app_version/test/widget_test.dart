@@ -2,10 +2,12 @@ import 'package:app_version/main.dart';
 import 'package:app_version/models/app_alert.dart';
 import 'package:app_version/models/holding.dart';
 import 'package:app_version/models/investment_snapshot.dart';
+import 'package:app_version/models/kb_account_snapshot.dart';
 import 'package:app_version/models/market_summary.dart';
 import 'package:app_version/models/provider_setting.dart';
 import 'package:app_version/models/recommendation.dart';
 import 'package:app_version/repositories/investment_repository.dart';
+import 'package:app_version/repositories/kb_account_repository.dart';
 import 'package:app_version/repositories/portfolio_repository.dart';
 import 'package:app_version/repositories/provider_settings_repository.dart';
 import 'package:app_version/repositories/watchlist_repository.dart';
@@ -26,6 +28,7 @@ void main() {
         portfolioRepositoryBuilder: (_) => const FakePortfolioRepository(),
         providerSettingsRepositoryBuilder: (_) =>
             const FakeProviderSettingsRepository(),
+        kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
       ),
     );
 
@@ -65,6 +68,9 @@ void main() {
     expect(find.text('KB증권'), findsOneWidget);
     expect(find.text('한국투자증권'), findsOneWidget);
     expect(find.text('토스증권'), findsOneWidget);
+    expect(find.text('KB 계좌 조회'), findsOneWidget);
+    expect(find.text('1종목'), findsOneWidget);
+    expect(find.text('5,200,000원'), findsAtLeastNWidgets(1));
   });
 
   testWidgets('app lock requires configured local PIN', (tester) async {
@@ -76,6 +82,7 @@ void main() {
         portfolioRepositoryBuilder: (_) => const FakePortfolioRepository(),
         providerSettingsRepositoryBuilder: (_) =>
             const FakeProviderSettingsRepository(),
+        kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
       ),
     );
 
@@ -189,7 +196,7 @@ class FakeProviderSettingsRepository implements ProviderSettingsRepository {
           marketDataEnabled: false,
           accountEnabled: true,
           orderEnabled: false,
-          configured: false,
+          configured: true,
           roleDescription: '계좌 조회와 추후 주문 기능의 기준 증권사',
         ),
         ProviderSetting(
@@ -212,6 +219,15 @@ class FakeProviderSettingsRepository implements ProviderSettingsRepository {
         ),
       ],
     );
+  }
+}
+
+class FakeKbAccountRepository implements KbAccountRepository {
+  const FakeKbAccountRepository();
+
+  @override
+  Future<KbAccountSnapshot> fetchSnapshot() async {
+    return _testKbAccountSnapshot;
   }
 }
 
@@ -286,4 +302,57 @@ final _testSnapshot = InvestmentSnapshot(
       type: AppAlertType.candidate,
     ),
   ],
+);
+
+const _testKbAccountSnapshot = KbAccountSnapshot(
+  holdings: KbHoldingsSnapshot(
+    summary: KbPortfolioSummary(
+      totalPurchaseAmount: 4800000,
+      totalValuationAmount: 5200000,
+      totalProfitAmount: 400000,
+      profitRate: 8.3,
+    ),
+    items: [
+      KbHoldingItem(
+        stockCode: '005930',
+        stockName: '삼성전자',
+        market: 'KRX',
+        quantity: 10,
+        currentPrice: 76000,
+        valuationAmount: 760000,
+        profitAmount: 69000,
+        profitRate: 10,
+      ),
+    ],
+  ),
+  settlementBalance: KbBalanceSnapshot(
+    summary: KbBalanceSummary(
+      basis: 'SETTLEMENT',
+      cashDeposit: 1200000,
+      withdrawalAvailableAmount: 1100000,
+      orderAvailableCash: 1000000,
+      netAssetValuationAmount: 0,
+      securitiesNetValuationAmount: 0,
+      totalPurchaseAmount: 4800000,
+      totalValuationAmount: 5200000,
+      totalProfitAmount: 400000,
+      totalYieldRate: 8.3,
+    ),
+    items: [],
+  ),
+  executionBalance: KbBalanceSnapshot(
+    summary: KbBalanceSummary(
+      basis: 'EXECUTION',
+      cashDeposit: 0,
+      withdrawalAvailableAmount: 0,
+      orderAvailableCash: 0,
+      netAssetValuationAmount: 5200000,
+      securitiesNetValuationAmount: 5200000,
+      totalPurchaseAmount: 4800000,
+      totalValuationAmount: 5200000,
+      totalProfitAmount: 400000,
+      totalYieldRate: 8.3,
+    ),
+    items: [],
+  ),
 );

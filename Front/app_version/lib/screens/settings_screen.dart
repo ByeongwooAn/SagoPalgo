@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../models/kb_account_snapshot.dart';
 import '../models/provider_setting.dart';
+import '../repositories/kb_account_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/section_header.dart';
@@ -13,11 +15,15 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({
     super.key,
     required this.providerSettingsFuture,
+    required this.kbAccountRepository,
     required this.onRetry,
   });
 
   /// 백엔드에서 조회하는 증권사 설정 Future입니다.
   final Future<ProviderSettingsSnapshot> providerSettingsFuture;
+
+  /// KB증권 계좌 조회 Repository입니다.
+  final KbAccountRepository kbAccountRepository;
 
   /// 설정 조회를 다시 시도하는 콜백입니다.
   final VoidCallback onRetry;
@@ -39,6 +45,7 @@ class SettingsScreen extends StatelessWidget {
 
         final settings = snapshot.data!;
         final providers = settings.providers;
+        final kbProvider = _findProvider(providers, 'KB');
 
         return AppScrollView(
           child: Column(
@@ -118,12 +125,29 @@ class SettingsScreen extends StatelessWidget {
                   child: _ProviderCard(provider: provider),
                 ),
               ),
+              if (kbProvider != null) ...[
+                const SizedBox(height: 2),
+                _KbAccountSection(
+                  provider: kbProvider,
+                  repository: kbAccountRepository,
+                ),
+              ],
             ],
           ),
         );
       },
     );
   }
+}
+
+ProviderSetting? _findProvider(List<ProviderSetting> providers, String code) {
+  for (final provider in providers) {
+    if (provider.code == code) {
+      return provider;
+    }
+  }
+
+  return null;
 }
 
 class _ProviderCard extends StatelessWidget {
@@ -251,6 +275,401 @@ class _RoleChip extends StatelessWidget {
           fontWeight: FontWeight.w900,
           letterSpacing: 0,
         ),
+      ),
+    );
+  }
+}
+
+class _KbAccountSection extends StatefulWidget {
+  const _KbAccountSection({required this.provider, required this.repository});
+
+  final ProviderSetting provider;
+  final KbAccountRepository repository;
+
+  @override
+  State<_KbAccountSection> createState() => _KbAccountSectionState();
+}
+
+class _KbAccountSectionState extends State<_KbAccountSection> {
+  Future<KbAccountSnapshot>? _future;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_shouldFetch) {
+      _future = widget.repository.fetchSnapshot();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _KbAccountSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_shouldFetch && oldWidget.repository != widget.repository) {
+      _future = widget.repository.fetchSnapshot();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.provider.accountEnabled || !widget.provider.configured) {
+      return const _KbAccountDisabledCard();
+    }
+
+    final future = _future ??= widget.repository.fetchSnapshot();
+    return FutureBuilder<KbAccountSnapshot>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _KbAccountHeader(statusLabel: '조회 중'),
+                SizedBox(height: 14),
+                Center(child: CircularProgressIndicator()),
+              ],
+            ),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return _KbAccountErrorCard(
+            message: snapshot.error.toString(),
+            onRetry: _reload,
+          );
+        }
+
+        return _KbAccountLoadedCard(snapshot: snapshot.data!, onRetry: _reload);
+      },
+    );
+  }
+
+  void _reload() {
+    setState(() {
+      _future = widget.repository.fetchSnapshot();
+    });
+  }
+
+  bool get _shouldFetch {
+    return widget.provider.accountEnabled && widget.provider.configured;
+  }
+}
+
+class _KbAccountDisabledCard extends StatelessWidget {
+  const _KbAccountDisabledCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
+    return AppCard(
+      soft: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _KbAccountHeader(statusLabel: '대기'),
+          const SizedBox(height: 10),
+          Text(
+            'KB 계좌 조회를 보려면 백엔드 .env.dev에서 KB 계좌 연동을 켜고 App Key/App Secret을 설정해 주세요.',
+            style: TextStyle(
+              color: palette.muted,
+              fontSize: 12,
+              height: 1.35,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KbAccountErrorCard extends StatelessWidget {
+  const _KbAccountErrorCard({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _KbAccountHeader(statusLabel: '실패'),
+          const SizedBox(height: 10),
+          Text(
+            message,
+            style: TextStyle(
+              color: palette.text,
+              fontSize: 12,
+              height: 1.35,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('KB 계좌 다시 조회'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KbAccountLoadedCard extends StatelessWidget {
+  const _KbAccountLoadedCard({required this.snapshot, required this.onRetry});
+
+  final KbAccountSnapshot snapshot;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final holdings = snapshot.holdings.items;
+    final settlement = snapshot.settlementBalance.summary;
+    final execution = snapshot.executionBalance.summary;
+
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(child: _KbAccountHeader(statusLabel: '조회 성공')),
+              IconButton(
+                onPressed: onRetry,
+                tooltip: 'KB 계좌 다시 조회',
+                icon: const Icon(Icons.refresh_rounded),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _KbMetricTile(label: '보유 주식', value: '${holdings.length}종목'),
+              _KbMetricTile(
+                label: '결제 예수금',
+                value: '${formatCurrency(settlement.cashDeposit)}원',
+              ),
+              _KbMetricTile(
+                label: '체결 순자산',
+                value: '${formatCurrency(execution.netAssetValuationAmount)}원',
+              ),
+              _KbMetricTile(
+                label: '체결 손익',
+                value: formatSignedPercent(execution.totalYieldRate),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _KbBalanceLine(
+            label: '결제기준 평가금액',
+            value: '${formatCurrency(settlement.totalValuationAmount)}원',
+          ),
+          const SizedBox(height: 8),
+          _KbBalanceLine(
+            label: '체결기준 평가손익',
+            value:
+                '${formatCurrency(execution.totalProfitAmount)}원 '
+                '(${formatSignedPercent(execution.totalYieldRate)})',
+          ),
+          if (holdings.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            for (final holding in holdings.take(3)) ...[
+              _KbHoldingLine(holding: holding),
+              const SizedBox(height: 8),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _KbAccountHeader extends StatelessWidget {
+  const _KbAccountHeader({required this.statusLabel});
+
+  final String statusLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
+    return Row(
+      children: [
+        const Icon(Icons.account_balance_wallet_rounded, color: AppTheme.main),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'KB 계좌 조회',
+            style: TextStyle(
+              color: palette.text,
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+        ),
+        StatusChip(label: statusLabel),
+      ],
+    );
+  }
+}
+
+class _KbMetricTile extends StatelessWidget {
+  const _KbMetricTile({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
+    return Container(
+      width: 148,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: palette.softSurface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: palette.muted,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 5),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(
+                color: palette.text,
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KbBalanceLine extends StatelessWidget {
+  const _KbBalanceLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: palette.muted,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: palette.text,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _KbHoldingLine extends StatelessWidget {
+  const _KbHoldingLine({required this.holding});
+
+  final KbHoldingItem holding;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: palette.softSurface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: palette.border),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  holding.stockName.isEmpty
+                      ? holding.stockCode
+                      : holding.stockName,
+                  style: TextStyle(
+                    color: palette.text,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '${holding.stockCode} · ${holding.quantity.toStringAsFixed(0)}주',
+                  style: TextStyle(
+                    color: palette.muted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '${formatCurrency(holding.valuationAmount)}원',
+            style: TextStyle(
+              color: palette.text,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
       ),
     );
   }
