@@ -1,5 +1,7 @@
 package com.sagopalgo.api.kb.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
@@ -33,6 +35,7 @@ public class KbSecuritiesAccountClient {
     private static final Duration TOKEN_REFRESH_MARGIN = Duration.ofMinutes(1);
     private static final int EXTERNAL_ERROR_BODY_LOG_LIMIT = 2_000;
     private static final Logger log = LoggerFactory.getLogger(KbSecuritiesAccountClient.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final Provider properties;
     private final RestClient restClient;
@@ -160,9 +163,9 @@ public class KbSecuritiesAccountClient {
     private AccessToken issueAccessToken() {
         ensureText(properties.getBaseUrl(), "KB증권 Open API Base URL 설정이 필요합니다.");
         ensureText(properties.getTokenPath(), "KB증권 토큰 API 경로 설정이 필요합니다.");
-        ensureText(properties.getGrantType(), "KB증권 토큰 grant type 설정이 필요합니다.");
-        ensureText(properties.getAppKey(), "KB증권 App Key 설정이 필요합니다.");
-        ensureText(properties.getAppSecret(), "KB증권 App Secret 설정이 필요합니다.");
+        String grantType = requiredTrimmedText(properties.getGrantType(), "KB증권 토큰 grant type 설정이 필요합니다.");
+        String appKey = requiredTrimmedText(properties.getAppKey(), "KB증권 App Key 설정이 필요합니다.");
+        String appSecret = requiredTrimmedText(properties.getAppSecret(), "KB증권 App Secret 설정이 필요합니다.");
 
         JsonNode response;
         try {
@@ -170,16 +173,20 @@ public class KbSecuritiesAccountClient {
                 .uri(endpoint(properties.getTokenPath()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new KbTokenRequest(properties.getGrantType(), properties.getAppKey(), properties.getAppSecret()))
+                .body(new KbTokenRequest(grantType, appKey, appSecret))
                 .retrieve()
                 .body(JsonNode.class);
         } catch (RestClientResponseException exception) {
+            String responseBody = exception.getResponseBodyAsString();
             log.warn(
                 "KB증권 access token 발급 실패. status={} body={}",
                 exception.getStatusCode().value(),
-                sanitizeExternalBody(exception.getResponseBodyAsString())
+                sanitizeExternalBody(responseBody)
             );
-            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KB증권 access token 발급에 실패했습니다.");
+            throw new ApiException(
+                ErrorCode.EXTERNAL_DATA_ERROR,
+                tokenFailureMessage(responseBody, exception.getStatusCode().value())
+            );
         } catch (RestClientException exception) {
             log.warn("KB증권 access token 발급 HTTP 호출 실패: {}", exception.toString());
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KB증권 access token 발급에 실패했습니다.");
@@ -188,7 +195,10 @@ public class KbSecuritiesAccountClient {
         String accessToken = text(response, "access_token", "accessToken");
         if (!StringUtils.hasText(accessToken)) {
             log.warn("KB증권 access token 응답이 올바르지 않습니다. status=200 body={}", sanitizeExternalBody(response));
-            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KB증권 access token 응답이 올바르지 않습니다.");
+            throw new ApiException(
+                ErrorCode.EXTERNAL_DATA_ERROR,
+                tokenInvalidResponseMessage(response)
+            );
         }
 
         long expiresIn = tokenExpiresIn(response);
@@ -205,6 +215,52 @@ public class KbSecuritiesAccountClient {
             return seconds <= 0 ? 3600 : seconds;
         } catch (NumberFormatException exception) {
             return 3600;
+        }
+    }
+
+    private String tokenFailureMessage(String responseBody, int statusCode) {
+        String message = extractKbMessage(responseBody);
+        if (StringUtils.hasText(message)) {
+            return "KB증권 access token 발급 실패: " + message + " (status=" + statusCode + ")";
+        }
+        return "KB증권 access token 발급에 실패했습니다. (status=" + statusCode + ")";
+    }
+
+    private String tokenInvalidResponseMessage(JsonNode response) {
+        String message = firstText(
+            response,
+            "processMessage",
+            "msg1",
+            "rsp_msg",
+            "rspMessage",
+            "message",
+            "errMsg",
+            "errorMessage"
+        );
+        if (StringUtils.hasText(message)) {
+            return "KB증권 access token 응답 오류: " + message;
+        }
+        return "KB증권 access token 응답이 올바르지 않습니다.";
+    }
+
+    private String extractKbMessage(String responseBody) {
+        if (!StringUtils.hasText(responseBody)) {
+            return "";
+        }
+        try {
+            JsonNode response = OBJECT_MAPPER.readTree(responseBody);
+            return firstText(
+                response,
+                "processMessage",
+                "msg1",
+                "rsp_msg",
+                "rspMessage",
+                "message",
+                "errMsg",
+                "errorMessage"
+            );
+        } catch (JsonProcessingException exception) {
+            return "";
         }
     }
 
@@ -410,6 +466,11 @@ public class KbSecuritiesAccountClient {
         if (!StringUtils.hasText(value)) {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, message);
         }
+    }
+
+    private String requiredTrimmedText(String value, String message) {
+        ensureText(value, message);
+        return value.trim();
     }
 
     private boolean isUsable(AccessToken accessToken) {

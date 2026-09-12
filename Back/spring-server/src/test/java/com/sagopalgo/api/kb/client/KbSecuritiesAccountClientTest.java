@@ -187,7 +187,7 @@ class KbSecuritiesAccountClientTest {
 
         assertThatThrownBy(() -> client.fetchHoldings())
             .isInstanceOf(ApiException.class)
-            .hasMessage("KB증권 access token 발급에 실패했습니다.")
+            .hasMessage("KB증권 access token 발급 실패: 인증 정보를 확인할 수 없습니다. (status=401)")
             .extracting("errorCode")
             .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
         server.verify();
@@ -207,10 +207,52 @@ class KbSecuritiesAccountClientTest {
 
         assertThatThrownBy(() -> client.fetchHoldings())
             .isInstanceOf(ApiException.class)
-            .hasMessage("KB증권 access token 응답이 올바르지 않습니다.")
+            .hasMessage("KB증권 access token 응답 오류: API 권한이 없습니다.")
             .extracting("errorCode")
             .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
         server.verify();
+    }
+
+    @Test
+    @DisplayName("토큰 발급 요청은 설정값 앞뒤 공백을 제거해 전송한다")
+    void fetchHoldingsTrimsTokenRequestCredentials() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer localServer = MockRestServiceServer.bindTo(builder).build();
+        SecuritiesProviderProperties properties = securitiesProperties();
+        properties.getKb().setGrantType(" client_credentials ");
+        properties.getKb().setAppKey(" kb-app-key ");
+        properties.getKb().setAppSecret(" kb-app-secret ");
+        KbSecuritiesAccountClient localClient = new KbSecuritiesAccountClient(properties, builder.build());
+
+        localServer.expect(requestTo("https://kb.test/oauth2/token"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(content().json("""
+                {
+                  "grantType": "client_credentials",
+                  "appKey": "kb-app-key",
+                  "appSecret": "kb-app-secret"
+                }
+                """))
+            .andRespond(withSuccess("""
+                {
+                  "access_token": "access-token",
+                  "expires_in": 3600
+                }
+                """, MediaType.APPLICATION_JSON));
+        localServer.expect(requestTo("https://kb.test/api/v1/holdings"))
+            .andRespond(withSuccess("""
+                {
+                  "rt_cd": "0",
+                  "dataBody": {
+                    "Record1": []
+                  }
+                }
+                """, MediaType.APPLICATION_JSON));
+
+        JsonNode response = localClient.fetchHoldings();
+
+        assertThat(localClient.items(response, "Record1")).isEmpty();
+        localServer.verify();
     }
 
     @Test
