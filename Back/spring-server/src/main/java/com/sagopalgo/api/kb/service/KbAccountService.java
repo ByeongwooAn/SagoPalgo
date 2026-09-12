@@ -47,7 +47,7 @@ public class KbAccountService {
 
     public KbHoldingsResponse holdings() {
         JsonNode response = kbClient.fetchHoldings();
-        List<KbHoldingResponse> items = kbClient.items(response, "holdings", "holdingList", "stocks", "stockList")
+        List<KbHoldingResponse> items = kbClient.items(response, "Record1", "holdings", "holdingList", "stocks", "stockList")
             .stream()
             .map(this::holding)
             .toList();
@@ -81,7 +81,7 @@ public class KbAccountService {
     }
 
     private KbHoldingResponse holding(JsonNode node) {
-        BigDecimal quantity = kbClient.decimal(node, "quantity", "hldgQty", "hldg_qty", "qty");
+        BigDecimal quantity = kbClient.decimal(node, "quantity", "gnrl_q", "ordr_psbl_q", "hldgQty", "hldg_qty", "qty");
         BigDecimal averageBuyPrice = kbClient.decimal(node, "averageBuyPrice", "avgBuyPrice", "pchsAvgPric", "buyPrice");
         BigDecimal currentPrice = kbClient.decimal(node, "currentPrice", "nowPrice", "prpr", "curPrice");
         BigDecimal purchaseAmount = kbClient.decimal(node, "purchaseAmount", "pchsAmt", "buyAmount");

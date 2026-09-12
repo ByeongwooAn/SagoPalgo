@@ -44,7 +44,7 @@ class KbSecuritiesAccountClientTest {
             .andExpect(method(HttpMethod.POST))
             .andExpect(content().json("""
                 {
-                  "grant_type": "client_credentials",
+                  "grantType": "client_credentials",
                   "appKey": "kb-app-key",
                   "appSecret": "kb-app-secret"
                 }
@@ -65,6 +65,8 @@ class KbSecuritiesAccountClientTest {
                     "custtype": "P"
                   },
                   "dataBody": {
+                    "inq_clsf": "0",
+                    "mkt_tm_ccd": "1",
                     "acct_no": "1234567890",
                     "acct_prdt_cd": "01"
                   }
@@ -74,13 +76,12 @@ class KbSecuritiesAccountClientTest {
                 {
                   "rt_cd": "0",
                   "dataBody": {
-                    "holdings": [
+                    "Record1": [
                       {
-                        "stockCode": "005930",
-                        "stockName": "삼성전자",
-                        "quantity": "12",
-                        "averageBuyPrice": "69100",
-                        "currentPrice": "75300"
+                        "is_no": "005930",
+                        "is_nm": "삼성전자",
+                        "ordr_psbl_q": "12",
+                        "gnrl_q": "12"
                       }
                     ]
                   }
@@ -89,9 +90,9 @@ class KbSecuritiesAccountClientTest {
 
         JsonNode response = client.fetchHoldings();
 
-        assertThat(client.items(response, "holdings")).hasSize(1);
-        assertThat(client.text(response, "stockCode")).isEqualTo("005930");
-        assertThat(client.decimal(response, "currentPrice")).isEqualByComparingTo("75300");
+        assertThat(client.items(response, "Record1")).hasSize(1);
+        assertThat(client.text(response, "is_no")).isEqualTo("005930");
+        assertThat(client.decimal(response, "gnrl_q")).isEqualByComparingTo("12");
         server.verify();
     }
 
@@ -121,21 +122,24 @@ class KbSecuritiesAccountClientTest {
                     "tr_id": "HOLDINGS_TR",
                     "custtype": "P"
                   },
-                  "dataBody": {}
+                  "dataBody": {
+                    "inq_clsf": "0",
+                    "mkt_tm_ccd": "1"
+                  }
                 }
                 """))
             .andRespond(withSuccess("""
                 {
                   "rt_cd": "0",
                   "dataBody": {
-                    "holdings": []
+                    "Record1": []
                   }
                 }
                 """, MediaType.APPLICATION_JSON));
 
         JsonNode response = localClient.fetchHoldings();
 
-        assertThat(localClient.items(response, "holdings")).isEmpty();
+        assertThat(localClient.items(response, "Record1")).isEmpty();
         localServer.verify();
     }
 

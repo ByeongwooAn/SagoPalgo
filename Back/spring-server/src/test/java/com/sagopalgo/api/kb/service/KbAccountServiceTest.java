@@ -24,18 +24,18 @@ class KbAccountServiceTest {
         KbSecuritiesAccountClient client = new FixtureKbClient(json("""
             {
               "dataBody": {
-                "holdings": [
+                "Record1": [
                   {
-                    "stockCode": "005930",
-                    "stockName": "삼성전자",
-                    "quantity": "10",
+                    "is_no": "005930",
+                    "is_nm": "삼성전자",
+                    "gnrl_q": "10",
                     "averageBuyPrice": "70000",
                     "currentPrice": "77000"
                   },
                   {
-                    "stockCode": "000660",
-                    "stockName": "SK하이닉스",
-                    "quantity": "2",
+                    "is_no": "000660",
+                    "is_nm": "SK하이닉스",
+                    "gnrl_q": "2",
                     "averageBuyPrice": "200000",
                     "currentPrice": "180000"
                   }

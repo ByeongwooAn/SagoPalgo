@@ -74,8 +74,15 @@ public class KbSecuritiesAccountClient {
     public JsonNode fetchHoldings() {
         ensureAccountConfigured();
         ensurePathConfigured(properties.getHoldingsPath(), "KB증권 보유 주식 API 경로 설정이 필요합니다.");
+        ensureText(properties.getHoldingsInquiryClassification(), "KB증권 보유주식 조회구분 설정이 필요합니다.");
+        ensureText(properties.getHoldingsMarketTimeCode(), "KB증권 보유주식 시장시간구분코드 설정이 필요합니다.");
 
         Map<String, Object> dataBody = new LinkedHashMap<>();
+        dataBody.put("inq_clsf", properties.getHoldingsInquiryClassification());
+        dataBody.put("mkt_tm_ccd", properties.getHoldingsMarketTimeCode());
+        if (StringUtils.hasText(properties.getHoldingsStockCode())) {
+            dataBody.put("is_no", properties.getHoldingsStockCode());
+        }
         if (StringUtils.hasText(properties.getAccountNumber())) {
             dataBody.put(accountNumberField(), properties.getAccountNumber());
         }
@@ -371,7 +378,6 @@ public class KbSecuritiesAccountClient {
     }
 
     private record KbTokenRequest(
-        @JsonProperty("grant_type")
         String grantType,
         String appKey,
         String appSecret

@@ -117,27 +117,28 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 
 KB증권 Open API는 App Key/App Secret으로 `POST /oauth2/token`에서 access token을 발급받고, 이후 Bearer Token으로 계좌/잔고 API를 호출합니다. Base URL 기본값은 `https://developer.kbsec.com:32484`입니다.
 
-계좌/잔고 상세 TR 경로와 요청 계좌 필드명은 KB증권 Open API 포털에서 내려받은 최신 API 문서를 기준으로 `.env`에 설정합니다.
+KB증권 공식 API 문서 `all_kbstock_excel` 기준으로 보유주식 조회는 `SSQM1801_보유주식 조회`, 호출 path는 `/api/v1/ssqm1801`입니다. 이 path는 공개 API 경로라 예시 파일에 포함할 수 있습니다. App Key, App Secret, 계좌번호 같은 민감정보는 예시 파일에 넣지 않습니다.
 
 ```text
 SAGOPALGO_KB_ACCOUNT_ENABLED=true
 SAGOPALGO_KB_BASE_URL=https://developer.kbsec.com:32484
 SAGOPALGO_KB_TOKEN_PATH=/oauth2/token
-SAGOPALGO_KB_ACCOUNTS_PATH=포털 문서의 계좌 목록 TR 경로
-SAGOPALGO_KB_HOLDINGS_PATH=포털 문서의 보유 주식/잔고 TR 경로
-SAGOPALGO_KB_ACCOUNTS_TR_ID=필요 시 계좌 목록 TR ID
-SAGOPALGO_KB_HOLDINGS_TR_ID=필요 시 보유 주식 TR ID
-SAGOPALGO_KB_ACCOUNT_NUMBER=내 KB증권 계좌번호
-SAGOPALGO_KB_ACCOUNT_PRODUCT_CODE=필요 시 상품 코드
-SAGOPALGO_KB_ACCOUNT_NUMBER_FIELD=포털 문서의 계좌번호 요청 필드명
-SAGOPALGO_KB_ACCOUNT_PRODUCT_CODE_FIELD=포털 문서의 상품코드 요청 필드명
+SAGOPALGO_KB_ACCOUNTS_PATH=
+SAGOPALGO_KB_HOLDINGS_PATH=/api/v1/ssqm1801
+SAGOPALGO_KB_ACCOUNTS_TR_ID=
+SAGOPALGO_KB_HOLDINGS_TR_ID=
+SAGOPALGO_KB_HOLDINGS_INQ_CLSF=0
+SAGOPALGO_KB_HOLDINGS_MARKET_TIME_CODE=1
+SAGOPALGO_KB_HOLDINGS_STOCK_CODE=
+SAGOPALGO_KB_ACCOUNT_NUMBER=
+SAGOPALGO_KB_ACCOUNT_PRODUCT_CODE=
 ```
 
 ### 5.1 KB 계좌 목록 조회
 
 `GET /api/v1/kb/accounts`
 
-`SAGOPALGO_KB_ACCOUNTS_PATH`가 설정되어 있으면 KB 계좌 목록 API를 호출합니다. 아직 포털 문서의 계좌 목록 TR 경로를 입력하지 않았고 `SAGOPALGO_KB_ACCOUNT_NUMBER`만 있는 경우에는 로컬 설정 계좌를 마스킹해 반환합니다.
+KB 공식 API 문서 파일 기준으로 별도 계좌 목록 API는 확인되지 않았습니다. `SAGOPALGO_KB_ACCOUNTS_PATH`가 비어 있으면 KB API를 호출하지 않습니다. 이때 `SAGOPALGO_KB_ACCOUNT_NUMBER`가 있으면 로컬 설정 계좌를 마스킹해 반환하고, 계좌번호도 없으면 빈 목록을 반환합니다.
 
 응답:
 
@@ -165,7 +166,7 @@ SAGOPALGO_KB_ACCOUNT_PRODUCT_CODE_FIELD=포털 문서의 상품코드 요청 필
 
 `GET /api/v1/kb/accounts/primary/holdings`
 
-KB Open API 보유 주식/잔고 TR을 호출해 종목별 수량, 평균단가, 현재가, 매입금액, 평가금액, 손익, 손익률, 포트폴리오 비중을 내부 표준 모델로 정규화합니다.
+KB Open API `SSQM1801_보유주식 조회`를 호출해 종목별 종목번호, 종목명, 주문가능수량, 일반수량을 내부 표준 모델로 정규화합니다. 공식 문서의 필수 입력값은 `inq_clsf`, `mkt_tm_ccd`입니다. 문서상 평균단가/현재가/평가금액이 응답에 없는 경우 해당 금액 필드는 0으로 내려갑니다.
 
 응답:
 

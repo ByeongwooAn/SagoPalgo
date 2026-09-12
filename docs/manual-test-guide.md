@@ -34,7 +34,10 @@ SAGOPALGO_KB_ORDER_ENABLED=false
 SAGOPALGO_KB_BASE_URL=https://developer.kbsec.com:32484
 SAGOPALGO_KB_TOKEN_PATH=/oauth2/token
 SAGOPALGO_KB_ACCOUNTS_PATH=
-SAGOPALGO_KB_HOLDINGS_PATH=
+SAGOPALGO_KB_HOLDINGS_PATH=/api/v1/ssqm1801
+SAGOPALGO_KB_HOLDINGS_INQ_CLSF=0
+SAGOPALGO_KB_HOLDINGS_MARKET_TIME_CODE=1
+SAGOPALGO_KB_HOLDINGS_STOCK_CODE=
 SAGOPALGO_KB_APP_KEY=
 SAGOPALGO_KB_APP_SECRET=
 SAGOPALGO_KB_ACCOUNT_NUMBER=
@@ -85,7 +88,7 @@ Invoke-WebRequest -Uri http://localhost:8081/api/v1/kb/accounts -UseBasicParsing
 Invoke-WebRequest -Uri http://localhost:8081/api/v1/kb/accounts/primary/holdings -UseBasicParsing
 ```
 
-실제 KB 계좌 조회를 확인하려면 KB증권 Open API 포털에서 App Key/App Secret을 발급받고, 포털 문서 다운로드에서 계좌 목록 TR 경로와 보유 주식/잔고 TR 경로를 확인한 뒤 `SAGOPALGO_KB_ACCOUNT_ENABLED=true`, `SAGOPALGO_KB_ACCOUNTS_PATH`, `SAGOPALGO_KB_HOLDINGS_PATH`, 필요 시 `SAGOPALGO_KB_*_TR_ID`, `SAGOPALGO_KB_ACCOUNT_NUMBER_FIELD`, `SAGOPALGO_KB_ACCOUNT_PRODUCT_CODE_FIELD`를 채웁니다. 응답에는 계좌번호가 마스킹되어야 하며, 보유 주식 응답의 `summary`에는 총 매입금액, 총 평가금액, 총 손익, 손익률이 계산되어야 합니다.
+실제 KB 보유주식 조회를 확인하려면 KB증권 Open API 포털에서 App Key/App Secret을 발급받은 뒤 `SAGOPALGO_KB_ACCOUNT_ENABLED=true`로 바꿉니다. KB 공식 API 문서 파일 기준 보유주식 조회는 `SSQM1801_보유주식 조회`, path는 `/api/v1/ssqm1801`, 필수 입력값은 `inq_clsf`, `mkt_tm_ccd`입니다. 별도 계좌 목록 API는 문서에서 확인되지 않았으므로 `SAGOPALGO_KB_ACCOUNTS_PATH`는 비워둘 수 있습니다.
 
 자본금 수정:
 

@@ -39,6 +39,9 @@ public class SecuritiesProviderProperties {
         private String accountsTransactionId = "";
         private String holdingsTransactionId = "";
         private String customerType = "P";
+        private String holdingsInquiryClassification = "0";
+        private String holdingsMarketTimeCode = "1";
+        private String holdingsStockCode = "";
         private String appKey = "";
         private String appSecret = "";
         private String accountNumber = "";
@@ -132,6 +135,30 @@ public class SecuritiesProviderProperties {
 
         public void setCustomerType(String customerType) {
             this.customerType = customerType;
+        }
+
+        public String getHoldingsInquiryClassification() {
+            return holdingsInquiryClassification;
+        }
+
+        public void setHoldingsInquiryClassification(String holdingsInquiryClassification) {
+            this.holdingsInquiryClassification = holdingsInquiryClassification;
+        }
+
+        public String getHoldingsMarketTimeCode() {
+            return holdingsMarketTimeCode;
+        }
+
+        public void setHoldingsMarketTimeCode(String holdingsMarketTimeCode) {
+            this.holdingsMarketTimeCode = holdingsMarketTimeCode;
+        }
+
+        public String getHoldingsStockCode() {
+            return holdingsStockCode;
+        }
+
+        public void setHoldingsStockCode(String holdingsStockCode) {
+            this.holdingsStockCode = holdingsStockCode;
         }
 
         public String getAppKey() {

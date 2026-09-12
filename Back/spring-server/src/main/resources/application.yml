@@ -48,6 +48,10 @@ sagopalgo:
       accounts-transaction-id: ${SAGOPALGO_KB_ACCOUNTS_TR_ID:}
       holdings-transaction-id: ${SAGOPALGO_KB_HOLDINGS_TR_ID:}
       customer-type: ${SAGOPALGO_KB_CUSTOMER_TYPE:P}
+      # SSQM1801 보유주식 조회 필수/선택 입력값입니다.
+      holdings-inquiry-classification: ${SAGOPALGO_KB_HOLDINGS_INQ_CLSF:0}
+      holdings-market-time-code: ${SAGOPALGO_KB_HOLDINGS_MARKET_TIME_CODE:1}
+      holdings-stock-code: ${SAGOPALGO_KB_HOLDINGS_STOCK_CODE:}
       app-key: ${SAGOPALGO_KB_APP_KEY:}
       app-secret: ${SAGOPALGO_KB_APP_SECRET:}
       account-number: ${SAGOPALGO_KB_ACCOUNT_NUMBER:}
