@@ -119,19 +119,13 @@ KB증권 Open API는 App Key/App Secret으로 `POST /oauth2/token`에서 access 
 
 KB증권 공식 API 문서 `all_kbstock_excel` 기준으로 보유주식 조회는 `SSQM1801_보유주식 조회`, 호출 path는 `/api/v1/ssqm1801`입니다. 이 path는 공개 API 경로라 예시 파일에 포함할 수 있습니다. App Key, App Secret, 계좌번호 같은 민감정보는 예시 파일에 넣지 않습니다.
 
+공개 API path, 토큰 경로, `inq_clsf`, `mkt_tm_ccd` 기본값은 백엔드 기본 설정으로 관리합니다. `.env`에는 실제 실행 여부와 민감정보만 넣습니다.
+
 ```text
 SAGOPALGO_KB_ACCOUNT_ENABLED=true
-SAGOPALGO_KB_BASE_URL=https://developer.kbsec.com:32484
-SAGOPALGO_KB_TOKEN_PATH=/oauth2/token
-SAGOPALGO_KB_ACCOUNTS_PATH=
-SAGOPALGO_KB_HOLDINGS_PATH=/api/v1/ssqm1801
-SAGOPALGO_KB_ACCOUNTS_TR_ID=
-SAGOPALGO_KB_HOLDINGS_TR_ID=
-SAGOPALGO_KB_HOLDINGS_INQ_CLSF=0
-SAGOPALGO_KB_HOLDINGS_MARKET_TIME_CODE=1
-SAGOPALGO_KB_HOLDINGS_STOCK_CODE=
+SAGOPALGO_KB_APP_KEY=KB에서 발급받은 App Key
+SAGOPALGO_KB_APP_SECRET=KB에서 발급받은 App Secret
 SAGOPALGO_KB_ACCOUNT_NUMBER=
-SAGOPALGO_KB_ACCOUNT_PRODUCT_CODE=
 ```
 
 ### 5.1 KB 계좌 목록 조회

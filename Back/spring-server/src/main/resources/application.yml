@@ -39,12 +39,12 @@ sagopalgo:
       # KB증권은 계좌 조회와 추후 주문 기능의 단일 담당으로 둡니다.
       account-enabled: ${SAGOPALGO_KB_ACCOUNT_ENABLED:false}
       order-enabled: ${SAGOPALGO_KB_ORDER_ENABLED:false}
-      # KB증권 Open API 운영 Base URL입니다. 상세 계좌/잔고 TR 경로는 포털 문서 기준으로 환경변수에서 지정합니다.
+      # KB증권 공식 API 문서 all_kbstock_excel 기준 기본값입니다. 비밀값이 아니므로 코드 설정에 둡니다.
       base-url: ${SAGOPALGO_KB_BASE_URL:https://developer.kbsec.com:32484}
       grant-type: ${SAGOPALGO_KB_GRANT_TYPE:client_credentials}
       token-path: ${SAGOPALGO_KB_TOKEN_PATH:/oauth2/token}
       accounts-path: ${SAGOPALGO_KB_ACCOUNTS_PATH:}
-      holdings-path: ${SAGOPALGO_KB_HOLDINGS_PATH:}
+      holdings-path: ${SAGOPALGO_KB_HOLDINGS_PATH:/api/v1/ssqm1801}
       accounts-transaction-id: ${SAGOPALGO_KB_ACCOUNTS_TR_ID:}
       holdings-transaction-id: ${SAGOPALGO_KB_HOLDINGS_TR_ID:}
       customer-type: ${SAGOPALGO_KB_CUSTOMER_TYPE:P}
