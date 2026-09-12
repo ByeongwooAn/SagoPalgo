@@ -93,6 +93,33 @@ public class KbSecuritiesAccountClient {
         return post(properties.getHoldingsPath(), properties.getHoldingsTransactionId(), dataBody);
     }
 
+    public JsonNode fetchSettlementBalance() {
+        ensureAccountConfigured();
+        ensurePathConfigured(properties.getSettlementBalancePath(), "KB증권 결제기준 잔고 현황 API 경로 설정이 필요합니다.");
+
+        Map<String, Object> dataBody = new LinkedHashMap<>();
+        if (StringUtils.hasText(properties.getBalanceInquiryClassification())) {
+            dataBody.put("inq_clsf", properties.getBalanceInquiryClassification());
+        }
+        if (StringUtils.hasText(properties.getBalanceExchangeMarketPriceCode())) {
+            dataBody.put("excg_mktpr_ccd", properties.getBalanceExchangeMarketPriceCode());
+        }
+
+        return post(properties.getSettlementBalancePath(), "", dataBody);
+    }
+
+    public JsonNode fetchExecutionBalance() {
+        ensureAccountConfigured();
+        ensurePathConfigured(properties.getExecutionBalancePath(), "KB증권 체결기준 잔고 현황 API 경로 설정이 필요합니다.");
+
+        Map<String, Object> dataBody = new LinkedHashMap<>();
+        if (StringUtils.hasText(properties.getBalanceExchangeMarketPriceCode())) {
+            dataBody.put("excg_mktpr_ccd", properties.getBalanceExchangeMarketPriceCode());
+        }
+
+        return post(properties.getExecutionBalancePath(), "", dataBody);
+    }
+
     private JsonNode post(String path, String transactionId, Map<String, Object> dataBody) {
         try {
             JsonNode response = restClient.post()
