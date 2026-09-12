@@ -9,13 +9,9 @@ import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties.Provider;
 import java.math.BigDecimal;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HexFormat;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -173,12 +169,14 @@ public class KbSecuritiesAccountClient {
 
         JsonNode response;
         try {
-            printKbTokenRequestCredentialDebug(grantType, appKey, appSecret);
             response = restClient.post()
                 .uri(endpoint(properties.getTokenPath()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new KbTokenRequest(grantType, appKey, appSecret))
+                .body(new KbTokenRequest(
+                    tokenDataHeader(),
+                    new KbTokenRequestBody(appKey, appSecret, grantType)
+                ))
                 .retrieve()
                 .body(JsonNode.class);
         } catch (RestClientResponseException exception) {
@@ -210,49 +208,6 @@ public class KbSecuritiesAccountClient {
         return new AccessToken(accessToken, Instant.now().plusSeconds(expiresIn));
     }
 
-    private void printKbTokenRequestCredentialDebug(String grantType, String appKey, String appSecret) {
-        if (Boolean.parseBoolean(System.getenv("SAGOPALGO_KB_DEBUG_PRINT_SECRETS"))) {
-            log.warn(
-                "[TEMP-KB-DEBUG] KB token request credentials grantType={} appKey={} appSecret={}",
-                grantType,
-                appKey,
-                appSecret
-            );
-            return;
-        }
-
-        log.warn(
-            "[TEMP-KB-DEBUG] KB token request credentials grantType={} appKey={} appKeyLen={} appKeySha256={} appSecret={} appSecretLen={} appSecretSha256={}",
-            grantType,
-            previewSecret(appKey),
-            appKey.length(),
-            sha256Fingerprint(appKey),
-            previewSecret(appSecret),
-            appSecret.length(),
-            sha256Fingerprint(appSecret)
-        );
-    }
-
-    private String previewSecret(String value) {
-        if (!StringUtils.hasText(value)) {
-            return "(blank)";
-        }
-        if (value.length() <= 8) {
-            return "***";
-        }
-        return value.substring(0, 4) + "***" + value.substring(value.length() - 4);
-    }
-
-    private String sha256Fingerprint(String value) {
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256")
-                .digest(value.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest).substring(0, 16);
-        } catch (NoSuchAlgorithmException exception) {
-            return "unavailable";
-        }
-    }
-
     private long tokenExpiresIn(JsonNode response) {
         String expiresIn = text(response, "expires_in", "expiresIn");
         if (!StringUtils.hasText(expiresIn)) {
@@ -264,6 +219,13 @@ public class KbSecuritiesAccountClient {
         } catch (NumberFormatException exception) {
             return 3600;
         }
+    }
+
+    private Map<String, Object> tokenDataHeader() {
+        Map<String, Object> dataHeader = new LinkedHashMap<>();
+        dataHeader.put("ipAddr", "127.0.0.1");
+        dataHeader.put("macAddr", "00:00:00:00:00:00");
+        return dataHeader;
     }
 
     private String tokenFailureMessage(String responseBody, int statusCode) {
@@ -559,9 +521,15 @@ public class KbSecuritiesAccountClient {
     }
 
     private record KbTokenRequest(
-        String grantType,
+        Map<String, Object> dataHeader,
+        KbTokenRequestBody dataBody
+    ) {
+    }
+
+    private record KbTokenRequestBody(
         String appKey,
-        String appSecret
+        String appSecret,
+        String grantType
     ) {
     }
 

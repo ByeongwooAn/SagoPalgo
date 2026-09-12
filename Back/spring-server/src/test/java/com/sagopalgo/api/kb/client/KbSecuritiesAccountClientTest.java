@@ -46,9 +46,15 @@ class KbSecuritiesAccountClientTest {
             .andExpect(method(HttpMethod.POST))
             .andExpect(content().json("""
                 {
-                  "grantType": "client_credentials",
-                  "appKey": "kb-app-key",
-                  "appSecret": "kb-app-secret"
+                  "dataHeader": {
+                    "ipAddr": "127.0.0.1",
+                    "macAddr": "00:00:00:00:00:00"
+                  },
+                  "dataBody": {
+                    "appKey": "kb-app-key",
+                    "appSecret": "kb-app-secret",
+                    "grantType": "client_credentials"
+                  }
                 }
                 """))
             .andRespond(withSuccess("""
@@ -228,9 +234,15 @@ class KbSecuritiesAccountClientTest {
             .andExpect(method(HttpMethod.POST))
             .andExpect(content().json("""
                 {
-                  "grantType": "client_credentials",
-                  "appKey": "kb-app-key",
-                  "appSecret": "kb-app-secret"
+                  "dataHeader": {
+                    "ipAddr": "127.0.0.1",
+                    "macAddr": "00:00:00:00:00:00"
+                  },
+                  "dataBody": {
+                    "appKey": "kb-app-key",
+                    "appSecret": "kb-app-secret",
+                    "grantType": "client_credentials"
+                  }
                 }
                 """))
             .andRespond(withSuccess("""
