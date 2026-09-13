@@ -28,7 +28,6 @@ class ProviderSettingsServiceTest {
         kb.setOrderEnabled(false);
         kb.setAppKey("kb-app-key");
         kb.setAppSecret("kb-app-secret");
-        kb.setAccountNumber("1234567890");
         securitiesProperties.setKb(kb);
 
         Provider toss = new Provider();

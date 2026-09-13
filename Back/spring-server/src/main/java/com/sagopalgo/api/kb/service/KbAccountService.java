@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.sagopalgo.api.kb.client.KbSecuritiesAccountClient;
 import com.sagopalgo.api.kb.dto.KbAccountListResponse;
 import com.sagopalgo.api.kb.dto.KbAccountResponse;
+import com.sagopalgo.api.kb.dto.KbBalanceItemResponse;
+import com.sagopalgo.api.kb.dto.KbBalanceResponse;
+import com.sagopalgo.api.kb.dto.KbBalanceSummaryResponse;
 import com.sagopalgo.api.kb.dto.KbHoldingResponse;
 import com.sagopalgo.api.kb.dto.KbHoldingsResponse;
 import com.sagopalgo.api.kb.dto.KbPortfolioSummaryResponse;
@@ -49,9 +52,20 @@ public class KbAccountService {
         JsonNode response = kbClient.fetchHoldings();
         List<KbHoldingResponse> items = kbClient.items(response, "Record1", "holdings", "holdingList", "stocks", "stockList")
             .stream()
+            .filter(this::hasHoldingIdentity)
             .map(this::holding)
             .toList();
         return withWeights(items);
+    }
+
+    public KbBalanceResponse settlementBalance() {
+        JsonNode response = kbClient.fetchSettlementBalance();
+        return balance("SETTLEMENT", response);
+    }
+
+    public KbBalanceResponse executionBalance() {
+        JsonNode response = kbClient.fetchExecutionBalance();
+        return balance("EXECUTION", response);
     }
 
     private KbAccountResponse configuredAccount() {
@@ -81,13 +95,15 @@ public class KbAccountService {
     }
 
     private KbHoldingResponse holding(JsonNode node) {
+        String stockCode = kbClient.text(node, "stockCode", "is_no", "is_cd", "isuNo", "isNo", "pdno", "shtnPdno");
+        String stockName = kbClient.text(node, "stockName", "is_nm", "isuNm", "isNm", "productName", "prdtName");
         BigDecimal quantity = kbClient.decimal(node, "quantity", "gnrl_q", "ordr_psbl_q", "hldgQty", "hldg_qty", "qty");
-        BigDecimal averageBuyPrice = kbClient.decimal(node, "averageBuyPrice", "avgBuyPrice", "pchsAvgPric", "buyPrice");
-        BigDecimal currentPrice = kbClient.decimal(node, "currentPrice", "nowPrice", "prpr", "curPrice");
-        BigDecimal purchaseAmount = kbClient.decimal(node, "purchaseAmount", "pchsAmt", "buyAmount");
-        BigDecimal valuationAmount = kbClient.decimal(node, "valuationAmount", "evluAmt", "evalAmount");
-        BigDecimal profitAmount = kbClient.decimal(node, "profitAmount", "evluPflsAmt", "profitLossAmount");
-        BigDecimal profitRate = kbClient.decimal(node, "profitRate", "evluPflsRt", "profitLossRate");
+        BigDecimal averageBuyPrice = kbClient.decimal(node, "averageBuyPrice", "byng_avr_prc", "avgBuyPrice", "pchsAvgPric", "buyPrice");
+        BigDecimal currentPrice = kbClient.decimal(node, "currentPrice", "now_prc", "nowPrice", "prpr", "curPrice");
+        BigDecimal purchaseAmount = kbClient.decimal(node, "purchaseAmount", "byng_amt", "pchsAmt", "buyAmount");
+        BigDecimal valuationAmount = kbClient.decimal(node, "valuationAmount", "val_amt", "evluAmt", "evalAmount");
+        BigDecimal profitAmount = kbClient.decimal(node, "profitAmount", "pl_amt", "val_pl", "evluPflsAmt", "profitLossAmount");
+        BigDecimal profitRate = kbClient.decimal(node, "profitRate", "yld", "val_yld", "evluPflsRt", "profitLossRate");
 
         if (purchaseAmount.compareTo(BigDecimal.ZERO) == 0) {
             purchaseAmount = averageBuyPrice.multiply(quantity);
@@ -104,8 +120,8 @@ public class KbAccountService {
         }
 
         return new KbHoldingResponse(
-            kbClient.text(node, "stockCode", "isuNo", "isNo", "pdno", "shtnPdno"),
-            defaultText(kbClient.text(node, "stockName", "isuNm", "isNm", "productName", "prdtName"), "알 수 없는 종목"),
+            stockCode,
+            defaultText(stockName, defaultText(stockCode, "알 수 없는 종목")),
             defaultText(kbClient.text(node, "market", "marketName", "mrktName"), "KRX"),
             money(quantity),
             money(averageBuyPrice),
@@ -116,6 +132,69 @@ public class KbAccountService {
             rate(profitRate),
             BigDecimal.ZERO
         );
+    }
+
+    private KbBalanceResponse balance(String basis, JsonNode response) {
+        List<KbBalanceItemResponse> items = kbClient.items(response, "Record1")
+            .stream()
+            .filter(this::hasBalanceItemIdentity)
+            .map(this::balanceItem)
+            .toList();
+        return new KbBalanceResponse(balanceSummary(basis, response), items);
+    }
+
+    private KbBalanceSummaryResponse balanceSummary(String basis, JsonNode response) {
+        return new KbBalanceSummaryResponse(
+            basis,
+            money(kbClient.decimal(response, "tfnd", "dy_tfnd")),
+            money(kbClient.decimal(response, "o_amt_psbl_amt", "ndy_o_amt_psbl_amt")),
+            money(kbClient.decimal(response, "ordr_psbl_csh")),
+            money(kbClient.decimal(response, "nt_asts_val_amt")),
+            money(kbClient.decimal(response, "scrts_nt_val_amt")),
+            money(kbClient.decimal(response, "byng_amt_sum", "nt_byng_amt")),
+            money(kbClient.decimal(response, "val_amt_sum")),
+            money(kbClient.decimal(response, "pl_amt_sum", "val_pl_sum", "val_pl")),
+            rate(kbClient.decimal(response, "yld_sum", "val_yld_sum", "val_yld")),
+            money(kbClient.decimal(response, "fncng_amt_sum", "fncng_amt")),
+            rate(kbClient.decimal(response, "mrtg_rt")),
+            kbClient.text(response, "tl_data_cnt")
+        );
+    }
+
+    private KbBalanceItemResponse balanceItem(JsonNode node) {
+        String stockCode = kbClient.text(node, "is_cd");
+        String stockName = kbClient.text(node, "is_nm");
+        return new KbBalanceItemResponse(
+            kbClient.text(node, "clsf"),
+            kbClient.text(node, "gds_typ"),
+            kbClient.text(node, "crncy_cd"),
+            stockCode,
+            defaultText(stockName, defaultText(stockCode, "알 수 없는 종목")),
+            money(kbClient.decimal(node, "blnc_q", "hld_q", "blnc_q_p6", "hld_q_p6")),
+            money(kbClient.decimal(node, "ordr_psbl_q", "ordr_psbl_q_p6")),
+            money(kbClient.decimal(node, "nstmt_s_q", "nstmt_s_q_p6")),
+            money(kbClient.decimal(node, "nstmt_b_q", "nstmt_b_q_p6")),
+            money(kbClient.decimal(node, "ec_q", "ec_q_p6")),
+            money(kbClient.decimal(node, "now_prc")),
+            money(kbClient.decimal(node, "byng_avr_prc")),
+            money(kbClient.decimal(node, "byng_amt")),
+            money(kbClient.decimal(node, "val_amt")),
+            money(kbClient.decimal(node, "pl_amt", "val_pl")),
+            rate(kbClient.decimal(node, "yld", "val_yld")),
+            rate(kbClient.decimal(node, "val_sgrvt_p2")),
+            kbClient.text(node, "is_dtl_typ_cd"),
+            kbClient.text(node, "fnl_ccls_excg_cd")
+        );
+    }
+
+    private boolean hasHoldingIdentity(JsonNode node) {
+        return StringUtils.hasText(kbClient.text(node, "stockCode", "is_no", "is_cd", "isuNo", "isNo", "pdno", "shtnPdno"))
+            || StringUtils.hasText(kbClient.text(node, "stockName", "is_nm", "isuNm", "isNm", "productName", "prdtName"));
+    }
+
+    private boolean hasBalanceItemIdentity(JsonNode node) {
+        return StringUtils.hasText(kbClient.text(node, "is_cd"))
+            || StringUtils.hasText(kbClient.text(node, "is_nm"));
     }
 
     private KbHoldingsResponse withWeights(List<KbHoldingResponse> items) {
