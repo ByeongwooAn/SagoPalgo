@@ -109,6 +109,43 @@ class KbAccountServiceTest {
     }
 
     @Test
+    @DisplayName("보유 주식 응답에 종목 배열이 없으면 가짜 알 수 없는 종목을 만들지 않는다")
+    void holdingsDoesNotCreateUnknownItemWhenRecordArrayIsMissing() throws Exception {
+        KbAccountService service = new KbAccountService(new FixtureKbClient(json("""
+            {
+              "dataBody": {
+                "tl_data_cnt": "0",
+                "nxt_key": ""
+              }
+            }
+            """)));
+
+        KbHoldingsResponse response = service.holdings();
+
+        assertThat(response.items()).isEmpty();
+        assertThat(response.summary().totalValuationAmount()).isEqualByComparingTo("0");
+    }
+
+    @Test
+    @DisplayName("잔고 현황 응답에 종목 배열이 없으면 가짜 알 수 없는 종목을 만들지 않는다")
+    void balanceDoesNotCreateUnknownItemWhenRecordArrayIsMissing() throws Exception {
+        KbAccountService service = new KbAccountService(new FixtureKbClient(null, json("""
+            {
+              "dataBody": {
+                "tfnd": "0",
+                "val_amt_sum": "0",
+                "tl_data_cnt": "0"
+              }
+            }
+            """)));
+
+        KbBalanceResponse response = service.settlementBalance();
+
+        assertThat(response.items()).isEmpty();
+        assertThat(response.summary().totalValuationAmount()).isEqualByComparingTo("0");
+    }
+
+    @Test
     @DisplayName("체결기준 잔고 현황 응답을 요약과 종목별 상세로 변환한다")
     void executionBalanceMapsSummaryAndItems() throws Exception {
         KbAccountService service = new KbAccountService(new FixtureKbClient(null, null, json("""

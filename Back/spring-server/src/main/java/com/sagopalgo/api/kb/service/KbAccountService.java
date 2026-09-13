@@ -52,6 +52,7 @@ public class KbAccountService {
         JsonNode response = kbClient.fetchHoldings();
         List<KbHoldingResponse> items = kbClient.items(response, "Record1", "holdings", "holdingList", "stocks", "stockList")
             .stream()
+            .filter(this::hasHoldingIdentity)
             .map(this::holding)
             .toList();
         return withWeights(items);
@@ -94,6 +95,8 @@ public class KbAccountService {
     }
 
     private KbHoldingResponse holding(JsonNode node) {
+        String stockCode = kbClient.text(node, "stockCode", "is_no", "is_cd", "isuNo", "isNo", "pdno", "shtnPdno");
+        String stockName = kbClient.text(node, "stockName", "is_nm", "isuNm", "isNm", "productName", "prdtName");
         BigDecimal quantity = kbClient.decimal(node, "quantity", "gnrl_q", "ordr_psbl_q", "hldgQty", "hldg_qty", "qty");
         BigDecimal averageBuyPrice = kbClient.decimal(node, "averageBuyPrice", "byng_avr_prc", "avgBuyPrice", "pchsAvgPric", "buyPrice");
         BigDecimal currentPrice = kbClient.decimal(node, "currentPrice", "now_prc", "nowPrice", "prpr", "curPrice");
@@ -117,8 +120,8 @@ public class KbAccountService {
         }
 
         return new KbHoldingResponse(
-            kbClient.text(node, "stockCode", "is_no", "is_cd", "isuNo", "isNo", "pdno", "shtnPdno"),
-            defaultText(kbClient.text(node, "stockName", "is_nm", "isuNm", "isNm", "productName", "prdtName"), "알 수 없는 종목"),
+            stockCode,
+            defaultText(stockName, defaultText(stockCode, "알 수 없는 종목")),
             defaultText(kbClient.text(node, "market", "marketName", "mrktName"), "KRX"),
             money(quantity),
             money(averageBuyPrice),
@@ -134,6 +137,7 @@ public class KbAccountService {
     private KbBalanceResponse balance(String basis, JsonNode response) {
         List<KbBalanceItemResponse> items = kbClient.items(response, "Record1")
             .stream()
+            .filter(this::hasBalanceItemIdentity)
             .map(this::balanceItem)
             .toList();
         return new KbBalanceResponse(balanceSummary(basis, response), items);
@@ -158,12 +162,14 @@ public class KbAccountService {
     }
 
     private KbBalanceItemResponse balanceItem(JsonNode node) {
+        String stockCode = kbClient.text(node, "is_cd");
+        String stockName = kbClient.text(node, "is_nm");
         return new KbBalanceItemResponse(
             kbClient.text(node, "clsf"),
             kbClient.text(node, "gds_typ"),
             kbClient.text(node, "crncy_cd"),
-            kbClient.text(node, "is_cd"),
-            defaultText(kbClient.text(node, "is_nm"), "알 수 없는 종목"),
+            stockCode,
+            defaultText(stockName, defaultText(stockCode, "알 수 없는 종목")),
             money(kbClient.decimal(node, "blnc_q", "hld_q", "blnc_q_p6", "hld_q_p6")),
             money(kbClient.decimal(node, "ordr_psbl_q", "ordr_psbl_q_p6")),
             money(kbClient.decimal(node, "nstmt_s_q", "nstmt_s_q_p6")),
@@ -179,6 +185,16 @@ public class KbAccountService {
             kbClient.text(node, "is_dtl_typ_cd"),
             kbClient.text(node, "fnl_ccls_excg_cd")
         );
+    }
+
+    private boolean hasHoldingIdentity(JsonNode node) {
+        return StringUtils.hasText(kbClient.text(node, "stockCode", "is_no", "is_cd", "isuNo", "isNo", "pdno", "shtnPdno"))
+            || StringUtils.hasText(kbClient.text(node, "stockName", "is_nm", "isuNm", "isNm", "productName", "prdtName"));
+    }
+
+    private boolean hasBalanceItemIdentity(JsonNode node) {
+        return StringUtils.hasText(kbClient.text(node, "is_cd"))
+            || StringUtils.hasText(kbClient.text(node, "is_nm"));
     }
 
     private KbHoldingsResponse withWeights(List<KbHoldingResponse> items) {
