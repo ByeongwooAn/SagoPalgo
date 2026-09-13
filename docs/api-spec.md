@@ -212,13 +212,21 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 
 ## 6. 대시보드 API
 
+### 6.0 시장 데이터 Provider
+
+보유 종목 현재가 계산은 `MarketDataProvider` 내부 표준 모델을 사용합니다. Provider 응답은 `StockQuote`로 정규화하며, 현재가, 전일대비, 등락률, 거래량, 시가, 고가, 저가, 전일종가를 같은 필드로 다룹니다. 캔들 데이터는 `StockCandle` 모델을 기준으로 확장할 수 있게 인터페이스를 열어 두었습니다.
+
+Provider 우선순위는 KB증권, 한국투자증권, Toss 순서입니다. KB증권 시세는 공식 문서 `IVU10140_현재가`, path `/api/v1/ivu10140`, 요청값 `excg_clsf=0`, `shrt_cd=종목코드`를 기본값으로 사용합니다. Toss는 공식 시세 path가 확정되기 전까지 기본값이 비어 있어 자동 비활성 상태입니다.
+
+외부 Provider가 일시적으로 실패하면 다음 Provider를 시도합니다. 모든 Provider가 실패하거나 지원 Provider가 없으면 보유 종목 화면의 계산은 등록 매수가를 fallback 현재가로 사용합니다.
+
 ### 6.1 앱 초기 스냅샷 조회
 
 `GET /api/v1/dashboard/snapshot`
 
 이 API는 현재 Flutter의 `InvestmentSnapshot` 모델과 맞춘 통합 응답입니다. MVP에서는 앱 첫 화면을 빠르게 띄우기 위해 여러 화면의 데이터를 한 번에 내려줍니다.
 
-현재 구현은 `CapitalService`, `HoldingService`, `DashboardRecommendationEngine`을 조합합니다. 보유 종목의 `currentPrice`는 KIS 설정이 켜진 국내 주식이면 한국투자증권 Open API 현재가를 사용합니다. 별도 추천 목록 API가 붙기 전까지 대표 추천은 대시보드 스냅샷 안에서 반환합니다. 실제 보유 종목이 없으면 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
+현재 구현은 `CapitalService`, `HoldingService`, `DashboardRecommendationEngine`을 조합합니다. 보유 종목의 `currentPrice`는 시장 데이터 Provider 우선순위와 fallback 정책에 따라 계산됩니다. 별도 추천 목록 API가 붙기 전까지 대표 추천은 대시보드 스냅샷 안에서 반환합니다. 실제 보유 종목이 없으면 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
 
 ## 7. 자본금 API
 
@@ -276,7 +284,7 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 
 `GET /api/v1/holdings`
 
-KOSPI/KOSDAQ/KONEX 종목이고 `SAGOPALGO_KIS_ENABLED=true`이면 `currentPrice`와 `profitRate`는 한국투자증권 현재가 기준으로 계산됩니다. KIS 설정이 꺼져 있거나 미지원 시장이면 임의 샘플 가격을 만들지 않고 등록 매수가를 기준값으로 사용합니다. KIS 설정이 켜진 국내 종목 조회 중 토큰 발급 또는 현재가 조회가 실패하면 `EXTERNAL_DATA_ERROR`가 반환됩니다.
+KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있으면 `currentPrice`와 `profitRate`는 외부 현재가 기준으로 계산됩니다. Provider 우선순위는 KB, KIS, Toss 순서입니다. 설정이 꺼져 있거나 미지원 시장이거나 모든 Provider가 실패하면 임의 샘플 가격을 만들지 않고 등록 매수가를 기준값으로 사용합니다.
 
 ### 9.2 보유 종목 등록
 
@@ -367,8 +375,8 @@ KOSPI/KOSDAQ/KONEX 종목이고 `SAGOPALGO_KIS_ENABLED=true`이면 `currentPrice
 ## 13. 다음 구현 순서
 
 1. KB 계좌 데이터를 Flutter 포트폴리오 화면에 읽기 전용으로 표시
-2. KIS 국내/해외 시세 조회 확장
-3. Toss 분석용 시세/종목 정보 연동
+2. 캔들 조회 API를 실제 KB/KIS 차트 TR에 연결
+3. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
 4. AI 분석 서버와 추천 결과 저장
 5. Windows 로컬 알림
 6. 자동 주문 설계와 수동 승인 기반 주문 실행

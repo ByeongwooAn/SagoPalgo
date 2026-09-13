@@ -38,14 +38,17 @@ public class SecuritiesProviderProperties {
         private String holdingsPath = "";
         private String settlementBalancePath = "";
         private String executionBalancePath = "";
+        private String currentPricePath = "";
         private String accountsTransactionId = "";
         private String holdingsTransactionId = "";
+        private String currentPriceTransactionId = "";
         private String customerType = "P";
         private String holdingsInquiryClassification = "0";
         private String holdingsMarketTimeCode = "1";
         private String holdingsStockCode = "";
         private String balanceInquiryClassification = "1";
         private String balanceExchangeMarketPriceCode = "A";
+        private String currentPriceExchangeClassification = "0";
         private String appKey = "";
         private String appSecret = "";
         private String accountNumber = "";
@@ -133,6 +136,14 @@ public class SecuritiesProviderProperties {
             this.executionBalancePath = executionBalancePath;
         }
 
+        public String getCurrentPricePath() {
+            return currentPricePath;
+        }
+
+        public void setCurrentPricePath(String currentPricePath) {
+            this.currentPricePath = currentPricePath;
+        }
+
         public String getAccountsTransactionId() {
             return accountsTransactionId;
         }
@@ -147,6 +158,14 @@ public class SecuritiesProviderProperties {
 
         public void setHoldingsTransactionId(String holdingsTransactionId) {
             this.holdingsTransactionId = holdingsTransactionId;
+        }
+
+        public String getCurrentPriceTransactionId() {
+            return currentPriceTransactionId;
+        }
+
+        public void setCurrentPriceTransactionId(String currentPriceTransactionId) {
+            this.currentPriceTransactionId = currentPriceTransactionId;
         }
 
         public String getCustomerType() {
@@ -195,6 +214,14 @@ public class SecuritiesProviderProperties {
 
         public void setBalanceExchangeMarketPriceCode(String balanceExchangeMarketPriceCode) {
             this.balanceExchangeMarketPriceCode = balanceExchangeMarketPriceCode;
+        }
+
+        public String getCurrentPriceExchangeClassification() {
+            return currentPriceExchangeClassification;
+        }
+
+        public void setCurrentPriceExchangeClassification(String currentPriceExchangeClassification) {
+            this.currentPriceExchangeClassification = currentPriceExchangeClassification;
         }
 
         public String getAppKey() {

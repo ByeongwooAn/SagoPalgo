@@ -50,6 +50,10 @@ public class KbSecuritiesAccountClient {
         return properties.isAccountEnabled();
     }
 
+    public boolean isMarketDataEnabled() {
+        return properties.isMarketDataEnabled();
+    }
+
     public void ensureAccountEnabled() {
         if (!properties.isAccountEnabled()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "KB증권 계좌 조회 설정이 꺼져 있습니다.");
@@ -125,6 +129,19 @@ public class KbSecuritiesAccountClient {
         }
 
         return post(properties.getExecutionBalancePath(), "", dataBody);
+    }
+
+    public JsonNode fetchCurrentPrice(String stockCode) {
+        ensureMarketDataConfigured();
+        ensurePathConfigured(properties.getCurrentPricePath(), "KB증권 현재가 API 경로 설정이 필요합니다.");
+        ensureText(stockCode, "KB증권 현재가 조회 종목코드가 필요합니다.");
+        ensureText(properties.getCurrentPriceExchangeClassification(), "KB증권 현재가 거래소구분 설정이 필요합니다.");
+
+        Map<String, Object> dataBody = new LinkedHashMap<>();
+        dataBody.put("excg_clsf", properties.getCurrentPriceExchangeClassification());
+        dataBody.put("shrt_cd", stockCode.trim());
+
+        return post(properties.getCurrentPricePath(), properties.getCurrentPriceTransactionId(), dataBody);
     }
 
     private JsonNode post(String path, String transactionId, Map<String, Object> dataBody) {
@@ -464,6 +481,14 @@ public class KbSecuritiesAccountClient {
 
     private void ensureAccountConfigured() {
         ensureAccountEnabled();
+        ensureText(properties.getAppKey(), "KB증권 App Key 설정이 필요합니다.");
+        ensureText(properties.getAppSecret(), "KB증권 App Secret 설정이 필요합니다.");
+    }
+
+    private void ensureMarketDataConfigured() {
+        if (!properties.isMarketDataEnabled()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "KB증권 시세 조회 설정이 꺼져 있습니다.");
+        }
         ensureText(properties.getAppKey(), "KB증권 App Key 설정이 필요합니다.");
         ensureText(properties.getAppSecret(), "KB증권 App Secret 설정이 필요합니다.");
     }
