@@ -60,6 +60,14 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.d
 
 DB volume을 새로 만들 때 `Back/database/schema.sql`은 `.env.dev`의 `SAGOPALGO_MYSQL_DATABASE` 값에 해당하는 DB 안에 테이블을 생성합니다. 예를 들어 `SAGOPALGO_MYSQL_DATABASE=sagopalgo_dev`이면 Spring API도 `sagopalgo_dev`에 접속하고, 테이블도 같은 DB에 생성되어야 합니다.
 
+기존 DB volume을 유지하는 환경에서는 뉴스·공시 저장 테이블을 한 번 추가합니다. 아래 SQL은 `CREATE TABLE IF NOT EXISTS`라 반복 실행해도 기존 테이블을 지우지 않습니다.
+
+```powershell
+Get-Content -Raw Back/database/migrations/002_research_feed_storage.sql | `
+  docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
+  sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
+```
+
 API 서버 상태:
 
 ```powershell
@@ -81,15 +89,19 @@ Invoke-RestMethod `
 
 응답에는 `secretStorageType=ENV_FILE`, `orderSafetyMode=주문 기능 기본 OFF`, `marketDataFallbackOrder=[KB,KIS,TOSS]`, KB/KIS/Toss/Naver News/OpenDART의 역할과 누락 설정 이름만 표시되어야 합니다. API Key, App Secret, 계좌번호 원문은 응답에 포함되면 안 됩니다.
 
-뉴스·공시 Provider를 켠 환경에서는 통합 조회를 확인합니다.
+뉴스·공시 Provider를 켠 환경에서는 외부 동기화와 로컬 조회를 차례로 확인합니다.
 
 ```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri 'http://localhost:8081/api/v1/research/feed/sync?stockCode=005930&stockName=삼성전자'
+
 Invoke-RestMethod `
   -Method Get `
   -Uri 'http://localhost:8081/api/v1/research/feed?stockCode=005930&stockName=삼성전자'
 ```
 
-`data.providers`에서 각 Provider가 `SUCCESS`, `FAILED`, `DISABLED` 중 하나로 표시되는지 확인합니다. 한 Provider만 실패할 때도 HTTP 200 응답으로 다른 Provider 결과가 남아 있어야 합니다.
+동기화 응답의 `data.providers`에서 각 Provider가 `SUCCESS`, `FAILED`, `DISABLED` 중 하나로 표시되는지 확인합니다. 한 Provider만 실패할 때도 HTTP 200 응답으로 다른 Provider 결과가 저장되어야 합니다. 같은 동기화를 두 번 실행한 뒤 GET 결과의 뉴스와 공시 건수가 중복 증가하지 않고, `provider=LOCAL_DB`, `dataType=CACHE`로 표시되는지 확인합니다.
 
 KB 계좌 연동 확인:
 
@@ -202,7 +214,7 @@ flutter run -d windows
 Windows 릴리즈 빌드 확인:
 
 ```powershell
-flutter build windows
+flutter build windows --release
 ```
 
 빌드 성공 후 `build\windows\x64\runner\Release\SagoPalgo.exe`를 실행합니다. 같은 폴더의 `flutter_windows.dll`과 `data/` 폴더가 함께 있어야 합니다.
@@ -213,4 +225,4 @@ flutter build windows
 - KIS 설정이 꺼져 있거나 아직 지원하지 않는 해외 시장 종목이면 임의 샘플 가격을 만들지 않고 사용자가 등록한 매수가를 기준값으로 반환합니다.
 - 추천은 실제 보유 종목이 있을 때만 `DashboardRecommendationEngine`의 규칙 기반 MVP 로직으로 생성합니다. Python AI 서버가 연결되면 같은 응답 계약으로 대체합니다.
 - 추천 목록/상세 API와 Windows 알림 API는 아직 구현 전이며, 현재 앱은 대시보드 스냅샷의 대표 추천과 알림 데이터를 사용합니다.
-- 뉴스와 공시는 실시간 통합 조회까지 구현됐으며, 로컬 저장·중복 제거와 Flutter 타임라인 화면은 아직 구현 전입니다.
+- 뉴스와 공시는 외부 동기화, 로컬 저장, 중복 제거, 기간 조회까지 구현됐으며 Flutter 타임라인 화면과 주기 동기화는 아직 구현 전입니다.

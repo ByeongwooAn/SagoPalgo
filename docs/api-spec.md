@@ -348,11 +348,13 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ## 10. 뉴스·공시 API
 
-### 10.1 종목별 뉴스·공시 조회
+### 10.1 외부 뉴스·공시 동기화
 
-`GET /api/v1/research/feed?stockCode=005930&stockName=삼성전자&fromDate=2026-08-01&toDate=2026-09-21`
+`POST /api/v1/research/feed/sync?stockCode=005930&stockName=삼성전자&fromDate=2026-08-01&toDate=2026-09-21`
 
-`fromDate`와 `toDate`는 선택값입니다. 생략하면 오늘을 종료일로 하고 OpenDART 설정의 기본 조회 기간만큼 이전 날짜를 시작일로 사용합니다. 네이버 뉴스와 OpenDART는 독립적으로 조회하므로 한쪽이 실패해도 다른 쪽 결과와 Provider 상태를 반환합니다.
+네이버 뉴스와 OpenDART를 독립적으로 호출하고 성공한 결과를 로컬 DB에 upsert한 뒤, 해당 기간에 저장된 통합 피드를 반환합니다. 한쪽이 실패해도 다른 쪽 결과를 저장하며 Provider별 `SUCCESS`, `FAILED`, `DISABLED` 상태를 응답합니다.
+
+`fromDate`와 `toDate`는 선택값입니다. 생략하면 오늘을 종료일로 하고 OpenDART 설정의 기본 조회 기간만큼 이전 날짜를 시작일로 사용합니다.
 
 ```json
 {
@@ -390,9 +392,17 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
       {"provider": "OPEN_DART", "dataType": "DISCLOSURE", "status": "SUCCESS", "message": "1건 조회"}
     ]
   },
-  "message": "종목 뉴스와 공시가 조회되었습니다."
+  "message": "종목 뉴스와 공시가 동기화되었습니다."
 }
 ```
+
+뉴스는 `Provider + 종목코드 + 원문 URL`의 SHA-256 키로 중복을 제거합니다. URL이 없으면 제목과 발행시각을 대신 사용합니다. 공시는 `Provider + 접수번호`로 중복을 제거합니다. 같은 항목을 여러 번 동기화해도 새 행을 추가하지 않고 최신 값과 마지막 수집 시각을 갱신합니다.
+
+### 10.2 저장된 종목별 뉴스·공시 조회
+
+`GET /api/v1/research/feed?stockCode=005930&stockName=삼성전자&fromDate=2026-08-01&toDate=2026-09-21`
+
+외부 Provider를 호출하지 않고 로컬 DB에서만 조회합니다. Provider 설정이 꺼져 있거나 외부 API가 일시적으로 실패해도 이전에 동기화한 데이터를 사용할 수 있습니다. 응답의 `providers`에는 `provider=LOCAL_DB`, `status=SUCCESS`, `dataType=CACHE`와 저장 건수가 표시됩니다.
 
 ## 11. 추천 API
 
@@ -457,8 +467,8 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ## 14. 다음 구현 순서
 
-1. 뉴스·공시 결과 로컬 저장과 중복 제거
-2. 뉴스·공시 타임라인 Flutter 화면
+1. 뉴스·공시 타임라인 Flutter 화면
+2. 관심 종목 뉴스·공시 주기 동기화
 3. 캔들 조회 API를 실제 KB/KIS 차트 TR에 연결
 4. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
 5. AI 분석 서버와 추천 결과 저장
