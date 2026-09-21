@@ -26,6 +26,8 @@
 | `alerts` | 앱 알림 내역 | 설계 포함 |
 | `device_tokens` | 장치 알림 토큰 확장 지점 | 설계 포함 |
 | `analysis_snapshots` | AI 분석 결과 원본 스냅샷 | 설계 포함 |
+| `research_news` | 종목별 뉴스 수집 결과 | 구현됨 |
+| `research_disclosures` | 종목별 전자공시 수집 결과 | 구현됨 |
 
 ## 3. 관계 요약
 
@@ -40,7 +42,11 @@ users 1 ── N alerts
 users 1 ── N device_tokens
 recommendations 1 ── N alerts
 recommendations 1 ── N analysis_snapshots
+research_news     N ── 1 stock_code (논리 관계)
+research_disclosures N ── 1 stock_code (논리 관계)
 ```
+
+뉴스와 공시는 여러 관심 종목과 분석 흐름에서 함께 쓰는 참조 데이터이므로 특정 `user_id`에 종속하지 않습니다. 현재는 종목코드로 연결하며 별도 종목 마스터 FK는 두지 않습니다.
 
 ## 4. 핵심 테이블 상세
 
@@ -166,6 +172,43 @@ AI 서버가 계산한 분석 결과 원본을 JSON으로 보관합니다.
 | `score` | INT | 분석 점수 |
 | `raw_payload` | JSON | AI 서버 응답 원본 |
 
+### 4.9 `research_news`
+
+네이버 뉴스 등 외부 Provider에서 수집한 종목별 뉴스의 정규화 결과를 저장합니다.
+
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `news_id` | BIGINT | PK |
+| `provider` | VARCHAR(30) | `NAVER_NEWS` 등 Provider 코드 |
+| `content_key` | CHAR(64) | Provider, 종목코드, 원문 URL 기반 SHA-256 키 |
+| `stock_code` | VARCHAR(30) | 연결 종목 코드 |
+| `stock_name` | VARCHAR(100) | 연결 종목명 |
+| `title` | VARCHAR(500) | HTML 강조 태그를 제거한 기사 제목 |
+| `link` | VARCHAR(1000) | 뉴스 원문 링크 |
+| `summary` | TEXT | Provider가 제공한 기사 요약 |
+| `published_at` | DATETIME | 뉴스 발행 시각, 없을 수 있음 |
+| `created_at` | DATETIME | 최초 수집 시각 |
+| `updated_at` | DATETIME | 마지막 수집 시각 |
+
+### 4.10 `research_disclosures`
+
+OpenDART에서 수집한 공시를 접수번호 기준으로 저장합니다.
+
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `disclosure_id` | BIGINT | PK |
+| `provider` | VARCHAR(30) | `OPEN_DART` 등 Provider 코드 |
+| `stock_code` | VARCHAR(30) | 연결 종목 코드 |
+| `corp_code` | VARCHAR(20) | DART 회사 고유번호 |
+| `corp_name` | VARCHAR(100) | 공시 회사명 |
+| `report_name` | VARCHAR(500) | 공시 보고서명 |
+| `receipt_number` | VARCHAR(30) | DART 접수번호 |
+| `submitter_name` | VARCHAR(100) | 공시 제출인명 |
+| `receipt_date` | DATE | 공시 접수일 |
+| `link` | VARCHAR(1000) | DART 공시 원문 링크 |
+| `created_at` | DATETIME | 최초 수집 시각 |
+| `updated_at` | DATETIME | 마지막 수집 시각 |
+
 ## 5. 인덱스 전략
 
 | 인덱스 | 대상 | 이유 |
@@ -177,6 +220,10 @@ AI 서버가 계산한 분석 결과 원본을 JSON으로 보관합니다.
 | `idx_recommendations_user_created` | `recommendations(user_id, created_at)` | 최신 추천 목록 조회 |
 | `idx_alerts_user_read_created` | `alerts(user_id, is_read, created_at)` | 알림 목록/읽음 필터 |
 | `idx_snapshots_stock_created` | `analysis_snapshots(stock_code, market, created_at)` | 종목별 분석 이력 조회 |
+| `uk_research_news_provider_key` | `research_news(provider, content_key)` | 같은 종목의 같은 뉴스 중복 방지 |
+| `idx_research_news_stock_published` | `research_news(stock_code, published_at)` | 종목·기간별 뉴스 조회 |
+| `uk_research_disclosures_provider_receipt` | `research_disclosures(provider, receipt_number)` | 같은 공시 중복 방지 |
+| `idx_research_disclosures_stock_date` | `research_disclosures(stock_code, receipt_date)` | 종목·기간별 공시 조회 |
 
 ## 6. 우선 사용 테이블
 
@@ -187,5 +234,7 @@ AI 서버가 계산한 분석 결과 원본을 JSON으로 보관합니다.
 5. `recommendations`
 6. `recommendation_reasons`
 7. `alerts`
+8. `research_news`
+9. `research_disclosures`
 
 `trade_records`, `device_tokens`, `analysis_snapshots`는 설계에는 포함되어 있지만 실제 API는 다음 단계에서 필요해질 때 붙입니다.

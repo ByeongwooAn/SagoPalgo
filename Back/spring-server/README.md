@@ -32,7 +32,8 @@
 | KB 보유 주식 | GET | `/api/v1/kb/accounts/primary/holdings` |
 | KB 결제기준 잔고 | GET | `/api/v1/kb/accounts/primary/balances/settlement` |
 | KB 체결기준 잔고 | GET | `/api/v1/kb/accounts/primary/balances/execution` |
-| 종목 뉴스·공시 | GET | `/api/v1/research/feed` |
+| 저장된 종목 뉴스·공시 조회 | GET | `/api/v1/research/feed` |
+| 종목 뉴스·공시 외부 동기화 | POST | `/api/v1/research/feed/sync` |
 | 대시보드 스냅샷 | GET | `/api/v1/dashboard/snapshot` |
 | 자본금 조회·수정 | GET, PUT | `/api/v1/capital` |
 | 관심 종목 목록·등록 | GET, POST | `/api/v1/watchlist` |
@@ -51,7 +52,7 @@
 
 ## 뉴스·공시 Provider
 
-네이버 뉴스 검색 API와 OpenDART 공시검색 API는 서로 독립적으로 동작합니다. 한쪽 조회가 실패해도 다른 쪽 결과와 Provider별 `SUCCESS`, `FAILED`, `DISABLED` 상태를 반환합니다.
+네이버 뉴스 검색 API와 OpenDART 공시검색 API는 서로 독립적으로 동작합니다. `POST /sync`에서 한쪽 조회가 실패해도 다른 쪽 결과를 저장하고 Provider별 `SUCCESS`, `FAILED`, `DISABLED` 상태를 반환합니다. 일반 `GET`은 외부 API를 다시 호출하지 않고 로컬 DB만 조회합니다.
 
 - 네이버 뉴스 검색: [공식 개발가이드](https://developers.naver.com/docs/serviceapi/search/news/news.md)
 - OpenDART 공시검색: [공식 개발가이드](https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS001&apiId=2019001)
@@ -65,9 +66,13 @@ SAGOPALGO_OPEN_DART_ENABLED=true
 SAGOPALGO_OPEN_DART_API_KEY=발급받은-api-key
 ```
 
-조회 예시:
+외부 동기화 후 저장 결과 조회 예시:
 
 ```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri 'http://localhost:8080/api/v1/research/feed/sync?stockCode=005930&stockName=삼성전자&fromDate=2026-08-01&toDate=2026-09-21'
+
 Invoke-RestMethod `
   -Method Get `
   -Uri 'http://localhost:8080/api/v1/research/feed?stockCode=005930&stockName=삼성전자&fromDate=2026-08-01&toDate=2026-09-21'
@@ -76,7 +81,11 @@ Invoke-RestMethod `
 - 뉴스 제목과 요약은 검색 강조 HTML을 제거해 저장 가능한 일반 문자열로 정규화합니다.
 - OpenDART 고유번호 파일을 애플리케이션 메모리에 캐시하고 종목코드로 회사 고유번호를 자동 해석합니다.
 - 공시 링크는 DART 원문 조회 주소로 구성합니다.
+- 뉴스는 Provider, 종목코드, 원문 URL 기반 키로, 공시는 Provider와 접수번호로 중복을 제거합니다.
+- 같은 데이터를 다시 동기화하면 새 행을 만들지 않고 저장값과 마지막 수집 시각을 갱신합니다.
 - 날짜를 생략하면 종료일은 오늘, 시작일은 기본 30일 전입니다.
+
+기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql)을 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 두 저장 테이블을 함께 생성합니다.
 
 ## 추천 기준
 
@@ -86,8 +95,8 @@ Invoke-RestMethod `
 
 ## 다음 구현 후보
 
-1. 뉴스·공시 결과의 로컬 저장과 중복 제거
-2. 뉴스·공시 타임라인 Flutter 화면
+1. 뉴스·공시 타임라인 Flutter 화면
+2. 관심 종목 뉴스·공시 주기 동기화
 3. 뉴스·공시·가격 흐름을 사용하는 AI 분석 엔진
 4. Windows 로컬 알림
 5. Windows Credential Manager 기반 민감정보 보호

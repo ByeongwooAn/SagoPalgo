@@ -8,6 +8,7 @@ import com.sagopalgo.api.research.dto.ResearchProviderStatusResponse;
 import com.sagopalgo.api.research.model.Disclosure;
 import com.sagopalgo.api.research.model.NewsArticle;
 import com.sagopalgo.api.research.model.ResearchRequest;
+import com.sagopalgo.api.research.model.StoredResearchFeed;
 import com.sagopalgo.api.research.provider.DisclosureProvider;
 import com.sagopalgo.api.research.provider.NewsProvider;
 import java.time.LocalDate;
@@ -29,18 +30,52 @@ public class ResearchFeedService {
     private final List<NewsProvider> newsProviders;
     private final List<DisclosureProvider> disclosureProviders;
     private final ResearchProviderProperties properties;
+    private final ResearchFeedStore researchFeedStore;
 
     public ResearchFeedService(
         List<NewsProvider> newsProviders,
         List<DisclosureProvider> disclosureProviders,
-        ResearchProviderProperties properties
+        ResearchProviderProperties properties,
+        ResearchFeedStore researchFeedStore
     ) {
         this.newsProviders = newsProviders;
         this.disclosureProviders = disclosureProviders;
         this.properties = properties;
+        this.researchFeedStore = researchFeedStore;
     }
 
-    public ResearchFeedResponse getFeed(String stockCode, String stockName, LocalDate fromDate, LocalDate toDate) {
+    public ResearchFeedResponse getStoredFeed(
+        String stockCode,
+        String stockName,
+        LocalDate fromDate,
+        LocalDate toDate
+    ) {
+        ResearchRequest request = request(stockCode, stockName, fromDate, toDate);
+        StoredResearchFeed stored = researchFeedStore.find(request);
+        List<ResearchProviderStatusResponse> statuses = List.of(status(
+            "LOCAL_DB",
+            "CACHE",
+            "SUCCESS",
+            "뉴스 %d건 · 공시 %d건".formatted(stored.news().size(), stored.disclosures().size())
+        ));
+        return response(request, stored, statuses);
+    }
+
+    public ResearchFeedResponse syncFeed(
+        String stockCode,
+        String stockName,
+        LocalDate fromDate,
+        LocalDate toDate
+    ) {
+        ResearchRequest request = request(stockCode, stockName, fromDate, toDate);
+        List<ResearchProviderStatusResponse> statuses = new ArrayList<>();
+        List<NewsArticle> news = collectNews(request, statuses);
+        List<Disclosure> disclosures = collectDisclosures(request, statuses);
+        StoredResearchFeed stored = researchFeedStore.saveAndFind(request, news, disclosures);
+        return response(request, stored, statuses);
+    }
+
+    private ResearchRequest request(String stockCode, String stockName, LocalDate fromDate, LocalDate toDate) {
         validate(stockCode, stockName);
         LocalDate normalizedToDate = toDate == null ? LocalDate.now() : toDate;
         LocalDate normalizedFromDate = fromDate == null
@@ -50,23 +85,26 @@ public class ResearchFeedService {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "조회 시작일은 종료일보다 늦을 수 없습니다.");
         }
 
-        ResearchRequest request = new ResearchRequest(
+        return new ResearchRequest(
             stockCode.trim(),
             stockName.trim(),
             normalizedFromDate,
             normalizedToDate
         );
-        List<ResearchProviderStatusResponse> statuses = new ArrayList<>();
-        List<NewsArticle> news = collectNews(request, statuses);
-        List<Disclosure> disclosures = collectDisclosures(request, statuses);
+    }
 
+    private ResearchFeedResponse response(
+        ResearchRequest request,
+        StoredResearchFeed stored,
+        List<ResearchProviderStatusResponse> statuses
+    ) {
         return new ResearchFeedResponse(
             request.stockCode(),
             request.stockName(),
             request.fromDate(),
             request.toDate(),
-            news,
-            disclosures,
+            stored.news(),
+            stored.disclosures(),
             List.copyOf(statuses)
         );
     }
