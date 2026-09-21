@@ -66,6 +66,18 @@ DB volume을 새로 만들 때 `Back/database/schema.sql`은 `.env.dev`의 `SAGO
 Get-Content -Raw Back/database/migrations/002_research_feed_storage.sql | `
   docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
   sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
+
+Get-Content -Raw Back/database/migrations/003_research_sync_status.sql | `
+  docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
+  sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
+```
+
+자동 수집을 확인할 때만 `.env.dev`에서 아래 값을 켭니다. 기본값은 외부 API 쿼터 보호를 위해 `false`입니다.
+
+```dotenv
+SAGOPALGO_RESEARCH_SYNC_ENABLED=true
+SAGOPALGO_RESEARCH_SYNC_CRON=0 0/30 * * * *
+SAGOPALGO_RESEARCH_SYNC_ZONE=Asia/Seoul
 ```
 
 API 서버 상태:
@@ -99,9 +111,13 @@ Invoke-RestMethod `
 Invoke-RestMethod `
   -Method Get `
   -Uri 'http://localhost:8081/api/v1/research/feed?stockCode=005930&stockName=삼성전자'
+
+Invoke-RestMethod `
+  -Method Get `
+  -Uri 'http://localhost:8081/api/v1/research/sync/status?stockCode=005930'
 ```
 
-동기화 응답의 `data.providers`에서 각 Provider가 `SUCCESS`, `FAILED`, `DISABLED` 중 하나로 표시되는지 확인합니다. 한 Provider만 실패할 때도 HTTP 200 응답으로 다른 Provider 결과가 저장되어야 합니다. 같은 동기화를 두 번 실행한 뒤 GET 결과의 뉴스와 공시 건수가 중복 증가하지 않고, `provider=LOCAL_DB`, `dataType=CACHE`로 표시되는지 확인합니다.
+동기화 응답의 `data.providers`에서 각 Provider가 `SUCCESS`, `FAILED`, `DISABLED` 중 하나로 표시되는지 확인합니다. 한 Provider만 실패할 때도 HTTP 200 응답으로 다른 Provider 결과가 저장되어야 합니다. 같은 동기화를 두 번 실행한 뒤 GET 결과의 뉴스와 공시 건수가 중복 증가하지 않고, `provider=LOCAL_DB`, `dataType=CACHE`로 표시되는지 확인합니다. 상태 조회에서는 `triggerType`, `status`, `lastAttemptedAt`, 뉴스·공시 건수가 마지막 실행 결과와 일치해야 합니다.
 
 KB 계좌 연동 확인:
 
@@ -204,14 +220,15 @@ flutter run -d windows
 11. 소식 탭에서 보유·추천 종목을 선택하면 저장된 뉴스와 공시가 최신순으로 함께 표시되는지 확인합니다.
 12. `전체`, `뉴스`, `공시` 필터가 목록을 올바르게 분리하는지 확인합니다.
 13. 동기화 아이콘을 눌렀을 때 Provider 상태와 뉴스·공시 건수가 갱신되고 같은 항목이 중복 증가하지 않는지 확인합니다.
-14. 뉴스·공시 행의 원문 아이콘을 눌렀을 때 Windows 기본 브라우저로 링크가 열리는지 확인합니다.
-15. 설정 탭에서 민감정보 저장 방식이 `ENV_FILE`로 표시되는지 확인합니다.
-16. 설정 탭에서 주문 상태가 `주문 기능 기본 OFF`로 표시되는지 확인합니다.
-17. 설정 탭에서 KB증권, 한국투자증권, 토스증권, 네이버 뉴스, OpenDART 연동 상태가 표시되는지 확인합니다.
-18. 시세 fallback이 `KB증권 → 한국투자증권 → 토스증권 → 등록 매수가` 순서로 표시되는지 확인합니다.
-19. 비활성 Provider는 `꺼짐`, 활성화됐지만 설정이 빠진 Provider는 `설정 필요`, 활성화되고 설정이 완료된 Provider는 `사용 가능`으로 표시되는지 확인합니다.
-20. 미설정 Provider 카드에 실제 비밀값 대신 `누락: App Key · App Secret`처럼 설정 이름만 표시되는지 확인합니다.
-21. 서버를 잠시 내린 뒤 포트폴리오와 소식 탭의 재시도 화면이 보이는지 확인합니다.
+14. 자동 수집 카드에서 활성 여부, 마지막 수동·자동 실행 시각, 성공/부분 성공/실패 상태가 표시되는지 확인합니다.
+15. 뉴스·공시 행의 원문 아이콘을 눌렀을 때 Windows 기본 브라우저로 링크가 열리는지 확인합니다.
+16. 설정 탭에서 민감정보 저장 방식이 `ENV_FILE`로 표시되는지 확인합니다.
+17. 설정 탭에서 주문 상태가 `주문 기능 기본 OFF`로 표시되는지 확인합니다.
+18. 설정 탭에서 KB증권, 한국투자증권, 토스증권, 네이버 뉴스, OpenDART 연동 상태가 표시되는지 확인합니다.
+19. 시세 fallback이 `KB증권 → 한국투자증권 → 토스증권 → 등록 매수가` 순서로 표시되는지 확인합니다.
+20. 비활성 Provider는 `꺼짐`, 활성화됐지만 설정이 빠진 Provider는 `설정 필요`, 활성화되고 설정이 완료된 Provider는 `사용 가능`으로 표시되는지 확인합니다.
+21. 미설정 Provider 카드에 실제 비밀값 대신 `누락: App Key · App Secret`처럼 설정 이름만 표시되는지 확인합니다.
+22. 서버를 잠시 내린 뒤 포트폴리오와 소식 탭의 재시도 화면이 보이는지 확인합니다.
 
 앱 잠금 확인이 필요하면 `Front/app_version/.env`에 `SAGOPALGO_APP_LOCK_PIN=1234`처럼 값을 넣고 다시 실행합니다. 시작 시 PIN 잠금 화면이 표시되고, 같은 값을 입력하면 홈 화면에 진입해야 합니다.
 

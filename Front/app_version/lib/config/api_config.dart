@@ -33,6 +33,9 @@ class ApiConfig {
   /// 외부 뉴스·공시 Provider 수동 동기화 경로입니다.
   String get researchFeedSyncUrl => '$researchFeedUrl/sync';
 
+  /// 선택 종목의 마지막 뉴스·공시 동기화 상태 조회 경로입니다.
+  String get researchSyncStatusUrl => '$baseUrl/api/v1/research/sync/status';
+
   /// KB증권 보유 주식 조회 API 경로입니다.
   String get kbHoldingsUrl => '$baseUrl/api/v1/kb/accounts/primary/holdings';
 

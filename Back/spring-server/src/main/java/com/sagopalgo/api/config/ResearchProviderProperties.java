@@ -10,6 +10,7 @@ public class ResearchProviderProperties {
 
     private NaverNews naverNews = new NaverNews();
     private OpenDart openDart = new OpenDart();
+    private Sync sync = new Sync();
 
     public NaverNews getNaverNews() {
         return naverNews;
@@ -25,6 +26,14 @@ public class ResearchProviderProperties {
 
     public void setOpenDart(OpenDart openDart) {
         this.openDart = openDart;
+    }
+
+    public Sync getSync() {
+        return sync;
+    }
+
+    public void setSync(Sync sync) {
+        this.sync = sync;
     }
 
     public static class NaverNews {
@@ -147,6 +156,36 @@ public class ResearchProviderProperties {
 
         public void setPageCount(int pageCount) {
             this.pageCount = pageCount;
+        }
+    }
+
+    public static class Sync {
+        private boolean enabled = false;
+        private String cron = "0 0/30 * * * *";
+        private String zone = "Asia/Seoul";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getCron() {
+            return cron;
+        }
+
+        public void setCron(String cron) {
+            this.cron = cron;
+        }
+
+        public String getZone() {
+            return zone;
+        }
+
+        public void setZone(String zone) {
+            this.zone = zone;
         }
     }
 }

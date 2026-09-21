@@ -28,6 +28,7 @@
 | `analysis_snapshots` | AI 분석 결과 원본 스냅샷 | 설계 포함 |
 | `research_news` | 종목별 뉴스 수집 결과 | 구현됨 |
 | `research_disclosures` | 종목별 전자공시 수집 결과 | 구현됨 |
+| `research_sync_status` | 관심 종목별 마지막 뉴스·공시 동기화 상태 | 구현됨 |
 
 ## 3. 관계 요약
 
@@ -44,6 +45,7 @@ recommendations 1 ── N alerts
 recommendations 1 ── N analysis_snapshots
 research_news     N ── 1 stock_code (논리 관계)
 research_disclosures N ── 1 stock_code (논리 관계)
+users 1 ── N research_sync_status
 ```
 
 뉴스와 공시는 여러 관심 종목과 분석 흐름에서 함께 쓰는 참조 데이터이므로 특정 `user_id`에 종속하지 않습니다. 현재는 종목코드로 연결하며 별도 종목 마스터 FK는 두지 않습니다.
@@ -209,6 +211,27 @@ OpenDART에서 수집한 공시를 접수번호 기준으로 저장합니다.
 | `created_at` | DATETIME | 최초 수집 시각 |
 | `updated_at` | DATETIME | 마지막 수집 시각 |
 
+### 4.11 `research_sync_status`
+
+수동 동기화와 관심 종목 스케줄 동기화의 마지막 결과를 종목별로 저장합니다.
+
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `sync_status_id` | BIGINT | PK |
+| `user_id` | BIGINT | 로컬 사용자 FK |
+| `stock_code` | VARCHAR(30) | 동기화 대상 종목 코드 |
+| `stock_name` | VARCHAR(100) | 동기화 대상 종목명 |
+| `trigger_type` | VARCHAR(20) | `MANUAL`, `SCHEDULED` |
+| `status` | VARCHAR(20) | `SUCCESS`, `PARTIAL`, `FAILED`, `SKIPPED` |
+| `news_count` | INT | 동기화 후 저장 뉴스 건수 |
+| `disclosure_count` | INT | 동기화 후 저장 공시 건수 |
+| `provider_success_count` | INT | 성공 Provider 수 |
+| `provider_failure_count` | INT | 실패 Provider 수 |
+| `provider_disabled_count` | INT | 비활성 Provider 수 |
+| `message` | VARCHAR(500) | 마지막 결과 요약 |
+| `last_attempted_at` | DATETIME | 마지막 시도 시각 |
+| `last_succeeded_at` | DATETIME | 마지막 성공 또는 부분 성공 시각 |
+
 ## 5. 인덱스 전략
 
 | 인덱스 | 대상 | 이유 |
@@ -224,6 +247,8 @@ OpenDART에서 수집한 공시를 접수번호 기준으로 저장합니다.
 | `idx_research_news_stock_published` | `research_news(stock_code, published_at)` | 종목·기간별 뉴스 조회 |
 | `uk_research_disclosures_provider_receipt` | `research_disclosures(provider, receipt_number)` | 같은 공시 중복 방지 |
 | `idx_research_disclosures_stock_date` | `research_disclosures(stock_code, receipt_date)` | 종목·기간별 공시 조회 |
+| `uk_research_sync_status_user_stock` | `research_sync_status(user_id, stock_code)` | 사용자·종목별 상태 한 행 유지 |
+| `idx_research_sync_status_attempted` | `research_sync_status(last_attempted_at)` | 최근 동기화 상태 점검 |
 
 ## 6. 우선 사용 테이블
 
@@ -236,5 +261,6 @@ OpenDART에서 수집한 공시를 접수번호 기준으로 저장합니다.
 7. `alerts`
 8. `research_news`
 9. `research_disclosures`
+10. `research_sync_status`
 
 `trade_records`, `device_tokens`, `analysis_snapshots`는 설계에는 포함되어 있지만 실제 API는 다음 단계에서 필요해질 때 붙입니다.

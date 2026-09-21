@@ -29,6 +29,22 @@ class SpringResearchFeedRepository implements ResearchFeedRepository {
     return _request(stock, sync: true);
   }
 
+  @override
+  Future<ResearchSyncOverview> fetchSyncStatus(ResearchStock stock) async {
+    final uri = Uri.parse(
+      config.researchSyncStatusUrl,
+    ).replace(queryParameters: {'stockCode': stock.stockCode});
+    final response = await client.get(uri, headers: _headers());
+    final decoded = _decodeResponse(response);
+    final data = decoded['data'];
+    if (data is! Map<String, dynamic>) {
+      throw const ResearchFeedRepositoryException(
+        '뉴스·공시 동기화 상태 형식이 올바르지 않습니다.',
+      );
+    }
+    return ResearchSyncOverview.fromJson(data);
+  }
+
   Future<ResearchFeed> _request(
     ResearchStock stock, {
     required bool sync,

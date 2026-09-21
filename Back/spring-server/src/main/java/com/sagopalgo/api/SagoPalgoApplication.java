@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 사고팔고 Spring Boot API 서버의 진입점입니다.
@@ -17,6 +18,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * 애플리케이션 Bean을 등록한 뒤 내장 Tomcat으로 REST API 서버를 띄웁니다.</p>
  */
 @SpringBootApplication
+@EnableScheduling
 @EnableConfigurationProperties({
     KisMarketProperties.class,
     PersonalModeProperties.class,

@@ -5,6 +5,8 @@ abstract class ResearchFeedRepository {
   Future<ResearchFeed> fetchFeed(ResearchStock stock);
 
   Future<ResearchFeed> syncFeed(ResearchStock stock);
+
+  Future<ResearchSyncOverview> fetchSyncStatus(ResearchStock stock);
 }
 
 class ResearchFeedRepositoryException implements Exception {

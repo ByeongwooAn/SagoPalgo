@@ -64,6 +64,10 @@ SAGOPALGO_NAVER_NEWS_CLIENT_SECRET=발급받은-client-secret
 
 SAGOPALGO_OPEN_DART_ENABLED=true
 SAGOPALGO_OPEN_DART_API_KEY=발급받은-api-key
+
+SAGOPALGO_RESEARCH_SYNC_ENABLED=true
+SAGOPALGO_RESEARCH_SYNC_CRON=0 0/30 * * * *
+SAGOPALGO_RESEARCH_SYNC_ZONE=Asia/Seoul
 ```
 
 외부 동기화 후 저장 결과 조회 예시:
@@ -84,8 +88,10 @@ Invoke-RestMethod `
 - 뉴스는 Provider, 종목코드, 원문 URL 기반 키로, 공시는 Provider와 접수번호로 중복을 제거합니다.
 - 같은 데이터를 다시 동기화하면 새 행을 만들지 않고 저장값과 마지막 수집 시각을 갱신합니다.
 - 날짜를 생략하면 종료일은 오늘, 시작일은 기본 30일 전입니다.
+- 자동 동기화를 켜면 개인 사용자의 관심 종목을 cron 주기마다 순회하며, 한 종목 실패가 다음 종목 처리를 막지 않습니다.
+- `/api/v1/research/sync/status`에서 자동 수집 활성 여부와 종목별 마지막 실행 상태를 조회합니다.
 
-기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql)을 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 두 저장 테이블을 함께 생성합니다.
+기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql)과 [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
 
 ## 추천 기준
 
@@ -95,7 +101,6 @@ Invoke-RestMethod `
 
 ## 다음 구현 후보
 
-1. 관심 종목 뉴스·공시 주기 동기화
-2. 뉴스·공시·가격 흐름을 사용하는 AI 분석 엔진
-3. Windows 로컬 알림
-4. Windows Credential Manager 기반 민감정보 보호
+1. 뉴스·공시·가격 흐름을 사용하는 AI 분석 엔진
+2. Windows 로컬 알림
+3. Windows Credential Manager 기반 민감정보 보호

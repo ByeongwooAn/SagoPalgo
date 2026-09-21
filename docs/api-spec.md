@@ -404,6 +404,39 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 외부 Provider를 호출하지 않고 로컬 DB에서만 조회합니다. Provider 설정이 꺼져 있거나 외부 API가 일시적으로 실패해도 이전에 동기화한 데이터를 사용할 수 있습니다. 응답의 `providers`에는 `provider=LOCAL_DB`, `status=SUCCESS`, `dataType=CACHE`와 저장 건수가 표시됩니다.
 
+### 10.3 뉴스·공시 동기화 상태 조회
+
+`GET /api/v1/research/sync/status?stockCode=005930`
+
+자동 동기화 활성 여부와 선택 종목의 마지막 수동·자동 동기화 결과를 반환합니다. `item`은 아직 실행 이력이 없으면 생략됩니다.
+
+```json
+{
+  "success": true,
+  "data": {
+    "enabled": true,
+    "cron": "0 0/30 * * * *",
+    "zone": "Asia/Seoul",
+    "item": {
+      "stockCode": "005930",
+      "stockName": "삼성전자",
+      "triggerType": "SCHEDULED",
+      "status": "PARTIAL",
+      "newsCount": 10,
+      "disclosureCount": 3,
+      "providerSuccessCount": 1,
+      "providerFailureCount": 1,
+      "providerDisabledCount": 0,
+      "message": "Provider 성공 1 · 실패 1 · 비활성 0",
+      "lastAttemptedAt": "2026-09-22T00:00:00Z",
+      "lastSucceededAt": "2026-09-22T00:00:00Z"
+    }
+  }
+}
+```
+
+상태는 `SUCCESS`, `PARTIAL`, `FAILED`, `SKIPPED` 중 하나입니다. 자동 동기화는 등록된 관심 종목을 순회하며 한 종목이 실패해도 다음 종목을 계속 처리합니다.
+
 ## 11. 추천 API
 
 이 절의 추천 목록/상세 API는 다음 구현 단계의 명세입니다. 현재 앱에서 실제로 사용하는 대표 추천은 `GET /api/v1/dashboard/snapshot`의 `recommendation` 필드로 제공됩니다.
@@ -467,9 +500,8 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ## 14. 다음 구현 순서
 
-1. 관심 종목 뉴스·공시 주기 동기화
-2. 캔들 조회 API를 실제 KB/KIS 차트 TR에 연결
-3. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
-4. AI 분석 서버와 추천 결과 저장
-5. Windows 로컬 알림
-6. 자동 주문 설계와 수동 승인 기반 주문 실행
+1. 캔들 조회 API를 실제 KB/KIS 차트 TR에 연결
+2. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
+3. AI 분석 서버와 추천 결과 저장
+4. Windows 로컬 알림
+5. 자동 주문 설계와 수동 승인 기반 주문 실행
