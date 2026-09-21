@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 개인용 프로그램의 외부 증권사 연동 상태를 조회하는 API입니다.
+ * 개인용 프로그램의 외부 데이터 Provider 연동 상태를 조회하는 API입니다.
  */
 @RestController
 @RequestMapping("/api/v1/settings/providers")
@@ -24,6 +24,6 @@ public class ProviderSettingsController {
     @GetMapping
     public ResponseEntity<ApiResponse<ProviderSettingsResponse>> getProviderSettings() {
         ProviderSettingsResponse response = providerSettingsService.getSettings();
-        return ResponseEntity.ok(ApiResponse.success(response, "증권사 연동 설정이 조회되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success(response, "외부 Provider 설정이 조회되었습니다."));
     }
 }

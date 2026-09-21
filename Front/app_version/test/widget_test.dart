@@ -68,6 +68,14 @@ void main() {
     expect(find.text('KB증권'), findsOneWidget);
     expect(find.text('한국투자증권'), findsOneWidget);
     expect(find.text('토스증권'), findsOneWidget);
+    expect(find.text('네이버 뉴스'), findsOneWidget);
+    expect(find.text('OpenDART'), findsOneWidget);
+    expect(find.text('시세 fallback'), findsOneWidget);
+    expect(find.text('KB증권 → 한국투자증권 → 토스증권 → 등록 매수가'), findsOneWidget);
+    expect(
+      find.text('누락: Base URL · 현재가 API 경로 · App Key · App Secret'),
+      findsOneWidget,
+    );
     expect(find.text('KB 계좌 조회'), findsOneWidget);
     expect(find.text('1종목'), findsOneWidget);
     expect(find.text('5,200,000원'), findsAtLeastNWidgets(1));
@@ -189,6 +197,8 @@ class FakeProviderSettingsRepository implements ProviderSettingsRepository {
       secretStorageType: 'ENV_FILE',
       secretStorageDescription: '.env 파일로 민감정보를 관리합니다.',
       orderSafetyMode: '주문 기능 기본 OFF',
+      marketDataFallbackOrder: ['KB', 'KIS', 'TOSS'],
+      marketDataFallbackDescription: '앞 Provider가 실패하면 다음 Provider를 시도합니다.',
       providers: [
         ProviderSetting(
           code: 'KB',
@@ -196,7 +206,10 @@ class FakeProviderSettingsRepository implements ProviderSettingsRepository {
           marketDataEnabled: false,
           accountEnabled: true,
           orderEnabled: false,
+          newsEnabled: false,
+          disclosureEnabled: false,
           configured: true,
+          missingRequiredSettings: [],
           roleDescription: '계좌 조회와 추후 주문 기능의 기준 증권사',
         ),
         ProviderSetting(
@@ -205,7 +218,10 @@ class FakeProviderSettingsRepository implements ProviderSettingsRepository {
           marketDataEnabled: true,
           accountEnabled: false,
           orderEnabled: false,
+          newsEnabled: false,
+          disclosureEnabled: false,
           configured: true,
+          missingRequiredSettings: [],
           roleDescription: '국내 주식 시세 조회용 데이터 소스',
         ),
         ProviderSetting(
@@ -214,8 +230,40 @@ class FakeProviderSettingsRepository implements ProviderSettingsRepository {
           marketDataEnabled: true,
           accountEnabled: false,
           orderEnabled: false,
+          newsEnabled: false,
+          disclosureEnabled: false,
           configured: false,
+          missingRequiredSettings: [
+            'Base URL',
+            '현재가 API 경로',
+            'App Key',
+            'App Secret',
+          ],
           roleDescription: '분석용 시세/종목 정보 보조 데이터 소스',
+        ),
+        ProviderSetting(
+          code: 'NAVER_NEWS',
+          displayName: '네이버 뉴스',
+          marketDataEnabled: false,
+          accountEnabled: false,
+          orderEnabled: false,
+          newsEnabled: true,
+          disclosureEnabled: false,
+          configured: true,
+          missingRequiredSettings: [],
+          roleDescription: '종목명 기준 최신 뉴스 검색 데이터 소스',
+        ),
+        ProviderSetting(
+          code: 'OPEN_DART',
+          displayName: 'OpenDART',
+          marketDataEnabled: false,
+          accountEnabled: false,
+          orderEnabled: false,
+          newsEnabled: false,
+          disclosureEnabled: true,
+          configured: false,
+          missingRequiredSettings: ['API Key'],
+          roleDescription: '종목코드와 DART 고유번호를 연결하는 전자공시 데이터 소스',
         ),
       ],
     );

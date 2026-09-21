@@ -26,6 +26,9 @@ void main() {
               'secretStorageType': 'ENV_FILE',
               'secretStorageDescription': '.env 파일로 민감정보를 관리합니다.',
               'orderSafetyMode': '주문 기능 기본 OFF',
+              'marketDataFallbackOrder': ['KB', 'KIS', 'TOSS'],
+              'marketDataFallbackDescription':
+                  '앞 Provider가 실패하면 다음 Provider를 시도합니다.',
               'providers': [
                 {
                   'code': 'KB',
@@ -33,7 +36,10 @@ void main() {
                   'marketDataEnabled': false,
                   'accountEnabled': true,
                   'orderEnabled': false,
+                  'newsEnabled': false,
+                  'disclosureEnabled': false,
                   'configured': true,
+                  'missingRequiredSettings': <String>[],
                   'roleDescription': '계좌 조회와 추후 주문 기능의 기준 증권사',
                 },
                 {
@@ -42,7 +48,10 @@ void main() {
                   'marketDataEnabled': true,
                   'accountEnabled': false,
                   'orderEnabled': false,
+                  'newsEnabled': false,
+                  'disclosureEnabled': false,
                   'configured': false,
+                  'missingRequiredSettings': ['App Key', 'App Secret'],
                   'roleDescription': '국내 주식 시세 조회용 데이터 소스',
                 },
               ],
@@ -58,11 +67,16 @@ void main() {
 
     expect(settings.secretStorageType, 'ENV_FILE');
     expect(settings.orderSafetyMode, '주문 기능 기본 OFF');
+    expect(settings.marketDataFallbackOrder, ['KB', 'KIS', 'TOSS']);
     expect(settings.providers, hasLength(2));
     expect(settings.providers.first.code, 'KB');
     expect(settings.providers.first.accountEnabled, isTrue);
     expect(settings.providers.first.orderEnabled, isFalse);
     expect(settings.providers.last.displayName, '한국투자증권');
+    expect(settings.providers.last.missingRequiredSettings, [
+      'App Key',
+      'App Secret',
+    ]);
   });
 
   test('fetchProviderSettings throws readable exception when API fails', () {

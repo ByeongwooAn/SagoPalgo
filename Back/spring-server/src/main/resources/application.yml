@@ -91,3 +91,19 @@ sagopalgo:
       price-path: ${SAGOPALGO_KIS_PRICE_PATH:/uapi/domestic-stock/v1/quotations/inquire-price}
       transaction-id: ${SAGOPALGO_KIS_PRICE_TR_ID:FHKST01010100}
       customer-type: ${SAGOPALGO_KIS_CUSTOMER_TYPE:P}
+  research:
+    naver-news:
+      enabled: ${SAGOPALGO_NAVER_NEWS_ENABLED:false}
+      base-url: ${SAGOPALGO_NAVER_NEWS_BASE_URL:https://openapi.naver.com}
+      search-path: ${SAGOPALGO_NAVER_NEWS_SEARCH_PATH:/v1/search/news.json}
+      client-id: ${SAGOPALGO_NAVER_NEWS_CLIENT_ID:}
+      client-secret: ${SAGOPALGO_NAVER_NEWS_CLIENT_SECRET:}
+      display: ${SAGOPALGO_NAVER_NEWS_DISPLAY:10}
+    open-dart:
+      enabled: ${SAGOPALGO_OPEN_DART_ENABLED:false}
+      base-url: ${SAGOPALGO_OPEN_DART_BASE_URL:https://opendart.fss.or.kr}
+      disclosure-path: ${SAGOPALGO_OPEN_DART_DISCLOSURE_PATH:/api/list.json}
+      corp-code-path: ${SAGOPALGO_OPEN_DART_CORP_CODE_PATH:/api/corpCode.xml}
+      api-key: ${SAGOPALGO_OPEN_DART_API_KEY:}
+      default-lookback-days: ${SAGOPALGO_OPEN_DART_LOOKBACK_DAYS:30}
+      page-count: ${SAGOPALGO_OPEN_DART_PAGE_COUNT:20}
