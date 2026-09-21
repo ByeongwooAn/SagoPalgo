@@ -4,10 +4,12 @@ import '../models/auth_session.dart';
 import '../models/holding.dart';
 import '../models/investment_snapshot.dart';
 import '../models/provider_setting.dart';
+import '../models/research_feed.dart';
 import '../repositories/investment_repository.dart';
 import '../repositories/kb_account_repository.dart';
 import '../repositories/portfolio_repository.dart';
 import '../repositories/provider_settings_repository.dart';
+import '../repositories/research_feed_repository.dart';
 import '../repositories/watchlist_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
@@ -15,6 +17,7 @@ import 'alerts_screen.dart';
 import 'dashboard_screen.dart';
 import 'portfolio_screen.dart';
 import 'recommendation_screen.dart';
+import 'research_timeline_screen.dart';
 import 'settings_screen.dart';
 
 /// 사고팔고 앱의 메인 화면 컨테이너입니다.
@@ -31,6 +34,7 @@ class SagoPalgoHome extends StatefulWidget {
     required this.watchlistRepository,
     required this.portfolioRepository,
     required this.providerSettingsRepository,
+    required this.researchFeedRepository,
     required this.kbAccountRepository,
     required this.session,
   });
@@ -49,6 +53,9 @@ class SagoPalgoHome extends StatefulWidget {
 
   /// 설정 화면에서 증권사 연동 상태를 조회하는 Repository입니다.
   final ProviderSettingsRepository providerSettingsRepository;
+
+  /// 소식 화면에서 저장된 뉴스·공시 조회와 수동 동기화를 처리합니다.
+  final ResearchFeedRepository researchFeedRepository;
 
   /// 설정 화면에서 KB 계좌 조회 결과를 확인하는 Repository입니다.
   final KbAccountRepository kbAccountRepository;
@@ -128,6 +135,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       watchlistRepository: widget.watchlistRepository,
                       portfolioRepository: widget.portfolioRepository,
                       kbAccountRepository: widget.kbAccountRepository,
+                      researchFeedRepository: widget.researchFeedRepository,
                       providerSettingsFuture: _providerSettingsFuture,
                       portfolioFuture: _portfolioFuture,
                       onPortfolioRetry: _reloadPortfolio,
@@ -385,6 +393,7 @@ class _TabContent extends StatelessWidget {
     required this.watchlistRepository,
     required this.portfolioRepository,
     required this.kbAccountRepository,
+    required this.researchFeedRepository,
     required this.providerSettingsFuture,
     required this.portfolioFuture,
     required this.onPortfolioRetry,
@@ -410,6 +419,9 @@ class _TabContent extends StatelessWidget {
 
   /// 설정 화면 KB 계좌 조회 액션을 처리하는 Repository입니다.
   final KbAccountRepository kbAccountRepository;
+
+  /// 뉴스·공시 조회와 동기화를 처리하는 Repository입니다.
+  final ResearchFeedRepository researchFeedRepository;
 
   /// 설정 화면에서 사용할 증권사 연동 상태 Future입니다.
   final Future<ProviderSettingsSnapshot> providerSettingsFuture;
@@ -470,6 +482,12 @@ class _TabContent extends StatelessWidget {
           onChanged: onPortfolioChanged,
           onPendingSetupActionConsumed: onPendingPortfolioSetupActionConsumed,
         ),
+        ResearchTimelineScreen(
+          repository: researchFeedRepository,
+          stocks: _researchStocks(snapshot),
+          active: selectedIndex == 3,
+          onHoldingSetupOpen: onHoldingSetupOpen,
+        ),
         AlertsScreen(alerts: snapshot.alerts),
         SettingsScreen(
           providerSettingsFuture: providerSettingsFuture,
@@ -479,4 +497,25 @@ class _TabContent extends StatelessWidget {
       ],
     );
   }
+}
+
+List<ResearchStock> _researchStocks(InvestmentSnapshot snapshot) {
+  final stocks = <String, ResearchStock>{};
+  for (final holding in snapshot.holdings) {
+    stocks[holding.stockCode] = ResearchStock(
+      stockCode: holding.stockCode,
+      stockName: holding.stockName,
+    );
+  }
+  final recommendation = snapshot.recommendation;
+  if (recommendation != null) {
+    stocks.putIfAbsent(
+      recommendation.stockCode,
+      () => ResearchStock(
+        stockCode: recommendation.stockCode,
+        stockName: recommendation.stockName,
+      ),
+    );
+  }
+  return stocks.values.toList();
 }

@@ -6,10 +6,12 @@ import 'package:app_version/models/kb_account_snapshot.dart';
 import 'package:app_version/models/market_summary.dart';
 import 'package:app_version/models/provider_setting.dart';
 import 'package:app_version/models/recommendation.dart';
+import 'package:app_version/models/research_feed.dart';
 import 'package:app_version/repositories/investment_repository.dart';
 import 'package:app_version/repositories/kb_account_repository.dart';
 import 'package:app_version/repositories/portfolio_repository.dart';
 import 'package:app_version/repositories/provider_settings_repository.dart';
+import 'package:app_version/repositories/research_feed_repository.dart';
 import 'package:app_version/repositories/watchlist_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,6 +30,8 @@ void main() {
         portfolioRepositoryBuilder: (_) => const FakePortfolioRepository(),
         providerSettingsRepositoryBuilder: (_) =>
             const FakeProviderSettingsRepository(),
+        researchFeedRepositoryBuilder: (_) =>
+            const FakeResearchFeedRepository(),
         kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
       ),
     );
@@ -47,6 +51,17 @@ void main() {
     /// 추천 상세 화면에는 매수 추천 제목과 강한 매수 상태가 보여야 합니다.
     expect(find.text('매수 추천'), findsOneWidget);
     expect(find.text('강한 매수'), findsOneWidget);
+
+    /// 소식 탭에서는 보유 종목의 저장된 뉴스와 공시를 함께 확인합니다.
+    await tester.tap(find.text('소식'));
+    await tester.pumpAndSettle();
+    expect(find.text('뉴스 · 공시'), findsOneWidget);
+    expect(find.text('반도체 투자 확대'), findsOneWidget);
+    expect(find.text('주요사항보고서'), findsOneWidget);
+
+    /// 추천 액션 검증을 위해 추천 탭으로 돌아갑니다.
+    await tester.tap(find.text('추천'));
+    await tester.pumpAndSettle();
 
     /// 관심 등록 버튼은 테스트 Repository를 통해 성공 피드백을 보여줍니다.
     await tester.ensureVisible(find.text('관심 등록'));
@@ -90,6 +105,8 @@ void main() {
         portfolioRepositoryBuilder: (_) => const FakePortfolioRepository(),
         providerSettingsRepositoryBuilder: (_) =>
             const FakeProviderSettingsRepository(),
+        researchFeedRepositoryBuilder: (_) =>
+            const FakeResearchFeedRepository(),
         kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
       ),
     );
@@ -279,6 +296,20 @@ class FakeKbAccountRepository implements KbAccountRepository {
   }
 }
 
+class FakeResearchFeedRepository implements ResearchFeedRepository {
+  const FakeResearchFeedRepository();
+
+  @override
+  Future<ResearchFeed> fetchFeed(ResearchStock stock) async {
+    return _testResearchFeed;
+  }
+
+  @override
+  Future<ResearchFeed> syncFeed(ResearchStock stock) async {
+    return _testResearchFeed;
+  }
+}
+
 const _testCapital = CapitalSettings(
   availableCapital: 3000000,
   recommendedMinPosition: 300000,
@@ -403,4 +434,42 @@ const _testKbAccountSnapshot = KbAccountSnapshot(
     ),
     items: [],
   ),
+);
+
+final _testResearchFeed = ResearchFeed(
+  stockCode: '005930',
+  stockName: '삼성전자',
+  fromDate: DateTime.parse('2026-08-22'),
+  toDate: DateTime.parse('2026-09-21'),
+  news: [
+    ResearchNewsArticle(
+      provider: 'NAVER_NEWS',
+      stockCode: '005930',
+      title: '반도체 투자 확대',
+      link: 'https://news.test/article',
+      summary: '기사 요약',
+      publishedAt: DateTime.parse('2026-09-21T01:00:00Z'),
+    ),
+  ],
+  disclosures: [
+    ResearchDisclosure(
+      provider: 'OPEN_DART',
+      stockCode: '005930',
+      corpCode: '00126380',
+      corpName: '삼성전자',
+      reportName: '주요사항보고서',
+      receiptNumber: '20260921000123',
+      submitterName: '삼성전자',
+      receiptDate: DateTime.parse('2026-09-21'),
+      link: 'https://dart.test/report',
+    ),
+  ],
+  providers: const [
+    ResearchProviderStatus(
+      provider: 'LOCAL_DB',
+      dataType: 'CACHE',
+      status: 'SUCCESS',
+      message: '뉴스 1건 · 공시 1건',
+    ),
+  ],
 );

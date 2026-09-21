@@ -6,10 +6,12 @@ import 'repositories/investment_repository.dart';
 import 'repositories/kb_account_repository.dart';
 import 'repositories/portfolio_repository.dart';
 import 'repositories/provider_settings_repository.dart';
+import 'repositories/research_feed_repository.dart';
 import 'repositories/spring_investment_repository.dart';
 import 'repositories/spring_kb_account_repository.dart';
 import 'repositories/spring_portfolio_repository.dart';
 import 'repositories/spring_provider_settings_repository.dart';
+import 'repositories/spring_research_feed_repository.dart';
 import 'repositories/spring_watchlist_repository.dart';
 import 'repositories/watchlist_repository.dart';
 import 'screens/app_lock_screen.dart';
@@ -38,6 +40,7 @@ class SagoPalgoApp extends StatefulWidget {
     this.watchlistRepositoryBuilder,
     this.portfolioRepositoryBuilder,
     this.providerSettingsRepositoryBuilder,
+    this.researchFeedRepositoryBuilder,
     this.kbAccountRepositoryBuilder,
     this.session = AuthSession.personal,
     this.appLockPin,
@@ -64,6 +67,10 @@ class SagoPalgoApp extends StatefulWidget {
   /// 테스트에서 증권사 설정 Repository를 교체하기 위한 빌더입니다.
   final ProviderSettingsRepository Function(AuthSession session)?
   providerSettingsRepositoryBuilder;
+
+  /// 테스트에서 뉴스·공시 Repository를 교체하기 위한 빌더입니다.
+  final ResearchFeedRepository Function(AuthSession session)?
+  researchFeedRepositoryBuilder;
 
   /// 테스트에서 KB증권 계좌 Repository를 교체하기 위한 빌더입니다.
   final KbAccountRepository Function(AuthSession session)?
@@ -129,6 +136,11 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
               providerSettingsRepository:
                   widget.providerSettingsRepositoryBuilder?.call(session) ??
                   SpringProviderSettingsRepository(
+                    accessToken: session.accessToken,
+                  ),
+              researchFeedRepository:
+                  widget.researchFeedRepositoryBuilder?.call(session) ??
+                  SpringResearchFeedRepository(
                     accessToken: session.accessToken,
                   ),
               kbAccountRepository:
