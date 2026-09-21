@@ -7,8 +7,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties.Provider;
 import com.sagopalgo.api.kb.client.KbSecuritiesAccountClient;
+import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.model.MarketDataRequest;
+import com.sagopalgo.api.market.model.StockCandle;
 import com.sagopalgo.api.market.model.StockQuote;
+import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
@@ -55,6 +59,51 @@ class KbMarketDataProviderTest {
     }
 
     @Test
+    @DisplayName("IVS11560 통합차트 응답을 시간 오름차순 표준 캔들로 변환한다")
+    void candlesMapKbChartResponse() throws Exception {
+        KbMarketDataProvider provider = new KbMarketDataProvider(new FixtureKbClient(json("{}"), json("""
+            {
+              "dataBody": {
+                "out2": [
+                  {
+                    "dt": "20260922",
+                    "opn_prc_p2": "75,200",
+                    "hgh_prc_p2": "75,500",
+                    "lw_prc_p2": "74,900",
+                    "cls_prc_p2": "75,300",
+                    "vlm": "1,234,567"
+                  },
+                  {
+                    "dt": "20260921",
+                    "opn_prc_p2": "74,800",
+                    "hgh_prc_p2": "75,300",
+                    "lw_prc_p2": "74,700",
+                    "cls_prc_p2": "75,200",
+                    "vlm": "1,122,334"
+                  }
+                ]
+              }
+            }
+            """), true));
+
+        List<StockCandle> candles = provider.candles(
+            new MarketDataRequest("005930", "KOSPI"),
+            CandleInterval.DAILY,
+            2
+        );
+
+        assertThat(candles).extracting(StockCandle::dateTime)
+            .containsExactly(
+                LocalDate.of(2026, 9, 21).atStartOfDay(),
+                LocalDate.of(2026, 9, 22).atStartOfDay()
+            );
+        assertThat(candles.get(1).provider()).isEqualTo("KB");
+        assertThat(candles.get(1).openPrice()).isEqualByComparingTo("75200");
+        assertThat(candles.get(1).closePrice()).isEqualByComparingTo("75300");
+        assertThat(candles.get(1).volume()).isEqualByComparingTo("1234567");
+    }
+
+    @Test
     @DisplayName("KB Provider는 설정이 켜진 국내 주식만 지원한다")
     void supportsOnlyEnabledDomesticStocks() throws Exception {
         KbMarketDataProvider provider = new KbMarketDataProvider(new FixtureKbClient(json("{}"), true));
@@ -73,11 +122,17 @@ class KbMarketDataProviderTest {
     private static class FixtureKbClient extends KbSecuritiesAccountClient {
 
         private final JsonNode currentPriceResponse;
+        private final JsonNode candleResponse;
         private final boolean marketDataEnabled;
 
         FixtureKbClient(JsonNode currentPriceResponse, boolean marketDataEnabled) {
+            this(currentPriceResponse, currentPriceResponse, marketDataEnabled);
+        }
+
+        FixtureKbClient(JsonNode currentPriceResponse, JsonNode candleResponse, boolean marketDataEnabled) {
             super(properties(), RestClient.builder().build());
             this.currentPriceResponse = currentPriceResponse;
+            this.candleResponse = candleResponse;
             this.marketDataEnabled = marketDataEnabled;
         }
 
@@ -89,6 +144,11 @@ class KbMarketDataProviderTest {
         @Override
         public JsonNode fetchCurrentPrice(String stockCode) {
             return currentPriceResponse;
+        }
+
+        @Override
+        public JsonNode fetchCandles(String stockCode, String market, CandleInterval interval, int count) {
+            return candleResponse;
         }
 
         private static SecuritiesProviderProperties properties() {

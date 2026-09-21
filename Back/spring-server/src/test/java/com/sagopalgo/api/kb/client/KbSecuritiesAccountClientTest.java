@@ -14,6 +14,7 @@ import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties.Provider;
+import com.sagopalgo.api.market.model.CandleInterval;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -385,6 +386,49 @@ class KbSecuritiesAccountClientTest {
         server.verify();
     }
 
+    @Test
+    @DisplayName("통합차트는 IVS11560 데이터수 조회 요청값으로 호출한다")
+    void fetchCandlesCallsKbOpenApi() {
+        server.expect(requestTo("https://kb.test/oauth2/token"))
+            .andRespond(withSuccess("""
+                {
+                  "access_token": "access-token",
+                  "expires_in": 3600
+                }
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kb.test/api/v1/ivs11560"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+            .andExpect(content().json("""
+                {
+                  "dataHeader": {
+                    "custtype": "P"
+                  },
+                  "dataBody": {
+                    "info_ccd": "2",
+                    "mkt_clsf": "0",
+                    "chrt_clsf": "W",
+                    "minute_tck_indx": "",
+                    "is_cd": "005930",
+                    "inq_clsf": "2",
+                    "strt_dy": "",
+                    "inq_cnt": "20"
+                  }
+                }
+                """))
+            .andRespond(withSuccess("""
+                {
+                  "dataHeader": {"resultCode": "200", "processFlag": "A"},
+                  "dataBody": {"out2": []}
+                }
+                """, MediaType.APPLICATION_JSON));
+
+        JsonNode response = client.fetchCandles("005930", "KOSPI", CandleInterval.WEEKLY, 20);
+
+        assertThat(client.items(response, "out2")).isEmpty();
+        server.verify();
+    }
+
     private SecuritiesProviderProperties securitiesProperties() {
         SecuritiesProviderProperties properties = new SecuritiesProviderProperties();
         Provider kb = new Provider();
@@ -397,6 +441,7 @@ class KbSecuritiesAccountClientTest {
         kb.setSettlementBalancePath("/api/v1/ssqm2932");
         kb.setExecutionBalancePath("/api/v1/ssqm2952");
         kb.setCurrentPricePath("/api/v1/ivu10140");
+        kb.setCandlePath("/api/v1/ivs11560");
         kb.setHoldingsTransactionId("HOLDINGS_TR");
         kb.setCustomerType("P");
         kb.setBalanceInquiryClassification("1");

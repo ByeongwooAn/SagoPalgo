@@ -230,6 +230,19 @@ flutter run -d windows
 21. 미설정 Provider 카드에 실제 비밀값 대신 `누락: App Key · App Secret`처럼 설정 이름만 표시되는지 확인합니다.
 22. 서버를 잠시 내린 뒤 포트폴리오와 소식 탭의 재시도 화면이 보이는지 확인합니다.
 
+캔들 Provider 실데이터 확인:
+
+```powershell
+Invoke-RestMethod `
+  -Method Get `
+  -Uri 'http://localhost:8080/api/v1/market/candles?stockCode=005930&market=KOSPI&interval=DAILY&count=20'
+```
+
+1. KB 시세가 활성화되어 있으면 `data.provider`가 `KB`인지 확인합니다.
+2. KB 시세를 끄고 KIS를 활성화하면 `data.provider`가 `KIS`로 전환되는지 확인합니다.
+3. `data.candles`가 날짜 오름차순이며 각 항목에 시가·고가·저가·종가·거래량이 있는지 확인합니다.
+4. 두 Provider를 모두 끄면 임의 캔들 대신 HTTP 502와 `EXTERNAL_DATA_ERROR`가 반환되는지 확인합니다.
+
 앱 잠금 확인이 필요하면 `Front/app_version/.env`에 `SAGOPALGO_APP_LOCK_PIN=1234`처럼 값을 넣고 다시 실행합니다. 시작 시 PIN 잠금 화면이 표시되고, 같은 값을 입력하면 홈 화면에 진입해야 합니다.
 
 Windows 릴리즈 빌드 확인:
@@ -242,8 +255,9 @@ flutter build windows --release
 
 ## 5. 현재 MVP 제약
 
-- 현재가는 한국투자증권 Open API 설정이 켜진 KOSPI/KOSDAQ/KONEX 종목이면 실제 현재가로 반환합니다.
+- 현재가는 KB/KIS 시세 설정이 켜진 KOSPI/KOSDAQ/KONEX 종목이면 실제 현재가로 반환합니다.
+- 일·주·월봉은 KB/KIS 실데이터 조회 API까지 구현됐지만 아직 Flutter 차트 화면에는 연결하지 않았습니다.
 - KIS 설정이 꺼져 있거나 아직 지원하지 않는 해외 시장 종목이면 임의 샘플 가격을 만들지 않고 사용자가 등록한 매수가를 기준값으로 반환합니다.
 - 추천은 실제 보유 종목이 있을 때만 `DashboardRecommendationEngine`의 규칙 기반 MVP 로직으로 생성합니다. Python AI 서버가 연결되면 같은 응답 계약으로 대체합니다.
 - 추천 목록/상세 API와 Windows 알림 API는 아직 구현 전이며, 현재 앱은 대시보드 스냅샷의 대표 추천과 알림 데이터를 사용합니다.
-- 뉴스와 공시는 외부 동기화, 로컬 저장, 중복 제거, 기간 조회까지 구현됐으며 Flutter 타임라인 화면과 주기 동기화는 아직 구현 전입니다.
+- 뉴스와 공시는 외부 동기화, 로컬 저장, 중복 제거, 기간 조회, Flutter 타임라인, 주기 동기화까지 구현됐습니다.

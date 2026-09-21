@@ -7,6 +7,7 @@ import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties.Provider;
+import com.sagopalgo.api.market.model.CandleInterval;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Duration;
@@ -142,6 +143,49 @@ public class KbSecuritiesAccountClient {
         dataBody.put("shrt_cd", stockCode.trim());
 
         return post(properties.getCurrentPricePath(), properties.getCurrentPriceTransactionId(), dataBody);
+    }
+
+    public JsonNode fetchCandles(String stockCode, String market, CandleInterval interval, int count) {
+        ensureMarketDataConfigured();
+        ensurePathConfigured(properties.getCandlePath(), "KB증권 통합차트 API 경로 설정이 필요합니다.");
+        ensureText(stockCode, "KB증권 캔들 조회 종목코드가 필요합니다.");
+
+        Map<String, Object> dataBody = new LinkedHashMap<>();
+        dataBody.put("info_ccd", "2");
+        dataBody.put("mkt_clsf", kbMarketCode(market));
+        dataBody.put("chrt_clsf", kbCandleInterval(interval));
+        dataBody.put("minute_tck_indx", "");
+        dataBody.put("is_cd", stockCode.trim());
+        dataBody.put("inq_clsf", "2");
+        dataBody.put("strt_dy", "");
+        dataBody.put("inq_cnt", Integer.toString(count));
+
+        return post(properties.getCandlePath(), "", dataBody);
+    }
+
+    private String kbMarketCode(String market) {
+        if ("KOSPI".equalsIgnoreCase(market)) {
+            return "0";
+        }
+        if ("KOSDAQ".equalsIgnoreCase(market)) {
+            return "1";
+        }
+        throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KB증권 통합차트가 지원하지 않는 시장입니다.");
+    }
+
+    private String kbCandleInterval(CandleInterval interval) {
+        if (interval == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "캔들 주기가 필요합니다.");
+        }
+        return switch (interval) {
+            case DAILY -> "D";
+            case WEEKLY -> "W";
+            case MONTHLY -> "M";
+            case MINUTE -> throw new ApiException(
+                ErrorCode.EXTERNAL_DATA_ERROR,
+                "KB증권 기간별 통합차트는 분봉을 지원하지 않습니다."
+            );
+        };
     }
 
     private JsonNode post(String path, String transactionId, Map<String, Object> dataBody) {
@@ -307,9 +351,21 @@ public class KbSecuritiesAccountClient {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KB증권 Open API 응답이 비어 있습니다.");
         }
 
-        String code = firstText(response, "rt_cd", "rsp_cd", "rspCode", "code", "errCode", "errorCode");
-        if (StringUtils.hasText(code) && !List.of("0", "0000", "OK", "SUCCESS").contains(code.toUpperCase())) {
-            String message = firstText(response, "msg1", "rsp_msg", "rspMessage", "message", "errMsg", "errorMessage");
+        String code = firstText(response, "rt_cd", "resultCode", "rsp_cd", "rspCode", "code", "errCode", "errorCode");
+        String processFlag = firstText(response, "processFlag");
+        if ((StringUtils.hasText(code) && !List.of("0", "0000", "200", "OK", "SUCCESS").contains(code.toUpperCase()))
+            || "B".equalsIgnoreCase(processFlag)) {
+            String message = firstText(
+                response,
+                "processMessage",
+                "resultMessage",
+                "msg1",
+                "rsp_msg",
+                "rspMessage",
+                "message",
+                "errMsg",
+                "errorMessage"
+            );
             if (!StringUtils.hasText(message)) {
                 message = "KB증권 Open API가 실패 코드를 반환했습니다.";
             }

@@ -39,6 +39,7 @@ public class SecuritiesProviderProperties {
         private String settlementBalancePath = "";
         private String executionBalancePath = "";
         private String currentPricePath = "";
+        private String candlePath = "";
         private String accountsTransactionId = "";
         private String holdingsTransactionId = "";
         private String currentPriceTransactionId = "";
@@ -142,6 +143,14 @@ public class SecuritiesProviderProperties {
 
         public void setCurrentPricePath(String currentPricePath) {
             this.currentPricePath = currentPricePath;
+        }
+
+        public String getCandlePath() {
+            return candlePath;
+        }
+
+        public void setCandlePath(String candlePath) {
+            this.candlePath = candlePath;
         }
 
         public String getAccountsTransactionId() {

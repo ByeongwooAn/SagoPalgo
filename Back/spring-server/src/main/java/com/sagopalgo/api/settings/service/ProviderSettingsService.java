@@ -131,6 +131,7 @@ public class ProviderSettingsService {
         entries.add(entry("App Secret", kb.getAppSecret()));
         if (kb.isMarketDataEnabled()) {
             entries.add(entry("현재가 API 경로", kb.getCurrentPricePath()));
+            entries.add(entry("통합차트 API 경로", kb.getCandlePath()));
         }
         return missingSettings(entries.toArray(SettingEntry[]::new));
     }

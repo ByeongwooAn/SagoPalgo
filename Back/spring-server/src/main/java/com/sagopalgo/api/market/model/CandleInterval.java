@@ -5,5 +5,7 @@ package com.sagopalgo.api.market.model;
  */
 public enum CandleInterval {
     DAILY,
+    WEEKLY,
+    MONTHLY,
     MINUTE
 }
