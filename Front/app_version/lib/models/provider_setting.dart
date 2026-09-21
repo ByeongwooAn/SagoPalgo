@@ -7,7 +7,10 @@ class ProviderSetting {
     required this.marketDataEnabled,
     required this.accountEnabled,
     required this.orderEnabled,
+    required this.newsEnabled,
+    required this.disclosureEnabled,
     required this.configured,
+    required this.missingRequiredSettings,
     required this.roleDescription,
   });
 
@@ -26,8 +29,17 @@ class ProviderSetting {
   /// 주문 기능 담당으로 켜져 있는지 여부입니다.
   final bool orderEnabled;
 
+  /// 뉴스 검색 역할이 켜져 있는지 여부입니다.
+  final bool newsEnabled;
+
+  /// 전자공시 조회 역할이 켜져 있는지 여부입니다.
+  final bool disclosureEnabled;
+
   /// 필요한 민감정보가 로컬 환경에 설정되어 있는지 여부입니다.
   final bool configured;
+
+  /// 비밀값을 노출하지 않고 화면에 표시할 누락 설정 이름입니다.
+  final List<String> missingRequiredSettings;
 
   /// 증권사별 현재 역할 설명입니다.
   final String roleDescription;
@@ -40,7 +52,13 @@ class ProviderSetting {
       marketDataEnabled: json['marketDataEnabled'] as bool? ?? false,
       accountEnabled: json['accountEnabled'] as bool? ?? false,
       orderEnabled: json['orderEnabled'] as bool? ?? false,
+      newsEnabled: json['newsEnabled'] as bool? ?? false,
+      disclosureEnabled: json['disclosureEnabled'] as bool? ?? false,
       configured: json['configured'] as bool? ?? false,
+      missingRequiredSettings:
+          (json['missingRequiredSettings'] as List<dynamic>? ?? const [])
+              .map((item) => item as String)
+              .toList(),
       roleDescription: json['roleDescription'] as String,
     );
   }
@@ -53,6 +71,8 @@ class ProviderSettingsSnapshot {
     required this.secretStorageType,
     required this.secretStorageDescription,
     required this.orderSafetyMode,
+    required this.marketDataFallbackOrder,
+    required this.marketDataFallbackDescription,
     required this.providers,
   });
 
@@ -65,6 +85,12 @@ class ProviderSettingsSnapshot {
   /// 주문 기능 안전 모드 설명입니다.
   final String orderSafetyMode;
 
+  /// 현재가 조회 시 시도하는 Provider 코드 순서입니다.
+  final List<String> marketDataFallbackOrder;
+
+  /// 모든 Provider 실패 이후까지 포함한 fallback 정책 설명입니다.
+  final String marketDataFallbackDescription;
+
   /// 증권사별 설정 상태입니다.
   final List<ProviderSetting> providers;
 
@@ -76,6 +102,12 @@ class ProviderSettingsSnapshot {
       secretStorageDescription:
           json['secretStorageDescription'] as String? ?? '.env 파일',
       orderSafetyMode: json['orderSafetyMode'] as String? ?? '주문 기능 기본 OFF',
+      marketDataFallbackOrder:
+          (json['marketDataFallbackOrder'] as List<dynamic>? ?? const [])
+              .map((item) => item as String)
+              .toList(),
+      marketDataFallbackDescription:
+          json['marketDataFallbackDescription'] as String? ?? '',
       providers: providers
           .map((item) => ProviderSetting.fromJson(item as Map<String, dynamic>))
           .toList(),

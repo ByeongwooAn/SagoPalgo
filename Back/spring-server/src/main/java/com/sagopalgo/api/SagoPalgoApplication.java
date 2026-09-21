@@ -3,6 +3,7 @@ package com.sagopalgo.api;
 import com.sagopalgo.api.config.KisMarketProperties;
 import com.sagopalgo.api.config.DotEnvLoader;
 import com.sagopalgo.api.config.PersonalModeProperties;
+import com.sagopalgo.api.config.ResearchProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import java.nio.file.Path;
 import org.springframework.boot.SpringApplication;
@@ -19,6 +20,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @EnableConfigurationProperties({
     KisMarketProperties.class,
     PersonalModeProperties.class,
+    ResearchProviderProperties.class,
     SecuritiesProviderProperties.class
 })
 public class SagoPalgoApplication {

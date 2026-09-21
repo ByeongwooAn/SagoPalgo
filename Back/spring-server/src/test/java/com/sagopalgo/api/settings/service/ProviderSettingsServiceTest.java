@@ -3,6 +3,7 @@ package com.sagopalgo.api.settings.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sagopalgo.api.config.KisMarketProperties;
+import com.sagopalgo.api.config.ResearchProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties.Provider;
 import com.sagopalgo.api.settings.dto.ProviderSettingsResponse;
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class ProviderSettingsServiceTest {
 
     @Test
-    @DisplayName("KB KIS Toss 증권사 설정 상태를 민감정보 없이 반환한다")
+    @DisplayName("시장 뉴스 공시 Provider 상태와 누락 설정을 민감정보 없이 반환한다")
     void getSettingsReturnsProviderStatusWithoutSecrets() {
         KisMarketProperties kisProperties = new KisMarketProperties();
         kisProperties.setEnabled(true);
@@ -28,30 +29,56 @@ class ProviderSettingsServiceTest {
         kb.setOrderEnabled(false);
         kb.setAppKey("kb-app-key");
         kb.setAppSecret("kb-app-secret");
+        kb.setAccountNumber("12345678");
         securitiesProperties.setKb(kb);
 
         Provider toss = new Provider();
         toss.setMarketDataEnabled(true);
         toss.setAppKey("toss-app-key");
         toss.setAppSecret("toss-app-secret");
+        toss.setBaseUrl("https://toss.test");
+        toss.setCurrentPricePath("/prices");
         securitiesProperties.setToss(toss);
 
-        ProviderSettingsService service = new ProviderSettingsService(kisProperties, securitiesProperties);
+        ResearchProviderProperties researchProperties = new ResearchProviderProperties();
+        researchProperties.getNaverNews().setEnabled(true);
+        researchProperties.getNaverNews().setClientId("naver-client-id");
+        researchProperties.getNaverNews().setClientSecret("naver-client-secret");
+        researchProperties.getOpenDart().setEnabled(true);
+
+        ProviderSettingsService service = new ProviderSettingsService(
+            kisProperties,
+            securitiesProperties,
+            researchProperties
+        );
 
         ProviderSettingsResponse response = service.getSettings();
 
         assertThat(response.secretStorageType()).isEqualTo("ENV_FILE");
         assertThat(response.orderSafetyMode()).isEqualTo("주문 기능 기본 OFF");
+        assertThat(response.marketDataFallbackOrder()).containsExactly("KB", "KIS", "TOSS");
         assertThat(response.providers())
             .extracting("code")
-            .containsExactly("KB", "KIS", "TOSS");
+            .containsExactly("KB", "KIS", "TOSS", "NAVER_NEWS", "OPEN_DART");
         assertThat(response.providers())
             .allSatisfy(provider -> assertThat(provider.toString())
-                .doesNotContain("kb-app-key", "kb-app-secret", "kis-app-key", "kis-app-secret", "toss-app-key"));
+                .doesNotContain(
+                    "kb-app-key",
+                    "kb-app-secret",
+                    "kis-app-key",
+                    "kis-app-secret",
+                    "toss-app-key",
+                    "naver-client-secret"
+                ));
         assertThat(response.providers().get(0).configured()).isTrue();
         assertThat(response.providers().get(0).accountEnabled()).isTrue();
         assertThat(response.providers().get(0).orderEnabled()).isFalse();
         assertThat(response.providers().get(1).configured()).isTrue();
         assertThat(response.providers().get(2).configured()).isTrue();
+        assertThat(response.providers().get(3).newsEnabled()).isTrue();
+        assertThat(response.providers().get(3).configured()).isTrue();
+        assertThat(response.providers().get(4).disclosureEnabled()).isTrue();
+        assertThat(response.providers().get(4).configured()).isFalse();
+        assertThat(response.providers().get(4).missingRequiredSettings()).containsExactly("API Key");
     }
 }

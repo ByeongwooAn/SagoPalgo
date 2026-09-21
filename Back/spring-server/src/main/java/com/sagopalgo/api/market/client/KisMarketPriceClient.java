@@ -5,6 +5,9 @@ import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.config.KisMarketProperties;
 import com.sagopalgo.api.holding.model.Holding;
+import com.sagopalgo.api.market.model.MarketDataRequest;
+import com.sagopalgo.api.market.model.StockQuote;
+import com.sagopalgo.api.market.provider.MarketDataProvider;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Duration;
@@ -17,6 +20,7 @@ import java.util.Locale;
 import java.util.Set;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
@@ -27,8 +31,10 @@ import org.springframework.web.util.UriComponentsBuilder;
  * 한국투자증권 Open API로 국내 주식 현재가를 조회하는 클라이언트입니다.
  */
 @Component
-public class KisMarketPriceClient implements MarketPriceClient {
+@Order(20)
+public class KisMarketPriceClient implements MarketDataProvider {
 
+    private static final String PROVIDER_CODE = "KIS";
     private static final Set<String> SUPPORTED_MARKETS = Set.of("KOSPI", "KOSDAQ", "KONEX");
     private static final String DOMESTIC_STOCK_MARKET_DIVISION = "J";
     private static final Duration TOKEN_REFRESH_MARGIN = Duration.ofMinutes(1);
@@ -44,22 +50,35 @@ public class KisMarketPriceClient implements MarketPriceClient {
         this.restClient = restClient;
     }
 
-    @Override
     public boolean supports(Holding holding) {
-        return properties.isEnabled()
-            && holding != null
-            && SUPPORTED_MARKETS.contains(normalizeMarket(holding.getMarket()))
-            && StringUtils.hasText(holding.getStockCode());
+        return supports(MarketDataRequest.from(holding));
     }
 
     @Override
+    public String providerCode() {
+        return PROVIDER_CODE;
+    }
+
+    @Override
+    public boolean supports(MarketDataRequest request) {
+        return properties.isEnabled()
+            && request != null
+            && SUPPORTED_MARKETS.contains(normalizeMarket(request.market()))
+            && StringUtils.hasText(request.stockCode());
+    }
+
     public BigDecimal currentPrice(Holding holding) {
+        return quote(MarketDataRequest.from(holding)).currentPrice();
+    }
+
+    @Override
+    public StockQuote quote(MarketDataRequest request) {
         ensureConfigured();
 
         KisPriceResponse response;
         try {
             response = restClient.get()
-                .uri(priceUri(holding.getStockCode()))
+                .uri(priceUri(request.stockCode()))
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken())
                 .header("appkey", properties.getAppKey())
@@ -72,7 +91,7 @@ public class KisMarketPriceClient implements MarketPriceClient {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 현재가 API 호출에 실패했습니다.");
         }
 
-        return parseCurrentPrice(response);
+        return parseQuote(request, response);
     }
 
     private String accessToken() {
@@ -112,7 +131,7 @@ public class KisMarketPriceClient implements MarketPriceClient {
         return new AccessToken(response.accessToken(), tokenExpiresAt(response));
     }
 
-    private BigDecimal parseCurrentPrice(KisPriceResponse response) {
+    private StockQuote parseQuote(MarketDataRequest request, KisPriceResponse response) {
         if (response == null) {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 현재가 응답이 비어 있습니다.");
         }
@@ -123,11 +142,22 @@ public class KisMarketPriceClient implements MarketPriceClient {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 현재가 응답에 현재가가 없습니다.");
         }
 
-        try {
-            return new BigDecimal(response.output().currentPrice().replace(",", "").trim());
-        } catch (NumberFormatException exception) {
-            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 현재가 형식이 올바르지 않습니다.");
-        }
+        Output output = response.output();
+        return new StockQuote(
+            PROVIDER_CODE,
+            request.stockCode(),
+            "",
+            normalizeMarket(request.market()),
+            requiredDecimal(output.currentPrice(), "한국투자증권 현재가 형식이 올바르지 않습니다."),
+            decimal(output.changePrice()),
+            decimal(output.changeRate()),
+            decimal(output.volume()),
+            decimal(output.openPrice()),
+            decimal(output.highPrice()),
+            decimal(output.lowPrice()),
+            decimal(output.previousClose()),
+            Instant.now()
+        );
     }
 
     private String failureMessage(KisPriceResponse response) {
@@ -190,6 +220,25 @@ public class KisMarketPriceClient implements MarketPriceClient {
         return market == null ? "" : market.trim().toUpperCase(Locale.ROOT);
     }
 
+    private BigDecimal requiredDecimal(String value, String message) {
+        try {
+            return new BigDecimal(value.replace(",", "").replace("%", "").trim());
+        } catch (NumberFormatException exception) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, message);
+        }
+    }
+
+    private BigDecimal decimal(String value) {
+        if (!StringUtils.hasText(value)) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(value.replace(",", "").replace("%", "").trim());
+        } catch (NumberFormatException exception) {
+            return BigDecimal.ZERO;
+        }
+    }
+
     private record AccessToken(String value, Instant expiresAt) {
     }
 
@@ -226,7 +275,28 @@ public class KisMarketPriceClient implements MarketPriceClient {
 
     private record Output(
         @JsonProperty("stck_prpr")
-        String currentPrice
+        String currentPrice,
+
+        @JsonProperty("prdy_vrss")
+        String changePrice,
+
+        @JsonProperty("prdy_ctrt")
+        String changeRate,
+
+        @JsonProperty("acml_vol")
+        String volume,
+
+        @JsonProperty("stck_oprc")
+        String openPrice,
+
+        @JsonProperty("stck_hgpr")
+        String highPrice,
+
+        @JsonProperty("stck_lwpr")
+        String lowPrice,
+
+        @JsonProperty("stck_sdpr")
+        String previousClose
     ) {
     }
 }

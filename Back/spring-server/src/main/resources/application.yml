@@ -37,6 +37,7 @@ sagopalgo:
   securities:
     kb:
       # KB증권은 계좌 조회와 추후 주문 기능의 단일 담당으로 둡니다.
+      market-data-enabled: ${SAGOPALGO_KB_MARKET_DATA_ENABLED:false}
       account-enabled: ${SAGOPALGO_KB_ACCOUNT_ENABLED:false}
       order-enabled: ${SAGOPALGO_KB_ORDER_ENABLED:false}
       # KB증권 공식 API 문서 all_kbstock_excel 기준 기본값입니다. 비밀값이 아니므로 코드 설정에 둡니다.
@@ -47,8 +48,10 @@ sagopalgo:
       holdings-path: ${SAGOPALGO_KB_HOLDINGS_PATH:/api/v1/ssqm1801}
       settlement-balance-path: /api/v1/ssqm2932
       execution-balance-path: /api/v1/ssqm2952
+      current-price-path: /api/v1/ivu10140
       accounts-transaction-id: ${SAGOPALGO_KB_ACCOUNTS_TR_ID:}
       holdings-transaction-id: ${SAGOPALGO_KB_HOLDINGS_TR_ID:}
+      current-price-transaction-id: ${SAGOPALGO_KB_CURRENT_PRICE_TR_ID:}
       customer-type: ${SAGOPALGO_KB_CUSTOMER_TYPE:P}
       # SSQM1801 보유주식 조회 필수/선택 입력값입니다.
       holdings-inquiry-classification: ${SAGOPALGO_KB_HOLDINGS_INQ_CLSF:0}
@@ -57,6 +60,8 @@ sagopalgo:
       # SSQM2932/SSQM2952 잔고 현황 조회 기본 입력값입니다.
       balance-inquiry-classification: "1"
       balance-exchange-market-price-code: A
+      # IVU10140 현재가 조회 기본 입력값입니다. 0=통합, 1=KRX, 2=NXT.
+      current-price-exchange-classification: "0"
       app-key: ${SAGOPALGO_KB_APP_KEY:}
       app-secret: ${SAGOPALGO_KB_APP_SECRET:}
       account-number: ${SAGOPALGO_KB_ACCOUNT_NUMBER:}
@@ -66,6 +71,8 @@ sagopalgo:
     toss:
       # Toss 증권은 분석용 시세/종목 정보 보조 소스로만 사용합니다.
       market-data-enabled: ${SAGOPALGO_TOSS_MARKET_DATA_ENABLED:false}
+      base-url: ${SAGOPALGO_TOSS_BASE_URL:}
+      current-price-path: ${SAGOPALGO_TOSS_CURRENT_PRICE_PATH:}
       app-key: ${SAGOPALGO_TOSS_APP_KEY:}
       app-secret: ${SAGOPALGO_TOSS_APP_SECRET:}
   market:
@@ -84,3 +91,19 @@ sagopalgo:
       price-path: ${SAGOPALGO_KIS_PRICE_PATH:/uapi/domestic-stock/v1/quotations/inquire-price}
       transaction-id: ${SAGOPALGO_KIS_PRICE_TR_ID:FHKST01010100}
       customer-type: ${SAGOPALGO_KIS_CUSTOMER_TYPE:P}
+  research:
+    naver-news:
+      enabled: ${SAGOPALGO_NAVER_NEWS_ENABLED:false}
+      base-url: ${SAGOPALGO_NAVER_NEWS_BASE_URL:https://openapi.naver.com}
+      search-path: ${SAGOPALGO_NAVER_NEWS_SEARCH_PATH:/v1/search/news.json}
+      client-id: ${SAGOPALGO_NAVER_NEWS_CLIENT_ID:}
+      client-secret: ${SAGOPALGO_NAVER_NEWS_CLIENT_SECRET:}
+      display: ${SAGOPALGO_NAVER_NEWS_DISPLAY:10}
+    open-dart:
+      enabled: ${SAGOPALGO_OPEN_DART_ENABLED:false}
+      base-url: ${SAGOPALGO_OPEN_DART_BASE_URL:https://opendart.fss.or.kr}
+      disclosure-path: ${SAGOPALGO_OPEN_DART_DISCLOSURE_PATH:/api/list.json}
+      corp-code-path: ${SAGOPALGO_OPEN_DART_CORP_CODE_PATH:/api/corpCode.xml}
+      api-key: ${SAGOPALGO_OPEN_DART_API_KEY:}
+      default-lookback-days: ${SAGOPALGO_OPEN_DART_LOOKBACK_DAYS:30}
+      page-count: ${SAGOPALGO_OPEN_DART_PAGE_COUNT:20}

@@ -119,10 +119,16 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
+              _MarketFallbackCard(settings: settings),
+              const SizedBox(height: 12),
               ...providers.map(
                 (provider) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: _ProviderCard(provider: provider),
+                  child: _ProviderCard(
+                    provider: provider,
+                    marketDataPriority: settings.marketDataFallbackOrder
+                        .indexOf(provider.code),
+                  ),
                 ),
               ),
               if (kbProvider != null) ...[
@@ -151,9 +157,13 @@ ProviderSetting? _findProvider(List<ProviderSetting> providers, String code) {
 }
 
 class _ProviderCard extends StatelessWidget {
-  const _ProviderCard({required this.provider});
+  const _ProviderCard({
+    required this.provider,
+    required this.marketDataPriority,
+  });
 
   final ProviderSetting provider;
+  final int marketDataPriority;
 
   @override
   Widget build(BuildContext context) {
@@ -162,7 +172,20 @@ class _ProviderCard extends StatelessWidget {
       if (provider.marketDataEnabled) '시세',
       if (provider.accountEnabled) '계좌',
       if (provider.orderEnabled) '주문',
+      if (provider.newsEnabled) '뉴스',
+      if (provider.disclosureEnabled) '공시',
     ];
+    final enabled =
+        provider.marketDataEnabled ||
+        provider.accountEnabled ||
+        provider.orderEnabled ||
+        provider.newsEnabled ||
+        provider.disclosureEnabled;
+    final statusLabel = !enabled
+        ? '꺼짐'
+        : provider.configured
+        ? '사용 가능'
+        : '설정 필요';
 
     return AppCard(
       child: Column(
@@ -200,8 +223,10 @@ class _ProviderCard extends StatelessWidget {
                 ),
               ),
               StatusChip(
-                label: provider.configured ? '설정됨' : '미설정',
-                gradient: provider.configured ? AppGradients.main : null,
+                label: statusLabel,
+                gradient: enabled && provider.configured
+                    ? AppGradients.main
+                    : null,
               ),
             ],
           ),
@@ -214,10 +239,38 @@ class _ProviderCard extends StatelessWidget {
                 const _RoleChip(label: '대기')
               else
                 ...chips.map((chip) => _RoleChip(label: chip)),
+              if (provider.marketDataEnabled && marketDataPriority >= 0)
+                _RoleChip(label: '시세 ${marketDataPriority + 1}순위'),
               if (!provider.orderEnabled && provider.code == 'KB')
                 const _RoleChip(label: '주문 잠금'),
             ],
           ),
+          if (provider.missingRequiredSettings.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: palette.muted,
+                  size: 16,
+                ),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    '누락: ${provider.missingRequiredSettings.join(' · ')}',
+                    style: TextStyle(
+                      color: palette.muted,
+                      fontSize: 11,
+                      height: 1.35,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -235,7 +288,10 @@ class _ProviderIcon extends StatelessWidget {
     final icon = switch (code) {
       'KB' => Icons.account_balance_rounded,
       'KIS' => Icons.show_chart_rounded,
-      _ => Icons.candlestick_chart_rounded,
+      'TOSS' => Icons.candlestick_chart_rounded,
+      'NAVER_NEWS' => Icons.newspaper_rounded,
+      'OPEN_DART' => Icons.description_rounded,
+      _ => Icons.hub_rounded,
     };
 
     return Container(
@@ -247,6 +303,73 @@ class _ProviderIcon extends StatelessWidget {
         border: Border.all(color: palette.border),
       ),
       child: Icon(icon, color: AppTheme.main, size: 21),
+    );
+  }
+}
+
+class _MarketFallbackCard extends StatelessWidget {
+  const _MarketFallbackCard({required this.settings});
+
+  final ProviderSettingsSnapshot settings;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    final names = <String, String>{
+      for (final provider in settings.providers)
+        provider.code: provider.displayName,
+    };
+    final order = settings.marketDataFallbackOrder
+        .map((code) => names[code] ?? code)
+        .followedBy(const ['등록 매수가'])
+        .join(' → ');
+
+    return AppCard(
+      soft: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.alt_route_rounded, color: AppTheme.main),
+              const SizedBox(width: 8),
+              Text(
+                '시세 fallback',
+                style: TextStyle(
+                  color: palette.text,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            order,
+            style: TextStyle(
+              color: palette.text,
+              fontSize: 12,
+              height: 1.35,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+          if (settings.marketDataFallbackDescription.isNotEmpty) ...[
+            const SizedBox(height: 7),
+            Text(
+              settings.marketDataFallbackDescription,
+              style: TextStyle(
+                color: palette.muted,
+                fontSize: 11,
+                height: 1.35,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

@@ -60,13 +60,13 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 
 서버 시작 시 `users` 테이블에 해당 로컬 사용자 행이 없으면 자동으로 생성합니다.
 
-## 4. 증권사 설정 API
+## 4. Provider 설정 API
 
-### 4.1 증권사 연동 상태 조회
+### 4.1 외부 Provider 연동 상태 조회
 
 `GET /api/v1/settings/providers`
 
-민감한 API Key, App Secret, 계좌번호는 응답에 포함하지 않습니다. 이 API는 어떤 증권사를 어떤 역할로 사용할지와 필요한 값이 설정되어 있는지만 보여줍니다.
+민감한 API Key, App Secret, 계좌번호는 응답에 포함하지 않습니다. 이 API는 시장 데이터, 뉴스, 공시 Provider의 역할별 활성화 여부와 안전한 누락 설정 이름만 보여줍니다.
 
 2단계 기준 민감정보 저장 방식은 `.env` 파일입니다. Windows Credential Manager는 자동 주문 단계 전 다시 검토합니다.
 
@@ -79,6 +79,8 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
     "secretStorageType": "ENV_FILE",
     "secretStorageDescription": ".env 파일과 Docker env-file로 개인용 API Key, App Secret, 계좌번호를 관리합니다.",
     "orderSafetyMode": "주문 기능 기본 OFF",
+    "marketDataFallbackOrder": ["KB", "KIS", "TOSS"],
+    "marketDataFallbackDescription": "앞 Provider가 비활성·미설정·조회 실패이면 다음 Provider를 시도하고, 모두 실패하면 등록 매수가를 사용합니다.",
     "providers": [
       {
         "code": "KB",
@@ -86,7 +88,10 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
         "marketDataEnabled": false,
         "accountEnabled": false,
         "orderEnabled": false,
+        "newsEnabled": false,
+        "disclosureEnabled": false,
         "configured": false,
+        "missingRequiredSettings": ["App Key", "App Secret"],
         "roleDescription": "계좌 조회와 추후 주문 기능의 기준 증권사"
       },
       {
@@ -95,7 +100,10 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
         "marketDataEnabled": false,
         "accountEnabled": false,
         "orderEnabled": false,
+        "newsEnabled": false,
+        "disclosureEnabled": false,
         "configured": false,
+        "missingRequiredSettings": ["App Key", "App Secret"],
         "roleDescription": "국내 주식 시세 조회용 데이터 소스"
       },
       {
@@ -104,12 +112,39 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
         "marketDataEnabled": false,
         "accountEnabled": false,
         "orderEnabled": false,
+        "newsEnabled": false,
+        "disclosureEnabled": false,
         "configured": false,
+        "missingRequiredSettings": ["Base URL", "현재가 API 경로", "App Key", "App Secret"],
         "roleDescription": "분석용 시세/종목 정보 보조 데이터 소스"
+      },
+      {
+        "code": "NAVER_NEWS",
+        "displayName": "네이버 뉴스",
+        "marketDataEnabled": false,
+        "accountEnabled": false,
+        "orderEnabled": false,
+        "newsEnabled": false,
+        "disclosureEnabled": false,
+        "configured": false,
+        "missingRequiredSettings": ["Client ID", "Client Secret"],
+        "roleDescription": "종목명 기준 최신 뉴스 검색 데이터 소스"
+      },
+      {
+        "code": "OPEN_DART",
+        "displayName": "OpenDART",
+        "marketDataEnabled": false,
+        "accountEnabled": false,
+        "orderEnabled": false,
+        "newsEnabled": false,
+        "disclosureEnabled": false,
+        "configured": false,
+        "missingRequiredSettings": ["API Key"],
+        "roleDescription": "종목코드와 DART 고유번호를 연결하는 전자공시 데이터 소스"
       }
     ]
   },
-  "message": "증권사 연동 설정이 조회되었습니다."
+  "message": "외부 Provider 설정이 조회되었습니다."
 }
 ```
 
@@ -212,13 +247,21 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 
 ## 6. 대시보드 API
 
+### 6.0 시장 데이터 Provider
+
+보유 종목 현재가 계산은 `MarketDataProvider` 내부 표준 모델을 사용합니다. Provider 응답은 `StockQuote`로 정규화하며, 현재가, 전일대비, 등락률, 거래량, 시가, 고가, 저가, 전일종가를 같은 필드로 다룹니다. 캔들 데이터는 `StockCandle` 모델을 기준으로 확장할 수 있게 인터페이스를 열어 두었습니다.
+
+Provider 우선순위는 KB증권, 한국투자증권, Toss 순서입니다. KB증권 시세는 공식 문서 `IVU10140_현재가`, path `/api/v1/ivu10140`, 요청값 `excg_clsf=0`, `shrt_cd=종목코드`를 기본값으로 사용합니다. Toss는 공식 시세 path가 확정되기 전까지 기본값이 비어 있어 자동 비활성 상태입니다.
+
+외부 Provider가 일시적으로 실패하면 다음 Provider를 시도합니다. 모든 Provider가 실패하거나 지원 Provider가 없으면 보유 종목 화면의 계산은 등록 매수가를 fallback 현재가로 사용합니다.
+
 ### 6.1 앱 초기 스냅샷 조회
 
 `GET /api/v1/dashboard/snapshot`
 
 이 API는 현재 Flutter의 `InvestmentSnapshot` 모델과 맞춘 통합 응답입니다. MVP에서는 앱 첫 화면을 빠르게 띄우기 위해 여러 화면의 데이터를 한 번에 내려줍니다.
 
-현재 구현은 `CapitalService`, `HoldingService`, `DashboardRecommendationEngine`을 조합합니다. 보유 종목의 `currentPrice`는 KIS 설정이 켜진 국내 주식이면 한국투자증권 Open API 현재가를 사용합니다. 별도 추천 목록 API가 붙기 전까지 대표 추천은 대시보드 스냅샷 안에서 반환합니다. 실제 보유 종목이 없으면 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
+현재 구현은 `CapitalService`, `HoldingService`, `DashboardRecommendationEngine`을 조합합니다. 보유 종목의 `currentPrice`는 시장 데이터 Provider 우선순위와 fallback 정책에 따라 계산됩니다. 별도 추천 목록 API가 붙기 전까지 대표 추천은 대시보드 스냅샷 안에서 반환합니다. 실제 보유 종목이 없으면 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
 
 ## 7. 자본금 API
 
@@ -276,7 +319,7 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 
 `GET /api/v1/holdings`
 
-KOSPI/KOSDAQ/KONEX 종목이고 `SAGOPALGO_KIS_ENABLED=true`이면 `currentPrice`와 `profitRate`는 한국투자증권 현재가 기준으로 계산됩니다. KIS 설정이 꺼져 있거나 미지원 시장이면 임의 샘플 가격을 만들지 않고 등록 매수가를 기준값으로 사용합니다. KIS 설정이 켜진 국내 종목 조회 중 토큰 발급 또는 현재가 조회가 실패하면 `EXTERNAL_DATA_ERROR`가 반환됩니다.
+KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있으면 `currentPrice`와 `profitRate`는 외부 현재가 기준으로 계산됩니다. Provider 우선순위는 KB, KIS, Toss 순서입니다. 설정이 꺼져 있거나 미지원 시장이거나 모든 Provider가 실패하면 임의 샘플 가격을 만들지 않고 등록 매수가를 기준값으로 사용합니다.
 
 ### 9.2 보유 종목 등록
 
@@ -303,37 +346,85 @@ KOSPI/KOSDAQ/KONEX 종목이고 `SAGOPALGO_KIS_ENABLED=true`이면 `currentPrice
 
 `DELETE /api/v1/holdings/{holdingId}`
 
-## 10. 추천 API
+## 10. 뉴스·공시 API
+
+### 10.1 종목별 뉴스·공시 조회
+
+`GET /api/v1/research/feed?stockCode=005930&stockName=삼성전자&fromDate=2026-08-01&toDate=2026-09-21`
+
+`fromDate`와 `toDate`는 선택값입니다. 생략하면 오늘을 종료일로 하고 OpenDART 설정의 기본 조회 기간만큼 이전 날짜를 시작일로 사용합니다. 네이버 뉴스와 OpenDART는 독립적으로 조회하므로 한쪽이 실패해도 다른 쪽 결과와 Provider 상태를 반환합니다.
+
+```json
+{
+  "success": true,
+  "data": {
+    "stockCode": "005930",
+    "stockName": "삼성전자",
+    "fromDate": "2026-08-01",
+    "toDate": "2026-09-21",
+    "news": [
+      {
+        "provider": "NAVER_NEWS",
+        "stockCode": "005930",
+        "title": "삼성전자 반도체 투자 확대",
+        "link": "https://news.example/article",
+        "summary": "기사 요약",
+        "publishedAt": "2026-09-21T01:00:00Z"
+      }
+    ],
+    "disclosures": [
+      {
+        "provider": "OPEN_DART",
+        "stockCode": "005930",
+        "corpCode": "00126380",
+        "corpName": "삼성전자",
+        "reportName": "주요사항보고서",
+        "receiptNumber": "20260921000123",
+        "submitterName": "삼성전자",
+        "receiptDate": "2026-09-21",
+        "link": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260921000123"
+      }
+    ],
+    "providers": [
+      {"provider": "NAVER_NEWS", "dataType": "NEWS", "status": "SUCCESS", "message": "1건 조회"},
+      {"provider": "OPEN_DART", "dataType": "DISCLOSURE", "status": "SUCCESS", "message": "1건 조회"}
+    ]
+  },
+  "message": "종목 뉴스와 공시가 조회되었습니다."
+}
+```
+
+## 11. 추천 API
 
 이 절의 추천 목록/상세 API는 다음 구현 단계의 명세입니다. 현재 앱에서 실제로 사용하는 대표 추천은 `GET /api/v1/dashboard/snapshot`의 `recommendation` 필드로 제공됩니다.
 
-### 10.1 추천 목록 조회
+### 11.1 추천 목록 조회
 
 `GET /api/v1/recommendations?status=BUY_STRONG&page=0&size=20`
 
-### 10.2 추천 상세 조회
+### 11.2 추천 상세 조회
 
 `GET /api/v1/recommendations/{recommendationId}`
 
-## 11. 알림 API
+## 12. 알림 API
 
 이 절의 알림 API는 다음 구현 단계의 명세입니다. 현재 앱 알림 탭의 데이터는 `GET /api/v1/dashboard/snapshot`의 `alerts` 필드로 제공됩니다.
 
-### 11.1 알림 목록 조회
+### 12.1 알림 목록 조회
 
 `GET /api/v1/alerts?page=0&size=20`
 
-### 11.2 알림 읽음 처리
+### 12.2 알림 읽음 처리
 
 `PATCH /api/v1/alerts/{alertId}/read`
 
-## 12. AI 서버 연동 API
+## 13. AI 서버 연동 API
 
 아래 API는 앱이 직접 호출하지 않고 Spring Boot가 Python AI 서버를 호출할 때 사용하는 내부 계약입니다.
 
 현재 구현에서는 Python AI 서버가 아직 붙지 않았으므로 `DashboardRecommendationEngine`이 실제 보유 종목 수익률, 손절 기준, 익절 기준을 조합해 설명 가능한 MVP 추천을 생성합니다. 실제 보유 종목이 없으면 임의 추천을 생성하지 않습니다.
 
-### 12.1 종목 분석 요청
+### 13.1 종목 분석 요청
 
 `POST /internal/ai/analyze-stock`
 
@@ -346,7 +437,7 @@ KOSPI/KOSDAQ/KONEX 종목이고 `SAGOPALGO_KIS_ENABLED=true`이면 `currentPrice
 }
 ```
 
-### 12.2 뉴스 감성 분석 요청
+### 13.2 뉴스 감성 분석 요청
 
 `POST /internal/ai/analyze-news`
 
@@ -364,11 +455,12 @@ KOSPI/KOSDAQ/KONEX 종목이고 `SAGOPALGO_KIS_ENABLED=true`이면 `currentPrice
 }
 ```
 
-## 13. 다음 구현 순서
+## 14. 다음 구현 순서
 
-1. KB 계좌 데이터를 Flutter 포트폴리오 화면에 읽기 전용으로 표시
-2. KIS 국내/해외 시세 조회 확장
-3. Toss 분석용 시세/종목 정보 연동
-4. AI 분석 서버와 추천 결과 저장
-5. Windows 로컬 알림
-6. 자동 주문 설계와 수동 승인 기반 주문 실행
+1. 뉴스·공시 결과 로컬 저장과 중복 제거
+2. 뉴스·공시 타임라인 Flutter 화면
+3. 캔들 조회 API를 실제 KB/KIS 차트 TR에 연결
+4. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
+5. AI 분석 서버와 추천 결과 저장
+6. Windows 로컬 알림
+7. 자동 주문 설계와 수동 승인 기반 주문 실행

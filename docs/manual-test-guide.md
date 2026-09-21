@@ -44,6 +44,13 @@ SAGOPALGO_KIS_PRICE_TR_ID=FHKST01010100
 SAGOPALGO_TOSS_MARKET_DATA_ENABLED=false
 SAGOPALGO_TOSS_APP_KEY=
 SAGOPALGO_TOSS_APP_SECRET=
+
+SAGOPALGO_NAVER_NEWS_ENABLED=false
+SAGOPALGO_NAVER_NEWS_CLIENT_ID=
+SAGOPALGO_NAVER_NEWS_CLIENT_SECRET=
+
+SAGOPALGO_OPEN_DART_ENABLED=false
+SAGOPALGO_OPEN_DART_API_KEY=
 ```
 
 ```powershell
@@ -72,7 +79,17 @@ Invoke-RestMethod `
   -Uri http://localhost:8081/api/v1/settings/providers
 ```
 
-응답에는 `secretStorageType=ENV_FILE`, `orderSafetyMode=주문 기능 기본 OFF`, KB/KIS/Toss의 역할, 활성화 여부, 필수 설정값 입력 여부만 표시되어야 합니다. API Key, App Secret, 계좌번호 원문은 응답에 포함되면 안 됩니다.
+응답에는 `secretStorageType=ENV_FILE`, `orderSafetyMode=주문 기능 기본 OFF`, `marketDataFallbackOrder=[KB,KIS,TOSS]`, KB/KIS/Toss/Naver News/OpenDART의 역할과 누락 설정 이름만 표시되어야 합니다. API Key, App Secret, 계좌번호 원문은 응답에 포함되면 안 됩니다.
+
+뉴스·공시 Provider를 켠 환경에서는 통합 조회를 확인합니다.
+
+```powershell
+Invoke-RestMethod `
+  -Method Get `
+  -Uri 'http://localhost:8081/api/v1/research/feed?stockCode=005930&stockName=삼성전자'
+```
+
+`data.providers`에서 각 Provider가 `SUCCESS`, `FAILED`, `DISABLED` 중 하나로 표시되는지 확인합니다. 한 Provider만 실패할 때도 HTTP 200 응답으로 다른 Provider 결과가 남아 있어야 합니다.
 
 KB 계좌 연동 확인:
 
@@ -174,8 +191,11 @@ flutter run -d windows
 10. 포트폴리오 탭에서 자본금 기준 카드와 보유 종목 손익이 한국투자증권 현재가 기준으로 동기화되는지 확인합니다.
 11. 설정 탭에서 민감정보 저장 방식이 `ENV_FILE`로 표시되는지 확인합니다.
 12. 설정 탭에서 주문 상태가 `주문 기능 기본 OFF`로 표시되는지 확인합니다.
-13. 설정 탭에서 KB증권, 한국투자증권, 토스증권 연동 상태가 표시되는지 확인합니다.
-14. 서버를 잠시 내린 뒤 포트폴리오 탭의 재시도 배너가 보이는지 확인합니다.
+13. 설정 탭에서 KB증권, 한국투자증권, 토스증권, 네이버 뉴스, OpenDART 연동 상태가 표시되는지 확인합니다.
+14. 시세 fallback이 `KB증권 → 한국투자증권 → 토스증권 → 등록 매수가` 순서로 표시되는지 확인합니다.
+15. 비활성 Provider는 `꺼짐`, 활성화됐지만 설정이 빠진 Provider는 `설정 필요`, 활성화되고 설정이 완료된 Provider는 `사용 가능`으로 표시되는지 확인합니다.
+16. 미설정 Provider 카드에 실제 비밀값 대신 `누락: App Key · App Secret`처럼 설정 이름만 표시되는지 확인합니다.
+17. 서버를 잠시 내린 뒤 포트폴리오 탭의 재시도 배너가 보이는지 확인합니다.
 
 앱 잠금 확인이 필요하면 `Front/app_version/.env`에 `SAGOPALGO_APP_LOCK_PIN=1234`처럼 값을 넣고 다시 실행합니다. 시작 시 PIN 잠금 화면이 표시되고, 같은 값을 입력하면 홈 화면에 진입해야 합니다.
 
@@ -193,3 +213,4 @@ flutter build windows
 - KIS 설정이 꺼져 있거나 아직 지원하지 않는 해외 시장 종목이면 임의 샘플 가격을 만들지 않고 사용자가 등록한 매수가를 기준값으로 반환합니다.
 - 추천은 실제 보유 종목이 있을 때만 `DashboardRecommendationEngine`의 규칙 기반 MVP 로직으로 생성합니다. Python AI 서버가 연결되면 같은 응답 계약으로 대체합니다.
 - 추천 목록/상세 API와 Windows 알림 API는 아직 구현 전이며, 현재 앱은 대시보드 스냅샷의 대표 추천과 알림 데이터를 사용합니다.
+- 뉴스와 공시는 실시간 통합 조회까지 구현됐으며, 로컬 저장·중복 제거와 Flutter 타임라인 화면은 아직 구현 전입니다.

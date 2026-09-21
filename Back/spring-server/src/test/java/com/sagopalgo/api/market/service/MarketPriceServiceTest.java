@@ -6,8 +6,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.holding.model.Holding;
-import com.sagopalgo.api.market.client.MarketPriceClient;
+import com.sagopalgo.api.market.model.CandleInterval;
+import com.sagopalgo.api.market.model.MarketDataRequest;
+import com.sagopalgo.api.market.model.StockCandle;
+import com.sagopalgo.api.market.model.StockQuote;
+import com.sagopalgo.api.market.provider.MarketDataProvider;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +25,7 @@ class MarketPriceServiceTest {
     @Test
     @DisplayName("지원 가능한 외부 클라이언트가 있으면 실제 현재가를 반환한다")
     void currentPriceUsesSupportedClient() {
-        MarketPriceService service = new MarketPriceService(List.of(new FixedMarketPriceClient(true, "75300", false)));
+        MarketPriceService service = new MarketPriceService(List.of(new FixedMarketDataProvider("KIS", true, "75300", false)));
 
         BigDecimal currentPrice = service.currentPrice(holding());
 
@@ -30,7 +35,7 @@ class MarketPriceServiceTest {
     @Test
     @DisplayName("지원 가능한 외부 클라이언트가 없으면 등록 매수가를 반환한다")
     void currentPriceFallsBackToBuyPriceWhenNoClientSupportsHolding() {
-        MarketPriceService service = new MarketPriceService(List.of(new FixedMarketPriceClient(false, "75300", false)));
+        MarketPriceService service = new MarketPriceService(List.of(new FixedMarketDataProvider("KIS", false, "75300", false)));
 
         BigDecimal currentPrice = service.currentPrice(holding());
 
@@ -38,11 +43,37 @@ class MarketPriceServiceTest {
     }
 
     @Test
-    @DisplayName("외부 클라이언트 실패는 숨기지 않고 API 예외로 전파한다")
-    void currentPricePropagatesExternalClientFailure() {
-        MarketPriceService service = new MarketPriceService(List.of(new FixedMarketPriceClient(true, "75300", true)));
+    @DisplayName("외부 Provider가 실패하면 다음 Provider 현재가로 fallback한다")
+    void currentPriceFallsBackToNextProviderWhenExternalProviderFails() {
+        MarketPriceService service = new MarketPriceService(List.of(
+            new FixedMarketDataProvider("KB", true, "75300", true),
+            new FixedMarketDataProvider("KIS", true, "75400", false)
+        ));
 
-        assertThatThrownBy(() -> service.currentPrice(holding()))
+        BigDecimal currentPrice = service.currentPrice(holding());
+
+        assertThat(currentPrice).isEqualByComparingTo("75400");
+    }
+
+    @Test
+    @DisplayName("모든 외부 Provider가 실패하면 등록 매수가를 반환한다")
+    void currentPriceFallsBackToBuyPriceWhenAllExternalProvidersFail() {
+        MarketPriceService service = new MarketPriceService(List.of(
+            new FixedMarketDataProvider("KB", true, "75300", true),
+            new FixedMarketDataProvider("KIS", true, "75400", true)
+        ));
+
+        BigDecimal currentPrice = service.currentPrice(holding());
+
+        assertThat(currentPrice).isEqualByComparingTo("69100");
+    }
+
+    @Test
+    @DisplayName("보유 종목 없이 모든 Provider가 실패하면 마지막 외부 데이터 오류를 전파한다")
+    void quotePropagatesLastFailureWhenNoFallbackPriceExists() {
+        MarketPriceService service = new MarketPriceService(List.of(new FixedMarketDataProvider("KB", true, "75300", true)));
+
+        assertThatThrownBy(() -> service.quote(null))
             .isInstanceOf(ApiException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
@@ -56,23 +87,48 @@ class MarketPriceServiceTest {
         return holding;
     }
 
-    private record FixedMarketPriceClient(
+    private record FixedMarketDataProvider(
+        String providerCode,
         boolean supported,
         String currentPrice,
         boolean failing
-    ) implements MarketPriceClient {
+    ) implements MarketDataProvider {
 
         @Override
-        public boolean supports(Holding holding) {
+        public String providerCode() {
+            return providerCode;
+        }
+
+        @Override
+        public boolean supports(MarketDataRequest request) {
             return supported;
         }
 
         @Override
-        public BigDecimal currentPrice(Holding holding) {
+        public StockQuote quote(MarketDataRequest request) {
             if (failing) {
                 throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "외부 현재가 조회 실패");
             }
-            return new BigDecimal(currentPrice);
+            return new StockQuote(
+                providerCode,
+                request.stockCode(),
+                "",
+                request.market(),
+                new BigDecimal(currentPrice),
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                Instant.now()
+            );
+        }
+
+        @Override
+        public List<StockCandle> candles(MarketDataRequest request, CandleInterval interval, int count) {
+            return List.of();
         }
     }
 }

@@ -11,6 +11,8 @@ import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.config.KisMarketProperties;
 import com.sagopalgo.api.holding.model.Holding;
+import com.sagopalgo.api.market.model.MarketDataRequest;
+import com.sagopalgo.api.market.model.StockQuote;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,8 +39,8 @@ class KisMarketPriceClientTest {
     }
 
     @Test
-    @DisplayName("국내 주식 현재가는 KIS 토큰 발급 후 주식현재가 시세 API에서 조회한다")
-    void currentPriceFetchesDomesticStockPrice() {
+    @DisplayName("국내 주식 시세는 KIS 토큰 발급 후 내부 표준 모델로 정규화한다")
+    void quoteFetchesDomesticStockPrice() {
         server.expect(requestTo("https://kis.test/oauth2/tokenP"))
             .andExpect(method(HttpMethod.POST))
             .andRespond(withSuccess("""
@@ -60,14 +62,28 @@ class KisMarketPriceClientTest {
                   "msg1": "정상처리 되었습니다.",
                   "output": {
                     "stck_prpr": "75300",
-                    "prdy_vrss": "100"
+                    "prdy_vrss": "100",
+                    "prdy_ctrt": "0.13",
+                    "acml_vol": "1234567",
+                    "stck_oprc": "75200",
+                    "stck_hgpr": "75500",
+                    "stck_lwpr": "74900",
+                    "stck_sdpr": "75200"
                   }
                 }
                 """, MediaType.APPLICATION_JSON));
 
-        BigDecimal currentPrice = client.currentPrice(holding("005930", "KOSPI"));
+        StockQuote quote = client.quote(new MarketDataRequest("005930", "KOSPI"));
 
-        assertThat(currentPrice).isEqualByComparingTo("75300");
+        assertThat(quote.provider()).isEqualTo("KIS");
+        assertThat(quote.currentPrice()).isEqualByComparingTo("75300");
+        assertThat(quote.changePrice()).isEqualByComparingTo("100");
+        assertThat(quote.changeRate()).isEqualByComparingTo("0.13");
+        assertThat(quote.volume()).isEqualByComparingTo("1234567");
+        assertThat(quote.openPrice()).isEqualByComparingTo("75200");
+        assertThat(quote.highPrice()).isEqualByComparingTo("75500");
+        assertThat(quote.lowPrice()).isEqualByComparingTo("74900");
+        assertThat(quote.previousClose()).isEqualByComparingTo("75200");
         server.verify();
     }
 

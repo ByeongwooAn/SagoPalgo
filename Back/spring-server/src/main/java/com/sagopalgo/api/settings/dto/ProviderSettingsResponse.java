@@ -6,6 +6,8 @@ public record ProviderSettingsResponse(
     String secretStorageType,
     String secretStorageDescription,
     String orderSafetyMode,
+    List<String> marketDataFallbackOrder,
+    String marketDataFallbackDescription,
     List<ProviderSettingResponse> providers
 ) {
 }

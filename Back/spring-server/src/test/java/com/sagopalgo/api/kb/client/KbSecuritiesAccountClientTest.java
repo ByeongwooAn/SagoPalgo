@@ -346,9 +346,49 @@ class KbSecuritiesAccountClientTest {
         server.verify();
     }
 
+    @Test
+    @DisplayName("현재가는 IVU10140 기본 요청값으로 호출한다")
+    void fetchCurrentPriceCallsKbOpenApi() {
+        server.expect(requestTo("https://kb.test/oauth2/token"))
+            .andRespond(withSuccess("""
+                {
+                  "access_token": "access-token",
+                  "expires_in": 3600
+                }
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kb.test/api/v1/ivu10140"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+            .andExpect(content().json("""
+                {
+                  "dataHeader": {
+                    "custtype": "P"
+                  },
+                  "dataBody": {
+                    "excg_clsf": "0",
+                    "shrt_cd": "005930"
+                  }
+                }
+                """))
+            .andRespond(withSuccess("""
+                {
+                  "rt_cd": "0",
+                  "dataBody": {
+                    "now_prc": "75300"
+                  }
+                }
+                """, MediaType.APPLICATION_JSON));
+
+        JsonNode response = client.fetchCurrentPrice("005930");
+
+        assertThat(client.decimal(response, "now_prc")).isEqualByComparingTo("75300");
+        server.verify();
+    }
+
     private SecuritiesProviderProperties securitiesProperties() {
         SecuritiesProviderProperties properties = new SecuritiesProviderProperties();
         Provider kb = new Provider();
+        kb.setMarketDataEnabled(true);
         kb.setAccountEnabled(true);
         kb.setBaseUrl("https://kb.test");
         kb.setGrantType("client_credentials");
@@ -356,10 +396,12 @@ class KbSecuritiesAccountClientTest {
         kb.setHoldingsPath("/api/v1/holdings");
         kb.setSettlementBalancePath("/api/v1/ssqm2932");
         kb.setExecutionBalancePath("/api/v1/ssqm2952");
+        kb.setCurrentPricePath("/api/v1/ivu10140");
         kb.setHoldingsTransactionId("HOLDINGS_TR");
         kb.setCustomerType("P");
         kb.setBalanceInquiryClassification("1");
         kb.setBalanceExchangeMarketPriceCode("A");
+        kb.setCurrentPriceExchangeClassification("0");
         kb.setAppKey("kb-app-key");
         kb.setAppSecret("kb-app-secret");
         kb.setAccountNumber("1234567890");
