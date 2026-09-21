@@ -95,8 +95,7 @@ Invoke-RestMethod `
 
 ## 다음 구현 후보
 
-1. 뉴스·공시 타임라인 Flutter 화면
-2. 관심 종목 뉴스·공시 주기 동기화
-3. 뉴스·공시·가격 흐름을 사용하는 AI 분석 엔진
-4. Windows 로컬 알림
-5. Windows Credential Manager 기반 민감정보 보호
+1. 관심 종목 뉴스·공시 주기 동기화
+2. 뉴스·공시·가격 흐름을 사용하는 AI 분석 엔진
+3. Windows 로컬 알림
+4. Windows Credential Manager 기반 민감정보 보호

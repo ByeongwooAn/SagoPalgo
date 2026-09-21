@@ -12,6 +12,8 @@
 - 포트폴리오 탭은 `/api/v1/capital`, `/api/v1/holdings`를 별도로 호출해 자본금, 권장 투자금, 보유 종목 손익을 최신화합니다.
 - 포트폴리오 탭에서 자본금 수정, 보유 종목 추가, 보유 종목 수정, 보유 종목 삭제를 바로 실행할 수 있습니다.
 - 추천 화면의 관심 등록/알림 설정 버튼은 Spring 관심 종목 API로 동작합니다.
+- 소식 탭은 보유·추천 종목의 저장된 뉴스와 공시를 시간순으로 표시합니다.
+- 소식 탭에서 종목 선택, 뉴스·공시 필터, 외부 Provider 수동 동기화, 원문 열기를 사용할 수 있습니다.
 
 ## 백엔드 API 기준
 
@@ -38,7 +40,7 @@ flutter run -d windows
 ## Windows 빌드
 
 ```powershell
-flutter build windows
+flutter build windows --release
 ```
 
 빌드 산출물은 아래 폴더에 생성됩니다.
@@ -55,5 +57,5 @@ Flutter Windows 앱은 `SagoPalgo.exe`만 따로 복사해서 실행하는 구�
 flutter pub get
 flutter analyze
 flutter test --no-pub
-flutter build windows
+flutter build windows --release
 ```

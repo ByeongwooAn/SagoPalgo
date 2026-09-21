@@ -27,6 +27,12 @@ class ApiConfig {
   /// 증권사 연동 설정 API가 사용하는 `/api/v1/settings/providers` 경로입니다.
   String get providerSettingsUrl => '$baseUrl/api/v1/settings/providers';
 
+  /// 저장된 뉴스·공시 통합 피드 조회 경로입니다.
+  String get researchFeedUrl => '$baseUrl/api/v1/research/feed';
+
+  /// 외부 뉴스·공시 Provider 수동 동기화 경로입니다.
+  String get researchFeedSyncUrl => '$researchFeedUrl/sync';
+
   /// KB증권 보유 주식 조회 API 경로입니다.
   String get kbHoldingsUrl => '$baseUrl/api/v1/kb/accounts/primary/holdings';
 
