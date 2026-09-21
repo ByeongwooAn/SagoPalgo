@@ -49,6 +49,7 @@ sagopalgo:
       settlement-balance-path: /api/v1/ssqm2932
       execution-balance-path: /api/v1/ssqm2952
       current-price-path: /api/v1/ivu10140
+      candle-path: /api/v1/ivs11560
       accounts-transaction-id: ${SAGOPALGO_KB_ACCOUNTS_TR_ID:}
       holdings-transaction-id: ${SAGOPALGO_KB_HOLDINGS_TR_ID:}
       current-price-transaction-id: ${SAGOPALGO_KB_CURRENT_PRICE_TR_ID:}
@@ -90,6 +91,9 @@ sagopalgo:
       # 국내주식 현재가 시세 API 설정입니다.
       price-path: ${SAGOPALGO_KIS_PRICE_PATH:/uapi/domestic-stock/v1/quotations/inquire-price}
       transaction-id: ${SAGOPALGO_KIS_PRICE_TR_ID:FHKST01010100}
+      # 국내주식 기간별 시세(일/주/월) API 설정입니다.
+      candle-path: ${SAGOPALGO_KIS_CANDLE_PATH:/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice}
+      candle-transaction-id: ${SAGOPALGO_KIS_CANDLE_TR_ID:FHKST03010100}
       customer-type: ${SAGOPALGO_KIS_CUSTOMER_TYPE:P}
   research:
     naver-news:

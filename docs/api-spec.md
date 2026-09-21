@@ -249,11 +249,52 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 
 ### 6.0 시장 데이터 Provider
 
-보유 종목 현재가 계산은 `MarketDataProvider` 내부 표준 모델을 사용합니다. Provider 응답은 `StockQuote`로 정규화하며, 현재가, 전일대비, 등락률, 거래량, 시가, 고가, 저가, 전일종가를 같은 필드로 다룹니다. 캔들 데이터는 `StockCandle` 모델을 기준으로 확장할 수 있게 인터페이스를 열어 두었습니다.
+보유 종목 현재가 계산은 `MarketDataProvider` 내부 표준 모델을 사용합니다. Provider 응답은 `StockQuote`로 정규화하며, 현재가, 전일대비, 등락률, 거래량, 시가, 고가, 저가, 전일종가를 같은 필드로 다룹니다. 기간별 시세는 `StockCandle`로 정규화해 일·주·월봉 OHLCV를 같은 계약으로 제공합니다.
 
-Provider 우선순위는 KB증권, 한국투자증권, Toss 순서입니다. KB증권 시세는 공식 문서 `IVU10140_현재가`, path `/api/v1/ivu10140`, 요청값 `excg_clsf=0`, `shrt_cd=종목코드`를 기본값으로 사용합니다. Toss는 공식 시세 path가 확정되기 전까지 기본값이 비어 있어 자동 비활성 상태입니다.
+현재가 Provider 우선순위는 KB증권, 한국투자증권, Toss 순서입니다. KB증권 시세는 공식 문서 `IVU10140_현재가`, path `/api/v1/ivu10140`, 요청값 `excg_clsf=0`, `shrt_cd=종목코드`를 기본값으로 사용합니다. Toss는 공식 시세 path가 확정되기 전까지 기본값이 비어 있어 자동 비활성 상태입니다.
 
 외부 Provider가 일시적으로 실패하면 다음 Provider를 시도합니다. 모든 Provider가 실패하거나 지원 Provider가 없으면 보유 종목 화면의 계산은 등록 매수가를 fallback 현재가로 사용합니다.
+
+#### 6.0.1 국내주식 캔들 조회
+
+`GET /api/v1/market/candles?stockCode=005930&market=KOSPI&interval=DAILY&count=60`
+
+- `market`: `KOSPI`, `KOSDAQ`을 지원합니다. KIS fallback은 `KONEX`도 조회할 수 있습니다.
+- `interval`: `DAILY`, `WEEKLY`, `MONTHLY` 중 하나입니다.
+- `count`: 1~100이며 기본값은 60입니다.
+- 조회 순서는 KB증권 `IVS11560_통합차트`, 한국투자증권 `FHKST03010100`입니다.
+- 응답 캔들은 차트에서 바로 사용할 수 있도록 오래된 시점부터 최신 시점 순으로 정렬합니다.
+- 캔들은 등록 매수가로 대체하지 않습니다. 모든 Provider가 실패하거나 빈 결과를 반환하면 `EXTERNAL_DATA_ERROR`입니다.
+
+응답:
+
+```json
+{
+  "success": true,
+  "data": {
+    "provider": "KB",
+    "stockCode": "005930",
+    "market": "KOSPI",
+    "interval": "DAILY",
+    "count": 2,
+    "candles": [
+      {
+        "provider": "KB",
+        "stockCode": "005930",
+        "market": "KOSPI",
+        "dateTime": "2026-09-21T00:00:00",
+        "interval": "DAILY",
+        "openPrice": 74800,
+        "highPrice": 75300,
+        "lowPrice": 74700,
+        "closePrice": 75200,
+        "volume": 1122334
+      }
+    ]
+  },
+  "message": "종목 캔들 시세가 조회되었습니다."
+}
+```
 
 ### 6.1 앱 초기 스냅샷 조회
 

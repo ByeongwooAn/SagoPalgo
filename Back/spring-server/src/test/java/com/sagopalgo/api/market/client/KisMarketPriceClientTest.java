@@ -11,9 +11,15 @@ import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.config.KisMarketProperties;
 import com.sagopalgo.api.holding.model.Holding;
+import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.model.MarketDataRequest;
+import com.sagopalgo.api.market.model.StockCandle;
 import com.sagopalgo.api.market.model.StockQuote;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -88,6 +94,75 @@ class KisMarketPriceClientTest {
     }
 
     @Test
+    @DisplayName("국내 주식 기간별 시세를 시간 오름차순 표준 캔들로 변환한다")
+    void candlesFetchDomesticStockHistory() {
+        LocalDate endDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate startDate = endDate.minusDays(34);
+        DateTimeFormatter formatter = DateTimeFormatter.BASIC_ISO_DATE;
+
+        server.expect(requestTo("https://kis.test/oauth2/tokenP"))
+            .andRespond(withSuccess("""
+                {
+                  "access_token": "access-token",
+                  "expires_in": 3600
+                }
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo(
+                "https://kis.test/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
+                    + "?FID_COND_MRKT_DIV_CODE=J"
+                    + "&FID_INPUT_ISCD=005930"
+                    + "&FID_INPUT_DATE_1=" + startDate.format(formatter)
+                    + "&FID_INPUT_DATE_2=" + endDate.format(formatter)
+                    + "&FID_PERIOD_DIV_CODE=D"
+                    + "&FID_ORG_ADJ_PRC=0"
+            ))
+            .andExpect(method(HttpMethod.GET))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+            .andExpect(header("tr_id", "FHKST03010100"))
+            .andRespond(withSuccess("""
+                {
+                  "rt_cd": "0",
+                  "msg1": "정상처리 되었습니다.",
+                  "output2": [
+                    {
+                      "stck_bsop_date": "20260922",
+                      "stck_oprc": "75200",
+                      "stck_hgpr": "75500",
+                      "stck_lwpr": "74900",
+                      "stck_clpr": "75300",
+                      "acml_vol": "1234567"
+                    },
+                    {
+                      "stck_bsop_date": "20260921",
+                      "stck_oprc": "74800",
+                      "stck_hgpr": "75300",
+                      "stck_lwpr": "74700",
+                      "stck_clpr": "75200",
+                      "acml_vol": "1122334"
+                    }
+                  ]
+                }
+                """, MediaType.APPLICATION_JSON));
+
+        List<StockCandle> candles = client.candles(
+            new MarketDataRequest("005930", "KOSPI"),
+            CandleInterval.DAILY,
+            2
+        );
+
+        assertThat(candles).extracting(StockCandle::provider).containsOnly("KIS");
+        assertThat(candles).extracting(StockCandle::dateTime)
+            .containsExactly(
+                LocalDate.of(2026, 9, 21).atStartOfDay(),
+                LocalDate.of(2026, 9, 22).atStartOfDay()
+            );
+        assertThat(candles.get(1).openPrice()).isEqualByComparingTo("75200");
+        assertThat(candles.get(1).closePrice()).isEqualByComparingTo("75300");
+        assertThat(candles.get(1).volume()).isEqualByComparingTo("1234567");
+        server.verify();
+    }
+
+    @Test
     @DisplayName("KIS가 실패 코드를 반환하면 외부 데이터 오류로 변환한다")
     void currentPriceThrowsExternalDataErrorWhenKisFails() {
         server.expect(requestTo("https://kis.test/oauth2/tokenP"))
@@ -131,6 +206,8 @@ class KisMarketPriceClientTest {
         properties.setTokenPath("/oauth2/tokenP");
         properties.setPricePath("/uapi/domestic-stock/v1/quotations/inquire-price");
         properties.setTransactionId("FHKST01010100");
+        properties.setCandlePath("/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice");
+        properties.setCandleTransactionId("FHKST03010100");
         properties.setCustomerType("P");
         return properties;
     }

@@ -5,7 +5,9 @@ import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.config.KisMarketProperties;
 import com.sagopalgo.api.holding.model.Holding;
+import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.model.MarketDataRequest;
+import com.sagopalgo.api.market.model.StockCandle;
 import com.sagopalgo.api.market.model.StockQuote;
 import com.sagopalgo.api.market.provider.MarketDataProvider;
 import java.math.BigDecimal;
@@ -13,10 +15,13 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -73,7 +78,7 @@ public class KisMarketPriceClient implements MarketDataProvider {
 
     @Override
     public StockQuote quote(MarketDataRequest request) {
-        ensureConfigured();
+        ensureQuoteConfigured();
 
         KisPriceResponse response;
         try {
@@ -92,6 +97,46 @@ public class KisMarketPriceClient implements MarketDataProvider {
         }
 
         return parseQuote(request, response);
+    }
+
+    @Override
+    public List<StockCandle> candles(MarketDataRequest request, CandleInterval interval, int count) {
+        ensureCandleConfigured();
+        String periodCode = periodCode(interval);
+
+        KisCandleResponse response;
+        try {
+            response = restClient.get()
+                .uri(candleUri(request.stockCode(), interval, periodCode, count))
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken())
+                .header("appkey", properties.getAppKey())
+                .header("appsecret", properties.getAppSecret())
+                .header("tr_id", properties.getCandleTransactionId())
+                .header("custtype", properties.getCustomerType())
+                .retrieve()
+                .body(KisCandleResponse.class);
+        } catch (RestClientException exception) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 기간별 시세 API 호출에 실패했습니다.");
+        }
+
+        if (response == null) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 기간별 시세 응답이 비어 있습니다.");
+        }
+        if (StringUtils.hasText(response.resultCode()) && !"0".equals(response.resultCode())) {
+            String message = StringUtils.hasText(response.message()) ? response.message() : "조회에 실패했습니다.";
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 기간별 시세 조회 실패: " + message);
+        }
+        if (response.output2() == null) {
+            return List.of();
+        }
+
+        List<StockCandle> candles = response.output2().stream()
+            .filter(item -> StringUtils.hasText(item.date()))
+            .map(item -> toCandle(request, interval, item))
+            .sorted(Comparator.comparing(StockCandle::dateTime))
+            .toList();
+        return candles.size() <= count ? candles : candles.subList(candles.size() - count, candles.size());
     }
 
     private String accessToken() {
@@ -199,12 +244,34 @@ public class KisMarketPriceClient implements MarketDataProvider {
             .toUri();
     }
 
+    private URI candleUri(String stockCode, CandleInterval interval, String periodCode, int count) {
+        LocalDate endDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate startDate = switch (interval) {
+            case DAILY -> endDate.minusDays(count * 2L + 30L);
+            case WEEKLY -> endDate.minusWeeks(count + 10L);
+            case MONTHLY -> endDate.minusMonths(count + 3L);
+            case MINUTE -> endDate;
+        };
+        DateTimeFormatter formatter = DateTimeFormatter.BASIC_ISO_DATE;
+        return UriComponentsBuilder
+            .fromUri(endpoint(properties.getCandlePath()))
+            .queryParam("FID_COND_MRKT_DIV_CODE", DOMESTIC_STOCK_MARKET_DIVISION)
+            .queryParam("FID_INPUT_ISCD", stockCode)
+            .queryParam("FID_INPUT_DATE_1", startDate.format(formatter))
+            .queryParam("FID_INPUT_DATE_2", endDate.format(formatter))
+            .queryParam("FID_PERIOD_DIV_CODE", periodCode)
+            .queryParam("FID_ORG_ADJ_PRC", "0")
+            .build()
+            .encode()
+            .toUri();
+    }
+
     private URI endpoint(String path) {
         String normalizedPath = StringUtils.hasText(path) && path.startsWith("/") ? path : "/" + path;
         return URI.create(properties.getBaseUrl().replaceAll("/+$", "") + normalizedPath);
     }
 
-    private void ensureConfigured() {
+    private void ensureQuoteConfigured() {
         if (!StringUtils.hasText(properties.getBaseUrl())
             || !StringUtils.hasText(properties.getAppKey())
             || !StringUtils.hasText(properties.getAppSecret())
@@ -216,11 +283,60 @@ public class KisMarketPriceClient implements MarketDataProvider {
         }
     }
 
+    private void ensureCandleConfigured() {
+        if (!StringUtils.hasText(properties.getBaseUrl())
+            || !StringUtils.hasText(properties.getAppKey())
+            || !StringUtils.hasText(properties.getAppSecret())
+            || !StringUtils.hasText(properties.getCandleTransactionId())
+            || !StringUtils.hasText(properties.getCustomerType())
+            || !StringUtils.hasText(properties.getTokenPath())
+            || !StringUtils.hasText(properties.getCandlePath())) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 기간별 시세 API 설정이 필요합니다.");
+        }
+    }
+
+    private String periodCode(CandleInterval interval) {
+        if (interval == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "캔들 주기가 필요합니다.");
+        }
+        return switch (interval) {
+            case DAILY -> "D";
+            case WEEKLY -> "W";
+            case MONTHLY -> "M";
+            case MINUTE -> throw new ApiException(
+                ErrorCode.EXTERNAL_DATA_ERROR,
+                "한국투자증권 기간별 시세 API는 분봉을 지원하지 않습니다."
+            );
+        };
+    }
+
+    private StockCandle toCandle(MarketDataRequest request, CandleInterval interval, CandleOutput item) {
+        try {
+            return new StockCandle(
+                PROVIDER_CODE,
+                request.stockCode(),
+                normalizeMarket(request.market()),
+                LocalDate.parse(item.date(), DateTimeFormatter.BASIC_ISO_DATE).atStartOfDay(),
+                interval,
+                requiredDecimal(item.openPrice(), "한국투자증권 시가 형식이 올바르지 않습니다."),
+                requiredDecimal(item.highPrice(), "한국투자증권 고가 형식이 올바르지 않습니다."),
+                requiredDecimal(item.lowPrice(), "한국투자증권 저가 형식이 올바르지 않습니다."),
+                requiredDecimal(item.closePrice(), "한국투자증권 종가 형식이 올바르지 않습니다."),
+                requiredDecimal(item.volume(), "한국투자증권 거래량 형식이 올바르지 않습니다.")
+            );
+        } catch (DateTimeParseException exception) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 기간별 시세 일자 형식이 올바르지 않습니다.");
+        }
+    }
+
     private String normalizeMarket(String market) {
         return market == null ? "" : market.trim().toUpperCase(Locale.ROOT);
     }
 
     private BigDecimal requiredDecimal(String value, String message) {
+        if (!StringUtils.hasText(value)) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, message);
+        }
         try {
             return new BigDecimal(value.replace(",", "").replace("%", "").trim());
         } catch (NumberFormatException exception) {
@@ -270,6 +386,38 @@ public class KisMarketPriceClient implements MarketDataProvider {
         String message,
 
         Output output
+    ) {
+    }
+
+    private record KisCandleResponse(
+        @JsonProperty("rt_cd")
+        String resultCode,
+
+        @JsonProperty("msg1")
+        String message,
+
+        List<CandleOutput> output2
+    ) {
+    }
+
+    private record CandleOutput(
+        @JsonProperty("stck_bsop_date")
+        String date,
+
+        @JsonProperty("stck_oprc")
+        String openPrice,
+
+        @JsonProperty("stck_hgpr")
+        String highPrice,
+
+        @JsonProperty("stck_lwpr")
+        String lowPrice,
+
+        @JsonProperty("stck_clpr")
+        String closePrice,
+
+        @JsonProperty("acml_vol")
+        String volume
     ) {
     }
 

@@ -16,6 +16,8 @@ public class KisMarketProperties {
     private String tokenPath = "/oauth2/tokenP";
     private String pricePath = "/uapi/domestic-stock/v1/quotations/inquire-price";
     private String transactionId = "FHKST01010100";
+    private String candlePath = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
+    private String candleTransactionId = "FHKST03010100";
     private String customerType = "P";
 
     public boolean isEnabled() {
@@ -80,6 +82,22 @@ public class KisMarketProperties {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
+    }
+
+    public String getCandlePath() {
+        return candlePath;
+    }
+
+    public void setCandlePath(String candlePath) {
+        this.candlePath = candlePath;
+    }
+
+    public String getCandleTransactionId() {
+        return candleTransactionId;
+    }
+
+    public void setCandleTransactionId(String candleTransactionId) {
+        this.candleTransactionId = candleTransactionId;
     }
 
     public String getCustomerType() {
