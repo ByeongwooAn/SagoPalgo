@@ -35,6 +35,7 @@ class ResearchTimelineScreen extends StatefulWidget {
 class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
   ResearchStock? _selectedStock;
   Future<ResearchFeed>? _feedFuture;
+  Future<ResearchSyncOverview>? _statusFuture;
   ResearchTimelineFilter _filter = ResearchTimelineFilter.all;
   bool _syncing = false;
 
@@ -44,6 +45,7 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
     _selectedStock = widget.stocks.isEmpty ? null : widget.stocks.first;
     if (widget.active && _selectedStock != null) {
       _feedFuture = widget.repository.fetchFeed(_selectedStock!);
+      _statusFuture = widget.repository.fetchSyncStatus(_selectedStock!);
     }
   }
 
@@ -57,12 +59,14 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
     if (matched == null && widget.stocks.isNotEmpty) {
       _selectedStock = widget.stocks.first;
       _feedFuture = null;
+      _statusFuture = null;
     } else if (matched != null) {
       _selectedStock = matched;
     }
 
     if (widget.active && !oldWidget.active && _selectedStock != null) {
       _feedFuture = widget.repository.fetchFeed(_selectedStock!);
+      _statusFuture = widget.repository.fetchSyncStatus(_selectedStock!);
     }
   }
 
@@ -93,6 +97,8 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
               onSync: _syncFeed,
             ),
             const SizedBox(height: 12),
+            _buildSyncStatus(),
+            const SizedBox(height: 12),
             _FilterControl(
               selected: _filter,
               onChanged: (filter) => setState(() => _filter = filter),
@@ -103,6 +109,25 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
           const SizedBox(height: 12),
         ],
       ),
+    );
+  }
+
+  Widget _buildSyncStatus() {
+    final future = _statusFuture;
+    if (future == null) {
+      return const SizedBox.shrink();
+    }
+    return FutureBuilder<ResearchSyncOverview>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _SyncStatusLoadingCard();
+        }
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const _SyncStatusUnavailableCard();
+        }
+        return _SyncStatusCard(overview: snapshot.data!);
+      },
     );
   }
 
@@ -152,6 +177,7 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
       _selectedStock = stock;
       _filter = ResearchTimelineFilter.all;
       _feedFuture = widget.repository.fetchFeed(stock);
+      _statusFuture = widget.repository.fetchSyncStatus(stock);
     });
   }
 
@@ -162,6 +188,7 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
     }
     setState(() {
       _feedFuture = widget.repository.fetchFeed(stock);
+      _statusFuture = widget.repository.fetchSyncStatus(stock);
     });
   }
 
@@ -191,9 +218,190 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
       // FutureBuilder의 오류 상태에서 재시도 동작과 상세 메시지를 제공합니다.
     } finally {
       if (mounted) {
-        setState(() => _syncing = false);
+        setState(() {
+          _syncing = false;
+          _statusFuture = widget.repository.fetchSyncStatus(stock);
+        });
       }
     }
+  }
+}
+
+class _SyncStatusCard extends StatelessWidget {
+  const _SyncStatusCard({required this.overview});
+
+  final ResearchSyncOverview overview;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    final item = overview.item;
+    return AppCard(
+      soft: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                overview.enabled ? Icons.schedule_rounded : Icons.pause_rounded,
+                color: overview.enabled ? AppTheme.main : palette.muted,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '자동 수집',
+                  style: TextStyle(
+                    color: palette.text,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ),
+              StatusChip(label: overview.enabled ? '켜짐' : '꺼짐'),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (item == null)
+            Text(
+              '아직 이 종목의 동기화 이력이 없습니다.',
+              style: TextStyle(
+                color: palette.muted,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0,
+              ),
+            )
+          else ...[
+            Row(
+              children: [
+                _SyncResultBadge(status: item.status),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${_triggerLabel(item.triggerType)} · ${_formatDateTime(item.lastAttemptedAt)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: palette.muted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '뉴스 ${item.newsCount}건 · 공시 ${item.disclosureCount}건',
+              style: TextStyle(
+                color: palette.text,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              item.message,
+              style: TextStyle(
+                color: palette.muted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SyncResultBadge extends StatelessWidget {
+  const _SyncResultBadge({required this.status});
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    final color = switch (status) {
+      'SUCCESS' => AppTheme.main,
+      'PARTIAL' => AppTheme.point,
+      'FAILED' => AppTheme.sub,
+      _ => palette.muted,
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .13),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        _syncStatusLabel(status),
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0,
+        ),
+      ),
+    );
+  }
+}
+
+class _SyncStatusLoadingCard extends StatelessWidget {
+  const _SyncStatusLoadingCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return const AppCard(
+      soft: true,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          SizedBox(width: 10),
+          Text('동기화 상태 확인 중'),
+        ],
+      ),
+    );
+  }
+}
+
+class _SyncStatusUnavailableCard extends StatelessWidget {
+  const _SyncStatusUnavailableCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    return AppCard(
+      soft: true,
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline_rounded, color: AppTheme.sub),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              '마지막 동기화 상태를 확인하지 못했습니다.',
+              style: TextStyle(
+                color: palette.text,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -696,6 +904,30 @@ String _formatDate(DateTime? value) {
   final month = local.month.toString().padLeft(2, '0');
   final day = local.day.toString().padLeft(2, '0');
   return '${local.year}.$month.$day';
+}
+
+String _formatDateTime(DateTime? value) {
+  if (value == null) return '시각 미상';
+  final local = value.toLocal();
+  final month = local.month.toString().padLeft(2, '0');
+  final day = local.day.toString().padLeft(2, '0');
+  final hour = local.hour.toString().padLeft(2, '0');
+  final minute = local.minute.toString().padLeft(2, '0');
+  return '${local.year}.$month.$day $hour:$minute';
+}
+
+String _triggerLabel(String triggerType) {
+  return triggerType == 'SCHEDULED' ? '자동' : '수동';
+}
+
+String _syncStatusLabel(String status) {
+  return switch (status) {
+    'SUCCESS' => '성공',
+    'PARTIAL' => '부분 성공',
+    'FAILED' => '실패',
+    'SKIPPED' => '건너뜀',
+    _ => status,
+  };
 }
 
 String _errorMessage(Object? error) {

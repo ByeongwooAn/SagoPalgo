@@ -89,6 +89,54 @@ void main() {
       ),
     );
   });
+
+  test(
+    'fetchSyncStatus maps scheduler configuration and last result',
+    () async {
+      final repository = SpringResearchFeedRepository(
+        accessToken: '',
+        config: ApiConfig(baseUrl: 'http://localhost:8080'),
+        client: MockClient((request) async {
+          expect(request.method, 'GET');
+          expect(request.url.path, '/api/v1/research/sync/status');
+          expect(request.url.queryParameters['stockCode'], '005930');
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'data': {
+                'enabled': true,
+                'cron': '0 0/30 * * * *',
+                'zone': 'Asia/Seoul',
+                'item': {
+                  'stockCode': '005930',
+                  'stockName': '삼성전자',
+                  'triggerType': 'SCHEDULED',
+                  'status': 'PARTIAL',
+                  'newsCount': 3,
+                  'disclosureCount': 2,
+                  'providerSuccessCount': 1,
+                  'providerFailureCount': 1,
+                  'providerDisabledCount': 0,
+                  'message': '부분 성공',
+                  'lastAttemptedAt': '2026-09-22T00:00:00Z',
+                  'lastSucceededAt': '2026-09-22T00:00:00Z',
+                },
+              },
+            }),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }),
+      );
+
+      final overview = await repository.fetchSyncStatus(stock);
+
+      expect(overview.enabled, isTrue);
+      expect(overview.item?.status, 'PARTIAL');
+      expect(overview.item?.newsCount, 3);
+      expect(overview.item?.lastAttemptedAt, isNotNull);
+    },
+  );
 }
 
 Map<String, dynamic> _responseData({

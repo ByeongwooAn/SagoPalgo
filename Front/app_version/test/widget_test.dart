@@ -58,6 +58,8 @@ void main() {
     expect(find.text('뉴스 · 공시'), findsOneWidget);
     expect(find.text('반도체 투자 확대'), findsOneWidget);
     expect(find.text('주요사항보고서'), findsOneWidget);
+    expect(find.text('자동 수집'), findsOneWidget);
+    expect(find.text('부분 성공'), findsOneWidget);
 
     /// 추천 액션 검증을 위해 추천 탭으로 돌아갑니다.
     await tester.tap(find.text('추천'));
@@ -308,6 +310,11 @@ class FakeResearchFeedRepository implements ResearchFeedRepository {
   Future<ResearchFeed> syncFeed(ResearchStock stock) async {
     return _testResearchFeed;
   }
+
+  @override
+  Future<ResearchSyncOverview> fetchSyncStatus(ResearchStock stock) async {
+    return _testResearchSyncOverview;
+  }
 }
 
 const _testCapital = CapitalSettings(
@@ -472,4 +479,24 @@ final _testResearchFeed = ResearchFeed(
       message: '뉴스 1건 · 공시 1건',
     ),
   ],
+);
+
+final _testResearchSyncOverview = ResearchSyncOverview(
+  enabled: true,
+  cron: '0 0/30 * * * *',
+  zone: 'Asia/Seoul',
+  item: ResearchSyncStatusItem(
+    stockCode: '005930',
+    stockName: '삼성전자',
+    triggerType: 'SCHEDULED',
+    status: 'PARTIAL',
+    newsCount: 1,
+    disclosureCount: 1,
+    providerSuccessCount: 1,
+    providerFailureCount: 1,
+    providerDisabledCount: 0,
+    message: 'Provider 성공 1 · 실패 1 · 비활성 0',
+    lastAttemptedAt: DateTime.parse('2026-09-22T00:00:00Z'),
+    lastSucceededAt: DateTime.parse('2026-09-22T00:00:00Z'),
+  ),
 );
