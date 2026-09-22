@@ -27,7 +27,7 @@ API Key, 계좌정보, 토큰 등 민감정보를 저장소에 커밋하지 마�
 - 뉴스와 공시 기반 종목별 AI 분석
 - 관심종목, 보유종목, 리스크 신호 알림
 - 항상 화면 위에 띄울 수 있는 미니 위젯 모드
-- 추후 모의매매, 승인형 주문, 제한적 자동매매
+- AI 신호 기반 모의매매, 추후 승인형 주문과 제한적 자동매매
 
 ## 현재 기술 구조
 
@@ -74,7 +74,7 @@ Windows 릴리즈 빌드:
 
 ```powershell
 cd Front/app_version
-flutter build windows
+flutter build windows --release
 ```
 
 Ubuntu 백엔드 실행:

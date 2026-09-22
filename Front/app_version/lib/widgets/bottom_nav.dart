@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 
 /// 앱 하단의 주요 탭 네비게이션입니다.
 ///
-/// 홈, 추천, 보유, 소식, 알림은 기획서 MVP의 핵심 사용자 흐름이므로
+/// 홈, 추천, 보유, 소식, 알림, 모의매매는 개인 투자 흐름의 핵심이므로
 /// 별도 위젯으로 분리해 화면 컨테이너가 네비게이션 구현 세부사항을 몰라도 되게 합니다.
 class BottomNav extends StatelessWidget {
   /// 현재 선택된 탭과 탭 선택 콜백을 받습니다.
@@ -14,7 +14,7 @@ class BottomNav extends StatelessWidget {
     required this.onSelected,
   });
 
-  /// 0이면 홈, 1이면 추천, 2이면 보유, 3이면 소식, 4이면 알림, 5이면 설정 탭입니다.
+  /// 0부터 홈, 추천, 보유, 소식, 알림, 모의, 설정 탭 순서입니다.
   final int selectedIndex;
 
   /// 사용자가 탭을 누를 때 부모 화면으로 선택 인덱스를 전달합니다.
@@ -76,10 +76,16 @@ class BottomNav extends StatelessWidget {
               onTap: () => onSelected(4),
             ),
             _NavItem(
-              label: '설정',
-              icon: Icons.settings_rounded,
+              label: '모의',
+              icon: Icons.science_rounded,
               active: selectedIndex == 5,
               onTap: () => onSelected(5),
+            ),
+            _NavItem(
+              label: '설정',
+              icon: Icons.settings_rounded,
+              active: selectedIndex == 6,
+              onTap: () => onSelected(6),
             ),
           ],
         ),

@@ -6,6 +6,7 @@ import 'repositories/investment_repository.dart';
 import 'repositories/alert_repository.dart';
 import 'repositories/kb_account_repository.dart';
 import 'repositories/market_data_repository.dart';
+import 'repositories/paper_trading_repository.dart';
 import 'repositories/portfolio_repository.dart';
 import 'repositories/provider_settings_repository.dart';
 import 'repositories/recommendation_repository.dart';
@@ -14,6 +15,7 @@ import 'repositories/spring_investment_repository.dart';
 import 'repositories/spring_alert_repository.dart';
 import 'repositories/spring_kb_account_repository.dart';
 import 'repositories/spring_market_data_repository.dart';
+import 'repositories/spring_paper_trading_repository.dart';
 import 'repositories/spring_portfolio_repository.dart';
 import 'repositories/spring_provider_settings_repository.dart';
 import 'repositories/spring_recommendation_repository.dart';
@@ -69,6 +71,7 @@ class SagoPalgoApp extends StatefulWidget {
     this.researchFeedRepositoryBuilder,
     this.kbAccountRepositoryBuilder,
     this.marketDataRepositoryBuilder,
+    this.paperTradingRepositoryBuilder,
     this.alertRepositoryBuilder,
     this.localNotificationService = const NoopLocalNotificationService(),
     this.desktopWindowService = const NoopDesktopWindowService(),
@@ -125,6 +128,10 @@ class SagoPalgoApp extends StatefulWidget {
   /// 테스트에서 캔들 시세 Repository를 교체하기 위한 빌더입니다.
   final MarketDataRepository Function(AuthSession session)?
   marketDataRepositoryBuilder;
+
+  /// AI 신호 기반 모의매매 Repository를 교체하기 위한 빌더입니다.
+  final PaperTradingRepository Function(AuthSession session)?
+  paperTradingRepositoryBuilder;
 
   /// 저장 알림 조회와 전달 상태를 처리하는 Repository 빌더입니다.
   final AlertRepository Function(AuthSession session)? alertRepositoryBuilder;
@@ -224,6 +231,11 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
               marketDataRepository:
                   widget.marketDataRepositoryBuilder?.call(session) ??
                   SpringMarketDataRepository(accessToken: session.accessToken),
+              paperTradingRepository:
+                  widget.paperTradingRepositoryBuilder?.call(session) ??
+                  SpringPaperTradingRepository(
+                    accessToken: session.accessToken,
+                  ),
               alertRepository: widget.alertRepositoryBuilder?.call(session),
               localNotificationService: widget.localNotificationService,
               desktopWindowService: widget.desktopWindowService,

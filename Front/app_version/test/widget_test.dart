@@ -5,6 +5,7 @@ import 'package:app_version/models/investment_snapshot.dart';
 import 'package:app_version/models/kb_account_snapshot.dart';
 import 'package:app_version/models/market_candle.dart';
 import 'package:app_version/models/market_summary.dart';
+import 'package:app_version/models/paper_trading.dart';
 import 'package:app_version/models/provider_setting.dart';
 import 'package:app_version/models/recommendation.dart';
 import 'package:app_version/models/research_feed.dart';
@@ -12,6 +13,7 @@ import 'package:app_version/models/watchlist_item.dart';
 import 'package:app_version/repositories/investment_repository.dart';
 import 'package:app_version/repositories/kb_account_repository.dart';
 import 'package:app_version/repositories/market_data_repository.dart';
+import 'package:app_version/repositories/paper_trading_repository.dart';
 import 'package:app_version/repositories/portfolio_repository.dart';
 import 'package:app_version/repositories/provider_settings_repository.dart';
 import 'package:app_version/repositories/recommendation_repository.dart';
@@ -40,6 +42,8 @@ void main() {
             const FakeResearchFeedRepository(),
         kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
         marketDataRepositoryBuilder: (_) => const FakeMarketDataRepository(),
+        paperTradingRepositoryBuilder: (_) =>
+            const FakePaperTradingRepository(),
       ),
     );
 
@@ -79,6 +83,12 @@ void main() {
     expect(find.text('주요사항보고서'), findsOneWidget);
     expect(find.text('자동 수집'), findsOneWidget);
     expect(find.text('부분 성공'), findsOneWidget);
+
+    /// 모의 탭은 실제 주문과 분리된 성과와 포지션을 표시합니다.
+    await tester.tap(find.text('모의'));
+    await tester.pumpAndSettle();
+    expect(find.text('AI 모의매매'), findsOneWidget);
+    expect(find.text('모의 총자산'), findsOneWidget);
 
     /// 추천 액션 검증을 위해 추천 탭으로 돌아갑니다.
     await tester.tap(find.text('추천'));
@@ -143,6 +153,8 @@ void main() {
             const FakeResearchFeedRepository(),
         kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
         marketDataRepositoryBuilder: (_) => const FakeMarketDataRepository(),
+        paperTradingRepositoryBuilder: (_) =>
+            const FakePaperTradingRepository(),
       ),
     );
 
@@ -169,6 +181,26 @@ class FakeInvestmentRepository implements InvestmentRepository {
   Future<InvestmentSnapshot> fetchSnapshot() async {
     return _testSnapshot;
   }
+}
+
+class FakePaperTradingRepository implements PaperTradingRepository {
+  const FakePaperTradingRepository();
+
+  @override
+  Future<PaperTradingSnapshot> fetchSnapshot() async => _testPaperTrading;
+
+  @override
+  Future<PaperTradingSnapshot> buyFromRecommendation(
+    int recommendationId,
+    double quantity,
+  ) async => _testPaperTrading;
+
+  @override
+  Future<PaperTradingSnapshot> sellPosition({
+    required String stockCode,
+    required String market,
+    required double quantity,
+  }) async => _testPaperTrading;
 }
 
 class FakeRecommendationRepository implements RecommendationRepository {
@@ -485,6 +517,25 @@ final _testSnapshot = InvestmentSnapshot(
       type: AppAlertType.candidate,
     ),
   ],
+);
+
+const _testPaperTrading = PaperTradingSnapshot(
+  summary: PaperTradingSummary(
+    initialCapital: 3000000,
+    cashBalance: 3000000,
+    openPositionValue: 0,
+    totalAsset: 3000000,
+    realizedProfit: 0,
+    unrealizedProfit: 0,
+    totalProfit: 0,
+    returnRate: 0,
+    completedTrades: 0,
+    winRate: 0,
+    maxLoss: 0,
+    turnoverRate: 0,
+  ),
+  positions: [],
+  trades: [],
 );
 
 const _testKbAccountSnapshot = KbAccountSnapshot(

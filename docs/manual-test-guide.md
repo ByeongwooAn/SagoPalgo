@@ -75,7 +75,13 @@ Get-Content -Raw Back/database/migrations/003_research_sync_status.sql | `
 Get-Content -Raw Back/database/migrations/004_event_alerts.sql | `
   docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
   sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
+
+Get-Content -Raw Back/database/migrations/005_paper_trading.sql | `
+  docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
+  sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
 ```
+
+`005_paper_trading.sql`은 기존 `trade_records`를 확장하는 `ALTER TABLE` 마이그레이션이므로 기존 볼륨에 정확히 한 번만 적용합니다.
 
 자동 수집을 확인할 때만 `.env.dev`에서 아래 값을 켭니다. 기본값은 외부 API 쿼터 보호를 위해 `false`입니다.
 
@@ -267,8 +273,14 @@ flutter run -d windows
 35. 트레이 아이콘을 더블클릭하면 전체 대시보드가 열리는지 확인합니다.
 36. 트레이 메뉴의 `설정`이 전체 창의 설정 탭을 열고, `미니 위젯`이 항상 위 소형 창을 여는지 확인합니다.
 37. 트레이 메뉴의 `종료`를 선택했을 때만 앱 프로세스와 트레이 아이콘이 함께 종료되는지 확인합니다.
-30. 캔들을 마우스로 가리키거나 클릭했을 때 선택 날짜의 종가, 등락률, OHLCV가 표시되는지 확인합니다.
-31. 서버를 잠시 내린 뒤 포트폴리오, 차트, 소식 탭의 재시도 화면이 보이는지 확인합니다.
+38. `모의` 탭을 처음 열었을 때 초기 자본, 현금, 총자산, 실현·평가손익, 승률, 최대 손실, 회전율이 표시되는지 확인합니다.
+39. 저장된 최신 추천이 `BUY`이면 `AI 신호로 모의매수` 버튼이 활성화되는지 확인합니다.
+40. 수량을 입력해 모의매수한 뒤 실제 KB 계좌 잔고는 변하지 않고 모의 현금, 포지션, 체결 이력만 갱신되는지 확인합니다.
+41. 보유 수량 안에서 모의매도하면 실현손익과 승률이 갱신되는지 확인합니다.
+42. 보유 수량보다 큰 매도 수량은 앱 입력 검증과 서버 검증에서 모두 차단되는지 확인합니다.
+43. 실제 현재가 Provider가 모두 실패한 상태에서는 신규 모의 체결이 거부되고 기존 포지션은 평균 매수가 기준 `FALLBACK` 평가로 표시되는지 확인합니다.
+44. 캔들을 마우스로 가리키거나 클릭했을 때 선택 날짜의 종가, 등락률, OHLCV가 표시되는지 확인합니다.
+45. 서버를 잠시 내린 뒤 포트폴리오, 차트, 소식, 모의 탭의 재시도 화면이 보이는지 확인합니다.
 
 캔들 Provider 실데이터 확인:
 
@@ -303,6 +315,31 @@ Invoke-RestMethod `
 4. 대시보드 새로고침 시 가장 최근에 저장한 추천이 대표 추천으로 표시되는지 확인합니다.
 5. Flutter 추천 탭에서 목록을 추가 조회할 수 있고, 항목 선택 시 같은 추천 ID의 상세가 표시되는지 확인합니다.
 6. 보유 종목 수동 재분석 후 새 추천이 이력 최상단에 나타나는지 확인합니다.
+
+모의매매 API 확인:
+
+```powershell
+$recommendationId = 1
+
+Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/paper-trading'
+
+Invoke-RestMethod `
+  -Method Post `
+  -ContentType 'application/json' `
+  -Body '{"quantity":10}' `
+  -Uri "http://localhost:8080/api/v1/paper-trading/recommendations/$recommendationId/buy"
+
+Invoke-RestMethod `
+  -Method Post `
+  -ContentType 'application/json' `
+  -Body '{"stockCode":"005930","market":"KOSPI","quantity":4}' `
+  -Uri 'http://localhost:8080/api/v1/paper-trading/sell'
+```
+
+1. `recommendationId`를 현재 사용자의 저장된 `BUY` 추천 ID로 바꿉니다.
+2. 매수·매도 뒤 `trade_records.execution_mode`가 `PAPER`이고 실제 주문 API 호출이나 KB 잔고 변화가 없는지 확인합니다.
+3. 모의 현금 잔액과 보유 수량을 초과한 요청이 `VALIDATION_ERROR`로 거부되는지 확인합니다.
+4. 매도 뒤 `realizedProfit`, `totalProfit`, `winRate`, `maxLoss`, `turnoverRate`가 원장 기준으로 갱신되는지 확인합니다.
 
 Windows 알림 흐름 확인:
 
@@ -347,3 +384,4 @@ flutter build windows --release
 - Ubuntu 백엔드의 추천 신호와 가격·뉴스·공시·포트폴리오 리스크 알림 저장, 알림 API, Flutter 폴링, Windows 네이티브 알림이 연결되어 있습니다. 앱이 완전히 종료된 동안에는 Windows 토스트를 즉시 표시하지 않지만 백엔드는 알림을 저장하고 다음 앱 실행 때 전달합니다.
 - 뉴스와 공시는 외부 동기화, 로컬 저장, 중복 제거, 기간 조회, Flutter 타임라인, 주기 동기화까지 구현됐습니다.
 - Windows 미니 위젯은 관심 종목 현재가, 포트폴리오 손익, AI 신호를 표시하며 항상 위 창과 시스템 트레이 메뉴를 지원합니다.
+- 모의매매는 저장된 AI 매수 신호와 실제 현재가를 사용하지만 `PAPER` 원장만 변경하며 실제 KB 주문은 호출하지 않습니다.

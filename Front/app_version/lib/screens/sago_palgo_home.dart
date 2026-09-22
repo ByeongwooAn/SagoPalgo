@@ -13,6 +13,7 @@ import '../repositories/investment_repository.dart';
 import '../repositories/alert_repository.dart';
 import '../repositories/kb_account_repository.dart';
 import '../repositories/market_data_repository.dart';
+import '../repositories/paper_trading_repository.dart';
 import '../repositories/portfolio_repository.dart';
 import '../repositories/provider_settings_repository.dart';
 import '../repositories/recommendation_repository.dart';
@@ -26,6 +27,7 @@ import '../widgets/bottom_nav.dart';
 import 'alerts_screen.dart';
 import 'dashboard_screen.dart';
 import 'mini_widget_screen.dart';
+import 'paper_trading_screen.dart';
 import 'portfolio_screen.dart';
 import 'recommendation_screen.dart';
 import 'research_timeline_screen.dart';
@@ -49,6 +51,7 @@ class SagoPalgoHome extends StatefulWidget {
     required this.researchFeedRepository,
     required this.kbAccountRepository,
     required this.marketDataRepository,
+    required this.paperTradingRepository,
     required this.alertRepository,
     required this.localNotificationService,
     this.desktopWindowService = const NoopDesktopWindowService(),
@@ -84,6 +87,9 @@ class SagoPalgoHome extends StatefulWidget {
 
   /// 종목 상세 화면에서 일·주·월봉 시세를 조회하는 Repository입니다.
   final MarketDataRepository marketDataRepository;
+
+  /// 모의매매 현황 조회와 가상 체결을 처리합니다.
+  final PaperTradingRepository paperTradingRepository;
 
   /// Ubuntu 백엔드의 저장 알림을 조회하고 상태를 갱신합니다.
   final AlertRepository? alertRepository;
@@ -222,6 +228,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       portfolioRepository: widget.portfolioRepository,
                       kbAccountRepository: widget.kbAccountRepository,
                       marketDataRepository: widget.marketDataRepository,
+                      paperTradingRepository: widget.paperTradingRepository,
                       researchFeedRepository: widget.researchFeedRepository,
                       recommendationRepository: widget.recommendationRepository,
                       appSecurityService: widget.appSecurityService,
@@ -289,7 +296,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     if (mounted) {
       setState(() {
         _isMiniMode = false;
-        _selectedIndex = 5;
+        _selectedIndex = 6;
       });
     }
   }
@@ -596,6 +603,7 @@ class _TabContent extends StatelessWidget {
     required this.portfolioRepository,
     required this.kbAccountRepository,
     required this.marketDataRepository,
+    required this.paperTradingRepository,
     required this.researchFeedRepository,
     required this.recommendationRepository,
     required this.appSecurityService,
@@ -632,6 +640,9 @@ class _TabContent extends StatelessWidget {
 
   /// 포트폴리오 종목 상세 캔들을 조회하는 Repository입니다.
   final MarketDataRepository marketDataRepository;
+
+  /// 모의매매 현황과 체결 액션을 처리하는 Repository입니다.
+  final PaperTradingRepository paperTradingRepository;
 
   /// 뉴스·공시 조회와 동기화를 처리하는 Repository입니다.
   final ResearchFeedRepository researchFeedRepository;
@@ -724,6 +735,11 @@ class _TabContent extends StatelessWidget {
           alerts: alerts,
           onRefresh: onAlertsRefresh,
           onAlertTap: onAlertRead,
+        ),
+        PaperTradingScreen(
+          repository: paperTradingRepository,
+          recommendation: snapshot.recommendation,
+          active: selectedIndex == 5,
         ),
         SettingsScreen(
           providerSettingsFuture: providerSettingsFuture,

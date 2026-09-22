@@ -45,6 +45,9 @@ class ApiConfig {
   /// 추천 이력, 상세, 보유 종목 수동 분석 API의 기본 경로입니다.
   String get recommendationsBaseUrl => '$baseUrl/api/v1/recommendations';
 
+  /// 실제 주문과 분리된 모의매매 조회·체결 API 기본 경로입니다.
+  String get paperTradingBaseUrl => '$baseUrl/api/v1/paper-trading';
+
   /// KB증권 보유 주식 조회 API 경로입니다.
   String get kbHoldingsUrl => '$baseUrl/api/v1/kb/accounts/primary/holdings';
 

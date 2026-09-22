@@ -113,7 +113,15 @@ Invoke-RestMethod `
 - 자동 동기화를 켜면 개인 사용자의 관심 종목을 cron 주기마다 순회하며, 한 종목 실패가 다음 종목 처리를 막지 않습니다.
 - `/api/v1/research/sync/status`에서 자동 수집 활성 여부와 종목별 마지막 실행 상태를 조회합니다.
 
-기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql), [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql), [`Back/database/migrations/004_event_alerts.sql`](../database/migrations/004_event_alerts.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
+기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql), [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql), [`Back/database/migrations/004_event_alerts.sql`](../database/migrations/004_event_alerts.sql), [`Back/database/migrations/005_paper_trading.sql`](../database/migrations/005_paper_trading.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
+
+## 모의매매
+
+- `GET /api/v1/paper-trading`: 모의 자산, 성과 지표, 포지션, 체결 이력 조회
+- `POST /api/v1/paper-trading/recommendations/{recommendationId}/buy`: 저장된 `BUY` 추천을 실제 현재가로 가상 매수
+- `POST /api/v1/paper-trading/sell`: 보유한 모의 포지션을 실제 현재가로 가상 매도
+- 모든 거래는 `execution_mode=PAPER`로 저장되며 KB 주문 API를 호출하지 않습니다.
+- `FALLBACK` 현재가는 평가 기준으로만 사용할 수 있고 가상 체결에는 사용할 수 없습니다.
 
 ## 추천 기준
 
@@ -146,6 +154,6 @@ Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read
 
 ## 다음 구현 후보
 
-1. AI 신호 기반 모의매매와 성과 지표 구현
-2. 자동 주문 설계와 수동 승인 기반 주문 실행
-3. 배포 패키지 자동 업데이트와 운영 상태 진단
+1. 자동 주문 설계와 수동 승인 기반 주문 실행
+2. 배포 패키지 자동 업데이트와 운영 상태 진단
+3. 모의매매 전략·기간별 성과 비교 차트
