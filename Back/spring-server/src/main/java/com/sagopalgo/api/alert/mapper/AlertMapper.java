@@ -142,6 +142,20 @@ public interface AlertMapper {
         @Param("cutoff") LocalDateTime cutoff
     );
 
+    @Select("""
+        SELECT COUNT(*)
+        FROM alerts
+        WHERE user_id = #{userId}
+          AND stock_code IS NULL
+          AND event_type = #{eventType}
+          AND created_at >= #{cutoff}
+        """)
+    boolean existsRecentPortfolioEvent(
+        @Param("userId") Long userId,
+        @Param("eventType") String eventType,
+        @Param("cutoff") LocalDateTime cutoff
+    );
+
     @Update("""
         UPDATE alerts
         SET sent_at = COALESCE(sent_at, CURRENT_TIMESTAMP)

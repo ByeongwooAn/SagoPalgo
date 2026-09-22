@@ -39,6 +39,7 @@ sagopalgo:
     research-events-enabled: ${SAGOPALGO_ALERT_RESEARCH_EVENTS_ENABLED:true}
     news-max-age-hours: ${SAGOPALGO_ALERT_NEWS_MAX_AGE_HOURS:24}
     disclosure-max-age-days: ${SAGOPALGO_ALERT_DISCLOSURE_MAX_AGE_DAYS:1}
+    portfolio-events-enabled: ${SAGOPALGO_ALERT_PORTFOLIO_EVENTS_ENABLED:true}
   ai:
     # Python 분석 서버는 명시적으로 켠 환경에서만 호출하며, 실패하면 규칙 엔진으로 대체합니다.
     enabled: ${SAGOPALGO_AI_ENABLED:false}

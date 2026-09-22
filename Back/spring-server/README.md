@@ -135,7 +135,7 @@ Invoke-RestMethod `
   -Uri 'http://localhost:8080/api/v1/recommendations?page=0&size=20'
 ```
 
-추천 결과가 매수·익절·위험 상태이면 `alerts`에 Windows 전달 대기 알림이 저장됩니다. 보유 종목의 손절·익절 기준 도달과 급등락도 독립된 가격 알림으로 저장되며, 관심 종목 동기화에서 발견한 신규 뉴스·공시는 고유 이벤트 키로 한 번만 알립니다. Ubuntu 운영 환경에서는 `SAGOPALGO_ALERT_ANALYSIS_ENABLED=true`로 설정해 보유 종목을 기본 15분마다 자동 분석합니다.
+추천 결과가 매수·익절·위험 상태이면 `alerts`에 Windows 전달 대기 알림이 저장됩니다. 보유 종목의 손절·익절 기준 도달과 급등락은 가격 알림으로 저장되며, 권장 최대 비중 초과와 총 미실현 손실 한도 도달은 포트폴리오 알림으로 저장됩니다. 관심 종목 동기화에서 발견한 신규 뉴스·공시는 고유 이벤트 키로 한 번만 알립니다. Ubuntu 운영 환경에서는 `SAGOPALGO_ALERT_ANALYSIS_ENABLED=true`로 설정해 보유 종목을 기본 15분마다 자동 분석합니다. 포트폴리오 알림만 끄려면 `SAGOPALGO_ALERT_PORTFOLIO_EVENTS_ENABLED=false`로 설정합니다.
 
 ```powershell
 Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts?page=0&size=20'
@@ -146,6 +146,6 @@ Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read
 
 ## 다음 구현 후보
 
-1. 보유 비중 과다·총 손실 한도 경고 조건 확장
-2. 미니 위젯 모드와 트레이 동작 구현
+1. 미니 위젯 모드와 트레이 동작 구현
+2. AI 신호 기반 모의매매와 성과 지표 구현
 3. 자동 주문 설계와 수동 승인 기반 주문 실행

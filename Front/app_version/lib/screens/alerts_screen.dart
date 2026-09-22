@@ -191,6 +191,8 @@ IconData alertIcon(AppAlertType type) {
       return Icons.newspaper_rounded;
     case AppAlertType.disclosure:
       return Icons.description_rounded;
+    case AppAlertType.portfolio:
+      return Icons.account_balance_wallet_rounded;
   }
 }
 
@@ -209,5 +211,7 @@ Color alertColor(AppAlertType type) {
       return Colors.teal;
     case AppAlertType.disclosure:
       return Colors.indigo;
+    case AppAlertType.portfolio:
+      return AppTheme.sub;
   }
 }

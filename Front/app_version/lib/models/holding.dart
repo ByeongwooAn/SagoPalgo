@@ -225,7 +225,7 @@ class PortfolioSummary {
   /// 기획서의 1회 거래 손실 제한 기준을 금액으로 환산한 값입니다.
   final int maxAllowedLoss;
 
-  /// 오늘 사용한 위험 한도 비율이며 0~1 사이 값으로 관리합니다.
+  /// 현재 미실현 손실이 최대 허용 손실에서 차지하는 비율입니다.
   final double riskUsageRate;
 
   /// 백엔드 포트폴리오 요약 JSON을 앱 모델로 변환합니다.

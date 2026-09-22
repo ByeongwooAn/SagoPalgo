@@ -140,11 +140,19 @@ public class HoldingService {
                 .setScale(RATE_SCALE, RoundingMode.HALF_UP);
         }
 
+        BigDecimal maxAllowedLoss = capitalService.maxAllowedLoss(userId);
+        BigDecimal riskUsageRate = BigDecimal.ZERO;
+        if (totalProfit.signum() < 0 && maxAllowedLoss.signum() > 0) {
+            riskUsageRate = totalProfit.abs()
+                .divide(maxAllowedLoss, 6, RoundingMode.HALF_UP)
+                .setScale(4, RoundingMode.HALF_UP);
+        }
+
         return new PortfolioSummaryResponse(
             totalProfit.setScale(MONEY_SCALE, RoundingMode.HALF_UP).stripTrailingZeros(),
             profitRate.stripTrailingZeros(),
-            capitalService.maxAllowedLoss(userId).stripTrailingZeros(),
-            BigDecimal.ZERO.setScale(RATE_SCALE, RoundingMode.HALF_UP).stripTrailingZeros()
+            maxAllowedLoss.stripTrailingZeros(),
+            riskUsageRate.stripTrailingZeros()
         );
     }
 

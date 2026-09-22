@@ -20,7 +20,7 @@ void main() {
     expect(alert.copyWith(isRead: true).eventType, 'NEWS');
   });
 
-  test('가격과 공시 알림을 각각의 화면 유형으로 변환한다', () {
+  test('가격과 공시 및 포트폴리오 알림을 각각의 화면 유형으로 변환한다', () {
     AppAlert parse(String type) => AppAlert.fromJson({
       'title': '이벤트',
       'body': '내용',
@@ -30,5 +30,6 @@ void main() {
 
     expect(parse('PRICE').type, AppAlertType.price);
     expect(parse('DISCLOSURE').type, AppAlertType.disclosure);
+    expect(parse('PORTFOLIO').type, AppAlertType.portfolio);
   });
 }
