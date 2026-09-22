@@ -4,8 +4,10 @@ import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.common.response.ApiResponse;
 import com.sagopalgo.api.market.dto.MarketCandleResponse;
+import com.sagopalgo.api.market.dto.MarketStockInfoResponse;
 import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.service.MarketCandleService;
+import com.sagopalgo.api.market.service.MarketStockInfoService;
 import java.util.Locale;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,9 +23,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class MarketDataController {
 
     private final MarketCandleService marketCandleService;
+    private final MarketStockInfoService marketStockInfoService;
 
-    public MarketDataController(MarketCandleService marketCandleService) {
+    public MarketDataController(
+        MarketCandleService marketCandleService,
+        MarketStockInfoService marketStockInfoService
+    ) {
         this.marketCandleService = marketCandleService;
+        this.marketStockInfoService = marketStockInfoService;
+    }
+
+    @GetMapping("/stocks/{stockCode}")
+    public ResponseEntity<ApiResponse<MarketStockInfoResponse>> getStockInfo(
+        @org.springframework.web.bind.annotation.PathVariable String stockCode,
+        @RequestParam(defaultValue = "KOSPI") String market
+    ) {
+        MarketStockInfoResponse response = marketStockInfoService.getStockInfo(stockCode, market);
+        return ResponseEntity.ok(ApiResponse.success(response, "종목 기본 정보가 조회되었습니다."));
     }
 
     @GetMapping("/candles")

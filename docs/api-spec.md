@@ -251,7 +251,9 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 
 보유 종목 현재가 계산은 `MarketDataProvider` 내부 표준 모델을 사용합니다. Provider 응답은 `StockQuote`로 정규화하며, 현재가, 전일대비, 등락률, 거래량, 시가, 고가, 저가, 전일종가를 같은 필드로 다룹니다. 기간별 시세는 `StockCandle`로 정규화해 일·주·월봉 OHLCV를 같은 계약으로 제공합니다.
 
-현재가 Provider 우선순위는 KB증권, 한국투자증권, Toss 순서입니다. KB증권 시세는 공식 문서 `IVU10140_현재가`, path `/api/v1/ivu10140`, 요청값 `excg_clsf=0`, `shrt_cd=종목코드`를 기본값으로 사용합니다. Toss는 공식 시세 path가 확정되기 전까지 기본값이 비어 있어 자동 비활성 상태입니다.
+현재가 Provider 우선순위는 KB증권, 한국투자증권, Toss 순서입니다. KB증권 시세는 공식 문서 `IVU10140_현재가`, path `/api/v1/ivu10140`, 요청값 `excg_clsf=0`, `shrt_cd=종목코드`를 기본값으로 사용합니다.
+
+Toss는 공식 Open API의 OAuth2 Client Credentials 토큰과 `GET /api/v1/prices?symbols=종목코드`를 사용합니다. 국내 주식과 미국 주식을 지원하며 현재가 응답에 없는 등락률·거래량·시가·고가·저가·전일종가는 임의로 계산하지 않고 0으로 둡니다.
 
 외부 Provider가 일시적으로 실패하면 다음 Provider를 시도합니다. 모든 Provider가 실패하거나 지원 Provider가 없으면 보유 종목 화면의 계산은 등록 매수가를 fallback 현재가로 사용합니다.
 
@@ -262,7 +264,8 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 - `market`: `KOSPI`, `KOSDAQ`을 지원합니다. KIS fallback은 `KONEX`도 조회할 수 있습니다.
 - `interval`: `DAILY`, `WEEKLY`, `MONTHLY` 중 하나입니다.
 - `count`: 1~100이며 기본값은 60입니다.
-- 조회 순서는 KB증권 `IVS11560_통합차트`, 한국투자증권 `FHKST03010100`입니다.
+- 조회 순서는 KB증권 `IVS11560_통합차트`, 한국투자증권 `FHKST03010100`, Toss `GET /api/v1/candles`입니다.
+- Toss는 공식적으로 `1m`, `1d`만 제공하므로 현재 앱 API에서는 `DAILY` fallback에만 참여합니다. `WEEKLY`, `MONTHLY`는 KB/KIS를 사용하며 Toss 일봉을 임의 집계하지 않습니다.
 - 응답 캔들은 차트에서 바로 사용할 수 있도록 오래된 시점부터 최신 시점 순으로 정렬합니다.
 - 캔들은 등록 매수가로 대체하지 않습니다. 모든 Provider가 실패하거나 빈 결과를 반환하면 `EXTERNAL_DATA_ERROR`입니다.
 - Flutter 포트폴리오의 보유 종목별 차트 버튼에서 일·주·월봉을 전환할 수 있으며, 화면에 실제 응답 Provider를 함께 표시합니다.
@@ -296,6 +299,12 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
   "message": "종목 캔들 시세가 조회되었습니다."
 }
 ```
+
+#### 6.0.2 종목 기본 정보 조회
+
+`GET /api/v1/market/stocks/{stockCode}?market=KOSPI`
+
+Toss 공식 `GET /api/v1/stocks?symbols=종목코드` 응답을 사용합니다. 응답에는 Provider, 종목명, 영문명, 시장, 종목 유형, 보통주 여부, 상장 상태, 통화, 상장·상장폐지일, 발행주식수, NXT 지원 여부, 거래정지 여부가 포함됩니다.
 
 ### 6.1 앱 초기 스냅샷 조회
 
@@ -596,6 +605,6 @@ Flutter 추천 이력 목록·상세 화면과 보유 종목 수동 재분석 �
 
 Windows 앱 잠금 PIN의 Credential Manager 저장과 기존 `.env` 값 자동 이전까지 연결되었습니다.
 
-1. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
-2. 보유 비중 과다·총 손실 한도 경고 조건 확장
+1. 보유 비중 과다·총 손실 한도 경고 조건 확장
+2. 미니 위젯 모드와 트레이 동작 구현
 3. 자동 주문 설계와 수동 승인 기반 주문 실행

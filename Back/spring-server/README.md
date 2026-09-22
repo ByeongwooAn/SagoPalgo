@@ -45,16 +45,18 @@
 | 관심 종목 삭제 | DELETE | `/api/v1/watchlist/{watchlistId}` |
 | 보유 종목 목록·등록 | GET, POST | `/api/v1/holdings` |
 | 보유 종목 수정·삭제 | PUT, DELETE | `/api/v1/holdings/{holdingId}` |
+| 종목 기본 정보 조회 | GET | `/api/v1/market/stocks/{stockCode}` |
 
 ## 시장 데이터 Provider
 
 - 현재가 조회 순서는 `KB → KIS → Toss`입니다.
-- 일·주·월봉 캔들 조회 순서는 `KB → KIS`입니다. KB `IVS11560` 또는 KIS `FHKST03010100` 응답을 같은 OHLCV 모델로 변환합니다.
+- 일·주·월봉 캔들 조회 순서는 `KB → KIS → Toss`입니다. Toss는 공식 API가 제공하는 일봉만 담당하고 주·월봉을 임의 합성하지 않습니다.
 - Provider가 비활성, 미지원, 미설정 또는 일시 실패 상태이면 다음 Provider를 시도합니다.
 - 모든 Provider를 사용할 수 없으면 임의 가격을 만들지 않고 사용자가 등록한 매수가를 사용합니다.
 - 캔들은 등록 매수가로 만들 수 없으므로 모든 Provider가 실패하면 `EXTERNAL_DATA_ERROR`를 반환합니다.
 - `/api/v1/settings/providers`는 활성화 여부, 누락된 설정 이름, fallback 순서를 반환하지만 실제 키와 계좌번호는 노출하지 않습니다.
-- Toss는 공식 시세 API 경로가 확정되기 전까지 기본 URL과 경로가 비어 있어 자동으로 사용되지 않습니다.
+- Toss는 OAuth2 Client Credentials로 토큰을 발급받아 국내·미국 주식 현재가, 일봉, 종목 기본 정보를 조회합니다. 기본값은 공식 URL과 경로이며 Client ID/Secret이 없거나 기능이 꺼져 있으면 호출하지 않습니다.
+- Toss 현재가 응답에는 현재가와 통화만 있으므로 등락률·OHLCV를 임의 계산하지 않습니다.
 
 캔들 조회 예시:
 
@@ -62,6 +64,10 @@
 Invoke-RestMethod `
   -Method Get `
   -Uri 'http://localhost:8080/api/v1/market/candles?stockCode=005930&market=KOSPI&interval=DAILY&count=60'
+
+Invoke-RestMethod `
+  -Method Get `
+  -Uri 'http://localhost:8080/api/v1/market/stocks/005930?market=KOSPI'
 ```
 
 `interval`은 `DAILY`, `WEEKLY`, `MONTHLY`를 지원하고 `count`는 1~100입니다. 반환 목록은 오래된 시점부터 최신 시점 순으로 정렬됩니다.
@@ -140,6 +146,6 @@ Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read
 
 ## 다음 구현 후보
 
-1. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
-2. 보유 비중 과다·총 손실 한도 경고 조건 확장
+1. 보유 비중 과다·총 손실 한도 경고 조건 확장
+2. 미니 위젯 모드와 트레이 동작 구현
 3. 자동 주문 설계와 수동 승인 기반 주문 실행
