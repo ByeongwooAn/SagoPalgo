@@ -3,12 +3,14 @@ import 'package:app_version/models/app_alert.dart';
 import 'package:app_version/models/holding.dart';
 import 'package:app_version/models/investment_snapshot.dart';
 import 'package:app_version/models/kb_account_snapshot.dart';
+import 'package:app_version/models/market_candle.dart';
 import 'package:app_version/models/market_summary.dart';
 import 'package:app_version/models/provider_setting.dart';
 import 'package:app_version/models/recommendation.dart';
 import 'package:app_version/models/research_feed.dart';
 import 'package:app_version/repositories/investment_repository.dart';
 import 'package:app_version/repositories/kb_account_repository.dart';
+import 'package:app_version/repositories/market_data_repository.dart';
 import 'package:app_version/repositories/portfolio_repository.dart';
 import 'package:app_version/repositories/provider_settings_repository.dart';
 import 'package:app_version/repositories/research_feed_repository.dart';
@@ -33,6 +35,7 @@ void main() {
         researchFeedRepositoryBuilder: (_) =>
             const FakeResearchFeedRepository(),
         kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
+        marketDataRepositoryBuilder: (_) => const FakeMarketDataRepository(),
       ),
     );
 
@@ -43,6 +46,18 @@ void main() {
     expect(find.text('사고팔고'), findsAtLeastNWidgets(1));
     expect(find.text('개인 사용자 · 개인 모드'), findsOneWidget);
     expect(find.text('3,000,000원'), findsOneWidget);
+
+    /// 포트폴리오 보유 종목에서 실제 캔들 상세 화면으로 진입할 수 있어야 합니다.
+    await tester.tap(find.text('보유'));
+    await tester.pumpAndSettle();
+    final chartButton = find.byTooltip('삼성전자 차트');
+    await tester.ensureVisible(chartButton);
+    await tester.tap(chartButton);
+    await tester.pumpAndSettle();
+    expect(find.text('005930 · KOSPI'), findsOneWidget);
+    expect(find.text('KB 데이터'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
 
     /// 하단 네비게이션의 추천 탭을 눌러 추천 상세 화면으로 이동합니다.
     await tester.tap(find.text('추천'));
@@ -110,6 +125,7 @@ void main() {
         researchFeedRepositoryBuilder: (_) =>
             const FakeResearchFeedRepository(),
         kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
+        marketDataRepositoryBuilder: (_) => const FakeMarketDataRepository(),
       ),
     );
 
@@ -135,6 +151,39 @@ class FakeInvestmentRepository implements InvestmentRepository {
   @override
   Future<InvestmentSnapshot> fetchSnapshot() async {
     return _testSnapshot;
+  }
+}
+
+class FakeMarketDataRepository implements MarketDataRepository {
+  const FakeMarketDataRepository();
+
+  @override
+  Future<MarketCandleSnapshot> fetchCandles({
+    required String stockCode,
+    required String market,
+    required MarketCandleInterval interval,
+    int count = 60,
+  }) async {
+    return MarketCandleSnapshot(
+      provider: 'KB',
+      stockCode: stockCode,
+      market: market,
+      interval: interval,
+      candles: [
+        MarketCandle(
+          provider: 'KB',
+          stockCode: stockCode,
+          market: market,
+          dateTime: DateTime(2026, 9, 21),
+          interval: interval,
+          openPrice: 74800,
+          highPrice: 75300,
+          lowPrice: 74700,
+          closePrice: 75200,
+          volume: 1122334,
+        ),
+      ],
+    );
   }
 }
 
