@@ -20,7 +20,7 @@
 | `user_capital` | 투자 가능 자본금과 리스크 설정 | 구현됨 |
 | `watchlist` | 관심 종목 관리 | 구현됨 |
 | `holdings` | 보유 종목과 손절/익절 기준 | 구현됨 |
-| `trade_records` | 매수/매도 기록 | 설계 포함 |
+| `trade_records` | 실제 주문과 분리된 모의매매 원장 | 구현됨 |
 | `recommendations` | AI 추천 결과 본문 | 구현됨 |
 | `recommendation_reasons` | 추천 점수 산출 근거 | 구현됨 |
 | `alerts` | 앱 알림 내역과 Windows 전달/읽음 상태 | 구현 완료 |
@@ -236,6 +236,27 @@ OpenDART에서 수집한 공시를 접수번호 기준으로 저장합니다.
 | `last_attempted_at` | DATETIME | 마지막 시도 시각 |
 | `last_succeeded_at` | DATETIME | 마지막 성공 또는 부분 성공 시각 |
 
+### 4.12 `trade_records`
+
+AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문과 분리해 저장합니다. 현재 API는 `execution_mode=PAPER` 행만 생성하고 조회합니다.
+
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `trade_record_id` | BIGINT | 모의 거래 PK |
+| `user_id` | BIGINT | 로컬 사용자 FK |
+| `holding_id` | BIGINT | 실제 보유 종목 연결 확장 지점, 없을 수 있음 |
+| `recommendation_id` | BIGINT | 모의매수 근거가 된 AI 추천 ID, 없을 수 있음 |
+| `stock_code` | VARCHAR(30) | 종목 코드 |
+| `stock_name` | VARCHAR(100) | 종목명 |
+| `market` | VARCHAR(20) | 시장 코드 |
+| `trade_type` | VARCHAR(20) | `BUY`, `SELL` |
+| `execution_mode` | VARCHAR(20) | 현재는 `PAPER`, 향후 `LIVE`와 분리 |
+| `trade_price` | DECIMAL(18,2) | 서버가 확인한 체결 시점 현재가 |
+| `quantity` | DECIMAL(18,4) | 가상 체결 수량 |
+| `realized_profit` | DECIMAL(18,2) | 매도 시 평균 원가법으로 확정한 손익 |
+| `trade_date` | DATETIME | 가상 체결 시각 |
+| `memo` | VARCHAR(500) | AI 신호 또는 매도 설명 |
+
 ## 5. 인덱스 전략
 
 | 인덱스 | 대상 | 이유 |
@@ -244,6 +265,8 @@ OpenDART에서 수집한 공시를 접수번호 기준으로 저장합니다.
 | `idx_users_email` | `users.email` | 로컬 프로필 확인용 |
 | `uk_watchlist_user_stock_market` | `watchlist(user_id, stock_code, market)` | 관심 종목 중복 방지 |
 | `idx_holdings_user_status` | `holdings(user_id, status)` | 보유 종목 조회 |
+| `idx_trade_records_recommendation_id` | `trade_records(recommendation_id)` | AI 추천과 가상 매수 연결 |
+| `idx_trade_records_user_mode_date` | `trade_records(user_id, execution_mode, trade_date)` | 사용자별 모의매매 원장 조회 |
 | `idx_recommendations_user_created` | `recommendations(user_id, created_at)` | 최신 추천 목록 조회 |
 | `idx_alerts_user_read_created` | `alerts(user_id, is_read, created_at)` | 알림 목록/읽음 필터 |
 | `idx_alerts_user_stock_event_created` | `alerts(user_id, stock_code, market, event_type, created_at)` | 가격 이벤트 쿨다운 조회 |
@@ -268,5 +291,6 @@ OpenDART에서 수집한 공시를 접수번호 기준으로 저장합니다.
 8. `research_news`
 9. `research_disclosures`
 10. `research_sync_status`
+11. `trade_records`
 
-`trade_records`, `device_tokens`는 설계에는 포함되어 있지만 실제 API는 다음 단계에서 필요해질 때 붙입니다. `recommendations`, `recommendation_reasons`, `analysis_snapshots`는 통합 분석 실행 시 함께 저장합니다.
+`trade_records`는 모의매매 API에서 사용하며 실제 증권사 주문은 수행하지 않습니다. `device_tokens`는 설계에는 포함되어 있지만 실제 API는 외부 푸시가 필요해질 때 붙입니다. `recommendations`, `recommendation_reasons`, `analysis_snapshots`는 통합 분석 실행 시 함께 저장합니다.

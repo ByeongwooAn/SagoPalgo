@@ -605,7 +605,43 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 }
 ```
 
-## 14. 다음 구현 순서
+## 14. 모의매매 API
+
+모의매매는 실제 KB 주문 API를 호출하지 않고 `trade_records.execution_mode=PAPER` 원장에만 기록합니다. 초기 자본은 개인 사용자의 `user_capital.available_capital`을 사용하며, 매수와 매도 체결가는 서버가 조회한 실제 현재가만 허용합니다. 모든 Provider가 실패한 `FALLBACK` 시세로는 체결하지 않습니다.
+
+### 14.1 모의매매 현황 조회
+
+`GET /api/v1/paper-trading`
+
+응답은 `summary`, `positions`, `trades`를 포함합니다. `summary`에는 초기 자본, 현금, 포지션 평가액, 총자산, 실현·평가·총손익, 수익률, 완료 매도 횟수, 승률, 최대 단일 손실, 회전율이 포함됩니다. 포지션 현재가를 조회할 수 없을 때는 평균 매수가로 평가하되 Provider를 `FALLBACK`으로 표시합니다.
+
+### 14.2 AI 신호 모의매수
+
+`POST /api/v1/paper-trading/recommendations/{recommendationId}/buy`
+
+```json
+{
+  "quantity": 10
+}
+```
+
+현재 사용자에게 저장된 `BUY` 추천만 사용할 수 있습니다. 서버가 실제 현재가를 다시 조회하고 모의 현금 잔액을 검증한 뒤 가상 매수 원장을 저장합니다.
+
+### 14.3 모의 포지션 매도
+
+`POST /api/v1/paper-trading/sell`
+
+```json
+{
+  "stockCode": "005930",
+  "market": "KOSPI",
+  "quantity": 4
+}
+```
+
+현재 모의 보유 수량까지만 매도할 수 있습니다. 평균 원가법으로 매도 수량의 실현손익을 계산하고 원장에 저장합니다.
+
+## 15. 다음 구현 순서
 
 Flutter 추천 이력 목록·상세 화면과 보유 종목 수동 재분석 액션까지 연결되었습니다.
 
@@ -613,6 +649,8 @@ Windows 앱 잠금 PIN의 Credential Manager 저장과 기존 `.env` 값 자동 
 
 Windows 항상 위 미니 위젯과 시스템 트레이 메뉴까지 연결되었습니다.
 
-1. AI 신호 기반 모의매매와 성과 지표 구현
-2. 자동 주문 설계와 수동 승인 기반 주문 실행
-3. 배포 패키지 자동 업데이트와 운영 상태 진단
+AI 신호 기반 모의매매와 수익률·승률·최대 손실·회전율 지표까지 연결되었습니다.
+
+1. 자동 주문 설계와 수동 승인 기반 주문 실행
+2. 배포 패키지 자동 업데이트와 운영 상태 진단
+3. 모의매매 전략·기간별 성과 비교 차트

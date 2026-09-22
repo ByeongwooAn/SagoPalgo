@@ -1,0 +1,85 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+import '../config/api_config.dart';
+import '../models/paper_trading.dart';
+import 'paper_trading_repository.dart';
+
+/// Spring Boot 모의매매 API를 호출합니다.
+class SpringPaperTradingRepository implements PaperTradingRepository {
+  SpringPaperTradingRepository({
+    required this.accessToken,
+    ApiConfig? config,
+    http.Client? client,
+  }) : config = config ?? ApiConfig(),
+       client = client ?? http.Client();
+
+  final String accessToken;
+  final ApiConfig config;
+  final http.Client client;
+
+  @override
+  Future<PaperTradingSnapshot> fetchSnapshot() async {
+    final response = await client.get(
+      Uri.parse(config.paperTradingBaseUrl),
+      headers: _headers(),
+    );
+    return _snapshot(response);
+  }
+
+  @override
+  Future<PaperTradingSnapshot> buyFromRecommendation(
+    int recommendationId,
+    double quantity,
+  ) async {
+    final response = await client.post(
+      Uri.parse(
+        '${config.paperTradingBaseUrl}/recommendations/$recommendationId/buy',
+      ),
+      headers: _headers(contentType: true),
+      body: jsonEncode({'quantity': quantity}),
+    );
+    return _snapshot(response);
+  }
+
+  @override
+  Future<PaperTradingSnapshot> sellPosition({
+    required String stockCode,
+    required String market,
+    required double quantity,
+  }) async {
+    final response = await client.post(
+      Uri.parse('${config.paperTradingBaseUrl}/sell'),
+      headers: _headers(contentType: true),
+      body: jsonEncode({
+        'stockCode': stockCode,
+        'market': market,
+        'quantity': quantity,
+      }),
+    );
+    return _snapshot(response);
+  }
+
+  PaperTradingSnapshot _snapshot(http.Response response) {
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final success = decoded['success'] as bool? ?? false;
+    if (response.statusCode >= 200 && response.statusCode < 300 && success) {
+      return PaperTradingSnapshot.fromJson(
+        decoded['data'] as Map<String, dynamic>,
+      );
+    }
+    final error = decoded['error'] as Map<String, dynamic>?;
+    throw PaperTradingRepositoryException(
+      error?['message'] as String? ?? '모의매매 요청에 실패했습니다.',
+    );
+  }
+
+  Map<String, String> _headers({bool contentType = false}) {
+    return {
+      'Accept': 'application/json',
+      if (accessToken.trim().isNotEmpty) 'Authorization': 'Bearer $accessToken',
+      if (contentType) 'Content-Type': 'application/json',
+    };
+  }
+}
