@@ -21,15 +21,33 @@ import org.apache.ibatis.annotations.Update;
 public interface AlertMapper {
 
     @Insert("""
-        INSERT INTO alerts (user_id, recommendation_id, alert_type, title, body)
-        VALUES (#{userId}, #{recommendationId}, #{alertType}, #{title}, #{body})
+        INSERT INTO alerts (
+          user_id, recommendation_id, alert_type, event_type, event_key,
+          stock_code, market, title, body
+        ) VALUES (
+          #{userId}, #{recommendationId}, #{alertType}, #{eventType}, #{eventKey},
+          #{stockCode}, #{market}, #{title}, #{body}
+        )
         """)
     @Options(useGeneratedKeys = true, keyProperty = "alertId", keyColumn = "alert_id")
     int insert(AlertRecord record);
 
+    @Insert("""
+        INSERT IGNORE INTO alerts (
+          user_id, recommendation_id, alert_type, event_type, event_key,
+          stock_code, market, title, body
+        ) VALUES (
+          #{userId}, NULL, #{alertType}, #{eventType}, #{eventKey},
+          #{stockCode}, #{market}, #{title}, #{body}
+        )
+        """)
+    @Options(useGeneratedKeys = true, keyProperty = "alertId", keyColumn = "alert_id")
+    int insertEvent(AlertRecord record);
+
     @Select("""
         <script>
-        SELECT alert_id, user_id, recommendation_id, alert_type, title, body,
+        SELECT alert_id, user_id, recommendation_id, alert_type, event_type, event_key,
+               stock_code, market, title, body,
                is_read, sent_at, created_at, updated_at
         FROM alerts
         WHERE user_id = #{userId}
@@ -63,7 +81,8 @@ public interface AlertMapper {
     long count(@Param("userId") Long userId, @Param("unreadOnly") boolean unreadOnly);
 
     @Select("""
-        SELECT alert_id, user_id, recommendation_id, alert_type, title, body,
+        SELECT alert_id, user_id, recommendation_id, alert_type, event_type, event_key,
+               stock_code, market, title, body,
                is_read, sent_at, created_at, updated_at
         FROM alerts
         WHERE user_id = #{userId}
@@ -75,7 +94,8 @@ public interface AlertMapper {
     List<AlertRecord> findPending(@Param("userId") Long userId, @Param("limit") int limit);
 
     @Select("""
-        SELECT alert_id, user_id, recommendation_id, alert_type, title, body,
+        SELECT alert_id, user_id, recommendation_id, alert_type, event_type, event_key,
+               stock_code, market, title, body,
                is_read, sent_at, created_at, updated_at
         FROM alerts
         WHERE alert_id = #{alertId}
@@ -102,6 +122,23 @@ public interface AlertMapper {
         @Param("stockCode") String stockCode,
         @Param("market") String market,
         @Param("alertType") String alertType,
+        @Param("cutoff") LocalDateTime cutoff
+    );
+
+    @Select("""
+        SELECT COUNT(*)
+        FROM alerts
+        WHERE user_id = #{userId}
+          AND stock_code = #{stockCode}
+          AND market = #{market}
+          AND event_type = #{eventType}
+          AND created_at >= #{cutoff}
+        """)
+    boolean existsRecentEvent(
+        @Param("userId") Long userId,
+        @Param("stockCode") String stockCode,
+        @Param("market") String market,
+        @Param("eventType") String eventType,
         @Param("cutoff") LocalDateTime cutoff
     );
 

@@ -181,6 +181,10 @@ CREATE TABLE IF NOT EXISTS alerts (
   user_id BIGINT NOT NULL COMMENT '알림 수신 사용자',
   recommendation_id BIGINT NULL COMMENT '연결된 추천, 시장 공지처럼 추천과 무관한 알림은 NULL',
   alert_type VARCHAR(30) NOT NULL COMMENT '알림 유형: BUY, SELL, MARKET, RISK',
+  event_type VARCHAR(40) NULL COMMENT '발생 조건: RECOMMENDATION, PRICE_*, NEWS, DISCLOSURE',
+  event_key VARCHAR(191) NULL COMMENT '뉴스·공시처럼 한 번만 알릴 외부 이벤트 고유 키',
+  stock_code VARCHAR(30) NULL COMMENT '이벤트 대상 종목 코드',
+  market VARCHAR(20) NULL COMMENT '이벤트 대상 시장 코드',
   title VARCHAR(100) NOT NULL COMMENT '알림 제목',
   body VARCHAR(500) NOT NULL COMMENT '알림 본문',
   is_read BOOLEAN NOT NULL DEFAULT FALSE COMMENT '앱 내 읽음 여부',
@@ -191,6 +195,8 @@ CREATE TABLE IF NOT EXISTS alerts (
   KEY idx_alerts_user_read_created (user_id, is_read, created_at),
   KEY idx_alerts_user_sent_created (user_id, sent_at, created_at),
   KEY idx_alerts_recommendation_id (recommendation_id),
+  KEY idx_alerts_user_stock_event_created (user_id, stock_code, market, event_type, created_at),
+  UNIQUE KEY uk_alerts_user_event_key (user_id, event_type, event_key),
   CONSTRAINT fk_alerts_user
     FOREIGN KEY (user_id) REFERENCES users (user_id)
     ON DELETE CASCADE,

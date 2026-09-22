@@ -11,6 +11,10 @@ public class AlertRecord {
     private Long userId;
     private Long recommendationId;
     private String alertType;
+    private String eventType;
+    private String eventKey;
+    private String stockCode;
+    private String market;
     private String title;
     private String body;
     private boolean read;
@@ -48,6 +52,38 @@ public class AlertRecord {
 
     public void setAlertType(String alertType) {
         this.alertType = alertType;
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
+    }
+
+    public String getEventKey() {
+        return eventKey;
+    }
+
+    public void setEventKey(String eventKey) {
+        this.eventKey = eventKey;
+    }
+
+    public String getStockCode() {
+        return stockCode;
+    }
+
+    public void setStockCode(String stockCode) {
+        this.stockCode = stockCode;
+    }
+
+    public String getMarket() {
+        return market;
+    }
+
+    public void setMarket(String market) {
+        this.market = market;
     }
 
     public String getTitle() {

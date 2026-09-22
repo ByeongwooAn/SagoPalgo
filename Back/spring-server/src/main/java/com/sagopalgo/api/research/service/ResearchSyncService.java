@@ -1,10 +1,14 @@
 package com.sagopalgo.api.research.service;
 
+import com.sagopalgo.api.alert.service.EventAlertService;
 import com.sagopalgo.api.config.ResearchProviderProperties;
 import com.sagopalgo.api.research.dto.ResearchFeedResponse;
 import com.sagopalgo.api.research.dto.ResearchProviderStatusResponse;
 import com.sagopalgo.api.research.dto.ResearchSyncStatusResponse;
 import java.time.LocalDate;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -13,21 +17,26 @@ import org.springframework.stereotype.Service;
 @Service
 public class ResearchSyncService {
 
+    private static final Logger log = LoggerFactory.getLogger(ResearchSyncService.class);
+
     public static final String MANUAL = "MANUAL";
     public static final String SCHEDULED = "SCHEDULED";
 
     private final ResearchFeedService researchFeedService;
     private final ResearchSyncStatusStore statusStore;
     private final ResearchProviderProperties properties;
+    private final EventAlertService eventAlertService;
 
     public ResearchSyncService(
         ResearchFeedService researchFeedService,
         ResearchSyncStatusStore statusStore,
-        ResearchProviderProperties properties
+        ResearchProviderProperties properties,
+        EventAlertService eventAlertService
     ) {
         this.researchFeedService = researchFeedService;
         this.statusStore = statusStore;
         this.properties = properties;
+        this.eventAlertService = eventAlertService;
     }
 
     public ResearchFeedResponse sync(
@@ -67,6 +76,7 @@ public class ResearchSyncService {
             throw exception;
         }
         saveResponse(userId, triggerType, response);
+        createResearchAlerts(userId, response);
         return response;
     }
 
@@ -99,6 +109,24 @@ public class ResearchSyncService {
             disabled,
             message
         );
+    }
+
+    private void createResearchAlerts(Long userId, ResearchFeedResponse response) {
+        try {
+            eventAlertService.createResearchAlerts(
+                userId,
+                response.stockCode(),
+                response.stockName(),
+                response.news() == null ? List.of() : response.news(),
+                response.disclosures() == null ? List.of() : response.disclosures()
+            );
+        } catch (RuntimeException exception) {
+            log.warn(
+                "뉴스·공시 알림 생성 실패. stockCode={} message={}",
+                response.stockCode(),
+                exception.getMessage()
+            );
+        }
     }
 
     private int count(ResearchFeedResponse response, String status) {

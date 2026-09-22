@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.sagopalgo.api.alert.service.EventAlertService;
 import com.sagopalgo.api.config.ResearchProviderProperties;
 import com.sagopalgo.api.research.dto.ResearchFeedResponse;
 import com.sagopalgo.api.research.dto.ResearchProviderStatusResponse;
@@ -20,10 +21,12 @@ class ResearchSyncServiceTest {
     void syncStoresPartialStatus() {
         ResearchFeedService feedService = mock(ResearchFeedService.class);
         ResearchSyncStatusStore statusStore = mock(ResearchSyncStatusStore.class);
+        EventAlertService eventAlertService = mock(EventAlertService.class);
         ResearchSyncService service = new ResearchSyncService(
             feedService,
             statusStore,
-            new ResearchProviderProperties()
+            new ResearchProviderProperties(),
+            eventAlertService
         );
         ResearchFeedResponse response = new ResearchFeedResponse(
             "005930",
@@ -54,6 +57,9 @@ class ResearchSyncServiceTest {
             eq(0),
             eq("Provider 성공 1 · 실패 1 · 비활성 0")
         );
+        verify(eventAlertService).createResearchAlerts(
+            eq(1L), eq("005930"), eq("삼성전자"), eq(List.of()), eq(List.of())
+        );
     }
 
     @Test
@@ -61,10 +67,12 @@ class ResearchSyncServiceTest {
     void syncStoresFailureAndRethrows() {
         ResearchFeedService feedService = mock(ResearchFeedService.class);
         ResearchSyncStatusStore statusStore = mock(ResearchSyncStatusStore.class);
+        EventAlertService eventAlertService = mock(EventAlertService.class);
         ResearchSyncService service = new ResearchSyncService(
             feedService,
             statusStore,
-            new ResearchProviderProperties()
+            new ResearchProviderProperties(),
+            eventAlertService
         );
         IllegalStateException failure = new IllegalStateException("저장 실패");
         when(feedService.syncFeed("005930", "삼성전자", null, null)).thenThrow(failure);

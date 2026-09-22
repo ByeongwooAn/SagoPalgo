@@ -2,6 +2,8 @@ package com.sagopalgo.api.alert.service;
 
 import com.sagopalgo.api.config.PersonalModeProperties;
 import com.sagopalgo.api.holding.service.HoldingService;
+import com.sagopalgo.api.holding.model.Holding;
+import com.sagopalgo.api.market.service.MarketPriceService;
 import com.sagopalgo.api.recommendation.service.RecommendationService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
@@ -25,16 +27,22 @@ public class AlertEvaluationScheduler {
 
     private final HoldingService holdingService;
     private final RecommendationService recommendationService;
+    private final MarketPriceService marketPriceService;
+    private final EventAlertService eventAlertService;
     private final PersonalModeProperties personalModeProperties;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     public AlertEvaluationScheduler(
         HoldingService holdingService,
         RecommendationService recommendationService,
+        MarketPriceService marketPriceService,
+        EventAlertService eventAlertService,
         PersonalModeProperties personalModeProperties
     ) {
         this.holdingService = holdingService;
         this.recommendationService = recommendationService;
+        this.marketPriceService = marketPriceService;
+        this.eventAlertService = eventAlertService;
         this.personalModeProperties = personalModeProperties;
     }
 
@@ -55,14 +63,24 @@ public class AlertEvaluationScheduler {
 
         try {
             for (Long holdingId : holdingService.findActiveIds(userId)) {
-                analyzeOne(userId, holdingId);
+                evaluateOne(userId, holdingId);
             }
         } finally {
             running.set(false);
         }
     }
 
-    private void analyzeOne(Long userId, Long holdingId) {
+    private void evaluateOne(Long userId, Long holdingId) {
+        try {
+            Holding holding = holdingService.findRecord(userId, holdingId);
+            eventAlertService.createPriceAlerts(holding, marketPriceService.quote(holding));
+        } catch (RuntimeException exception) {
+            log.warn(
+                "보유 종목 가격 이벤트 평가 실패. holdingId={} message={}",
+                holdingId,
+                exception.getMessage()
+            );
+        }
         try {
             recommendationService.analyzeHolding(userId, holdingId);
         } catch (RuntimeException exception) {

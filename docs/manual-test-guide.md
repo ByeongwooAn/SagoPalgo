@@ -70,6 +70,10 @@ Get-Content -Raw Back/database/migrations/002_research_feed_storage.sql | `
 Get-Content -Raw Back/database/migrations/003_research_sync_status.sql | `
   docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
   sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
+
+Get-Content -Raw Back/database/migrations/004_event_alerts.sql | `
+  docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
+  sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
 ```
 
 자동 수집을 확인할 때만 `.env.dev`에서 아래 값을 켭니다. 기본값은 외부 API 쿼터 보호를 위해 `false`입니다.
@@ -285,6 +289,10 @@ Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts/pending?limit=20'
 4. 표시된 항목의 `sentAt`이 기록되고 `/pending`에서는 제외되는지 확인합니다.
 5. 알림 탭에서 항목을 선택하면 `read=true`로 바뀌는지 확인합니다.
 6. 관심 종목 알림을 끈 뒤 새 추천을 만들어도 해당 종목 알림이 생기지 않는지 확인합니다.
+7. 실제 현재가가 손절·익절 기준에 도달하면 `eventType`이 `PRICE_STOP_LOSS` 또는 `PRICE_TAKE_PROFIT`인 알림이 생성되는지 확인합니다.
+8. 당일 등락률이 `SAGOPALGO_ALERT_VOLATILITY_THRESHOLD_RATE` 이상 또는 이하이면 `PRICE_SURGE` 또는 `PRICE_DROP`이 생성되고, 같은 이벤트는 쿨다운 동안 다시 생기지 않는지 확인합니다.
+9. `FALLBACK` 시세에서는 가격 알림이 생성되지 않는지 확인합니다.
+10. 관심 종목 뉴스·공시 동기화 후 `NEWS`, `DISCLOSURE` 알림이 생성되고 같은 데이터를 재동기화해도 중복 생성되지 않는지 확인합니다.
 
 새 앱 잠금 PIN은 설정 탭에서 등록합니다. 기존 설치에 `SAGOPALGO_APP_LOCK_PIN=1234`가 있으면 첫 실행 때 `SagoPalgo/AppLockPin` 대상으로 Windows Credential Manager에 자동 이전됩니다. 이전 확인 후 Flutter `.env`의 PIN은 비웁니다. PIN 원문은 화면, 로그, 백엔드 API에 표시되면 안 됩니다.
 
@@ -303,5 +311,5 @@ flutter build windows --release
 - KIS 설정이 꺼져 있거나 아직 지원하지 않는 해외 시장 종목이면 임의 샘플 가격을 만들지 않고 사용자가 등록한 매수가를 기준값으로 반환합니다.
 - 추천 분석은 Python 서버에서 가격·뉴스·공시·보유 손익을 종합하고 결과와 근거를 저장합니다. 서버 장애 시 규칙 기반 추천으로 대체합니다.
 - 추천 분석 실행, 이력 페이지, 상세 조회, Flutter 수동 재분석 흐름이 연결되어 있습니다.
-- Ubuntu 백엔드의 추천 신호 저장, 알림 API, Flutter 폴링, Windows 네이티브 알림이 연결되어 있습니다. 앱이 완전히 종료된 동안에는 Windows 토스트를 즉시 표시하지 않지만 백엔드는 알림을 저장하고 다음 앱 실행 때 전달합니다.
+- Ubuntu 백엔드의 추천 신호와 가격·뉴스·공시 전용 알림 저장, 알림 API, Flutter 폴링, Windows 네이티브 알림이 연결되어 있습니다. 앱이 완전히 종료된 동안에는 Windows 토스트를 즉시 표시하지 않지만 백엔드는 알림을 저장하고 다음 앱 실행 때 전달합니다.
 - 뉴스와 공시는 외부 동기화, 로컬 저장, 중복 제거, 기간 조회, Flutter 타임라인, 주기 동기화까지 구현됐습니다.
