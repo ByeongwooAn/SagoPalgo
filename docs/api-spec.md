@@ -303,7 +303,7 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 
 이 API는 현재 Flutter의 `InvestmentSnapshot` 모델과 맞춘 통합 응답입니다. MVP에서는 앱 첫 화면을 빠르게 띄우기 위해 여러 화면의 데이터를 한 번에 내려줍니다.
 
-현재 구현은 `CapitalService`, `HoldingService`, `DashboardRecommendationEngine`을 조합합니다. 보유 종목의 `currentPrice`는 시장 데이터 Provider 우선순위와 fallback 정책에 따라 계산됩니다. 별도 추천 목록 API가 붙기 전까지 대표 추천은 대시보드 스냅샷 안에서 반환합니다. 실제 보유 종목이 없으면 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
+현재 구현은 `CapitalService`, `HoldingService`, 저장된 최신 추천을 조합합니다. 저장 추천이 아직 없거나 현재 보유하지 않은 종목의 결과이면 `DashboardRecommendationEngine`이 규칙 기반 추천을 대신 반환합니다. 보유 종목의 `currentPrice`는 시장 데이터 Provider 우선순위와 fallback 정책에 따라 계산됩니다. 실제 보유 종목이 없으면 과거 추천 이력이 있어도 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
 
 ## 7. 자본금 API
 
@@ -481,15 +481,25 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ## 11. 추천 API
 
-이 절의 추천 목록/상세 API는 다음 구현 단계의 명세입니다. 현재 앱에서 실제로 사용하는 대표 추천은 `GET /api/v1/dashboard/snapshot`의 `recommendation` 필드로 제공됩니다.
+추천 분석은 로컬 사용자의 보유 종목을 기준으로 최근 일봉, 저장 뉴스, 저장 공시, 손익·손절·익절 기준을 Python 분석 서버에 전달합니다. 분석 결과는 추천 본문, 점수 근거, 요청·응답 원문 스냅샷으로 나누어 저장합니다. Python 서버가 비활성 또는 일시 실패 상태이면 기존 규칙 엔진 결과를 같은 형식으로 저장합니다.
 
-### 11.1 추천 목록 조회
+### 11.1 보유 종목 분석 및 추천 저장
+
+`POST /api/v1/recommendations/analyze/{holdingId}`
+
+응답의 `status`는 `BUY_STRONG`, `BUY_WATCH`, `HOLD`, `TAKE_PROFIT`, `STOP_LOSS_WATCH`, `RISK` 중 하나이며 `statusLabel`은 Flutter에 표시할 한글 상태입니다.
+
+### 11.2 추천 목록 조회
 
 `GET /api/v1/recommendations?status=BUY_STRONG&page=0&size=20`
 
-### 11.2 추천 상세 조회
+`status`는 선택값이고 `page`는 0 이상, `size`는 1~100입니다. 목록 응답은 `items`, `page`, `size`, `total`을 포함합니다.
+
+### 11.3 추천 상세 조회
 
 `GET /api/v1/recommendations/{recommendationId}`
+
+상세 응답에는 추천 점수에 반영된 `reasons`가 포함됩니다.
 
 ## 12. 알림 API
 
@@ -507,34 +517,58 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 아래 API는 앱이 직접 호출하지 않고 Spring Boot가 Python AI 서버를 호출할 때 사용하는 내부 계약입니다.
 
-현재 구현에서는 Python AI 서버가 아직 붙지 않았으므로 `DashboardRecommendationEngine`이 실제 보유 종목 수익률, 손절 기준, 익절 기준을 조합해 설명 가능한 MVP 추천을 생성합니다. 실제 보유 종목이 없으면 임의 추천을 생성하지 않습니다.
+현재 Python 서버는 외부 유료 모델에 의존하지 않는 `WEIGHTED_SIGNAL_V1` 분석기를 사용합니다. 가격 추세, 보유 손익과 리스크 기준, 뉴스 핵심어, 공시 사건 유형을 점수로 조합하며 각 근거를 응답합니다.
 
-### 13.1 종목 분석 요청
+### 13.1 통합 투자 분석 요청
 
-`POST /internal/ai/analyze-stock`
+`POST /internal/ai/analyze-investment`
 
 ```json
 {
   "stockCode": "005930",
   "stockName": "삼성전자",
   "market": "KOSPI",
-  "analysisPeriod": "ONE_YEAR"
+  "currentPrice": 75200,
+  "buyPrice": 70000,
+  "profitRate": 7.43,
+  "stopLossRate": -5,
+  "takeProfitRate": 12,
+  "candles": [
+    {
+      "dateTime": "2026-09-22T00:00:00",
+      "closePrice": 75200,
+      "volume": 1122334
+    }
+  ],
+  "news": [
+    {
+      "title": "AI 반도체 수주 증가",
+      "summary": "투자 확대"
+    }
+  ],
+  "disclosures": [
+    {
+      "reportName": "공급계약 체결"
+    }
+  ]
 }
 ```
 
-### 13.2 뉴스 감성 분석 요청
-
-`POST /internal/ai/analyze-news`
+응답:
 
 ```json
 {
-  "stockCode": "005930",
-  "stockName": "삼성전자",
-  "news": [
+  "modelVersion": "WEIGHTED_SIGNAL_V1",
+  "recommendationType": "BUY",
+  "status": "BUY_WATCH",
+  "score": 67,
+  "summary": "삼성전자 종합 점수는 67점입니다. 긍정 신호가 우세하지만 추가 확인이 필요합니다.",
+  "reasons": [
     {
-      "title": "삼성전자 AI 반도체 수주 증가",
-      "url": "https://example.com/news/1",
-      "publishedAt": "2026-09-07T00:00:00Z"
+      "label": "가격 추세",
+      "description": "분석 구간 종가는 +7.43% 상승했습니다.",
+      "type": "PRICE",
+      "score": 11
     }
   ]
 }
@@ -542,8 +576,8 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ## 14. 다음 구현 순서
 
-1. 뉴스·공시·가격 흐름을 결합하는 AI 분석 서버와 추천 결과 저장
-2. 실제 가격·뉴스 조건 평가와 Windows 로컬 알림
+1. 실제 가격·뉴스·AI 위험 신호 조건 평가와 Windows 로컬 알림
+2. Flutter 추천 이력 목록·상세 화면과 수동 재분석 액션
 3. Windows Credential Manager 기반 민감정보 보호
 4. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
 5. 자동 주문 설계와 수동 승인 기반 주문 실행

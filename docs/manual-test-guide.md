@@ -247,6 +247,25 @@ Invoke-RestMethod `
 3. `data.candles`가 날짜 오름차순이며 각 항목에 시가·고가·저가·종가·거래량이 있는지 확인합니다.
 4. 두 Provider를 모두 끄면 임의 캔들 대신 HTTP 502와 `EXTERNAL_DATA_ERROR`가 반환되는지 확인합니다.
 
+AI 분석과 추천 저장 확인:
+
+```powershell
+Invoke-RestMethod -Uri 'http://localhost:8000/health'
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri 'http://localhost:8080/api/v1/recommendations/analyze/21'
+
+Invoke-RestMethod `
+  -Method Get `
+  -Uri 'http://localhost:8080/api/v1/recommendations?page=0&size=20'
+```
+
+1. 분석 응답에 `status`, `statusLabel`, `score`, `reasons`가 표시되는지 확인합니다.
+2. 같은 추천 ID로 `recommendations`, `recommendation_reasons`, `analysis_snapshots`가 저장되는지 확인합니다.
+3. AI 서버를 중지하거나 `SAGOPALGO_AI_ENABLED=false`로 바꾼 뒤에도 규칙 fallback 추천이 저장되는지 확인합니다.
+4. 대시보드 새로고침 시 가장 최근에 저장한 추천이 대표 추천으로 표시되는지 확인합니다.
+
 앱 잠금 확인이 필요하면 `Front/app_version/.env`에 `SAGOPALGO_APP_LOCK_PIN=1234`처럼 값을 넣고 다시 실행합니다. 시작 시 PIN 잠금 화면이 표시되고, 같은 값을 입력하면 홈 화면에 진입해야 합니다.
 
 Windows 릴리즈 빌드 확인:
@@ -262,6 +281,7 @@ flutter build windows --release
 - 현재가는 KB/KIS 시세 설정이 켜진 KOSPI/KOSDAQ/KONEX 종목이면 실제 현재가로 반환합니다.
 - 일·주·월봉은 KB/KIS 실데이터 조회 API와 Flutter 보유 종목 상세 차트에 연결되어 있으며, 응답 Provider를 화면에 표시합니다.
 - KIS 설정이 꺼져 있거나 아직 지원하지 않는 해외 시장 종목이면 임의 샘플 가격을 만들지 않고 사용자가 등록한 매수가를 기준값으로 반환합니다.
-- 추천은 실제 보유 종목이 있을 때만 `DashboardRecommendationEngine`의 규칙 기반 MVP 로직으로 생성합니다. Python AI 서버가 연결되면 같은 응답 계약으로 대체합니다.
-- 추천 목록/상세 API와 Windows 알림 API는 아직 구현 전이며, 현재 앱은 대시보드 스냅샷의 대표 추천과 알림 데이터를 사용합니다.
+- 추천 분석은 Python 서버에서 가격·뉴스·공시·보유 손익을 종합하고 결과와 근거를 저장합니다. 서버 장애 시 규칙 기반 추천으로 대체합니다.
+- 추천 분석 실행, 목록, 상세 API는 구현됐지만 Flutter 추천 이력 화면과 수동 재분석 버튼은 아직 구현 전입니다.
+- Windows 알림 API는 아직 구현 전이며, 현재 앱은 대시보드 스냅샷의 알림 데이터를 사용합니다.
 - 뉴스와 공시는 외부 동기화, 로컬 저장, 중복 제거, 기간 조회, Flutter 타임라인, 주기 동기화까지 구현됐습니다.

@@ -1,4 +1,26 @@
 services:
+  # 가격·뉴스·공시를 설명 가능한 가중 점수로 조합하는 로컬 Python 분석 서버입니다.
+  ai-server:
+    build:
+      context: ./AI/ai-server
+      dockerfile: Dockerfile
+    container_name: sagopalgo-ai-server
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - sagopalgo-network
+
   # 사고팔고의 메인 MySQL 데이터베이스입니다.
   # 컨테이너가 처음 생성될 때 Back/database/schema.sql을 자동 실행해 기본 스키마를 만듭니다.
   # 호스트 PC로 포트를 열지 여부는 override 파일에서 실행 방식별로 결정합니다.
@@ -50,6 +72,11 @@ services:
       SAGOPALGO_PERSONAL_MODE_USER_ID: ${SAGOPALGO_PERSONAL_MODE_USER_ID}
       SAGOPALGO_PERSONAL_MODE_NICKNAME: ${SAGOPALGO_PERSONAL_MODE_NICKNAME}
       SAGOPALGO_PERSONAL_MODE_EMAIL: ${SAGOPALGO_PERSONAL_MODE_EMAIL}
+      SAGOPALGO_AI_ENABLED: ${SAGOPALGO_AI_ENABLED:-true}
+      SAGOPALGO_AI_BASE_URL: http://ai-server:8000
+      SAGOPALGO_AI_ANALYSIS_PATH: ${SAGOPALGO_AI_ANALYSIS_PATH:-/internal/ai/analyze-investment}
+      SAGOPALGO_AI_LOOKBACK_DAYS: ${SAGOPALGO_AI_LOOKBACK_DAYS:-30}
+      SAGOPALGO_AI_CANDLE_COUNT: ${SAGOPALGO_AI_CANDLE_COUNT:-30}
       SAGOPALGO_KB_MARKET_DATA_ENABLED: ${SAGOPALGO_KB_MARKET_DATA_ENABLED:-false}
       SAGOPALGO_KB_ACCOUNT_ENABLED: ${SAGOPALGO_KB_ACCOUNT_ENABLED}
       SAGOPALGO_KB_ORDER_ENABLED: ${SAGOPALGO_KB_ORDER_ENABLED}

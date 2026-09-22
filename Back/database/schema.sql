@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS recommendations (
   stock_name VARCHAR(100) NOT NULL COMMENT '종목명',
   market VARCHAR(20) NOT NULL COMMENT '시장',
   recommendation_type VARCHAR(20) NOT NULL COMMENT '추천 유형: BUY, SELL, HOLD',
-  status VARCHAR(30) NOT NULL COMMENT '추천 상태: BUY_STRONG, WATCH, NEUTRAL, RISK 등',
+  status VARCHAR(30) NOT NULL COMMENT '추천 상태: BUY_STRONG, BUY_WATCH, HOLD, TAKE_PROFIT, STOP_LOSS_WATCH, RISK',
   score INT NOT NULL COMMENT '0~100 추천 점수',
   entry_price DECIMAL(18, 2) NULL COMMENT '권장 진입 가격',
   stop_loss_rate DECIMAL(6, 3) NULL COMMENT '손절 기준 수익률',
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS recommendations (
 CREATE TABLE IF NOT EXISTS recommendation_reasons (
   reason_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '추천 사유 PK',
   recommendation_id BIGINT NOT NULL COMMENT '연결된 추천',
-  reason_type VARCHAR(30) NOT NULL COMMENT '사유 유형: RSI, MACD, VOLUME, NEWS, FOREIGN_BUY, MARKET',
+  reason_type VARCHAR(30) NOT NULL COMMENT '사유 유형: RISK, PRICE, NEWS, DISCLOSURE',
   label VARCHAR(50) NOT NULL COMMENT '앱에 표시할 짧은 라벨',
   description VARCHAR(500) NOT NULL COMMENT '사용자에게 보여줄 추천 사유 설명',
   score INT NOT NULL DEFAULT 0 COMMENT '해당 사유가 더한 점수',

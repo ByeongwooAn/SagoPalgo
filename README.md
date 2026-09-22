@@ -34,6 +34,7 @@ API Key, 계좌정보, 토큰 등 민감정보를 저장소에 커밋하지 마�
 ```text
 Front/app_version      Flutter 앱. Windows 데스크톱 실행 파일을 우선 대상으로 전환합니다.
 Back/spring-server     Spring Boot API 서버. 초기에는 기존 API와 데이터 구조를 활용합니다.
+AI/ai-server           가격·뉴스·공시·보유 손익을 조합하는 로컬 Python 분석 서버입니다.
 docs                   설계, API, 수동 테스트, 로드맵 문서를 관리합니다.
 docker                 Docker/Nginx 템플릿과 실행 보조 파일을 관리합니다.
 ```

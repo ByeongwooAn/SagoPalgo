@@ -35,6 +35,9 @@
 | 국내주식 캔들 시세 | GET | `/api/v1/market/candles` |
 | 저장된 종목 뉴스·공시 조회 | GET | `/api/v1/research/feed` |
 | 종목 뉴스·공시 외부 동기화 | POST | `/api/v1/research/feed/sync` |
+| 보유 종목 분석·추천 저장 | POST | `/api/v1/recommendations/analyze/{holdingId}` |
+| 추천 이력 목록 | GET | `/api/v1/recommendations` |
+| 추천 이력 상세 | GET | `/api/v1/recommendations/{recommendationId}` |
 | 대시보드 스냅샷 | GET | `/api/v1/dashboard/snapshot` |
 | 자본금 조회·수정 | GET, PUT | `/api/v1/capital` |
 | 관심 종목 목록·등록 | GET, POST | `/api/v1/watchlist` |
@@ -108,12 +111,26 @@ Invoke-RestMethod `
 
 ## 추천 기준
 
-- `DashboardRecommendationEngine`은 실제 보유 종목이 있을 때 수익률, 손절 기준, 익절 기준으로 `보유 유지`, `부분 익절 검토`, `손절 감시` 중 하나를 반환합니다.
-- 보유 종목이 없으면 대시보드의 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
-- Python AI 서버가 연결되면 추천 서비스 경계를 실제 분석 클라이언트로 교체하되 `/api/v1/dashboard/snapshot` 계약은 유지합니다.
+- Python `WEIGHTED_SIGNAL_V1` 분석기는 최근 일봉, 저장 뉴스·공시, 보유 손익과 손절·익절 기준을 종합합니다.
+- `POST /api/v1/recommendations/analyze/{holdingId}`는 추천 본문, 점수 근거, 분석 원문을 한 트랜잭션으로 저장합니다.
+- Python 서버가 비활성 또는 실패 상태이면 `DashboardRecommendationEngine`의 규칙 결과를 같은 저장 계약으로 대체합니다.
+- 대시보드는 저장된 최신 추천을 우선 표시하고, 저장 결과가 없을 때만 즉시 계산한 규칙 추천을 사용합니다.
+- 보유 종목이 없고 저장 추천도 없으면 대시보드의 `recommendation`은 `null`, `alerts`는 빈 배열입니다.
+
+분석과 저장 예시:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri 'http://localhost:8080/api/v1/recommendations/analyze/21'
+
+Invoke-RestMethod `
+  -Method Get `
+  -Uri 'http://localhost:8080/api/v1/recommendations?page=0&size=20'
+```
 
 ## 다음 구현 후보
 
-1. 뉴스·공시·가격 흐름을 사용하는 AI 분석 엔진
-2. Windows 로컬 알림
+1. 실제 가격·뉴스·AI 위험 신호 기반 Windows 로컬 알림
+2. Flutter 추천 이력 목록·상세와 수동 재분석 UI
 3. Windows Credential Manager 기반 민감정보 보호

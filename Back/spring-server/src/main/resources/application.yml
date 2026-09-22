@@ -28,6 +28,13 @@ mybatis:
     map-underscore-to-camel-case: true
 
 sagopalgo:
+  ai:
+    # Python 분석 서버는 명시적으로 켠 환경에서만 호출하며, 실패하면 규칙 엔진으로 대체합니다.
+    enabled: ${SAGOPALGO_AI_ENABLED:false}
+    base-url: ${SAGOPALGO_AI_BASE_URL:http://localhost:8000}
+    analysis-path: ${SAGOPALGO_AI_ANALYSIS_PATH:/internal/ai/analyze-investment}
+    lookback-days: ${SAGOPALGO_AI_LOOKBACK_DAYS:30}
+    candle-count: ${SAGOPALGO_AI_CANDLE_COUNT:30}
   personal:
     # 개인용 Windows 프로그램에서는 소셜 로그인 없이 로컬 사용자 1명으로 API를 사용합니다.
     enabled: ${SAGOPALGO_PERSONAL_MODE_ENABLED:true}

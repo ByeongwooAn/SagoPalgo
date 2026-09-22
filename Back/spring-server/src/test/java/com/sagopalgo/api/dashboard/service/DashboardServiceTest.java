@@ -6,13 +6,16 @@ import static org.mockito.Mockito.when;
 import com.sagopalgo.api.capital.dto.CapitalResponse;
 import com.sagopalgo.api.capital.service.CapitalService;
 import com.sagopalgo.api.dashboard.dto.DashboardSnapshotResponse;
+import com.sagopalgo.api.dashboard.dto.DashboardRecommendationResponse;
 import com.sagopalgo.api.holding.dto.HoldingResponse;
 import com.sagopalgo.api.holding.dto.HoldingsListResponse;
 import com.sagopalgo.api.holding.dto.PortfolioSummaryResponse;
 import com.sagopalgo.api.holding.service.HoldingService;
+import com.sagopalgo.api.recommendation.service.RecommendationService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,13 +35,21 @@ class DashboardServiceTest {
     @Mock
     private HoldingService holdingService;
 
+    @Mock
+    private RecommendationService recommendationService;
+
     private DashboardService dashboardService;
     private DashboardRecommendationEngine recommendationEngine;
 
     @BeforeEach
     void setUp() {
         recommendationEngine = new DashboardRecommendationEngine();
-        dashboardService = new DashboardService(capitalService, holdingService, recommendationEngine);
+        dashboardService = new DashboardService(
+            capitalService,
+            holdingService,
+            recommendationEngine,
+            recommendationService
+        );
     }
 
     @Test
@@ -100,6 +111,44 @@ class DashboardServiceTest {
         assertThat(response.recommendation()).isNull();
         assertThat(response.holdings()).isEmpty();
         assertThat(response.alerts()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("현재 보유 종목의 저장 추천이 있으면 규칙 추천보다 우선한다")
+    void getSnapshotUsesLatestStoredRecommendation() {
+        long userId = 3L;
+        HoldingResponse holding = holding("005930", "삼성전자", "KOSPI", "75200");
+        PortfolioSummaryResponse summary = new PortfolioSummaryResponse(
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            BigDecimal.ZERO
+        );
+        DashboardRecommendationResponse stored = new DashboardRecommendationResponse(
+            99L,
+            "삼성전자",
+            "005930",
+            "KOSPI",
+            "매수 관찰",
+            67,
+            new BigDecimal("75200"),
+            new BigDecimal("-5"),
+            "저장된 통합 분석 결과입니다.",
+            List.of()
+        );
+        when(capitalService.findByUserId(userId)).thenReturn(new CapitalResponse(
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            new BigDecimal("0.02")
+        ));
+        when(holdingService.findAll(userId)).thenReturn(new HoldingsListResponse(summary, List.of(holding)));
+        when(recommendationService.findLatestDashboardRecommendation(userId)).thenReturn(Optional.of(stored));
+
+        DashboardSnapshotResponse response = dashboardService.getSnapshot(userId);
+
+        assertThat(response.recommendation()).isSameAs(stored);
+        assertThat(response.recommendation().recommendationId()).isEqualTo(99L);
     }
 
     private HoldingResponse holding(String stockCode, String stockName, String market, String currentPrice) {
