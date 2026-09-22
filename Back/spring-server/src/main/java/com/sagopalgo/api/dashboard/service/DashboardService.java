@@ -2,7 +2,7 @@ package com.sagopalgo.api.dashboard.service;
 
 import com.sagopalgo.api.capital.dto.CapitalResponse;
 import com.sagopalgo.api.capital.service.CapitalService;
-import com.sagopalgo.api.dashboard.dto.DashboardAlertResponse;
+import com.sagopalgo.api.alert.service.AlertService;
 import com.sagopalgo.api.dashboard.dto.DashboardMarketSummaryResponse;
 import com.sagopalgo.api.dashboard.dto.DashboardRecommendationResponse;
 import com.sagopalgo.api.dashboard.dto.DashboardSnapshotResponse;
@@ -26,17 +26,20 @@ public class DashboardService {
     private final HoldingService holdingService;
     private final DashboardRecommendationEngine recommendationEngine;
     private final RecommendationService recommendationService;
+    private final AlertService alertService;
 
     public DashboardService(
         CapitalService capitalService,
         HoldingService holdingService,
         DashboardRecommendationEngine recommendationEngine,
-        RecommendationService recommendationService
+        RecommendationService recommendationService,
+        AlertService alertService
     ) {
         this.capitalService = capitalService;
         this.holdingService = holdingService;
         this.recommendationEngine = recommendationEngine;
         this.recommendationService = recommendationService;
+        this.alertService = alertService;
     }
 
     @Transactional(readOnly = true)
@@ -57,7 +60,7 @@ public class DashboardService {
             recommendation,
             holdings.summary(),
             holdings.items(),
-            alerts(recommendation)
+            alertService.latestDashboardAlerts(userId)
         );
     }
 
@@ -72,43 +75,6 @@ public class DashboardService {
             0,
             List.of()
         );
-    }
-
-    private List<DashboardAlertResponse> alerts(DashboardRecommendationResponse recommendation) {
-        if (recommendation == null) {
-            return List.of();
-        }
-
-        return List.of(
-            new DashboardAlertResponse(
-                recommendation.stockName() + " " + recommendation.status(),
-                recommendation.aiSummary(),
-                "방금 전",
-                alertType(recommendation.status())
-            ),
-            new DashboardAlertResponse(
-                "관심 종목 신규 후보",
-                "RSI 과매도 탈출과 거래량 증가가 동시에 감지되었습니다.",
-                "3분 전",
-                "CANDIDATE"
-            ),
-            new DashboardAlertResponse(
-                "시장 흐름 업데이트",
-                "코스피와 나스닥 지표가 모두 강세 구간으로 전환되었습니다.",
-                "5분 전",
-                "MARKET"
-            )
-        );
-    }
-
-    private String alertType(String recommendationStatus) {
-        if (recommendationStatus.contains("손절")) {
-            return "RISK";
-        }
-        if (recommendationStatus.contains("익절")) {
-            return "SELL";
-        }
-        return "CANDIDATE";
     }
 
     private String positionRange(BigDecimal minPosition, BigDecimal maxPosition) {

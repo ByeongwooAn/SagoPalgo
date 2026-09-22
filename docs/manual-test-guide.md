@@ -266,6 +266,20 @@ Invoke-RestMethod `
 3. AI 서버를 중지하거나 `SAGOPALGO_AI_ENABLED=false`로 바꾼 뒤에도 규칙 fallback 추천이 저장되는지 확인합니다.
 4. 대시보드 새로고침 시 가장 최근에 저장한 추천이 대표 추천으로 표시되는지 확인합니다.
 
+Windows 알림 흐름 확인:
+
+```powershell
+Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts?page=0&size=20'
+Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts/pending?limit=20'
+```
+
+1. `BUY_WATCH`, `BUY_STRONG`, `TAKE_PROFIT`, `STOP_LOSS_WATCH`, `RISK` 추천을 생성하면 알림이 저장되는지 확인합니다.
+2. 같은 종목과 알림 유형을 60분 안에 다시 분석하면 중복 알림이 생기지 않는지 확인합니다.
+3. Flutter Windows 앱을 실행한 뒤 30초 안에 Windows 알림 센터에 제목과 분석 요약이 표시되는지 확인합니다.
+4. 표시된 항목의 `sentAt`이 기록되고 `/pending`에서는 제외되는지 확인합니다.
+5. 알림 탭에서 항목을 선택하면 `read=true`로 바뀌는지 확인합니다.
+6. 관심 종목 알림을 끈 뒤 새 추천을 만들어도 해당 종목 알림이 생기지 않는지 확인합니다.
+
 앱 잠금 확인이 필요하면 `Front/app_version/.env`에 `SAGOPALGO_APP_LOCK_PIN=1234`처럼 값을 넣고 다시 실행합니다. 시작 시 PIN 잠금 화면이 표시되고, 같은 값을 입력하면 홈 화면에 진입해야 합니다.
 
 Windows 릴리즈 빌드 확인:
@@ -283,5 +297,5 @@ flutter build windows --release
 - KIS 설정이 꺼져 있거나 아직 지원하지 않는 해외 시장 종목이면 임의 샘플 가격을 만들지 않고 사용자가 등록한 매수가를 기준값으로 반환합니다.
 - 추천 분석은 Python 서버에서 가격·뉴스·공시·보유 손익을 종합하고 결과와 근거를 저장합니다. 서버 장애 시 규칙 기반 추천으로 대체합니다.
 - 추천 분석 실행, 목록, 상세 API는 구현됐지만 Flutter 추천 이력 화면과 수동 재분석 버튼은 아직 구현 전입니다.
-- Windows 알림 API는 아직 구현 전이며, 현재 앱은 대시보드 스냅샷의 알림 데이터를 사용합니다.
+- Ubuntu 백엔드의 추천 신호 저장, 알림 API, Flutter 폴링, Windows 네이티브 알림이 연결되어 있습니다. 앱이 완전히 종료된 동안에는 Windows 토스트를 즉시 표시하지 않지만 백엔드는 알림을 저장하고 다음 앱 실행 때 전달합니다.
 - 뉴스와 공시는 외부 동기화, 로컬 저장, 중복 제거, 기간 조회, Flutter 타임라인, 주기 동기화까지 구현됐습니다.

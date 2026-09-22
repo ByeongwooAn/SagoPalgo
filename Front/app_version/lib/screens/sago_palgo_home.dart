@@ -1,17 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/auth_session.dart';
+import '../models/app_alert.dart';
 import '../models/holding.dart';
 import '../models/investment_snapshot.dart';
 import '../models/provider_setting.dart';
 import '../models/research_feed.dart';
 import '../repositories/investment_repository.dart';
+import '../repositories/alert_repository.dart';
 import '../repositories/kb_account_repository.dart';
 import '../repositories/market_data_repository.dart';
 import '../repositories/portfolio_repository.dart';
 import '../repositories/provider_settings_repository.dart';
 import '../repositories/research_feed_repository.dart';
 import '../repositories/watchlist_repository.dart';
+import '../services/local_notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
 import 'alerts_screen.dart';
@@ -38,6 +43,8 @@ class SagoPalgoHome extends StatefulWidget {
     required this.researchFeedRepository,
     required this.kbAccountRepository,
     required this.marketDataRepository,
+    required this.alertRepository,
+    required this.localNotificationService,
     required this.session,
   });
 
@@ -65,6 +72,12 @@ class SagoPalgoHome extends StatefulWidget {
   /// 종목 상세 화면에서 일·주·월봉 시세를 조회하는 Repository입니다.
   final MarketDataRepository marketDataRepository;
 
+  /// Ubuntu 백엔드의 저장 알림을 조회하고 상태를 갱신합니다.
+  final AlertRepository? alertRepository;
+
+  /// Windows 알림 센터에 새 신호를 표시합니다.
+  final LocalNotificationService localNotificationService;
+
   /// 현재 로컬 사용자 프로필 정보를 담고 있는 세션입니다.
   final AuthSession session;
 
@@ -91,6 +104,10 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
   /// 다른 탭의 빈 상태 CTA가 요청한 포트폴리오 초기 작업입니다.
   PortfolioSetupAction? _pendingPortfolioSetupAction;
 
+  List<AppAlert>? _alerts;
+  Timer? _alertTimer;
+  bool _pollingAlerts = false;
+
   @override
   void initState() {
     super.initState();
@@ -100,6 +117,20 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
     _providerSettingsFuture = widget.providerSettingsRepository
         .fetchProviderSettings();
+    if (widget.alertRepository != null) {
+      unawaited(_refreshAlerts());
+      unawaited(_pollPendingAlerts());
+      _alertTimer = Timer.periodic(
+        const Duration(seconds: 30),
+        (_) => unawaited(_pollPendingAlerts()),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _alertTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -142,6 +173,9 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       kbAccountRepository: widget.kbAccountRepository,
                       marketDataRepository: widget.marketDataRepository,
                       researchFeedRepository: widget.researchFeedRepository,
+                      alerts: _alerts ?? snapshot.data!.alerts,
+                      onAlertsRefresh: _refreshAlerts,
+                      onAlertRead: _markAlertRead,
                       providerSettingsFuture: _providerSettingsFuture,
                       portfolioFuture: _portfolioFuture,
                       onPortfolioRetry: _reloadPortfolio,
@@ -208,6 +242,66 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
   /// 포트폴리오 입력 시트를 연 뒤 pending action을 비웁니다.
   void _clearPendingPortfolioSetupAction() {
     setState(() => _pendingPortfolioSetupAction = null);
+  }
+
+  Future<void> _pollPendingAlerts() async {
+    final repository = widget.alertRepository;
+    if (repository == null || _pollingAlerts) {
+      return;
+    }
+    _pollingAlerts = true;
+    try {
+      final pending = await repository.fetchPending();
+      for (final alert in pending) {
+        await widget.localNotificationService.show(alert);
+        final alertId = alert.alertId;
+        if (alertId != null) {
+          await repository.markSent(alertId);
+        }
+      }
+      if (pending.isNotEmpty) {
+        await _refreshAlerts();
+      }
+    } catch (_) {
+      // 알림 서버가 잠시 응답하지 않아도 투자 화면 사용은 계속할 수 있어야 합니다.
+    } finally {
+      _pollingAlerts = false;
+    }
+  }
+
+  Future<void> _refreshAlerts() async {
+    final repository = widget.alertRepository;
+    if (repository == null) {
+      return;
+    }
+    try {
+      final alerts = await repository.fetchAlerts();
+      if (mounted) {
+        setState(() => _alerts = alerts);
+      }
+    } catch (_) {
+      // 마지막으로 조회한 목록을 유지하고 다음 주기에서 다시 시도합니다.
+    }
+  }
+
+  Future<void> _markAlertRead(AppAlert alert) async {
+    final repository = widget.alertRepository;
+    final alertId = alert.alertId;
+    if (repository == null || alertId == null || alert.isRead) {
+      return;
+    }
+    await repository.markRead(alertId);
+    if (!mounted || _alerts == null) {
+      return;
+    }
+    setState(() {
+      _alerts = _alerts!
+          .map(
+            (item) =>
+                item.alertId == alertId ? item.copyWith(isRead: true) : item,
+          )
+          .toList();
+    });
   }
 }
 
@@ -401,6 +495,9 @@ class _TabContent extends StatelessWidget {
     required this.kbAccountRepository,
     required this.marketDataRepository,
     required this.researchFeedRepository,
+    required this.alerts,
+    required this.onAlertsRefresh,
+    required this.onAlertRead,
     required this.providerSettingsFuture,
     required this.portfolioFuture,
     required this.onPortfolioRetry,
@@ -432,6 +529,12 @@ class _TabContent extends StatelessWidget {
 
   /// 뉴스·공시 조회와 동기화를 처리하는 Repository입니다.
   final ResearchFeedRepository researchFeedRepository;
+
+  final List<AppAlert> alerts;
+
+  final Future<void> Function() onAlertsRefresh;
+
+  final ValueChanged<AppAlert> onAlertRead;
 
   /// 설정 화면에서 사용할 증권사 연동 상태 Future입니다.
   final Future<ProviderSettingsSnapshot> providerSettingsFuture;
@@ -499,7 +602,11 @@ class _TabContent extends StatelessWidget {
           active: selectedIndex == 3,
           onHoldingSetupOpen: onHoldingSetupOpen,
         ),
-        AlertsScreen(alerts: snapshot.alerts),
+        AlertsScreen(
+          alerts: alerts,
+          onRefresh: onAlertsRefresh,
+          onAlertTap: onAlertRead,
+        ),
         SettingsScreen(
           providerSettingsFuture: providerSettingsFuture,
           kbAccountRepository: kbAccountRepository,

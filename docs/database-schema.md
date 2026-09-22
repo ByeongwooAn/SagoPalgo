@@ -23,7 +23,7 @@
 | `trade_records` | 매수/매도 기록 | 설계 포함 |
 | `recommendations` | AI 추천 결과 본문 | 구현됨 |
 | `recommendation_reasons` | 추천 점수 산출 근거 | 구현됨 |
-| `alerts` | 앱 알림 내역 | 설계 포함 |
+| `alerts` | 앱 알림 내역과 Windows 전달/읽음 상태 | 구현 완료 |
 | `device_tokens` | 장치 알림 토큰 확장 지점 | 설계 포함 |
 | `analysis_snapshots` | AI 분석 결과 원본 스냅샷 | 구현됨 |
 | `research_news` | 종목별 뉴스 수집 결과 | 구현됨 |

@@ -5,11 +5,20 @@
 class AppAlert {
   /// 알림 카드에 필요한 제목, 본문, 시간, 분류를 모두 받습니다.
   const AppAlert({
+    this.alertId,
+    this.recommendationId,
     required this.title,
     required this.body,
     required this.timeLabel,
     required this.type,
+    this.isRead = false,
   });
+
+  /// 백엔드 알림 PK이며 대시보드의 이전 응답에는 없을 수 있습니다.
+  final int? alertId;
+
+  /// 알림을 만든 추천 결과 PK입니다.
+  final int? recommendationId;
 
   /// 알림의 핵심 제목입니다.
   final String title;
@@ -23,13 +32,31 @@ class AppAlert {
   /// 아이콘과 강조색을 결정하는 알림 분류입니다.
   final AppAlertType type;
 
+  /// 사용자가 앱에서 확인한 알림인지 나타냅니다.
+  final bool isRead;
+
   /// 백엔드 대시보드 스냅샷의 알림 JSON을 앱 모델로 변환합니다.
   factory AppAlert.fromJson(Map<String, dynamic> json) {
     return AppAlert(
+      alertId: (json['alertId'] as num?)?.toInt(),
+      recommendationId: (json['recommendationId'] as num?)?.toInt(),
       title: json['title'] as String,
       body: json['body'] as String,
       timeLabel: json['timeLabel'] as String,
       type: _appAlertTypeFromApiValue(json['type'] as String?),
+      isRead: json['read'] as bool? ?? false,
+    );
+  }
+
+  AppAlert copyWith({bool? isRead}) {
+    return AppAlert(
+      alertId: alertId,
+      recommendationId: recommendationId,
+      title: title,
+      body: body,
+      timeLabel: timeLabel,
+      type: type,
+      isRead: isRead ?? this.isRead,
     );
   }
 }

@@ -1,18 +1,18 @@
-name: sagopalgo-local-fixed
+name: sagopalgo-ubuntu
 
 services:
-  # 개인 PC 고정 실행 예시에서는 MySQL 포트를 외부에 공개하지 않습니다.
+  # Ubuntu 서버에서는 MySQL 포트를 외부에 공개하지 않습니다.
   # Spring API만 Docker 내부 네트워크의 mysql:3306 주소로 접근합니다.
   mysql:
-    container_name: sagopalgo-mysql-local-fixed
+    container_name: sagopalgo-mysql-ubuntu
 
-  # Spring API 포트는 외부에 직접 공개하지 않고 Nginx HTTP 프록시만 로컬에서 사용합니다.
+  # Spring API 포트는 외부에 직접 공개하지 않고 Nginx만 Windows 앱에 공개합니다.
   spring-api:
-    container_name: sagopalgo-spring-api-local-fixed
+    container_name: sagopalgo-spring-api-ubuntu
 
-  # 개인용 로컬 실행은 도메인/HTTPS 없이 localhost HTTP 프록시만 엽니다.
+  # 같은 사설망의 Windows 앱이 Ubuntu 주소로 접근할 HTTP 프록시를 엽니다.
   reverse-proxy:
-    container_name: sagopalgo-reverse-proxy-local-fixed
+    container_name: sagopalgo-reverse-proxy-ubuntu
     ports:
       - "${SAGOPALGO_PROXY_HTTP_PORT}:80"
     volumes:

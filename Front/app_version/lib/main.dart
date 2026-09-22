@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'config/app_environment.dart';
 import 'models/auth_session.dart';
 import 'repositories/investment_repository.dart';
+import 'repositories/alert_repository.dart';
 import 'repositories/kb_account_repository.dart';
 import 'repositories/market_data_repository.dart';
 import 'repositories/portfolio_repository.dart';
 import 'repositories/provider_settings_repository.dart';
 import 'repositories/research_feed_repository.dart';
 import 'repositories/spring_investment_repository.dart';
+import 'repositories/spring_alert_repository.dart';
 import 'repositories/spring_kb_account_repository.dart';
 import 'repositories/spring_market_data_repository.dart';
 import 'repositories/spring_portfolio_repository.dart';
@@ -18,6 +20,7 @@ import 'repositories/spring_watchlist_repository.dart';
 import 'repositories/watchlist_repository.dart';
 import 'screens/app_lock_screen.dart';
 import 'screens/sago_palgo_home.dart';
+import 'services/local_notification_service.dart';
 import 'theme/app_theme.dart';
 
 /// Flutter 애플리케이션의 시작점입니다.
@@ -45,6 +48,8 @@ class SagoPalgoApp extends StatefulWidget {
     this.researchFeedRepositoryBuilder,
     this.kbAccountRepositoryBuilder,
     this.marketDataRepositoryBuilder,
+    this.alertRepositoryBuilder,
+    this.localNotificationService = const NoopLocalNotificationService(),
     this.session = AuthSession.personal,
     this.appLockPin,
   });
@@ -52,7 +57,12 @@ class SagoPalgoApp extends StatefulWidget {
   /// `.env`에서 읽은 API 주소로 실제 Spring 연동 Repository를 구성합니다.
   factory SagoPalgoApp.fromEnvironment() {
     final environment = AppEnvironment.instance;
-    return SagoPalgoApp(appLockPin: environment.appLockPin);
+    return SagoPalgoApp(
+      appLockPin: environment.appLockPin,
+      alertRepositoryBuilder: (session) =>
+          SpringAlertRepository(accessToken: session.accessToken),
+      localNotificationService: WindowsLocalNotificationService(),
+    );
   }
 
   /// 테스트에서 투자 데이터 Repository를 교체하기 위한 빌더입니다.
@@ -82,6 +92,12 @@ class SagoPalgoApp extends StatefulWidget {
   /// 테스트에서 캔들 시세 Repository를 교체하기 위한 빌더입니다.
   final MarketDataRepository Function(AuthSession session)?
   marketDataRepositoryBuilder;
+
+  /// 저장 알림 조회와 전달 상태를 처리하는 Repository 빌더입니다.
+  final AlertRepository Function(AuthSession session)? alertRepositoryBuilder;
+
+  /// Windows 네이티브 알림 표시 구현입니다.
+  final LocalNotificationService localNotificationService;
 
   /// 개인용 프로그램에서 사용할 로컬 프로필 세션입니다.
   final AuthSession session;
@@ -156,6 +172,8 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
               marketDataRepository:
                   widget.marketDataRepositoryBuilder?.call(session) ??
                   SpringMarketDataRepository(accessToken: session.accessToken),
+              alertRepository: widget.alertRepositoryBuilder?.call(session),
+              localNotificationService: widget.localNotificationService,
               session: session,
             ),
     );

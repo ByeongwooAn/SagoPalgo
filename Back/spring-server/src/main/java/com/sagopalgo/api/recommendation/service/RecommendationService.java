@@ -2,6 +2,7 @@ package com.sagopalgo.api.recommendation.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sagopalgo.api.alert.service.AlertService;
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.config.AiAnalysisProperties;
@@ -34,6 +35,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 보유 종목의 가격·뉴스·공시를 분석하고 설명 가능한 추천 이력을 관리합니다.
@@ -50,6 +52,7 @@ public class RecommendationService {
     private final AiAnalysisGateway aiAnalysisGateway;
     private final DashboardRecommendationEngine fallbackEngine;
     private final RecommendationStore recommendationStore;
+    private final AlertService alertService;
     private final AiAnalysisProperties properties;
     private final ObjectMapper objectMapper;
 
@@ -60,6 +63,7 @@ public class RecommendationService {
         AiAnalysisGateway aiAnalysisGateway,
         DashboardRecommendationEngine fallbackEngine,
         RecommendationStore recommendationStore,
+        AlertService alertService,
         AiAnalysisProperties properties,
         ObjectMapper objectMapper
     ) {
@@ -69,10 +73,12 @@ public class RecommendationService {
         this.aiAnalysisGateway = aiAnalysisGateway;
         this.fallbackEngine = fallbackEngine;
         this.recommendationStore = recommendationStore;
+        this.alertService = alertService;
         this.properties = properties;
         this.objectMapper = objectMapper;
     }
 
+    @Transactional
     public RecommendationResponse analyzeHolding(Long userId, Long holdingId) {
         HoldingResponse holding = holdingService.findOne(userId, holdingId);
         AiInvestmentAnalysisRequest request = analysisRequest(holding);
@@ -83,6 +89,7 @@ public class RecommendationService {
             reasonRecords(analysis),
             snapshotRecord(userId, holding, analysis, request)
         );
+        alertService.createFromRecommendation(stored);
         return response(stored);
     }
 

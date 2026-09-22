@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import com.sagopalgo.api.capital.dto.CapitalResponse;
 import com.sagopalgo.api.capital.service.CapitalService;
+import com.sagopalgo.api.alert.service.AlertService;
 import com.sagopalgo.api.dashboard.dto.DashboardSnapshotResponse;
 import com.sagopalgo.api.dashboard.dto.DashboardRecommendationResponse;
 import com.sagopalgo.api.holding.dto.HoldingResponse;
@@ -38,6 +39,9 @@ class DashboardServiceTest {
     @Mock
     private RecommendationService recommendationService;
 
+    @Mock
+    private AlertService alertService;
+
     private DashboardService dashboardService;
     private DashboardRecommendationEngine recommendationEngine;
 
@@ -48,7 +52,8 @@ class DashboardServiceTest {
             capitalService,
             holdingService,
             recommendationEngine,
-            recommendationService
+            recommendationService,
+            alertService
         );
     }
 
@@ -83,7 +88,7 @@ class DashboardServiceTest {
         assertThat(response.recommendation().status()).isEqualTo("보유 유지");
         assertThat(response.portfolioSummary()).isSameAs(summary);
         assertThat(response.holdings()).containsExactly(holding);
-        assertThat(response.alerts()).hasSize(3);
+        assertThat(response.alerts()).isEmpty();
     }
 
     @Test

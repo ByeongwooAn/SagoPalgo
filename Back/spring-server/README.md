@@ -129,8 +129,17 @@ Invoke-RestMethod `
   -Uri 'http://localhost:8080/api/v1/recommendations?page=0&size=20'
 ```
 
+추천 결과가 매수·익절·위험 상태이면 `alerts`에 Windows 전달 대기 알림이 저장됩니다. Ubuntu 운영 환경에서는 `SAGOPALGO_ALERT_ANALYSIS_ENABLED=true`로 설정해 보유 종목을 기본 15분마다 자동 분석합니다.
+
+```powershell
+Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts?page=0&size=20'
+Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts/pending?limit=20'
+Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/sent'
+Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read'
+```
+
 ## 다음 구현 후보
 
-1. 실제 가격·뉴스·AI 위험 신호 기반 Windows 로컬 알림
-2. Flutter 추천 이력 목록·상세와 수동 재분석 UI
-3. Windows Credential Manager 기반 민감정보 보호
+1. Flutter 추천 이력 목록·상세와 수동 재분석 UI
+2. Windows Credential Manager 기반 민감정보 보호
+3. 가격 도달·급등락·신규 뉴스/공시 전용 알림 조건 확장

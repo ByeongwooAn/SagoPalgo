@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS recommendation_reasons (
 ) ENGINE=InnoDB COMMENT='AI 추천 점수 산출 근거';
 
 -- 알림 대상 장치 토큰 테이블입니다.
--- Windows 로컬 알림 구현 전까지는 향후 외부 푸시/장치 연동 확장 지점으로 둡니다.
+-- 현재 Windows 로컬 알림은 폴링 방식이므로, 이 테이블은 향후 외부 푸시 확장 지점으로 둡니다.
 CREATE TABLE IF NOT EXISTS device_tokens (
   device_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '기기 토큰 PK',
   user_id BIGINT NOT NULL COMMENT '토큰 소유 사용자',
@@ -189,6 +189,7 @@ CREATE TABLE IF NOT EXISTS alerts (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 시각',
   PRIMARY KEY (alert_id),
   KEY idx_alerts_user_read_created (user_id, is_read, created_at),
+  KEY idx_alerts_user_sent_created (user_id, sent_at, created_at),
   KEY idx_alerts_recommendation_id (recommendation_id),
   CONSTRAINT fk_alerts_user
     FOREIGN KEY (user_id) REFERENCES users (user_id)
