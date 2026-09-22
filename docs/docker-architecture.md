@@ -10,7 +10,7 @@
 | MySQL | 관리 | PC에 직접 설치하지 않아도 같은 DB 버전을 사용할 수 있음 |
 | Nginx reverse proxy | 선택 관리 | Spring API를 프록시 경유로 확인하거나 나중에 로컬 라우팅을 정리할 때 사용 |
 | Flutter Windows 프로그램 | 로컬 실행 | Windows 빌드, 트레이, 창 고정, 위젯형 UI는 Flutter SDK와 Visual Studio 환경에서 직접 실행하는 편이 적합 |
-| Python AI 서버 | 추후 관리 | AI 분석 서버를 분리하면 독립 컨테이너로 추가 |
+| Python AI 서버 | 관리 | 가격·뉴스·공시·보유 손익을 독립 프로세스에서 분석 |
 | Redis | 추후 관리 | 알림 큐, 캐시, 스케줄링이 필요할 때 추가 |
 
 ## 2. 현재 Compose 서비스
@@ -18,11 +18,13 @@
 ```text
 docker-compose.yml
 ├─ mysql          공통 DB 서비스 정의
+├─ ai-server      로컬 Python 통합 분석 서비스
 ├─ spring-api     공통 API 서비스 정의
 └─ reverse-proxy  공통 Nginx 서비스 정의
 
 docker-compose.dev.yml
 ├─ mysql          개발용 DB 포트 공개
+├─ ai-server      개발용 AI API 포트 공개
 ├─ spring-api     개발용 API 포트 공개
 └─ reverse-proxy  개발용 HTTP 프록시 공개
 
@@ -34,7 +36,9 @@ docker-compose.prod.yml
 
 `mysql`은 `Back/database/schema.sql`을 컨테이너 최초 생성 시 자동 실행합니다. 테이블은 `.env.dev` 또는 `.env.prod`의 `SAGOPALGO_MYSQL_DATABASE` 값으로 만들어진 DB 안에 생성됩니다. 이미 MySQL volume이 만들어진 뒤에는 init SQL이 다시 실행되지 않으므로, 스키마를 다시 만들려면 volume을 삭제하고 다시 생성해야 합니다.
 
-`spring-api`는 Compose가 `--env-file`로 받은 `.env.dev` 또는 `.env.prod` 값을 컨테이너 환경 변수로 주입합니다. 컨테이너 내부에서는 DB 주소가 `mysql:3306`입니다.
+`ai-server`는 `/internal/ai/analyze-investment`에서 설명 가능한 가중 점수 분석을 수행합니다. 외부 유료 모델이나 계좌 API를 직접 호출하지 않으며 Spring이 정규화한 입력만 받습니다.
+
+`spring-api`는 Compose가 `--env-file`로 받은 `.env.dev` 또는 `.env.prod` 값을 컨테이너 환경 변수로 주입합니다. 컨테이너 내부에서는 DB 주소가 `mysql:3306`, AI 서버 주소가 `http://ai-server:8000`입니다.
 
 `reverse-proxy`는 Nginx가 `spring-api:8080`으로 요청을 넘깁니다.
 
@@ -63,6 +67,7 @@ Invoke-WebRequest -Uri http://localhost:8081/health -UseBasicParsing
 | 용도 | URL | 설명 |
 | --- | --- | --- |
 | 직접 API 접근 | `http://localhost:8080` | 빠른 로컬 개발용 |
+| AI 상태·계약 확인 | `http://localhost:8000` | 개발 환경에서만 공개하는 Python 분석 API |
 | HTTP 프록시 | `http://localhost:8081` | Nginx 경유 확인용 |
 | Flutter Windows 기본 API | `http://localhost:8080` 또는 `http://localhost:8081` | 실행 방식에 맞춰 `Front/app_version/.env`에서 선택 |
 
@@ -79,7 +84,6 @@ Invoke-WebRequest -Uri http://localhost:8081/health -UseBasicParsing
 
 ## 6. 다음 확장
 
-1. Python AI 서버가 생기면 `ai-server` 서비스를 추가한다.
-2. Spring Boot에서 AI 서버를 `http://ai-server:{port}`로 호출하도록 환경 변수를 추가한다.
-3. 알림 큐나 캐시가 필요해지면 `redis` 서비스를 추가한다.
-4. 자동 주문 기능을 붙이기 전에는 Docker 설정보다 주문 승인 흐름, 로그, 실패 복구 정책을 먼저 설계한다.
+1. 알림 큐나 캐시가 필요해지면 `redis` 서비스를 추가한다.
+2. 분석 모델을 교체할 때도 Spring의 내부 요청·응답 계약과 저장 구조는 유지한다.
+3. 자동 주문 기능을 붙이기 전에는 Docker 설정보다 주문 승인 흐름, 로그, 실패 복구 정책을 먼저 설계한다.

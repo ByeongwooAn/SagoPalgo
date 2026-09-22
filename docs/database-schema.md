@@ -21,11 +21,11 @@
 | `watchlist` | 관심 종목 관리 | 구현됨 |
 | `holdings` | 보유 종목과 손절/익절 기준 | 구현됨 |
 | `trade_records` | 매수/매도 기록 | 설계 포함 |
-| `recommendations` | AI 추천 결과 본문 | 설계 포함 |
-| `recommendation_reasons` | 추천 점수 산출 근거 | 설계 포함 |
+| `recommendations` | AI 추천 결과 본문 | 구현됨 |
+| `recommendation_reasons` | 추천 점수 산출 근거 | 구현됨 |
 | `alerts` | 앱 알림 내역 | 설계 포함 |
 | `device_tokens` | 장치 알림 토큰 확장 지점 | 설계 포함 |
-| `analysis_snapshots` | AI 분석 결과 원본 스냅샷 | 설계 포함 |
+| `analysis_snapshots` | AI 분석 결과 원본 스냅샷 | 구현됨 |
 | `research_news` | 종목별 뉴스 수집 결과 | 구현됨 |
 | `research_disclosures` | 종목별 전자공시 수집 결과 | 구현됨 |
 | `research_sync_status` | 관심 종목별 마지막 뉴스·공시 동기화 상태 | 구현됨 |
@@ -125,7 +125,7 @@ AI가 생성한 매수/매도/관망 판단의 대표 결과를 저장합니다.
 | `stock_name` | VARCHAR(100) | 종목명 |
 | `market` | VARCHAR(20) | 시장 |
 | `recommendation_type` | VARCHAR(20) | `BUY`, `SELL`, `HOLD` |
-| `status` | VARCHAR(30) | `BUY_STRONG`, `WATCH`, `NEUTRAL`, `RISK`, `SELL_TAKE_PROFIT`, `SELL_STOP_LOSS` |
+| `status` | VARCHAR(30) | `BUY_STRONG`, `BUY_WATCH`, `HOLD`, `TAKE_PROFIT`, `STOP_LOSS_WATCH`, `RISK` |
 | `score` | INT | 0~100 추천 점수 |
 | `entry_price` | DECIMAL(18,2) | 권장 진입가 |
 | `stop_loss_rate` | DECIMAL(6,3) | 손절 기준 |
@@ -140,7 +140,7 @@ AI가 생성한 매수/매도/관망 판단의 대표 결과를 저장합니다.
 | --- | --- | --- |
 | `reason_id` | BIGINT | PK |
 | `recommendation_id` | BIGINT | 추천 FK |
-| `reason_type` | VARCHAR(30) | `RSI`, `MACD`, `VOLUME`, `NEWS`, `FOREIGN_BUY`, `MARKET` |
+| `reason_type` | VARCHAR(30) | `RISK`, `PRICE`, `NEWS`, `DISCLOSURE` |
 | `label` | VARCHAR(50) | 화면 표시 라벨 |
 | `description` | VARCHAR(500) | 사용자에게 보여줄 설명 |
 | `score` | INT | 해당 조건이 더한 점수 |
@@ -263,4 +263,4 @@ OpenDART에서 수집한 공시를 접수번호 기준으로 저장합니다.
 9. `research_disclosures`
 10. `research_sync_status`
 
-`trade_records`, `device_tokens`, `analysis_snapshots`는 설계에는 포함되어 있지만 실제 API는 다음 단계에서 필요해질 때 붙입니다.
+`trade_records`, `device_tokens`는 설계에는 포함되어 있지만 실제 API는 다음 단계에서 필요해질 때 붙입니다. `recommendations`, `recommendation_reasons`, `analysis_snapshots`는 통합 분석 실행 시 함께 저장합니다.

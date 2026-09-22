@@ -9,6 +9,7 @@ import com.sagopalgo.api.dashboard.dto.DashboardSnapshotResponse;
 import com.sagopalgo.api.holding.dto.HoldingResponse;
 import com.sagopalgo.api.holding.dto.HoldingsListResponse;
 import com.sagopalgo.api.holding.service.HoldingService;
+import com.sagopalgo.api.recommendation.service.RecommendationService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -24,22 +25,32 @@ public class DashboardService {
     private final CapitalService capitalService;
     private final HoldingService holdingService;
     private final DashboardRecommendationEngine recommendationEngine;
+    private final RecommendationService recommendationService;
 
     public DashboardService(
         CapitalService capitalService,
         HoldingService holdingService,
-        DashboardRecommendationEngine recommendationEngine
+        DashboardRecommendationEngine recommendationEngine,
+        RecommendationService recommendationService
     ) {
         this.capitalService = capitalService;
         this.holdingService = holdingService;
         this.recommendationEngine = recommendationEngine;
+        this.recommendationService = recommendationService;
     }
 
     @Transactional(readOnly = true)
     public DashboardSnapshotResponse getSnapshot(Long userId) {
         CapitalResponse capital = capitalService.findByUserId(userId);
         HoldingsListResponse holdings = holdingService.findAll(userId);
-        DashboardRecommendationResponse recommendation = recommendationEngine.recommend(holdings.items());
+        DashboardRecommendationResponse recommendation = holdings.items().isEmpty()
+            ? null
+            : recommendationService.findLatestDashboardRecommendation(userId)
+                .filter(stored -> holdings.items().stream().anyMatch(
+                    holding -> holding.stockCode().equals(stored.stockCode())
+                        && holding.market().equalsIgnoreCase(stored.market())
+                ))
+                .orElseGet(() -> recommendationEngine.recommend(holdings.items()));
 
         return new DashboardSnapshotResponse(
             marketSummary(capital, holdings),
