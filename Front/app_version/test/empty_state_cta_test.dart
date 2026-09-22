@@ -1,7 +1,9 @@
 import 'package:app_version/models/holding.dart';
 import 'package:app_version/models/investment_snapshot.dart';
 import 'package:app_version/models/market_summary.dart';
+import 'package:app_version/models/recommendation.dart';
 import 'package:app_version/repositories/watchlist_repository.dart';
+import 'package:app_version/repositories/recommendation_repository.dart';
 import 'package:app_version/screens/dashboard_screen.dart';
 import 'package:app_version/screens/recommendation_screen.dart';
 import 'package:app_version/theme/app_theme.dart';
@@ -47,13 +49,17 @@ void main() {
         home: Scaffold(
           body: RecommendationScreen(
             recommendation: null,
+            holdings: const [],
+            recommendationRepository: const _NoopRecommendationRepository(),
             watchlistRepository: const _NoopWatchlistRepository(),
+            onRecommendationChanged: () {},
             onCapitalSetupOpen: () => capitalTapped = true,
             onHoldingSetupOpen: () => holdingTapped = true,
           ),
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
     expect(find.text('추천 데이터 없음'), findsOneWidget);
 
@@ -98,5 +104,28 @@ class _NoopWatchlistRepository implements WatchlistRepository {
   @override
   Future<WatchlistActionResult> enableAlert(recommendation) async {
     return const WatchlistActionResult(message: 'noop');
+  }
+}
+
+class _NoopRecommendationRepository implements RecommendationRepository {
+  const _NoopRecommendationRepository();
+
+  @override
+  Future<InvestmentRecommendation> analyzeHolding(int holdingId) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<InvestmentRecommendation> fetchDetail(int recommendationId) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<RecommendationPage> fetchHistory({
+    String? status,
+    int page = 0,
+    int size = 20,
+  }) async {
+    return const RecommendationPage(items: [], page: 0, size: 20, total: 0);
   }
 }

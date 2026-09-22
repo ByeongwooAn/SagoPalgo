@@ -13,6 +13,7 @@ import 'package:app_version/repositories/kb_account_repository.dart';
 import 'package:app_version/repositories/market_data_repository.dart';
 import 'package:app_version/repositories/portfolio_repository.dart';
 import 'package:app_version/repositories/provider_settings_repository.dart';
+import 'package:app_version/repositories/recommendation_repository.dart';
 import 'package:app_version/repositories/research_feed_repository.dart';
 import 'package:app_version/repositories/watchlist_repository.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,8 @@ void main() {
         portfolioRepositoryBuilder: (_) => const FakePortfolioRepository(),
         providerSettingsRepositoryBuilder: (_) =>
             const FakeProviderSettingsRepository(),
+        recommendationRepositoryBuilder: (_) =>
+            const FakeRecommendationRepository(),
         researchFeedRepositoryBuilder: (_) =>
             const FakeResearchFeedRepository(),
         kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
@@ -64,7 +67,7 @@ void main() {
     await tester.pumpAndSettle();
 
     /// 추천 상세 화면에는 매수 추천 제목과 강한 매수 상태가 보여야 합니다.
-    expect(find.text('매수 추천'), findsOneWidget);
+    expect(find.text('추천 분석'), findsOneWidget);
     expect(find.text('강한 매수'), findsOneWidget);
 
     /// 소식 탭에서는 보유 종목의 저장된 뉴스와 공시를 함께 확인합니다.
@@ -122,6 +125,8 @@ void main() {
         portfolioRepositoryBuilder: (_) => const FakePortfolioRepository(),
         providerSettingsRepositoryBuilder: (_) =>
             const FakeProviderSettingsRepository(),
+        recommendationRepositoryBuilder: (_) =>
+            const FakeRecommendationRepository(),
         researchFeedRepositoryBuilder: (_) =>
             const FakeResearchFeedRepository(),
         kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
@@ -151,6 +156,34 @@ class FakeInvestmentRepository implements InvestmentRepository {
   @override
   Future<InvestmentSnapshot> fetchSnapshot() async {
     return _testSnapshot;
+  }
+}
+
+class FakeRecommendationRepository implements RecommendationRepository {
+  const FakeRecommendationRepository();
+
+  @override
+  Future<InvestmentRecommendation> analyzeHolding(int holdingId) async {
+    return _testSnapshot.recommendation!;
+  }
+
+  @override
+  Future<InvestmentRecommendation> fetchDetail(int recommendationId) async {
+    return _testSnapshot.recommendation!;
+  }
+
+  @override
+  Future<RecommendationPage> fetchHistory({
+    String? status,
+    int page = 0,
+    int size = 20,
+  }) async {
+    return RecommendationPage(
+      items: [_testSnapshot.recommendation!],
+      page: page,
+      size: size,
+      total: 1,
+    );
   }
 }
 
