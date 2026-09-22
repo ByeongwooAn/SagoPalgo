@@ -37,7 +37,10 @@ class ProviderSettingsServiceTest {
         toss.setAppKey("toss-app-key");
         toss.setAppSecret("toss-app-secret");
         toss.setBaseUrl("https://toss.test");
+        toss.setTokenPath("/oauth2/token");
         toss.setCurrentPricePath("/prices");
+        toss.setCandlePath("/candles");
+        toss.setStockInfoPath("/stocks");
         securitiesProperties.setToss(toss);
 
         ResearchProviderProperties researchProperties = new ResearchProviderProperties();

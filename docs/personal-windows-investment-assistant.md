@@ -198,6 +198,8 @@ AI 분석은 직접적인 투자 권유보다 개인 판단을 돕는 참고 신
 - 상태: 완료
 - KB 시세 Provider 구현
 - KIS/Toss 읽기 전용 Provider 추가
+- Toss OAuth2 토큰 캐시와 공식 현재가·일봉·종목 기본 정보 API 매핑 완료
+- Toss 국내·미국 종목 지원과 Provider 설정 상태 표시 완료
 - 현재가, 등락률, 캔들, 거래량 내부 모델 정규화
 - Provider 장애 시 fallback 구조 추가
 - KB `IVS11560`과 KIS `FHKST03010100` 기반 일·주·월봉 실데이터 조회 API 구현 완료

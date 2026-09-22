@@ -42,6 +42,7 @@ SAGOPALGO_KIS_APP_SECRET=발급받은-app-secret
 SAGOPALGO_KIS_PRICE_TR_ID=FHKST01010100
 
 SAGOPALGO_TOSS_MARKET_DATA_ENABLED=false
+SAGOPALGO_TOSS_BASE_URL=https://openapi.tossinvest.com
 SAGOPALGO_TOSS_APP_KEY=
 SAGOPALGO_TOSS_APP_SECRET=
 
@@ -104,6 +105,25 @@ Invoke-RestMethod `
 ```
 
 응답에는 `secretStorageType=ENV_FILE`, `orderSafetyMode=주문 기능 기본 OFF`, `marketDataFallbackOrder=[KB,KIS,TOSS]`, KB/KIS/Toss/Naver News/OpenDART의 역할과 누락 설정 이름만 표시되어야 합니다. API Key, App Secret, 계좌번호 원문은 응답에 포함되면 안 됩니다.
+
+Toss 시세·종목 정보 확인:
+
+```powershell
+Invoke-RestMethod `
+  -Method Get `
+  -Uri 'http://localhost:8081/api/v1/market/stocks/005930?market=KOSPI'
+
+Invoke-RestMethod `
+  -Method Get `
+  -Uri 'http://localhost:8081/api/v1/market/candles?stockCode=005930&market=KOSPI&interval=DAILY&count=20'
+```
+
+1. 토스증권에서 발급한 Client ID와 Client Secret을 각각 `SAGOPALGO_TOSS_APP_KEY`, `SAGOPALGO_TOSS_APP_SECRET`에 넣고 `SAGOPALGO_TOSS_MARKET_DATA_ENABLED=true`로 바꿉니다.
+2. Provider 설정 응답에서 Toss가 `enabled=true`, `configured=true`인지 확인합니다.
+3. KB와 KIS 시세를 끈 상태에서 보유 종목 현재가의 Provider가 `TOSS`인지 확인합니다.
+4. 종목 정보 응답의 `stockName`, `market`, `status`, `currency`가 실제 종목과 일치하는지 확인합니다.
+5. 일봉 응답 Provider가 `TOSS`이고 캔들이 오래된 날짜부터 정렬되는지 확인합니다.
+6. Toss만 켠 상태에서 주봉·월봉은 일봉을 임의 합성하지 않고 사용 가능한 Provider가 없다는 오류를 반환하는지 확인합니다.
 
 뉴스·공시 Provider를 켠 환경에서는 외부 동기화와 로컬 조회를 차례로 확인합니다.
 

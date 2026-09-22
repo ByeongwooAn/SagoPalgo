@@ -44,9 +44,12 @@ public class ProviderSettingsService {
         );
         List<String> tossMissing = missingSettings(
             entry("Base URL", toss.getBaseUrl()),
+            entry("OAuth 토큰 API 경로", toss.getTokenPath()),
             entry("현재가 API 경로", toss.getCurrentPricePath()),
-            entry("App Key", toss.getAppKey()),
-            entry("App Secret", toss.getAppSecret())
+            entry("캔들 API 경로", toss.getCandlePath()),
+            entry("종목 정보 API 경로", toss.getStockInfoPath()),
+            entry("Client ID", toss.getAppKey()),
+            entry("Client Secret", toss.getAppSecret())
         );
         List<String> naverMissing = missingSettings(
             entry("Client ID", naver.getClientId()),
