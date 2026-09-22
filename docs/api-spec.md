@@ -372,6 +372,8 @@ Toss 공식 `GET /api/v1/stocks?symbols=종목코드` 응답을 사용합니다.
 
 KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있으면 `currentPrice`와 `profitRate`는 외부 현재가 기준으로 계산됩니다. Provider 우선순위는 KB, KIS, Toss 순서입니다. 설정이 꺼져 있거나 미지원 시장이거나 모든 Provider가 실패하면 임의 샘플 가격을 만들지 않고 등록 매수가를 기준값으로 사용합니다.
 
+응답의 `summary.maxAllowedLoss`는 투자 가능 자본금과 1회 리스크 비율을 곱한 최대 허용 손실입니다. `summary.riskUsageRate`는 현재 총 미실현 손실의 절댓값을 최대 허용 손실로 나눈 비율이며, 수익 중이거나 최대 허용 손실이 0원이면 `0`입니다. 허용 손실을 넘긴 경우 `1`보다 클 수 있습니다.
+
 ### 9.2 보유 종목 등록
 
 `POST /api/v1/holdings`
@@ -514,13 +516,15 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 추천 상태가 `BUY_STRONG`, `BUY_WATCH`, `TAKE_PROFIT`, `STOP_LOSS_WATCH`, `RISK`이면 추천 알림이 생성됩니다. `HOLD`는 알림을 만들지 않습니다. 별도로 보유 종목이 손절·익절 기준에 도달하거나 당일 등락률이 기본 ±5%를 넘으면 가격 이벤트 알림을 만들고, 관심 종목 동기화에서 최근 뉴스와 공시가 발견되면 각각 뉴스·공시 알림을 만듭니다.
 
-관심 종목에서 알림을 끈 종목은 제외됩니다. 같은 가격 이벤트는 기본 60분 쿨다운 동안 다시 만들지 않으며, 뉴스는 원문 링크, 공시는 DART 접수번호에서 만든 고유 키로 정확히 한 번만 저장합니다. 실제 시세가 아닌 `FALLBACK` 응답으로는 가격 이벤트를 만들지 않습니다.
+보유 종목 자동 평가가 끝나면 포트폴리오 리스크도 한 번 평가합니다. 종목 평가금액이 투자 가능 자본금의 권장 최대 비중 20%를 넘으면 `PORTFOLIO_POSITION_OVERWEIGHT`, 실제 시세로 계산한 총 미실현 손실이 `availableCapital * riskPerTradeRate` 이상이면 `PORTFOLIO_TOTAL_LOSS` 알림을 만듭니다. `FALLBACK` 시세는 매수가 기준의 과다 비중 검사에는 사용할 수 있지만 총 손실 계산에서는 제외합니다.
+
+관심 종목에서 알림을 끈 종목은 추천·가격·종목별 포트폴리오 알림 대상에서 제외됩니다. 같은 가격·포트폴리오 이벤트는 기본 60분 쿨다운 동안 다시 만들지 않으며, 뉴스는 원문 링크, 공시는 DART 접수번호에서 만든 고유 키로 정확히 한 번만 저장합니다. 실제 시세가 아닌 `FALLBACK` 응답으로는 가격 이벤트를 만들지 않습니다.
 
 ### 12.1 알림 목록 조회
 
 `GET /api/v1/alerts?unreadOnly=false&page=0&size=20`
 
-응답은 `items`, `page`, `size`, `total`을 포함합니다. 각 항목에는 `alertId`, `recommendationId`, `type`, `eventType`, `stockCode`, `title`, `body`, `read`, `sentAt`, `createdAt`, `timeLabel`이 포함됩니다. `type`은 화면 분류(`BUY`, `SELL`, `RISK`, `PRICE`, `NEWS`, `DISCLOSURE`)이고, `eventType`은 `PRICE_STOP_LOSS`, `PRICE_TAKE_PROFIT`, `PRICE_SURGE`, `PRICE_DROP`, `NEWS`, `DISCLOSURE`처럼 실제 발생 조건을 나타냅니다.
+응답은 `items`, `page`, `size`, `total`을 포함합니다. 각 항목에는 `alertId`, `recommendationId`, `type`, `eventType`, `stockCode`, `title`, `body`, `read`, `sentAt`, `createdAt`, `timeLabel`이 포함됩니다. `type`은 화면 분류(`BUY`, `SELL`, `RISK`, `PRICE`, `NEWS`, `DISCLOSURE`, `PORTFOLIO`)이고, `eventType`은 `PRICE_STOP_LOSS`, `PRICE_TAKE_PROFIT`, `PRICE_SURGE`, `PRICE_DROP`, `NEWS`, `DISCLOSURE`, `PORTFOLIO_POSITION_OVERWEIGHT`, `PORTFOLIO_TOTAL_LOSS`처럼 실제 발생 조건을 나타냅니다.
 
 ### 12.2 알림 읽음 처리
 
@@ -605,6 +609,6 @@ Flutter 추천 이력 목록·상세 화면과 보유 종목 수동 재분석 �
 
 Windows 앱 잠금 PIN의 Credential Manager 저장과 기존 `.env` 값 자동 이전까지 연결되었습니다.
 
-1. 보유 비중 과다·총 손실 한도 경고 조건 확장
-2. 미니 위젯 모드와 트레이 동작 구현
+1. 미니 위젯 모드와 트레이 동작 구현
+2. AI 신호 기반 모의매매와 성과 지표 구현
 3. 자동 주문 설계와 수동 승인 기반 주문 실행

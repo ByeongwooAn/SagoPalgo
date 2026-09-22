@@ -694,12 +694,12 @@ class PortfolioRow extends StatelessWidget {
 
 enum _HoldingMenuAction { edit, delete }
 
-/// 오늘 사용한 위험 한도를 보여주는 리스크 관리 카드입니다.
+/// 현재 미실현 손실이 사용하는 위험 한도를 보여주는 리스크 관리 카드입니다.
 class RiskRuleCard extends StatelessWidget {
-  /// 0~1 사이 위험 한도 사용률을 받습니다.
+  /// 현재 미실현 손실의 위험 한도 사용률을 받습니다.
   const RiskRuleCard({super.key, required this.riskUsageRate});
 
-  /// 오늘 사용한 위험 한도 비율입니다.
+  /// 현재 미실현 손실의 위험 한도 사용률입니다.
   final double riskUsageRate;
 
   @override
@@ -718,7 +718,7 @@ class RiskRuleCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '오늘 사용한 위험 한도 ${(riskUsageRate * 100).round()}%',
+            '현재 손실 위험 한도 ${(riskUsageRate * 100).round()}%',
             style: TextStyle(
               color: palette.text,
               fontSize: 13,

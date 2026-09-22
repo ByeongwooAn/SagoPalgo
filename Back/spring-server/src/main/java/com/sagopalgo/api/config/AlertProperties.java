@@ -18,6 +18,7 @@ public class AlertProperties {
     private boolean researchEventsEnabled = true;
     private int newsMaxAgeHours = 24;
     private int disclosureMaxAgeDays = 1;
+    private boolean portfolioEventsEnabled = true;
 
     public boolean isAnalysisEnabled() {
         return analysisEnabled;
@@ -89,5 +90,13 @@ public class AlertProperties {
 
     public void setDisclosureMaxAgeDays(int disclosureMaxAgeDays) {
         this.disclosureMaxAgeDays = disclosureMaxAgeDays;
+    }
+
+    public boolean isPortfolioEventsEnabled() {
+        return portfolioEventsEnabled;
+    }
+
+    public void setPortfolioEventsEnabled(boolean portfolioEventsEnabled) {
+        this.portfolioEventsEnabled = portfolioEventsEnabled;
     }
 }

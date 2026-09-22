@@ -154,9 +154,9 @@ Windows 프로그램 안에서 보여줄 알림 히스토리를 관리합니다.
 | `alert_id` | BIGINT | PK |
 | `user_id` | BIGINT | 로컬 사용자 FK |
 | `recommendation_id` | BIGINT | 연결된 추천 FK, 없을 수 있음 |
-| `alert_type` | VARCHAR(30) | `BUY`, `SELL`, `MARKET`, `RISK`, `PRICE`, `NEWS`, `DISCLOSURE` |
-| `event_type` | VARCHAR(40) | `RECOMMENDATION`, `PRICE_*`, `NEWS`, `DISCLOSURE` |
-| `event_key` | VARCHAR(191) | 뉴스·공시의 정확한 중복 방지 키, 가격 이벤트는 `NULL` |
+| `alert_type` | VARCHAR(30) | `BUY`, `SELL`, `MARKET`, `RISK`, `PRICE`, `NEWS`, `DISCLOSURE`, `PORTFOLIO` |
+| `event_type` | VARCHAR(40) | `RECOMMENDATION`, `PRICE_*`, `NEWS`, `DISCLOSURE`, `PORTFOLIO_POSITION_OVERWEIGHT`, `PORTFOLIO_TOTAL_LOSS` |
+| `event_key` | VARCHAR(191) | 뉴스·공시의 정확한 중복 방지 키, 가격·포트폴리오 이벤트는 `NULL` |
 | `stock_code` | VARCHAR(30) | 이벤트 대상 종목 코드 |
 | `market` | VARCHAR(20) | 이벤트 대상 시장 코드 |
 | `title` | VARCHAR(100) | 알림 제목 |

@@ -92,6 +92,9 @@ enum AppAlertType {
 
   /// 관심 종목의 새 전자공시 알림입니다.
   disclosure,
+
+  /// 종목 비중 또는 계좌 전체 손실 한도 경고입니다.
+  portfolio,
 }
 
 /// 백엔드 alert type 문자열을 화면 분류로 변환합니다.
@@ -102,6 +105,7 @@ AppAlertType _appAlertTypeFromApiValue(String? value) {
     'PRICE' => AppAlertType.price,
     'NEWS' => AppAlertType.news,
     'DISCLOSURE' => AppAlertType.disclosure,
+    'PORTFOLIO' => AppAlertType.portfolio,
     _ => AppAlertType.market,
   };
 }
