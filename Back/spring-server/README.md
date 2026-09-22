@@ -140,6 +140,6 @@ Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read
 
 ## 다음 구현 후보
 
-1. Flutter 추천 이력 목록·상세와 수동 재분석 UI
-2. Windows Credential Manager 기반 민감정보 보호
-3. 가격 도달·급등락·신규 뉴스/공시 전용 알림 조건 확장
+1. 가격 도달·급등락·신규 뉴스/공시 전용 알림 조건 확장
+2. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
+3. 자동 주문 설계와 수동 승인 기반 주문 실행

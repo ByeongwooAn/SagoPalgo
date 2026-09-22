@@ -2,6 +2,7 @@
 
 #include <flutter/standard_method_codec.h>
 #include <shellapi.h>
+#include <wincred.h>
 
 #include <optional>
 #include <string>
@@ -29,6 +30,23 @@ std::wstring Utf16FromUtf8(const std::string& value) {
   return converted;
 }
 
+std::string Utf8FromUtf16(const std::wstring& value) {
+  if (value.empty()) {
+    return std::string();
+  }
+  int length = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, value.data(),
+                                   static_cast<int>(value.size()), nullptr, 0,
+                                   nullptr, nullptr);
+  if (length <= 0) {
+    return std::string();
+  }
+  std::string converted(length, '\0');
+  WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, value.data(),
+                      static_cast<int>(value.size()), converted.data(), length,
+                      nullptr, nullptr);
+  return converted;
+}
+
 std::string StringArgument(const flutter::EncodableMap& arguments,
                            const char* key) {
   const auto iterator = arguments.find(flutter::EncodableValue(key));
@@ -37,6 +55,15 @@ std::string StringArgument(const flutter::EncodableMap& arguments,
   }
   const auto* value = std::get_if<std::string>(&iterator->second);
   return value == nullptr ? std::string() : *value;
+}
+
+bool IsSagoPalgoCredentialTarget(const std::wstring& target) {
+  return target.rfind(L"SagoPalgo/", 0) == 0;
+}
+
+std::string WindowsErrorMessage(const char* operation, DWORD error) {
+  return std::string(operation) + " failed with Windows error " +
+         std::to_string(error);
 }
 
 }  // namespace
@@ -63,6 +90,7 @@ bool FlutterWindow::OnCreate() {
   }
   RegisterPlugins(flutter_controller_->engine());
   RegisterNotificationChannel();
+  RegisterCredentialChannel();
   InitializeNotificationIcon();
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
@@ -84,11 +112,106 @@ void FlutterWindow::OnDestroy() {
     notification_icon_added_ = false;
   }
   notification_channel_.reset();
+  credential_channel_.reset();
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }
 
   Win32Window::OnDestroy();
+}
+
+void FlutterWindow::RegisterCredentialChannel() {
+  credential_channel_ =
+      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+          flutter_controller_->engine()->messenger(),
+          "sagopalgo/windows_credentials",
+          &flutter::StandardMethodCodec::GetInstance());
+  credential_channel_->SetMethodCallHandler(
+      [](const auto& call, auto result) {
+        const auto* arguments =
+            std::get_if<flutter::EncodableMap>(call.arguments());
+        if (arguments == nullptr) {
+          result->Error("INVALID_ARGUMENT", "Credential arguments missing");
+          return;
+        }
+
+        const std::wstring target =
+            Utf16FromUtf8(StringArgument(*arguments, "target"));
+        if (target.empty() || !IsSagoPalgoCredentialTarget(target)) {
+          result->Error("INVALID_TARGET", "Credential target is not allowed");
+          return;
+        }
+
+        if (call.method_name() == "read") {
+          PCREDENTIALW credential = nullptr;
+          if (!CredReadW(target.c_str(), CRED_TYPE_GENERIC, 0, &credential)) {
+            const DWORD error = GetLastError();
+            if (error == ERROR_NOT_FOUND) {
+              result->Success(flutter::EncodableValue());
+            } else {
+              result->Error("CREDENTIAL_READ_FAILED",
+                            WindowsErrorMessage("CredReadW", error));
+            }
+            return;
+          }
+
+          const DWORD blob_size = credential->CredentialBlobSize;
+          if (blob_size % sizeof(wchar_t) != 0) {
+            CredFree(credential);
+            result->Error("INVALID_CREDENTIAL", "Credential data is invalid");
+            return;
+          }
+          const auto* blob =
+              reinterpret_cast<const wchar_t*>(credential->CredentialBlob);
+          const std::wstring value(blob, blob_size / sizeof(wchar_t));
+          const std::string converted = Utf8FromUtf16(value);
+          CredFree(credential);
+          result->Success(flutter::EncodableValue(converted));
+          return;
+        }
+
+        if (call.method_name() == "write") {
+          const std::wstring value =
+              Utf16FromUtf8(StringArgument(*arguments, "value"));
+          if (value.empty()) {
+            result->Error("INVALID_ARGUMENT", "Credential value is empty");
+            return;
+          }
+          wchar_t username[] = L"SagoPalgo local user";
+          CREDENTIALW credential{};
+          credential.Type = CRED_TYPE_GENERIC;
+          credential.TargetName = const_cast<LPWSTR>(target.c_str());
+          credential.CredentialBlobSize =
+              static_cast<DWORD>(value.size() * sizeof(wchar_t));
+          credential.CredentialBlob = reinterpret_cast<LPBYTE>(
+              const_cast<wchar_t*>(value.data()));
+          credential.Persist = CRED_PERSIST_LOCAL_MACHINE;
+          credential.UserName = username;
+          if (!CredWriteW(&credential, 0)) {
+            const DWORD error = GetLastError();
+            result->Error("CREDENTIAL_WRITE_FAILED",
+                          WindowsErrorMessage("CredWriteW", error));
+            return;
+          }
+          result->Success();
+          return;
+        }
+
+        if (call.method_name() == "delete") {
+          if (!CredDeleteW(target.c_str(), CRED_TYPE_GENERIC, 0)) {
+            const DWORD error = GetLastError();
+            if (error != ERROR_NOT_FOUND) {
+              result->Error("CREDENTIAL_DELETE_FAILED",
+                            WindowsErrorMessage("CredDeleteW", error));
+              return;
+            }
+          }
+          result->Success();
+          return;
+        }
+
+        result->NotImplemented();
+      });
 }
 
 void FlutterWindow::RegisterNotificationChannel() {

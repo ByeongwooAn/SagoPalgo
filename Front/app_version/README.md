@@ -5,7 +5,8 @@
 ## 현재 구현 상태
 
 - 앱 실행 시 Google/Naver 로그인 화면 없이 바로 개인용 홈 화면으로 진입합니다.
-- `SAGOPALGO_APP_LOCK_PIN`이 설정되어 있으면 시작 시 로컬 PIN 잠금 화면을 표시합니다.
+- 앱 잠금 PIN은 Windows Credential Manager에 저장하며 설정 탭에서 등록·변경·삭제합니다.
+- 기존 `SAGOPALGO_APP_LOCK_PIN` 값은 첫 실행 시 Credential Manager로 자동 이전됩니다.
 - 로컬 프로필은 `개인 사용자 · 개인 모드`로 표시됩니다.
 - 대시보드 스냅샷과 포트폴리오 탭은 Spring API에서 실제 사용자 데이터를 불러옵니다.
 - 개인용 백엔드 모드가 켜져 있으면 API 요청에 JWT Authorization 헤더를 보내지 않습니다.
@@ -28,10 +29,11 @@ SAGOPALGO_API_BASE_URL=http://ubuntu-server.local:8081
 SAGOPALGO_API_PORT=8080
 SAGOPALGO_PROXY_HTTP_PORT=8081
 SAGOPALGO_NGINX_SERVER_NAME=ubuntu-server.local
-SAGOPALGO_APP_LOCK_PIN=
 ```
 
-API Key, 계좌번호, access token 같은 민감정보는 Flutter asset `.env`에 넣지 않습니다. 이후 단계에서 Windows Credential Manager 또는 앱 잠금 기반 로컬 보안 저장소로 옮깁니다.
+API Key, 계좌번호, access token 같은 백엔드 민감정보는 Flutter asset `.env`에 넣지 않습니다. 앱 잠금 PIN만 Windows Credential Manager에 보관하고, Ubuntu 백엔드가 사용하는 Provider 키와 계좌번호는 서버의 `.env.prod`에서 관리합니다.
+
+기존 설치의 `.env`에 `SAGOPALGO_APP_LOCK_PIN`이 있으면 첫 실행 때 자동 이전됩니다. 정상 실행을 확인한 뒤 해당 줄을 삭제하거나 값을 비웁니다.
 
 Ubuntu 서버의 IP를 사용할 경우 `SAGOPALGO_API_BASE_URL=http://192.168.x.x:8081`처럼 지정합니다. Windows 방화벽이 아니라 Ubuntu 방화벽에서 Nginx 포트 `8081/tcp`를 같은 사설망에만 허용해야 합니다.
 

@@ -17,6 +17,7 @@ import '../repositories/provider_settings_repository.dart';
 import '../repositories/recommendation_repository.dart';
 import '../repositories/research_feed_repository.dart';
 import '../repositories/watchlist_repository.dart';
+import '../services/app_security_service.dart';
 import '../services/local_notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
@@ -47,6 +48,9 @@ class SagoPalgoHome extends StatefulWidget {
     required this.marketDataRepository,
     required this.alertRepository,
     required this.localNotificationService,
+    required this.appSecurityService,
+    required this.appLockPinConfigured,
+    required this.onAppLockPinChanged,
     required this.session,
   });
 
@@ -82,6 +86,15 @@ class SagoPalgoHome extends StatefulWidget {
 
   /// Windows 알림 센터에 새 신호를 표시합니다.
   final LocalNotificationService localNotificationService;
+
+  /// 앱 잠금 PIN을 Windows Credential Manager에 저장합니다.
+  final AppSecurityService appSecurityService;
+
+  /// 현재 앱 잠금 PIN이 등록되어 있는지 여부입니다.
+  final bool appLockPinConfigured;
+
+  /// PIN 등록·변경·삭제 결과를 앱 루트에 반영합니다.
+  final ValueChanged<String?> onAppLockPinChanged;
 
   /// 현재 로컬 사용자 프로필 정보를 담고 있는 세션입니다.
   final AuthSession session;
@@ -179,6 +192,9 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       marketDataRepository: widget.marketDataRepository,
                       researchFeedRepository: widget.researchFeedRepository,
                       recommendationRepository: widget.recommendationRepository,
+                      appSecurityService: widget.appSecurityService,
+                      appLockPinConfigured: widget.appLockPinConfigured,
+                      onAppLockPinChanged: widget.onAppLockPinChanged,
                       alerts: _alerts ?? snapshot.data!.alerts,
                       onAlertsRefresh: _refreshAlerts,
                       onAlertRead: _markAlertRead,
@@ -502,6 +518,9 @@ class _TabContent extends StatelessWidget {
     required this.marketDataRepository,
     required this.researchFeedRepository,
     required this.recommendationRepository,
+    required this.appSecurityService,
+    required this.appLockPinConfigured,
+    required this.onAppLockPinChanged,
     required this.alerts,
     required this.onAlertsRefresh,
     required this.onAlertRead,
@@ -539,6 +558,12 @@ class _TabContent extends StatelessWidget {
 
   /// 추천 이력과 수동 재분석을 처리하는 Repository입니다.
   final RecommendationRepository recommendationRepository;
+
+  final AppSecurityService appSecurityService;
+
+  final bool appLockPinConfigured;
+
+  final ValueChanged<String?> onAppLockPinChanged;
 
   final List<AppAlert> alerts;
 
@@ -623,6 +648,9 @@ class _TabContent extends StatelessWidget {
         SettingsScreen(
           providerSettingsFuture: providerSettingsFuture,
           kbAccountRepository: kbAccountRepository,
+          appSecurityService: appSecurityService,
+          appLockPinConfigured: appLockPinConfigured,
+          onAppLockPinChanged: onAppLockPinChanged,
           onRetry: onProviderSettingsRetry,
         ),
       ],

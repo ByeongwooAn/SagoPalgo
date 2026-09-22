@@ -96,7 +96,7 @@ curl http://localhost:8081/health
 - `Front/app_version/.env`: Flutter 앱의 공개 설정값입니다.
 - 실제 `.env*` 파일은 Git에 올리지 않고, `.env*.example`만 추적합니다.
 
-2단계 기준 민감정보 저장 방식은 `.env`입니다. API Key, access token, 계좌번호, 인증서, 로컬 DB 백업 같은 민감정보는 저장소에 커밋하지 않습니다. 자동 주문 기능을 붙이기 전에는 Windows Credential Manager 같은 OS 보안 저장소 전환 여부를 다시 검토합니다.
+Windows 앱 잠금 PIN은 Credential Manager에 저장합니다. Ubuntu 백엔드가 사용하는 API Key, access token, 계좌번호는 서버 `.env.prod`로 관리하며 저장소에 커밋하지 않습니다. 인증서와 로컬 DB 백업 역시 저장소 밖에서 별도로 보호합니다.
 
 ## 참고 문서
 

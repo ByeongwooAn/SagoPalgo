@@ -33,10 +33,13 @@ class FlutterWindow : public Win32Window {
   // Bridges Flutter notification requests to the Windows notification area.
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
       notification_channel_;
+  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
+      credential_channel_;
   NOTIFYICONDATAW notification_icon_{};
   bool notification_icon_added_ = false;
 
   void RegisterNotificationChannel();
+  void RegisterCredentialChannel();
   bool InitializeNotificationIcon();
   bool ShowNotification(const std::string& title, const std::string& body);
 };
