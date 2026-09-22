@@ -79,6 +79,19 @@ class MarketPriceServiceTest {
             .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
     }
 
+    @Test
+    @DisplayName("관심 종목 시세 Provider가 모두 실패하면 0원 fallback을 반환한다")
+    void watchlistQuoteFallsBackToZeroWhenProvidersFail() {
+        MarketPriceService service = new MarketPriceService(List.of(
+            new FixedMarketDataProvider("KB", true, "75300", true)
+        ));
+
+        StockQuote quote = service.quoteMarket(new MarketDataRequest("005930", "KOSPI"));
+
+        assertThat(quote.provider()).isEqualTo("FALLBACK");
+        assertThat(quote.currentPrice()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
     private Holding holding() {
         Holding holding = new Holding();
         holding.setStockCode("005930");

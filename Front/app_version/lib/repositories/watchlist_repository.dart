@@ -1,7 +1,11 @@
 import '../models/recommendation.dart';
+import '../models/watchlist_item.dart';
 
 /// 추천 화면에서 관심 종목 관련 사용자 액션을 처리하는 Repository입니다.
 abstract class WatchlistRepository {
+  /// 미니 위젯과 관심 종목 화면에서 사용할 최신 시세 목록을 조회합니다.
+  Future<List<WatchlistItem>> fetchWatchlist() async => const [];
+
   /// 추천 종목을 관심 종목으로 등록합니다.
   Future<WatchlistActionResult> addRecommendation(
     InvestmentRecommendation recommendation,

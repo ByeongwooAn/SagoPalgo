@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.sagopalgo.api.config.PersonalModeProperties;
 import com.sagopalgo.api.watchlist.dto.WatchlistResponse;
 import com.sagopalgo.api.watchlist.service.WatchlistService;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +47,16 @@ class ResearchFeedSchedulerTest {
     }
 
     private WatchlistResponse item(Long id, String stockCode, String stockName) {
-        return new WatchlistResponse(id, stockCode, stockName, "KOSPI", true, Instant.now());
+        return new WatchlistResponse(
+            id,
+            stockCode,
+            stockName,
+            "KOSPI",
+            true,
+            "KB",
+            new BigDecimal("75000"),
+            new BigDecimal("1.2"),
+            Instant.now()
+        );
     }
 }

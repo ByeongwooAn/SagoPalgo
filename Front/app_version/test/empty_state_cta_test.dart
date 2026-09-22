@@ -2,6 +2,7 @@ import 'package:app_version/models/holding.dart';
 import 'package:app_version/models/investment_snapshot.dart';
 import 'package:app_version/models/market_summary.dart';
 import 'package:app_version/models/recommendation.dart';
+import 'package:app_version/models/watchlist_item.dart';
 import 'package:app_version/repositories/watchlist_repository.dart';
 import 'package:app_version/repositories/recommendation_repository.dart';
 import 'package:app_version/screens/dashboard_screen.dart';
@@ -95,6 +96,9 @@ const _emptySnapshot = InvestmentSnapshot(
 
 class _NoopWatchlistRepository implements WatchlistRepository {
   const _NoopWatchlistRepository();
+
+  @override
+  Future<List<WatchlistItem>> fetchWatchlist() async => const [];
 
   @override
   Future<WatchlistActionResult> addRecommendation(recommendation) async {

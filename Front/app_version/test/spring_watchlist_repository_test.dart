@@ -8,6 +8,24 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
+  test('fetchWatchlist maps provider price and change rate', () async {
+    final repository = SpringWatchlistRepository(
+      accessToken: 'access-token',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient((request) async {
+        expect(request.method, 'GET');
+        return _success([_watchlistItem(alertEnabled: true)]);
+      }),
+    );
+
+    final items = await repository.fetchWatchlist();
+
+    expect(items, hasLength(1));
+    expect(items.single.provider, 'KB');
+    expect(items.single.currentPrice, 75200);
+    expect(items.single.changeRate, 1.21);
+  });
+
   test(
     'addRecommendation creates watchlist item when it does not exist',
     () async {
@@ -194,6 +212,9 @@ Map<String, dynamic> _watchlistItem({required bool alertEnabled}) {
     'stockName': '삼성전자',
     'market': 'KOSPI',
     'alertEnabled': alertEnabled,
+    'provider': 'KB',
+    'currentPrice': 75200,
+    'changeRate': 1.21,
     'createdAt': '2026-09-07T00:00:00Z',
   };
 }
