@@ -42,6 +42,9 @@ class ApiConfig {
   /// 앱 알림 이력과 Windows 전달 대기 목록의 기본 경로입니다.
   String get alertsBaseUrl => '$baseUrl/api/v1/alerts';
 
+  /// 추천 이력, 상세, 보유 종목 수동 분석 API의 기본 경로입니다.
+  String get recommendationsBaseUrl => '$baseUrl/api/v1/recommendations';
+
   /// KB증권 보유 주식 조회 API 경로입니다.
   String get kbHoldingsUrl => '$baseUrl/api/v1/kb/accounts/primary/holdings';
 

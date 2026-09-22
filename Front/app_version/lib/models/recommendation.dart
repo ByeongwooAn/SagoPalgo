@@ -6,16 +6,24 @@
 class InvestmentRecommendation {
   /// 추천 카드에 필요한 핵심 정보와 설명을 모두 받습니다.
   const InvestmentRecommendation({
+    this.recommendationId,
     required this.stockName,
     required this.stockCode,
     required this.market,
     required this.status,
+    this.machineStatus,
+    this.recommendationType = 'HOLD',
     required this.score,
     required this.entryPrice,
     required this.stopLossRate,
+    this.takeProfitRate = 0,
     required this.aiSummary,
     required this.reasons,
+    this.createdAt,
   });
+
+  /// 저장 추천 상세와 알림을 연결할 때 사용하는 PK입니다.
+  final int? recommendationId;
 
   /// 사용자가 보는 종목명입니다.
   final String stockName;
@@ -29,6 +37,12 @@ class InvestmentRecommendation {
   /// 80점 이상일 때의 "강한 매수" 같은 추천 상태입니다.
   final String status;
 
+  /// 상태 필터와 서버 요청에 사용하는 기계 판독용 상태 코드입니다.
+  final String? machineStatus;
+
+  /// BUY, SELL, HOLD 중 서버가 판단한 행동 분류입니다.
+  final String recommendationType;
+
   /// 기획서의 점수 시스템에 따른 0~100 추천 점수입니다.
   final int score;
 
@@ -38,29 +52,71 @@ class InvestmentRecommendation {
   /// 리스크 관리를 위해 추천 상세에서 항상 노출할 손절 기준입니다.
   final double stopLossRate;
 
+  /// 수익 실현을 검토할 목표 수익률입니다.
+  final double takeProfitRate;
+
   /// AI가 추천 이유를 자연어로 요약한 문장입니다.
   final String aiSummary;
 
   /// RSI, MACD, 뉴스처럼 점수를 만든 세부 근거 목록입니다.
   final List<RecommendationReason> reasons;
 
+  /// 서버가 분석 결과를 저장한 시각입니다.
+  final DateTime? createdAt;
+
   /// 백엔드 대시보드 스냅샷의 `recommendation` JSON을 앱 모델로 변환합니다.
   factory InvestmentRecommendation.fromJson(Map<String, dynamic> json) {
     return InvestmentRecommendation(
+      recommendationId: _readOptionalInt(json['recommendationId']),
       stockName: json['stockName'] as String,
       stockCode: json['stockCode'] as String,
       market: json['market'] as String? ?? 'KOSPI',
-      status: json['status'] as String,
+      status: json['statusLabel'] as String? ?? json['status'] as String,
+      machineStatus: json['status'] as String?,
+      recommendationType: json['recommendationType'] as String? ?? 'HOLD',
       score: _readInt(json['score']),
       entryPrice: _readInt(json['entryPrice']),
       stopLossRate: _readDouble(json['stopLossRate']),
+      takeProfitRate: _readOptionalDouble(json['takeProfitRate']) ?? 0,
       aiSummary: json['aiSummary'] as String,
-      reasons: (json['reasons'] as List<dynamic>)
+      reasons: (json['reasons'] as List<dynamic>? ?? const [])
           .map(
             (reason) =>
                 RecommendationReason.fromJson(reason as Map<String, dynamic>),
           )
           .toList(),
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
+    );
+  }
+}
+
+/// 추천 이력 API의 페이지 정보와 항목을 함께 보관합니다.
+class RecommendationPage {
+  const RecommendationPage({
+    required this.items,
+    required this.page,
+    required this.size,
+    required this.total,
+  });
+
+  final List<InvestmentRecommendation> items;
+  final int page;
+  final int size;
+  final int total;
+
+  factory RecommendationPage.fromJson(Map<String, dynamic> json) {
+    return RecommendationPage(
+      items: (json['items'] as List<dynamic>? ?? const [])
+          .map(
+            (item) =>
+                InvestmentRecommendation.fromJson(item as Map<String, dynamic>),
+          )
+          .toList(),
+      page: _readInt(json['page']),
+      size: _readInt(json['size']),
+      total: _readInt(json['total']),
     );
   }
 }
@@ -130,4 +186,12 @@ double _readDouble(Object? value) {
     String text => double.parse(text),
     _ => throw FormatException('실수로 변환할 수 없는 값입니다: $value'),
   };
+}
+
+int? _readOptionalInt(Object? value) {
+  return value == null ? null : _readInt(value);
+}
+
+double? _readOptionalDouble(Object? value) {
+  return value == null ? null : _readDouble(value);
 }

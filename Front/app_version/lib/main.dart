@@ -8,6 +8,7 @@ import 'repositories/kb_account_repository.dart';
 import 'repositories/market_data_repository.dart';
 import 'repositories/portfolio_repository.dart';
 import 'repositories/provider_settings_repository.dart';
+import 'repositories/recommendation_repository.dart';
 import 'repositories/research_feed_repository.dart';
 import 'repositories/spring_investment_repository.dart';
 import 'repositories/spring_alert_repository.dart';
@@ -15,6 +16,7 @@ import 'repositories/spring_kb_account_repository.dart';
 import 'repositories/spring_market_data_repository.dart';
 import 'repositories/spring_portfolio_repository.dart';
 import 'repositories/spring_provider_settings_repository.dart';
+import 'repositories/spring_recommendation_repository.dart';
 import 'repositories/spring_research_feed_repository.dart';
 import 'repositories/spring_watchlist_repository.dart';
 import 'repositories/watchlist_repository.dart';
@@ -45,6 +47,7 @@ class SagoPalgoApp extends StatefulWidget {
     this.watchlistRepositoryBuilder,
     this.portfolioRepositoryBuilder,
     this.providerSettingsRepositoryBuilder,
+    this.recommendationRepositoryBuilder,
     this.researchFeedRepositoryBuilder,
     this.kbAccountRepositoryBuilder,
     this.marketDataRepositoryBuilder,
@@ -80,6 +83,10 @@ class SagoPalgoApp extends StatefulWidget {
   /// 테스트에서 증권사 설정 Repository를 교체하기 위한 빌더입니다.
   final ProviderSettingsRepository Function(AuthSession session)?
   providerSettingsRepositoryBuilder;
+
+  /// 추천 이력 조회와 수동 재분석 Repository를 교체하기 위한 빌더입니다.
+  final RecommendationRepository Function(AuthSession session)?
+  recommendationRepositoryBuilder;
 
   /// 테스트에서 뉴스·공시 Repository를 교체하기 위한 빌더입니다.
   final ResearchFeedRepository Function(AuthSession session)?
@@ -159,6 +166,11 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
               providerSettingsRepository:
                   widget.providerSettingsRepositoryBuilder?.call(session) ??
                   SpringProviderSettingsRepository(
+                    accessToken: session.accessToken,
+                  ),
+              recommendationRepository:
+                  widget.recommendationRepositoryBuilder?.call(session) ??
+                  SpringRecommendationRepository(
                     accessToken: session.accessToken,
                   ),
               researchFeedRepository:

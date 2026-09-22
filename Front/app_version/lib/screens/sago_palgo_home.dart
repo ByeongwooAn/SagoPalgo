@@ -14,6 +14,7 @@ import '../repositories/kb_account_repository.dart';
 import '../repositories/market_data_repository.dart';
 import '../repositories/portfolio_repository.dart';
 import '../repositories/provider_settings_repository.dart';
+import '../repositories/recommendation_repository.dart';
 import '../repositories/research_feed_repository.dart';
 import '../repositories/watchlist_repository.dart';
 import '../services/local_notification_service.dart';
@@ -40,6 +41,7 @@ class SagoPalgoHome extends StatefulWidget {
     required this.watchlistRepository,
     required this.portfolioRepository,
     required this.providerSettingsRepository,
+    required this.recommendationRepository,
     required this.researchFeedRepository,
     required this.kbAccountRepository,
     required this.marketDataRepository,
@@ -62,6 +64,9 @@ class SagoPalgoHome extends StatefulWidget {
 
   /// 설정 화면에서 증권사 연동 상태를 조회하는 Repository입니다.
   final ProviderSettingsRepository providerSettingsRepository;
+
+  /// 추천 이력 조회와 보유 종목 수동 재분석을 처리합니다.
+  final RecommendationRepository recommendationRepository;
 
   /// 소식 화면에서 저장된 뉴스·공시 조회와 수동 동기화를 처리합니다.
   final ResearchFeedRepository researchFeedRepository;
@@ -173,6 +178,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       kbAccountRepository: widget.kbAccountRepository,
                       marketDataRepository: widget.marketDataRepository,
                       researchFeedRepository: widget.researchFeedRepository,
+                      recommendationRepository: widget.recommendationRepository,
                       alerts: _alerts ?? snapshot.data!.alerts,
                       onAlertsRefresh: _refreshAlerts,
                       onAlertRead: _markAlertRead,
@@ -495,6 +501,7 @@ class _TabContent extends StatelessWidget {
     required this.kbAccountRepository,
     required this.marketDataRepository,
     required this.researchFeedRepository,
+    required this.recommendationRepository,
     required this.alerts,
     required this.onAlertsRefresh,
     required this.onAlertRead,
@@ -529,6 +536,9 @@ class _TabContent extends StatelessWidget {
 
   /// 뉴스·공시 조회와 동기화를 처리하는 Repository입니다.
   final ResearchFeedRepository researchFeedRepository;
+
+  /// 추천 이력과 수동 재분석을 처리하는 Repository입니다.
+  final RecommendationRepository recommendationRepository;
 
   final List<AppAlert> alerts;
 
@@ -575,7 +585,10 @@ class _TabContent extends StatelessWidget {
         ),
         RecommendationScreen(
           recommendation: snapshot.recommendation,
+          holdings: snapshot.holdings,
+          recommendationRepository: recommendationRepository,
           watchlistRepository: watchlistRepository,
+          onRecommendationChanged: onPortfolioChanged,
           onCapitalSetupOpen: onCapitalSetupOpen,
           onHoldingSetupOpen: onHoldingSetupOpen,
         ),

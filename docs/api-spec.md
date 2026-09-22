@@ -590,8 +590,9 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ## 14. 다음 구현 순서
 
-1. Flutter 추천 이력 목록·상세 화면과 수동 재분석 액션
-2. Windows Credential Manager 기반 민감정보 보호
-3. 가격 도달·급등락·신규 뉴스/공시 전용 알림 조건 확장
-4. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
-5. 자동 주문 설계와 수동 승인 기반 주문 실행
+Flutter 추천 이력 목록·상세 화면과 보유 종목 수동 재분석 액션까지 연결되었습니다.
+
+1. Windows Credential Manager 기반 민감정보 보호
+2. 가격 도달·급등락·신규 뉴스/공시 전용 알림 조건 확장
+3. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
+4. 자동 주문 설계와 수동 승인 기반 주문 실행

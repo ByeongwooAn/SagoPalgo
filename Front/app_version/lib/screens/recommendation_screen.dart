@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../models/holding.dart';
 import '../models/recommendation.dart';
+import '../repositories/recommendation_repository.dart';
 import '../repositories/watchlist_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
@@ -20,7 +22,10 @@ class RecommendationScreen extends StatefulWidget {
   const RecommendationScreen({
     super.key,
     required this.recommendation,
+    required this.holdings,
+    required this.recommendationRepository,
     required this.watchlistRepository,
+    required this.onRecommendationChanged,
     required this.onCapitalSetupOpen,
     required this.onHoldingSetupOpen,
   });
@@ -28,8 +33,17 @@ class RecommendationScreen extends StatefulWidget {
   /// Repository에서 받은 매수 추천 모델입니다.
   final InvestmentRecommendation? recommendation;
 
+  /// 수동 재분석 대상으로 선택할 현재 보유 종목입니다.
+  final List<Holding> holdings;
+
+  /// 저장 추천 목록, 상세, 수동 분석 API를 제공합니다.
+  final RecommendationRepository recommendationRepository;
+
   /// 관심 종목 등록과 알림 설정 액션을 처리하는 Repository입니다.
   final WatchlistRepository watchlistRepository;
+
+  /// 새 분석 저장 후 대시보드 데이터를 갱신합니다.
+  final VoidCallback onRecommendationChanged;
 
   /// 자본금 수정 화면으로 이동하는 콜백입니다.
   final VoidCallback onCapitalSetupOpen;
@@ -44,11 +58,29 @@ class RecommendationScreen extends StatefulWidget {
 class _RecommendationScreenState extends State<RecommendationScreen> {
   bool _addingWatchlist = false;
   bool _enablingAlert = false;
+  bool _loadingHistory = true;
+  bool _loadingMore = false;
+  int? _analyzingHoldingId;
+  int _nextPage = 0;
+  int _total = 0;
+  Object? _historyError;
+  final List<InvestmentRecommendation> _history = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory(reset: true);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final recommendation = widget.recommendation;
-    if (recommendation == null) {
+    final recommendation = _history.isNotEmpty
+        ? _history.first
+        : widget.recommendation;
+    if (recommendation == null && _loadingHistory) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (recommendation == null && widget.holdings.isEmpty) {
       return _EmptyRecommendationState(
         onCapitalTap: widget.onCapitalSetupOpen,
         onHoldingTap: widget.onHoldingSetupOpen,
@@ -60,78 +92,268 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(
-            eyebrow: '매수 추천',
-            title: recommendation.stockName,
-            action: StatusChip(
-              label: recommendation.status,
-              icon: Icons.bolt_rounded,
-              gradient: AppGradients.point,
-              darkText: true,
+            eyebrow: '추천 분석',
+            title: recommendation?.stockName ?? '첫 분석을 시작하세요',
+            action: IconButton.filledTonal(
+              onPressed: _loadingHistory
+                  ? null
+                  : () => _loadHistory(reset: true),
+              tooltip: '추천 이력 새로고침',
+              icon: const Icon(Icons.refresh_rounded),
             ),
           ),
           const SizedBox(height: 18),
-          ScoreDetailCard(recommendation: recommendation),
-          const SizedBox(height: 12),
-          RecommendationReasonCard(reasons: recommendation.reasons),
-          const SizedBox(height: 12),
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          _AnalysisActionCard(
+            holdings: widget.holdings,
+            analyzingHoldingId: _analyzingHoldingId,
+            onAnalyzeTap: _openHoldingPicker,
+          ),
+          if (recommendation != null) ...[
+            const SizedBox(height: 12),
+            Row(
               children: [
-                const CardTitle('AI 설명'),
-                const SizedBox(height: 8),
-                TextBody(recommendation.aiSummary),
+                Expanded(child: CardTitle('최신 추천 · ${recommendation.status}')),
+                if (recommendation.createdAt != null)
+                  Text(
+                    _formatDateTime(recommendation.createdAt!),
+                    style: TextStyle(
+                      color: AppPalette.of(context).muted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
               ],
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: GradientActionButton(
-                  label: '관심 등록',
-                  icon: Icons.star_rounded,
-                  gradient: AppGradients.main,
-                  busy: _addingWatchlist,
-                  onTap: _addingWatchlist || _enablingAlert
-                      ? null
-                      : _addRecommendation,
-                ),
+            const SizedBox(height: 10),
+            ScoreDetailCard(recommendation: recommendation),
+            const SizedBox(height: 12),
+            RecommendationReasonCard(reasons: recommendation.reasons),
+            const SizedBox(height: 12),
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const CardTitle('AI 설명'),
+                  const SizedBox(height: 8),
+                  TextBody(recommendation.aiSummary),
+                ],
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: GradientActionButton(
-                  label: '알림 켜기',
-                  icon: Icons.notifications_active_rounded,
-                  gradient: AppGradients.point,
-                  darkText: true,
-                  busy: _enablingAlert,
-                  onTap: _addingWatchlist || _enablingAlert
-                      ? null
-                      : _enableAlert,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: GradientActionButton(
+                    label: '관심 등록',
+                    icon: Icons.star_rounded,
+                    gradient: AppGradients.main,
+                    busy: _addingWatchlist,
+                    onTap: _addingWatchlist || _enablingAlert
+                        ? null
+                        : () => _addRecommendation(recommendation),
+                  ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: GradientActionButton(
+                    label: '알림 켜기',
+                    icon: Icons.notifications_active_rounded,
+                    gradient: AppGradients.point,
+                    darkText: true,
+                    busy: _enablingAlert,
+                    onTap: _addingWatchlist || _enablingAlert
+                        ? null
+                        : () => _enableAlert(recommendation),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 24),
+          _buildHistory(context),
           const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  Future<void> _addRecommendation() async {
-    await _runAction(
-      setBusy: (busy) => _addingWatchlist = busy,
-      action: () =>
-          widget.watchlistRepository.addRecommendation(widget.recommendation!),
+  Widget _buildHistory(BuildContext context) {
+    final palette = AppPalette.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(child: CardTitle('추천 이력')),
+            Text(
+              '총 $_total건',
+              style: TextStyle(
+                color: palette.muted,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (_historyError != null && _history.isEmpty)
+          _InlineError(onRetry: () => _loadHistory(reset: true))
+        else if (_history.isEmpty)
+          AppCard(
+            soft: true,
+            child: TextBody('저장된 추천 이력이 없습니다. 보유 종목을 분석하면 여기에 기록됩니다.'),
+          )
+        else
+          for (final item in _history) ...[
+            _RecommendationHistoryTile(
+              recommendation: item,
+              onTap: () => _openDetail(item),
+            ),
+            const SizedBox(height: 8),
+          ],
+        if (_history.length < _total)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _loadingMore ? null : () => _loadHistory(reset: false),
+              icon: _loadingMore
+                  ? const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.expand_more_rounded),
+              label: const Text('이력 더 보기'),
+            ),
+          ),
+      ],
     );
   }
 
-  Future<void> _enableAlert() async {
+  Future<void> _loadHistory({required bool reset}) async {
+    if (reset) {
+      setState(() {
+        _loadingHistory = true;
+        _historyError = null;
+        _nextPage = 0;
+      });
+    } else {
+      setState(() => _loadingMore = true);
+    }
+    try {
+      final page = await widget.recommendationRepository.fetchHistory(
+        page: reset ? 0 : _nextPage,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (reset) _history.clear();
+        final knownIds = _history.map((item) => item.recommendationId).toSet();
+        _history.addAll(
+          page.items.where(
+            (item) =>
+                item.recommendationId == null ||
+                !knownIds.contains(item.recommendationId),
+          ),
+        );
+        _total = page.total;
+        _nextPage = page.page + 1;
+        _historyError = null;
+      });
+    } catch (error) {
+      if (mounted) setState(() => _historyError = error);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loadingHistory = false;
+          _loadingMore = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _openHoldingPicker() async {
+    if (widget.holdings.isEmpty || _analyzingHoldingId != null) return;
+    final holding = await showModalBottomSheet<Holding>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          children: [
+            const ListTile(title: Text('재분석할 보유 종목 선택')),
+            for (final item in widget.holdings)
+              ListTile(
+                leading: const Icon(Icons.candlestick_chart_rounded),
+                title: Text(item.stockName),
+                subtitle: Text('${item.stockCode} · ${item.market}'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.pop(context, item),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (holding != null && mounted) {
+      try {
+        await _analyzeHolding(holding);
+      } catch (error) {
+        if (mounted) _showMessage(error.toString());
+      }
+    }
+  }
+
+  Future<InvestmentRecommendation> _analyzeHolding(Holding holding) async {
+    setState(() => _analyzingHoldingId = holding.holdingId);
+    try {
+      final result = await widget.recommendationRepository.analyzeHolding(
+        holding.holdingId,
+      );
+      await _loadHistory(reset: true);
+      widget.onRecommendationChanged();
+      if (mounted) _showMessage('${holding.stockName} 재분석이 완료되었습니다.');
+      return result;
+    } finally {
+      if (mounted) setState(() => _analyzingHoldingId = null);
+    }
+  }
+
+  Future<void> _openDetail(InvestmentRecommendation recommendation) async {
+    Holding? holding;
+    for (final item in widget.holdings) {
+      if (item.stockCode == recommendation.stockCode) {
+        holding = item;
+        break;
+      }
+    }
+    final selectedHolding = holding;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => RecommendationDetailScreen(
+          initialRecommendation: recommendation,
+          recommendationRepository: widget.recommendationRepository,
+          holding: selectedHolding,
+          onAnalyze: selectedHolding == null
+              ? null
+              : () => _analyzeHolding(selectedHolding),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _addRecommendation(
+    InvestmentRecommendation recommendation,
+  ) async {
+    await _runAction(
+      setBusy: (busy) => _addingWatchlist = busy,
+      action: () =>
+          widget.watchlistRepository.addRecommendation(recommendation),
+    );
+  }
+
+  Future<void> _enableAlert(InvestmentRecommendation recommendation) async {
     await _runAction(
       setBusy: (busy) => _enablingAlert = busy,
-      action: () =>
-          widget.watchlistRepository.enableAlert(widget.recommendation!),
+      action: () => widget.watchlistRepository.enableAlert(recommendation),
     );
   }
 
@@ -164,6 +386,321 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
   }
+}
+
+class _AnalysisActionCard extends StatelessWidget {
+  const _AnalysisActionCard({
+    required this.holdings,
+    required this.analyzingHoldingId,
+    required this.onAnalyzeTap,
+  });
+
+  final List<Holding> holdings;
+  final int? analyzingHoldingId;
+  final VoidCallback onAnalyzeTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    final analyzing = analyzingHoldingId != null;
+    return AppCard(
+      soft: true,
+      child: Row(
+        children: [
+          const Icon(Icons.model_training_rounded, color: AppTheme.main),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CardTitle('보유 종목 다시 분석', fontSize: 17),
+                const SizedBox(height: 4),
+                Text(
+                  holdings.isEmpty
+                      ? '분석할 보유 종목을 먼저 등록해 주세요.'
+                      : '${holdings.length}개 보유 종목 중 하나를 선택합니다.',
+                  style: TextStyle(
+                    color: palette.muted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          FilledButton.icon(
+            onPressed: holdings.isEmpty || analyzing ? null : onAnalyzeTap,
+            icon: analyzing
+                ? const SizedBox.square(
+                    dimension: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.play_arrow_rounded),
+            label: Text(analyzing ? '분석 중' : '분석'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecommendationHistoryTile extends StatelessWidget {
+  const _RecommendationHistoryTile({
+    required this.recommendation,
+    required this.onTap,
+  });
+
+  final InvestmentRecommendation recommendation;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    return Semantics(
+      button: true,
+      label: '${recommendation.stockName} 추천 상세',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: AppCard(
+          child: Row(
+            children: [
+              SizedBox(
+                width: 46,
+                height: 46,
+                child: ScoreRing(score: recommendation.score, size: 46),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      recommendation.stockName,
+                      style: TextStyle(
+                        color: palette.text,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${recommendation.stockCode} · ${recommendation.market}'
+                      '${recommendation.createdAt == null ? '' : ' · ${_formatDateTime(recommendation.createdAt!)}'}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: palette.muted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              StatusChip(
+                label: recommendation.status,
+                icon: _statusIcon(recommendation.machineStatus),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.chevron_right_rounded, color: palette.muted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InlineError extends StatelessWidget {
+  const _InlineError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      soft: true,
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline_rounded, color: AppTheme.sub),
+          const SizedBox(width: 10),
+          const Expanded(child: TextBody('추천 이력을 불러오지 못했습니다.')),
+          IconButton(
+            onPressed: onRetry,
+            tooltip: '추천 이력 다시 시도',
+            icon: const Icon(Icons.refresh_rounded),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 추천 이력에서 선택한 분석 결과를 서버 상세 데이터로 보여줍니다.
+class RecommendationDetailScreen extends StatefulWidget {
+  const RecommendationDetailScreen({
+    super.key,
+    required this.initialRecommendation,
+    required this.recommendationRepository,
+    this.holding,
+    this.onAnalyze,
+  });
+
+  final InvestmentRecommendation initialRecommendation;
+  final RecommendationRepository recommendationRepository;
+  final Holding? holding;
+  final Future<InvestmentRecommendation> Function()? onAnalyze;
+
+  @override
+  State<RecommendationDetailScreen> createState() =>
+      _RecommendationDetailScreenState();
+}
+
+class _RecommendationDetailScreenState
+    extends State<RecommendationDetailScreen> {
+  late Future<InvestmentRecommendation> _detailFuture;
+  bool _analyzing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _detailFuture = _fetchDetail();
+  }
+
+  Future<InvestmentRecommendation> _fetchDetail() {
+    final id = widget.initialRecommendation.recommendationId;
+    return id == null
+        ? Future.value(widget.initialRecommendation)
+        : widget.recommendationRepository.fetchDetail(id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text('추천 상세')),
+      body: Container(
+        decoration: BoxDecoration(gradient: palette.pageGradient),
+        child: FutureBuilder<InvestmentRecommendation>(
+          future: _detailFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError || !snapshot.hasData) {
+              return Center(
+                child: FilledButton.icon(
+                  onPressed: () =>
+                      setState(() => _detailFuture = _fetchDetail()),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('상세 다시 불러오기'),
+                ),
+              );
+            }
+            final recommendation = snapshot.data!;
+            return AppScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SectionHeader(
+                    eyebrow:
+                        '${recommendation.stockCode} · ${recommendation.market}',
+                    title: recommendation.stockName,
+                    action: StatusChip(
+                      label: recommendation.status,
+                      icon: _statusIcon(recommendation.machineStatus),
+                    ),
+                  ),
+                  if (recommendation.createdAt != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      '분석 시각 ${_formatDateTime(recommendation.createdAt!)}',
+                      style: TextStyle(
+                        color: palette.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  ScoreDetailCard(recommendation: recommendation),
+                  const SizedBox(height: 12),
+                  RecommendationReasonCard(reasons: recommendation.reasons),
+                  const SizedBox(height: 12),
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CardTitle('AI 설명'),
+                        const SizedBox(height: 8),
+                        TextBody(recommendation.aiSummary),
+                      ],
+                    ),
+                  ),
+                  if (widget.onAnalyze != null) ...[
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _analyzing ? null : _reanalyze,
+                        icon: _analyzing
+                            ? const SizedBox.square(
+                                dimension: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.replay_rounded),
+                        label: Text(_analyzing ? '재분석 중' : '이 종목 다시 분석'),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _reanalyze() async {
+    setState(() => _analyzing = true);
+    try {
+      final result = await widget.onAnalyze!();
+      if (mounted) setState(() => _detailFuture = Future.value(result));
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
+      }
+    } finally {
+      if (mounted) setState(() => _analyzing = false);
+    }
+  }
+}
+
+IconData _statusIcon(String? status) {
+  return switch (status) {
+    'BUY_STRONG' || 'BUY_WATCH' => Icons.trending_up_rounded,
+    'TAKE_PROFIT' => Icons.savings_rounded,
+    'STOP_LOSS_WATCH' || 'RISK' => Icons.warning_amber_rounded,
+    _ => Icons.horizontal_rule_rounded,
+  };
+}
+
+String _formatDateTime(DateTime value) {
+  final local = value.toLocal();
+  String two(int number) => number.toString().padLeft(2, '0');
+  return '${local.year}.${two(local.month)}.${two(local.day)} '
+      '${two(local.hour)}:${two(local.minute)}';
 }
 
 class _EmptyRecommendationState extends StatelessWidget {
@@ -293,6 +830,14 @@ class ScoreDetailCard extends StatelessWidget {
                   label: '손절 기준',
                   value: formatSignedPercent(recommendation.stopLossRate),
                   color: AppTheme.sub,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: DetailMetric(
+                  label: '익절 기준',
+                  value: formatSignedPercent(recommendation.takeProfitRate),
+                  color: AppTheme.point,
                 ),
               ),
             ],
