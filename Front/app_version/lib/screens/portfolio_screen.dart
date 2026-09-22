@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/holding.dart';
 import '../repositories/portfolio_repository.dart';
+import '../repositories/market_data_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_text.dart';
@@ -9,6 +10,7 @@ import '../widgets/score_progress.dart';
 import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
 import 'dashboard_screen.dart';
+import 'market_candle_screen.dart';
 
 /// 다른 탭의 빈 상태 CTA에서 포트폴리오 탭으로 전달하는 초기 작업입니다.
 enum PortfolioSetupAction { editCapital, addHolding }
@@ -25,6 +27,7 @@ class PortfolioScreen extends StatelessWidget {
     required this.summary,
     required this.holdings,
     required this.repository,
+    required this.marketDataRepository,
     required this.portfolioFuture,
     required this.pendingSetupAction,
     required this.onRetry,
@@ -43,6 +46,9 @@ class PortfolioScreen extends StatelessWidget {
 
   /// 자본금/보유 종목 API 요청을 처리하는 Repository입니다.
   final PortfolioRepository repository;
+
+  /// 보유 종목 상세 차트 데이터를 조회하는 Repository입니다.
+  final MarketDataRepository marketDataRepository;
 
   /// 자본금/보유 종목 API에서 다시 불러오는 최신 포트폴리오 데이터입니다.
   final Future<PortfolioSnapshot> portfolioFuture;
@@ -77,6 +83,7 @@ class PortfolioScreen extends StatelessWidget {
           isRefreshing: snapshot.connectionState != ConnectionState.done,
           hasRefreshError: snapshot.hasError,
           repository: repository,
+          marketDataRepository: marketDataRepository,
           pendingSetupAction: pendingSetupAction,
           onRetry: onRetry,
           onChanged: onChanged,
@@ -93,6 +100,7 @@ class _PortfolioContent extends StatelessWidget {
     required this.isRefreshing,
     required this.hasRefreshError,
     required this.repository,
+    required this.marketDataRepository,
     required this.pendingSetupAction,
     required this.onRetry,
     required this.onChanged,
@@ -103,6 +111,7 @@ class _PortfolioContent extends StatelessWidget {
   final bool isRefreshing;
   final bool hasRefreshError;
   final PortfolioRepository repository;
+  final MarketDataRepository marketDataRepository;
   final PortfolioSetupAction? pendingSetupAction;
   final VoidCallback onRetry;
   final VoidCallback onChanged;
@@ -159,6 +168,7 @@ class _PortfolioContent extends StatelessWidget {
             for (final holding in holdings) ...[
               PortfolioRow(
                 holding: holding,
+                onChart: () => _openCandleChart(context, holding),
                 onEdit: () => _openHoldingEditor(context, holding: holding),
                 onDelete: () => _confirmDeleteHolding(context, holding),
               ),
@@ -235,6 +245,19 @@ class _PortfolioContent extends StatelessWidget {
         }
       },
       successMessage: holding == null ? '보유 종목을 등록했습니다.' : '보유 종목을 수정했습니다.',
+    );
+  }
+
+  void _openCandleChart(BuildContext context, Holding holding) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => MarketCandleScreen(
+          stockCode: holding.stockCode,
+          stockName: holding.stockName,
+          market: holding.market,
+          repository: marketDataRepository,
+        ),
+      ),
     );
   }
 
@@ -562,12 +585,14 @@ class PortfolioRow extends StatelessWidget {
   const PortfolioRow({
     super.key,
     required this.holding,
+    required this.onChart,
     required this.onEdit,
     required this.onDelete,
   });
 
   /// 매수가, 수량, 수익률, 상태를 가진 보유 종목 모델입니다.
   final Holding holding;
+  final VoidCallback onChart;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -622,6 +647,11 @@ class PortfolioRow extends StatelessWidget {
             ],
           ),
           const SizedBox(width: 2),
+          IconButton(
+            onPressed: onChart,
+            tooltip: '${holding.stockName} 차트',
+            icon: const Icon(Icons.candlestick_chart_rounded),
+          ),
           PopupMenuButton<_HoldingMenuAction>(
             tooltip: '보유 종목 메뉴',
             icon: const Icon(Icons.more_vert_rounded),

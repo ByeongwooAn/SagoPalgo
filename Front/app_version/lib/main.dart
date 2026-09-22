@@ -4,11 +4,13 @@ import 'config/app_environment.dart';
 import 'models/auth_session.dart';
 import 'repositories/investment_repository.dart';
 import 'repositories/kb_account_repository.dart';
+import 'repositories/market_data_repository.dart';
 import 'repositories/portfolio_repository.dart';
 import 'repositories/provider_settings_repository.dart';
 import 'repositories/research_feed_repository.dart';
 import 'repositories/spring_investment_repository.dart';
 import 'repositories/spring_kb_account_repository.dart';
+import 'repositories/spring_market_data_repository.dart';
 import 'repositories/spring_portfolio_repository.dart';
 import 'repositories/spring_provider_settings_repository.dart';
 import 'repositories/spring_research_feed_repository.dart';
@@ -42,6 +44,7 @@ class SagoPalgoApp extends StatefulWidget {
     this.providerSettingsRepositoryBuilder,
     this.researchFeedRepositoryBuilder,
     this.kbAccountRepositoryBuilder,
+    this.marketDataRepositoryBuilder,
     this.session = AuthSession.personal,
     this.appLockPin,
   });
@@ -75,6 +78,10 @@ class SagoPalgoApp extends StatefulWidget {
   /// 테스트에서 KB증권 계좌 Repository를 교체하기 위한 빌더입니다.
   final KbAccountRepository Function(AuthSession session)?
   kbAccountRepositoryBuilder;
+
+  /// 테스트에서 캔들 시세 Repository를 교체하기 위한 빌더입니다.
+  final MarketDataRepository Function(AuthSession session)?
+  marketDataRepositoryBuilder;
 
   /// 개인용 프로그램에서 사용할 로컬 프로필 세션입니다.
   final AuthSession session;
@@ -146,6 +153,9 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
               kbAccountRepository:
                   widget.kbAccountRepositoryBuilder?.call(session) ??
                   SpringKbAccountRepository(accessToken: session.accessToken),
+              marketDataRepository:
+                  widget.marketDataRepositoryBuilder?.call(session) ??
+                  SpringMarketDataRepository(accessToken: session.accessToken),
               session: session,
             ),
     );
