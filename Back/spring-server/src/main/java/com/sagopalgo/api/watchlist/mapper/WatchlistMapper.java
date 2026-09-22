@@ -51,6 +51,17 @@ public interface WatchlistMapper {
     );
 
     @Select("""
+        SELECT MAX(alert_enabled)
+        FROM watchlist
+        WHERE user_id = #{userId}
+          AND stock_code = #{stockCode}
+        """)
+    Optional<Boolean> findAlertEnabledByUserAndStockCode(
+        @Param("userId") Long userId,
+        @Param("stockCode") String stockCode
+    );
+
+    @Select("""
         SELECT COUNT(1)
         FROM watchlist
         WHERE user_id = #{userId}

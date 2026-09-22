@@ -107,7 +107,7 @@ Invoke-RestMethod `
 - 자동 동기화를 켜면 개인 사용자의 관심 종목을 cron 주기마다 순회하며, 한 종목 실패가 다음 종목 처리를 막지 않습니다.
 - `/api/v1/research/sync/status`에서 자동 수집 활성 여부와 종목별 마지막 실행 상태를 조회합니다.
 
-기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql)과 [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
+기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql), [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql), [`Back/database/migrations/004_event_alerts.sql`](../database/migrations/004_event_alerts.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
 
 ## 추천 기준
 
@@ -129,7 +129,7 @@ Invoke-RestMethod `
   -Uri 'http://localhost:8080/api/v1/recommendations?page=0&size=20'
 ```
 
-추천 결과가 매수·익절·위험 상태이면 `alerts`에 Windows 전달 대기 알림이 저장됩니다. Ubuntu 운영 환경에서는 `SAGOPALGO_ALERT_ANALYSIS_ENABLED=true`로 설정해 보유 종목을 기본 15분마다 자동 분석합니다.
+추천 결과가 매수·익절·위험 상태이면 `alerts`에 Windows 전달 대기 알림이 저장됩니다. 보유 종목의 손절·익절 기준 도달과 급등락도 독립된 가격 알림으로 저장되며, 관심 종목 동기화에서 발견한 신규 뉴스·공시는 고유 이벤트 키로 한 번만 알립니다. Ubuntu 운영 환경에서는 `SAGOPALGO_ALERT_ANALYSIS_ENABLED=true`로 설정해 보유 종목을 기본 15분마다 자동 분석합니다.
 
 ```powershell
 Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts?page=0&size=20'
@@ -140,6 +140,6 @@ Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read
 
 ## 다음 구현 후보
 
-1. 가격 도달·급등락·신규 뉴스/공시 전용 알림 조건 확장
-2. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
+1. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
+2. 보유 비중 과다·총 손실 한도 경고 조건 확장
 3. 자동 주문 설계와 수동 승인 기반 주문 실행

@@ -7,6 +7,8 @@ class AppAlert {
   const AppAlert({
     this.alertId,
     this.recommendationId,
+    this.eventType,
+    this.stockCode,
     required this.title,
     required this.body,
     required this.timeLabel,
@@ -19,6 +21,12 @@ class AppAlert {
 
   /// 알림을 만든 추천 결과 PK입니다.
   final int? recommendationId;
+
+  /// 알림을 발생시킨 세부 조건입니다.
+  final String? eventType;
+
+  /// 가격·뉴스·공시 알림의 대상 종목 코드입니다.
+  final String? stockCode;
 
   /// 알림의 핵심 제목입니다.
   final String title;
@@ -40,6 +48,8 @@ class AppAlert {
     return AppAlert(
       alertId: (json['alertId'] as num?)?.toInt(),
       recommendationId: (json['recommendationId'] as num?)?.toInt(),
+      eventType: json['eventType'] as String?,
+      stockCode: json['stockCode'] as String?,
       title: json['title'] as String,
       body: json['body'] as String,
       timeLabel: json['timeLabel'] as String,
@@ -52,6 +62,8 @@ class AppAlert {
     return AppAlert(
       alertId: alertId,
       recommendationId: recommendationId,
+      eventType: eventType,
+      stockCode: stockCode,
       title: title,
       body: body,
       timeLabel: timeLabel,
@@ -71,6 +83,15 @@ enum AppAlertType {
 
   /// 시장 흐름 변화 알림입니다.
   market,
+
+  /// 손절·익절 기준 도달 또는 당일 급등락 알림입니다.
+  price,
+
+  /// 관심 종목의 새 뉴스 알림입니다.
+  news,
+
+  /// 관심 종목의 새 전자공시 알림입니다.
+  disclosure,
 }
 
 /// 백엔드 alert type 문자열을 화면 분류로 변환합니다.
@@ -78,6 +99,9 @@ AppAlertType _appAlertTypeFromApiValue(String? value) {
   return switch (value) {
     'SELL' || 'RISK' => AppAlertType.sell,
     'CANDIDATE' || 'BUY' => AppAlertType.candidate,
+    'PRICE' => AppAlertType.price,
+    'NEWS' => AppAlertType.news,
+    'DISCLOSURE' => AppAlertType.disclosure,
     _ => AppAlertType.market,
   };
 }

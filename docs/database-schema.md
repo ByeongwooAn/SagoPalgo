@@ -154,7 +154,11 @@ Windows 프로그램 안에서 보여줄 알림 히스토리를 관리합니다.
 | `alert_id` | BIGINT | PK |
 | `user_id` | BIGINT | 로컬 사용자 FK |
 | `recommendation_id` | BIGINT | 연결된 추천 FK, 없을 수 있음 |
-| `alert_type` | VARCHAR(30) | `BUY`, `SELL`, `MARKET`, `RISK` |
+| `alert_type` | VARCHAR(30) | `BUY`, `SELL`, `MARKET`, `RISK`, `PRICE`, `NEWS`, `DISCLOSURE` |
+| `event_type` | VARCHAR(40) | `RECOMMENDATION`, `PRICE_*`, `NEWS`, `DISCLOSURE` |
+| `event_key` | VARCHAR(191) | 뉴스·공시의 정확한 중복 방지 키, 가격 이벤트는 `NULL` |
+| `stock_code` | VARCHAR(30) | 이벤트 대상 종목 코드 |
+| `market` | VARCHAR(20) | 이벤트 대상 시장 코드 |
 | `title` | VARCHAR(100) | 알림 제목 |
 | `body` | VARCHAR(500) | 알림 본문 |
 | `is_read` | BOOLEAN | 앱 내 읽음 여부 |
@@ -242,6 +246,8 @@ OpenDART에서 수집한 공시를 접수번호 기준으로 저장합니다.
 | `idx_holdings_user_status` | `holdings(user_id, status)` | 보유 종목 조회 |
 | `idx_recommendations_user_created` | `recommendations(user_id, created_at)` | 최신 추천 목록 조회 |
 | `idx_alerts_user_read_created` | `alerts(user_id, is_read, created_at)` | 알림 목록/읽음 필터 |
+| `idx_alerts_user_stock_event_created` | `alerts(user_id, stock_code, market, event_type, created_at)` | 가격 이벤트 쿨다운 조회 |
+| `uk_alerts_user_event_key` | `alerts(user_id, event_type, event_key)` | 뉴스·공시 이벤트 중복 방지 |
 | `idx_snapshots_stock_created` | `analysis_snapshots(stock_code, market, created_at)` | 종목별 분석 이력 조회 |
 | `uk_research_news_provider_key` | `research_news(provider, content_key)` | 같은 종목의 같은 뉴스 중복 방지 |
 | `idx_research_news_stock_published` | `research_news(stock_code, published_at)` | 종목·기간별 뉴스 조회 |

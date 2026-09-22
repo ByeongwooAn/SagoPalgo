@@ -65,6 +65,9 @@ public class AlertService {
         record.setUserId(recommendation.getUserId());
         record.setRecommendationId(recommendation.getRecommendationId());
         record.setAlertType(alertType);
+        record.setEventType("RECOMMENDATION");
+        record.setStockCode(recommendation.getStockCode());
+        record.setMarket(recommendation.getMarket());
         record.setTitle(title(recommendation, alertType));
         record.setBody(limit(recommendation.getAiSummary(), 500));
         alertMapper.insert(record);

@@ -503,13 +503,15 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ## 12. 알림 API
 
-추천 상태가 `BUY_STRONG`, `BUY_WATCH`, `TAKE_PROFIT`, `STOP_LOSS_WATCH`, `RISK`이면 알림이 생성됩니다. `HOLD`는 알림을 만들지 않습니다. 관심 종목에서 알림을 끈 종목도 제외되며, 같은 종목·신호는 기본 60분 쿨다운 동안 중복 생성하지 않습니다.
+추천 상태가 `BUY_STRONG`, `BUY_WATCH`, `TAKE_PROFIT`, `STOP_LOSS_WATCH`, `RISK`이면 추천 알림이 생성됩니다. `HOLD`는 알림을 만들지 않습니다. 별도로 보유 종목이 손절·익절 기준에 도달하거나 당일 등락률이 기본 ±5%를 넘으면 가격 이벤트 알림을 만들고, 관심 종목 동기화에서 최근 뉴스와 공시가 발견되면 각각 뉴스·공시 알림을 만듭니다.
+
+관심 종목에서 알림을 끈 종목은 제외됩니다. 같은 가격 이벤트는 기본 60분 쿨다운 동안 다시 만들지 않으며, 뉴스는 원문 링크, 공시는 DART 접수번호에서 만든 고유 키로 정확히 한 번만 저장합니다. 실제 시세가 아닌 `FALLBACK` 응답으로는 가격 이벤트를 만들지 않습니다.
 
 ### 12.1 알림 목록 조회
 
 `GET /api/v1/alerts?unreadOnly=false&page=0&size=20`
 
-응답은 `items`, `page`, `size`, `total`을 포함합니다. 각 항목에는 `alertId`, `recommendationId`, `type`, `title`, `body`, `read`, `sentAt`, `createdAt`, `timeLabel`이 포함됩니다.
+응답은 `items`, `page`, `size`, `total`을 포함합니다. 각 항목에는 `alertId`, `recommendationId`, `type`, `eventType`, `stockCode`, `title`, `body`, `read`, `sentAt`, `createdAt`, `timeLabel`이 포함됩니다. `type`은 화면 분류(`BUY`, `SELL`, `RISK`, `PRICE`, `NEWS`, `DISCLOSURE`)이고, `eventType`은 `PRICE_STOP_LOSS`, `PRICE_TAKE_PROFIT`, `PRICE_SURGE`, `PRICE_DROP`, `NEWS`, `DISCLOSURE`처럼 실제 발생 조건을 나타냅니다.
 
 ### 12.2 알림 읽음 처리
 
@@ -594,6 +596,6 @@ Flutter 추천 이력 목록·상세 화면과 보유 종목 수동 재분석 �
 
 Windows 앱 잠금 PIN의 Credential Manager 저장과 기존 `.env` 값 자동 이전까지 연결되었습니다.
 
-1. 가격 도달·급등락·신규 뉴스/공시 전용 알림 조건 확장
-2. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
+1. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
+2. 보유 비중 과다·총 손실 한도 경고 조건 확장
 3. 자동 주문 설계와 수동 승인 기반 주문 실행

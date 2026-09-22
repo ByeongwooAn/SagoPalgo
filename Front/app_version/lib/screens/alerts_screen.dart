@@ -185,6 +185,12 @@ IconData alertIcon(AppAlertType type) {
       return Icons.add_chart_rounded;
     case AppAlertType.market:
       return Icons.public_rounded;
+    case AppAlertType.price:
+      return Icons.price_change_rounded;
+    case AppAlertType.news:
+      return Icons.newspaper_rounded;
+    case AppAlertType.disclosure:
+      return Icons.description_rounded;
   }
 }
 
@@ -197,5 +203,11 @@ Color alertColor(AppAlertType type) {
       return AppTheme.point;
     case AppAlertType.market:
       return AppTheme.main;
+    case AppAlertType.price:
+      return AppTheme.point;
+    case AppAlertType.news:
+      return Colors.teal;
+    case AppAlertType.disclosure:
+      return Colors.indigo;
   }
 }

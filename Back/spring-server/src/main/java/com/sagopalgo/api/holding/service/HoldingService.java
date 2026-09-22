@@ -62,6 +62,12 @@ public class HoldingService {
         return holdingMapper.findActiveIdsByUserId(userId);
     }
 
+    @Transactional(readOnly = true)
+    public Holding findRecord(Long userId, Long holdingId) {
+        return holdingMapper.findByIdAndUserId(holdingId, userId)
+            .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "보유 종목을 찾을 수 없습니다."));
+    }
+
     @Transactional
     public HoldingCreateResponse create(Long userId, HoldingRequest request) {
         Holding holding = buildHolding(userId, request);
