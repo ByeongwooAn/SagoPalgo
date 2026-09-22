@@ -113,7 +113,15 @@ Invoke-RestMethod `
 - 자동 동기화를 켜면 개인 사용자의 관심 종목을 cron 주기마다 순회하며, 한 종목 실패가 다음 종목 처리를 막지 않습니다.
 - `/api/v1/research/sync/status`에서 자동 수집 활성 여부와 종목별 마지막 실행 상태를 조회합니다.
 
-기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql), [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql), [`Back/database/migrations/004_event_alerts.sql`](../database/migrations/004_event_alerts.sql), [`Back/database/migrations/005_paper_trading.sql`](../database/migrations/005_paper_trading.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
+기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql), [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql), [`Back/database/migrations/004_event_alerts.sql`](../database/migrations/004_event_alerts.sql), [`Back/database/migrations/005_paper_trading.sql`](../database/migrations/005_paper_trading.sql), [`Back/database/migrations/006_order_prechecks.sql`](../database/migrations/006_order_prechecks.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
+
+## 주문 사전검증
+
+- `POST /api/v1/orders/precheck`: 지정가·수량을 현재가, 주문가능현금·수량, 안전 한도와 대조
+- `GET /api/v1/orders/prechecks?limit=20`: 최근 사전검증 감사 로그 조회
+- `SAGOPALGO_KB_MAX_ORDER_AMOUNT`: 1회 최대 주문금액, 기본 100만원
+- `SAGOPALGO_KB_MAX_PRICE_DEVIATION_RATE`: 현재가 대비 지정가 최대 이탈률, 기본 5%
+- 실제 KB 주문 제출 API는 아직 없으며 사전검증 응답의 `canSubmit`은 항상 `false`입니다.
 
 ## 모의매매
 
@@ -154,6 +162,6 @@ Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read
 
 ## 다음 구현 후보
 
-1. 자동 주문 설계와 수동 승인 기반 주문 실행
-2. 배포 패키지 자동 업데이트와 운영 상태 진단
-3. 모의매매 전략·기간별 성과 비교 차트
+1. 일회용 확인 토큰과 수동 승인 기반 KB 주문 실행
+2. 주문 결과·실패·취소·정정 상태 동기화
+3. 배포 패키지 자동 업데이트와 운영 상태 진단

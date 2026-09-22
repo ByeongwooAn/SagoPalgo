@@ -101,7 +101,8 @@ class ProviderSettingsSnapshot {
       secretStorageType: json['secretStorageType'] as String? ?? 'ENV_FILE',
       secretStorageDescription:
           json['secretStorageDescription'] as String? ?? '.env 파일',
-      orderSafetyMode: json['orderSafetyMode'] as String? ?? '주문 기능 기본 OFF',
+      orderSafetyMode:
+          json['orderSafetyMode'] as String? ?? '주문 기능 OFF · 사전검증만 지원',
       marketDataFallbackOrder:
           (json['marketDataFallbackOrder'] as List<dynamic>? ?? const [])
               .map((item) => item as String)

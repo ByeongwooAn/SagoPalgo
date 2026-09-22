@@ -60,7 +60,9 @@ public class ProviderSettingsService {
         return new ProviderSettingsResponse(
             "ENV_FILE",
             ".env 파일과 Docker env-file로 개인용 API Key, App Secret, 계좌번호를 관리합니다.",
-            "주문 기능 기본 OFF",
+            kb.isOrderEnabled()
+                ? "KB 주문 스위치 ON · 실제 주문 미지원"
+                : "주문 기능 OFF · 사전검증만 지원",
             List.of("KB", "KIS", "TOSS"),
             "앞 Provider가 비활성·미설정·조회 실패이면 다음 Provider를 시도하고, 모두 실패하면 등록 매수가를 사용합니다.",
             List.of(

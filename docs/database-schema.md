@@ -21,6 +21,7 @@
 | `watchlist` | 관심 종목 관리 | 구현됨 |
 | `holdings` | 보유 종목과 손절/익절 기준 | 구현됨 |
 | `trade_records` | 실제 주문과 분리된 모의매매 원장 | 구현됨 |
+| `order_prechecks` | 실제 주문 전 안전 검증 감사 로그 | 구현됨 |
 | `recommendations` | AI 추천 결과 본문 | 구현됨 |
 | `recommendation_reasons` | 추천 점수 산출 근거 | 구현됨 |
 | `alerts` | 앱 알림 내역과 Windows 전달/읽음 상태 | 구현 완료 |
@@ -37,6 +38,7 @@ users 1 ── 1 user_capital
 users 1 ── N watchlist
 users 1 ── N holdings
 users 1 ── N trade_records
+users 1 ── N order_prechecks
 users 1 ── N recommendations
 recommendations 1 ── N recommendation_reasons
 users 1 ── N alerts
@@ -257,6 +259,26 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 | `trade_date` | DATETIME | 가상 체결 시각 |
 | `memo` | VARCHAR(500) | AI 신호 또는 매도 설명 |
 
+### 4.13 `order_prechecks`
+
+지정가 주문안을 KB 계좌 자원과 안전 한도에 대조한 결과를 저장합니다. 이 테이블의 행은 주문 접수나 체결을 의미하지 않습니다.
+
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `order_precheck_id` | BIGINT | 사전검증 PK |
+| `user_id` | BIGINT | 로컬 사용자 FK |
+| `stock_code`, `stock_name`, `market` | VARCHAR | 검토 대상 종목 |
+| `order_side`, `order_type` | VARCHAR | `BUY`/`SELL`, 현재는 `LIMIT` |
+| `requested_price`, `quantity` | DECIMAL | 사용자가 검토한 지정가와 수량 |
+| `estimated_amount` | DECIMAL | 예상 주문금액 |
+| `quote_provider`, `current_price` | VARCHAR, DECIMAL | 검증 시점 비교 시세 |
+| `order_available_cash` | DECIMAL | 검증 시점 KB 주문가능현금 |
+| `orderable_quantity` | DECIMAL | 검증 시점 KB 주문가능수량 |
+| `order_enabled` | BOOLEAN | 검증 시점 주문 스위치 상태 |
+| `eligible` | BOOLEAN | 모든 사전검증 통과 여부 |
+| `blocker_summary` | VARCHAR(1000) | 실패 조건 요약 |
+| `created_at` | DATETIME | 검증 시각 |
+
 ## 5. 인덱스 전략
 
 | 인덱스 | 대상 | 이유 |
@@ -267,6 +289,8 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 | `idx_holdings_user_status` | `holdings(user_id, status)` | 보유 종목 조회 |
 | `idx_trade_records_recommendation_id` | `trade_records(recommendation_id)` | AI 추천과 가상 매수 연결 |
 | `idx_trade_records_user_mode_date` | `trade_records(user_id, execution_mode, trade_date)` | 사용자별 모의매매 원장 조회 |
+| `idx_order_prechecks_user_created` | `order_prechecks(user_id, created_at)` | 사용자별 최근 사전검증 감사 로그 조회 |
+| `idx_order_prechecks_user_stock_created` | `order_prechecks(user_id, stock_code, created_at)` | 종목별 사전검증 이력 조회 |
 | `idx_recommendations_user_created` | `recommendations(user_id, created_at)` | 최신 추천 목록 조회 |
 | `idx_alerts_user_read_created` | `alerts(user_id, is_read, created_at)` | 알림 목록/읽음 필터 |
 | `idx_alerts_user_stock_event_created` | `alerts(user_id, stock_code, market, event_type, created_at)` | 가격 이벤트 쿨다운 조회 |
@@ -292,5 +316,6 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 9. `research_disclosures`
 10. `research_sync_status`
 11. `trade_records`
+12. `order_prechecks`
 
-`trade_records`는 모의매매 API에서 사용하며 실제 증권사 주문은 수행하지 않습니다. `device_tokens`는 설계에는 포함되어 있지만 실제 API는 외부 푸시가 필요해질 때 붙입니다. `recommendations`, `recommendation_reasons`, `analysis_snapshots`는 통합 분석 실행 시 함께 저장합니다.
+`trade_records`는 모의매매 API에서 사용하고 `order_prechecks`는 주문 전 검증 결과만 저장하며, 어느 테이블도 실제 증권사 주문을 수행했다는 의미가 아닙니다. `device_tokens`는 설계에는 포함되어 있지만 실제 API는 외부 푸시가 필요해질 때 붙입니다. `recommendations`, `recommendation_reasons`, `analysis_snapshots`는 통합 분석 실행 시 함께 저장합니다.

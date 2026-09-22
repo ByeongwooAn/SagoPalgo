@@ -5,6 +5,7 @@ import 'package:app_version/models/investment_snapshot.dart';
 import 'package:app_version/models/kb_account_snapshot.dart';
 import 'package:app_version/models/market_candle.dart';
 import 'package:app_version/models/market_summary.dart';
+import 'package:app_version/models/order_precheck.dart';
 import 'package:app_version/models/paper_trading.dart';
 import 'package:app_version/models/provider_setting.dart';
 import 'package:app_version/models/recommendation.dart';
@@ -13,6 +14,7 @@ import 'package:app_version/models/watchlist_item.dart';
 import 'package:app_version/repositories/investment_repository.dart';
 import 'package:app_version/repositories/kb_account_repository.dart';
 import 'package:app_version/repositories/market_data_repository.dart';
+import 'package:app_version/repositories/order_precheck_repository.dart';
 import 'package:app_version/repositories/paper_trading_repository.dart';
 import 'package:app_version/repositories/portfolio_repository.dart';
 import 'package:app_version/repositories/provider_settings_repository.dart';
@@ -42,6 +44,8 @@ void main() {
             const FakeResearchFeedRepository(),
         kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
         marketDataRepositoryBuilder: (_) => const FakeMarketDataRepository(),
+        orderPrecheckRepositoryBuilder: (_) =>
+            const FakeOrderPrecheckRepository(),
         paperTradingRepositoryBuilder: (_) =>
             const FakePaperTradingRepository(),
       ),
@@ -153,6 +157,8 @@ void main() {
             const FakeResearchFeedRepository(),
         kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
         marketDataRepositoryBuilder: (_) => const FakeMarketDataRepository(),
+        orderPrecheckRepositoryBuilder: (_) =>
+            const FakeOrderPrecheckRepository(),
         paperTradingRepositoryBuilder: (_) =>
             const FakePaperTradingRepository(),
       ),
@@ -201,6 +207,15 @@ class FakePaperTradingRepository implements PaperTradingRepository {
     required String market,
     required double quantity,
   }) async => _testPaperTrading;
+}
+
+class FakeOrderPrecheckRepository implements OrderPrecheckRepository {
+  const FakeOrderPrecheckRepository();
+
+  @override
+  Future<OrderPrecheckResult> precheck(OrderPrecheckInput input) {
+    throw UnimplementedError('주문 사전검토는 전용 위젯 테스트에서 검증합니다.');
+  }
 }
 
 class FakeRecommendationRepository implements RecommendationRepository {
@@ -344,7 +359,7 @@ class FakeProviderSettingsRepository implements ProviderSettingsRepository {
     return const ProviderSettingsSnapshot(
       secretStorageType: 'ENV_FILE',
       secretStorageDescription: '.env 파일로 민감정보를 관리합니다.',
-      orderSafetyMode: '주문 기능 기본 OFF',
+      orderSafetyMode: '주문 기능 OFF · 사전검증만 지원',
       marketDataFallbackOrder: ['KB', 'KIS', 'TOSS'],
       marketDataFallbackDescription: '앞 Provider가 실패하면 다음 Provider를 시도합니다.',
       providers: [
