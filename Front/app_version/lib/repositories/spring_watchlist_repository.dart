@@ -27,6 +27,18 @@ class SpringWatchlistRepository implements WatchlistRepository {
   final http.Client client;
 
   @override
+  Future<List<WatchlistItem>> fetchWatchlist() async {
+    final response = await client.get(
+      Uri.parse(config.watchlistBaseUrl),
+      headers: _headers(),
+    );
+    final decoded = _decodeResponse(response);
+    return (decoded['data'] as List<dynamic>)
+        .map((item) => WatchlistItem.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
   Future<WatchlistActionResult> addRecommendation(
     InvestmentRecommendation recommendation,
   ) async {
@@ -72,14 +84,7 @@ class SpringWatchlistRepository implements WatchlistRepository {
   Future<WatchlistItem?> _findExisting(
     InvestmentRecommendation recommendation,
   ) async {
-    final response = await client.get(
-      Uri.parse(config.watchlistBaseUrl),
-      headers: _headers(),
-    );
-    final decoded = _decodeResponse(response);
-    final items = (decoded['data'] as List<dynamic>)
-        .map((item) => WatchlistItem.fromJson(item as Map<String, dynamic>))
-        .toList();
+    final items = await fetchWatchlist();
 
     for (final item in items) {
       if (item.stockCode == recommendation.stockCode &&

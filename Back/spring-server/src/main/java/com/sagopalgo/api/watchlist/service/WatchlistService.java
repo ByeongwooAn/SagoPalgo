@@ -2,6 +2,8 @@ package com.sagopalgo.api.watchlist.service;
 
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
+import com.sagopalgo.api.market.model.MarketDataRequest;
+import com.sagopalgo.api.market.service.MarketPriceService;
 import com.sagopalgo.api.watchlist.dto.WatchlistAlertUpdateRequest;
 import com.sagopalgo.api.watchlist.dto.WatchlistCreateRequest;
 import com.sagopalgo.api.watchlist.dto.WatchlistCreateResponse;
@@ -20,17 +22,29 @@ import org.springframework.transaction.annotation.Transactional;
 public class WatchlistService {
 
     private final WatchlistMapper watchlistMapper;
+    private final MarketPriceService marketPriceService;
 
-    public WatchlistService(WatchlistMapper watchlistMapper) {
+    public WatchlistService(
+        WatchlistMapper watchlistMapper,
+        MarketPriceService marketPriceService
+    ) {
         this.watchlistMapper = watchlistMapper;
+        this.marketPriceService = marketPriceService;
     }
 
     @Transactional(readOnly = true)
     public List<WatchlistResponse> findAll(Long userId) {
         return watchlistMapper.findAllByUserId(userId)
             .stream()
-            .map(WatchlistResponse::from)
+            .map(this::toResponse)
             .toList();
+    }
+
+    private WatchlistResponse toResponse(WatchlistItem item) {
+        return WatchlistResponse.from(
+            item,
+            marketPriceService.quoteMarket(new MarketDataRequest(item.getStockCode(), item.getMarket()))
+        );
     }
 
     @Transactional
@@ -63,7 +77,7 @@ public class WatchlistService {
         }
 
         return watchlistMapper.findByIdAndUserId(watchlistId, userId)
-            .map(WatchlistResponse::from)
+            .map(this::toResponse)
             .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "관심 종목을 찾을 수 없습니다."));
     }
 

@@ -337,6 +337,8 @@ Toss 공식 `GET /api/v1/stocks?symbols=종목코드` 응답을 사용합니다.
 
 `GET /api/v1/watchlist`
 
+각 항목은 기본 관심 종목 정보와 함께 `provider`, `currentPrice`, `changeRate`를 반환합니다. 시세 Provider 우선순위는 KB, KIS, Toss이며 모든 Provider가 비활성 또는 실패 상태이면 `provider=FALLBACK`, `currentPrice=0`, `changeRate=0`으로 반환합니다. 이 시세 정보는 Windows 미니 위젯의 관심 종목 목록에 사용합니다.
+
 ### 8.2 관심 종목 추가
 
 `POST /api/v1/watchlist`
@@ -609,6 +611,8 @@ Flutter 추천 이력 목록·상세 화면과 보유 종목 수동 재분석 �
 
 Windows 앱 잠금 PIN의 Credential Manager 저장과 기존 `.env` 값 자동 이전까지 연결되었습니다.
 
-1. 미니 위젯 모드와 트레이 동작 구현
-2. AI 신호 기반 모의매매와 성과 지표 구현
-3. 자동 주문 설계와 수동 승인 기반 주문 실행
+Windows 항상 위 미니 위젯과 시스템 트레이 메뉴까지 연결되었습니다.
+
+1. AI 신호 기반 모의매매와 성과 지표 구현
+2. 자동 주문 설계와 수동 승인 기반 주문 실행
+3. 배포 패키지 자동 업데이트와 운영 상태 진단

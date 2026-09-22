@@ -8,6 +8,7 @@ import 'package:app_version/models/market_summary.dart';
 import 'package:app_version/models/provider_setting.dart';
 import 'package:app_version/models/recommendation.dart';
 import 'package:app_version/models/research_feed.dart';
+import 'package:app_version/models/watchlist_item.dart';
 import 'package:app_version/repositories/investment_repository.dart';
 import 'package:app_version/repositories/kb_account_repository.dart';
 import 'package:app_version/repositories/market_data_repository.dart';
@@ -280,6 +281,9 @@ class FakePortfolioRepository implements PortfolioRepository {
 
 class FakeWatchlistRepository implements WatchlistRepository {
   const FakeWatchlistRepository();
+
+  @override
+  Future<List<WatchlistItem>> fetchWatchlist() async => const [];
 
   @override
   Future<WatchlistActionResult> addRecommendation(

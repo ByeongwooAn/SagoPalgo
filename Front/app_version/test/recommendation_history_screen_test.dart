@@ -1,5 +1,6 @@
 import 'package:app_version/models/holding.dart';
 import 'package:app_version/models/recommendation.dart';
+import 'package:app_version/models/watchlist_item.dart';
 import 'package:app_version/repositories/recommendation_repository.dart';
 import 'package:app_version/repositories/watchlist_repository.dart';
 import 'package:app_version/screens/recommendation_screen.dart';
@@ -87,6 +88,9 @@ class _FakeRecommendationRepository implements RecommendationRepository {
 
 class _NoopWatchlistRepository implements WatchlistRepository {
   const _NoopWatchlistRepository();
+
+  @override
+  Future<List<WatchlistItem>> fetchWatchlist() async => const [];
 
   @override
   Future<WatchlistActionResult> addRecommendation(

@@ -1,6 +1,8 @@
 package com.sagopalgo.api.watchlist.dto;
 
 import com.sagopalgo.api.watchlist.model.WatchlistItem;
+import com.sagopalgo.api.market.model.StockQuote;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
@@ -13,16 +15,22 @@ public record WatchlistResponse(
     String stockName,
     String market,
     Boolean alertEnabled,
+    String provider,
+    BigDecimal currentPrice,
+    BigDecimal changeRate,
     Instant createdAt
 ) {
 
-    public static WatchlistResponse from(WatchlistItem item) {
+    public static WatchlistResponse from(WatchlistItem item, StockQuote quote) {
         return new WatchlistResponse(
             item.getWatchlistId(),
             item.getStockCode(),
             item.getStockName(),
             item.getMarket(),
             item.getAlertEnabled(),
+            quote.provider(),
+            quote.currentPrice(),
+            quote.changeRate(),
             item.getCreatedAt().atOffset(ZoneOffset.UTC).toInstant()
         );
     }

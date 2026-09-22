@@ -8,6 +8,7 @@ import '../models/holding.dart';
 import '../models/investment_snapshot.dart';
 import '../models/provider_setting.dart';
 import '../models/research_feed.dart';
+import '../models/watchlist_item.dart';
 import '../repositories/investment_repository.dart';
 import '../repositories/alert_repository.dart';
 import '../repositories/kb_account_repository.dart';
@@ -18,11 +19,13 @@ import '../repositories/recommendation_repository.dart';
 import '../repositories/research_feed_repository.dart';
 import '../repositories/watchlist_repository.dart';
 import '../services/app_security_service.dart';
+import '../services/desktop_window_service.dart';
 import '../services/local_notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
 import 'alerts_screen.dart';
 import 'dashboard_screen.dart';
+import 'mini_widget_screen.dart';
 import 'portfolio_screen.dart';
 import 'recommendation_screen.dart';
 import 'research_timeline_screen.dart';
@@ -48,6 +51,7 @@ class SagoPalgoHome extends StatefulWidget {
     required this.marketDataRepository,
     required this.alertRepository,
     required this.localNotificationService,
+    this.desktopWindowService = const NoopDesktopWindowService(),
     required this.appSecurityService,
     required this.appLockPinConfigured,
     required this.onAppLockPinChanged,
@@ -87,6 +91,9 @@ class SagoPalgoHome extends StatefulWidget {
   /// Windows 알림 센터에 새 신호를 표시합니다.
   final LocalNotificationService localNotificationService;
 
+  /// Windows 미니 위젯과 시스템 트레이 창 동작을 처리합니다.
+  final DesktopWindowService desktopWindowService;
+
   /// 앱 잠금 PIN을 Windows Credential Manager에 저장합니다.
   final AppSecurityService appSecurityService;
 
@@ -119,12 +126,16 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
   /// 설정 탭에서 별도로 갱신하는 증권사 연동 상태 Future입니다.
   late Future<ProviderSettingsSnapshot> _providerSettingsFuture;
 
+  /// 미니 위젯에 표시할 관심 종목 최신 시세입니다.
+  late Future<List<WatchlistItem>> _watchlistFuture;
+
   /// 다른 탭의 빈 상태 CTA가 요청한 포트폴리오 초기 작업입니다.
   PortfolioSetupAction? _pendingPortfolioSetupAction;
 
   List<AppAlert>? _alerts;
   Timer? _alertTimer;
   bool _pollingAlerts = false;
+  bool _isMiniMode = false;
 
   @override
   void initState() {
@@ -135,6 +146,15 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
     _providerSettingsFuture = widget.providerSettingsRepository
         .fetchProviderSettings();
+    _watchlistFuture = widget.watchlistRepository.fetchWatchlist();
+    unawaited(
+      widget.desktopWindowService.initialize(
+        onShowDashboard: _showDashboard,
+        onEnterMiniMode: _showMiniMode,
+        onRefresh: _reloadAllInvestmentData,
+        onOpenSettings: _openSettings,
+      ),
+    );
     if (widget.alertRepository != null) {
       unawaited(_refreshAlerts());
       unawaited(_pollPendingAlerts());
@@ -148,6 +168,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
   @override
   void dispose() {
     _alertTimer?.cancel();
+    unawaited(widget.desktopWindowService.dispose());
     super.dispose();
   }
 
@@ -159,33 +180,44 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(gradient: palette.pageGradient),
-        child: SafeArea(
-          child: Column(
-            children: [
-              TopBar(
-                isDark: isDark,
-                user: widget.session.user,
-                onThemeToggle: () =>
-                    widget.onThemeToggle(Theme.of(context).brightness),
-              ),
-              Expanded(
-                child: FutureBuilder<InvestmentSnapshot>(
-                  future: _snapshotFuture,
-                  builder: (context, snapshot) {
-                    /// 데이터가 아직 없을 때는 API 연동 이후에도 그대로 쓸 수 있는 로딩 상태를 보여줍니다.
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return const LoadingState();
-                    }
+        child: FutureBuilder<InvestmentSnapshot>(
+          future: _snapshotFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const LoadingState();
+            }
+            if (snapshot.hasError || !snapshot.hasData) {
+              return ErrorState(onRetry: _reloadSnapshot);
+            }
 
-                    /// API 오류가 생길 경우를 대비해 사용자에게 재시도 가능한 오류 화면을 제공합니다.
-                    if (snapshot.hasError || !snapshot.hasData) {
-                      return ErrorState(onRetry: _reloadSnapshot);
-                    }
+            final investment = snapshot.data!;
+            if (_isMiniMode) {
+              return FutureBuilder<List<WatchlistItem>>(
+                future: _watchlistFuture,
+                builder: (context, watchlistSnapshot) => MiniWidgetScreen(
+                  snapshot: investment,
+                  watchlist: watchlistSnapshot.data ?? const [],
+                  onExpand: _expandDashboard,
+                  onRefresh: _reloadAllInvestmentData,
+                  onHide: _hideToTray,
+                ),
+              );
+            }
 
-                    /// 데이터 로딩이 끝나면 하단 탭 인덱스에 맞는 화면을 IndexedStack으로 보여줍니다.
-                    return _TabContent(
+            return SafeArea(
+              child: Column(
+                children: [
+                  TopBar(
+                    isDark: isDark,
+                    user: widget.session.user,
+                    onMiniMode: _enterMiniMode,
+                    onThemeToggle: () =>
+                        widget.onThemeToggle(Theme.of(context).brightness),
+                  ),
+                  Expanded(
+                    child: _TabContent(
                       selectedIndex: _selectedIndex,
-                      snapshot: snapshot.data!,
+                      snapshot: investment,
                       watchlistRepository: widget.watchlistRepository,
                       portfolioRepository: widget.portfolioRepository,
                       kbAccountRepository: widget.kbAccountRepository,
@@ -195,7 +227,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       appSecurityService: widget.appSecurityService,
                       appLockPinConfigured: widget.appLockPinConfigured,
                       onAppLockPinChanged: widget.onAppLockPinChanged,
-                      alerts: _alerts ?? snapshot.data!.alerts,
+                      alerts: _alerts ?? investment.alerts,
                       onAlertsRefresh: _refreshAlerts,
                       onAlertRead: _markAlertRead,
                       providerSettingsFuture: _providerSettingsFuture,
@@ -210,19 +242,56 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                           _openPortfolioSetup(PortfolioSetupAction.addHolding),
                       onPendingPortfolioSetupActionConsumed:
                           _clearPendingPortfolioSetupAction,
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
-      bottomNavigationBar: BottomNav(
-        selectedIndex: _selectedIndex,
-        onSelected: (index) => setState(() => _selectedIndex = index),
-      ),
+      bottomNavigationBar: _isMiniMode
+          ? null
+          : BottomNav(
+              selectedIndex: _selectedIndex,
+              onSelected: (index) => setState(() => _selectedIndex = index),
+            ),
     );
+  }
+
+  void _enterMiniMode() {
+    unawaited(widget.desktopWindowService.enterMiniMode());
+    _showMiniMode();
+  }
+
+  void _showMiniMode() {
+    if (mounted) {
+      setState(() => _isMiniMode = true);
+    }
+  }
+
+  void _expandDashboard() {
+    unawaited(widget.desktopWindowService.showDashboard());
+    _showDashboard();
+  }
+
+  void _showDashboard() {
+    if (mounted) {
+      setState(() => _isMiniMode = false);
+    }
+  }
+
+  void _hideToTray() {
+    unawaited(widget.desktopWindowService.hideToTray());
+  }
+
+  void _openSettings() {
+    if (mounted) {
+      setState(() {
+        _isMiniMode = false;
+        _selectedIndex = 5;
+      });
+    }
   }
 
   /// 오류 화면에서 재시도 버튼을 눌렀을 때 데이터를 다시 요청합니다.
@@ -235,6 +304,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     setState(() {
       _snapshotFuture = widget.repository.fetchSnapshot();
       _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
+      _watchlistFuture = widget.watchlistRepository.fetchWatchlist();
     });
   }
 
@@ -337,6 +407,7 @@ class TopBar extends StatelessWidget {
     super.key,
     required this.isDark,
     required this.user,
+    required this.onMiniMode,
     required this.onThemeToggle,
   });
 
@@ -348,6 +419,9 @@ class TopBar extends StatelessWidget {
 
   /// 사용자가 아이콘 버튼을 눌렀을 때 실행되는 테마 전환 콜백입니다.
   final VoidCallback onThemeToggle;
+
+  /// 현재 창을 항상 위 미니 위젯으로 전환합니다.
+  final VoidCallback onMiniMode;
 
   @override
   Widget build(BuildContext context) {
@@ -397,6 +471,12 @@ class TopBar extends StatelessWidget {
               ],
             ),
           ),
+          IconButton.filledTonal(
+            onPressed: onMiniMode,
+            tooltip: '미니 위젯',
+            icon: const Icon(Icons.picture_in_picture_alt_rounded),
+          ),
+          const SizedBox(width: 6),
           IconButton.filledTonal(
             onPressed: onThemeToggle,
             tooltip: isDark ? '라이트모드로 전환' : '다크모드로 전환',

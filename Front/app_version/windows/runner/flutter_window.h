@@ -35,13 +35,25 @@ class FlutterWindow : public Win32Window {
       notification_channel_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
       credential_channel_;
+  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
+      window_control_channel_;
   NOTIFYICONDATAW notification_icon_{};
   bool notification_icon_added_ = false;
+  bool mini_mode_ = false;
+  bool exiting_ = false;
+  bool normal_bounds_saved_ = false;
+  RECT normal_bounds_{};
 
   void RegisterNotificationChannel();
   void RegisterCredentialChannel();
+  void RegisterWindowControlChannel();
   bool InitializeNotificationIcon();
   bool ShowNotification(const std::string& title, const std::string& body);
+  void EnterMiniMode();
+  void ShowDashboardWindow();
+  void HideToTray();
+  void ShowTrayMenu();
+  void SendTrayAction(const std::string& action);
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_

@@ -32,6 +32,15 @@ public class MarketPriceService {
 
     public StockQuote quote(Holding holding) {
         MarketDataRequest request = MarketDataRequest.from(holding);
+        BigDecimal fallbackPrice = holding == null ? null : holding.getBuyPrice();
+        return quote(request, fallbackPrice);
+    }
+
+    public StockQuote quoteMarket(MarketDataRequest request) {
+        return quote(request, BigDecimal.ZERO);
+    }
+
+    private StockQuote quote(MarketDataRequest request, BigDecimal fallbackPrice) {
         ApiException lastFailure = null;
 
         for (MarketDataProvider provider : providers) {
@@ -54,8 +63,8 @@ public class MarketPriceService {
             }
         }
 
-        if (holding != null && holding.getBuyPrice() != null) {
-            return fallbackQuote(request, holding.getBuyPrice());
+        if (fallbackPrice != null) {
+            return fallbackQuote(request, fallbackPrice);
         }
         if (lastFailure != null) {
             throw lastFailure;
