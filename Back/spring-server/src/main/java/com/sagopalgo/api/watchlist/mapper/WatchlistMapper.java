@@ -37,6 +37,20 @@ public interface WatchlistMapper {
     );
 
     @Select("""
+        SELECT alert_enabled
+        FROM watchlist
+        WHERE user_id = #{userId}
+          AND stock_code = #{stockCode}
+          AND market = #{market}
+        LIMIT 1
+        """)
+    Optional<Boolean> findAlertEnabledByUserStockAndMarket(
+        @Param("userId") Long userId,
+        @Param("stockCode") String stockCode,
+        @Param("market") String market
+    );
+
+    @Select("""
         SELECT COUNT(1)
         FROM watchlist
         WHERE user_id = #{userId}

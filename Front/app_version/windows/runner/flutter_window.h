@@ -3,6 +3,7 @@
 
 #include <flutter/dart_project.h>
 #include <flutter/flutter_view_controller.h>
+#include <flutter/method_channel.h>
 
 #include <memory>
 
@@ -28,6 +29,16 @@ class FlutterWindow : public Win32Window {
 
   // The Flutter instance hosted by this window.
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
+
+  // Bridges Flutter notification requests to the Windows notification area.
+  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
+      notification_channel_;
+  NOTIFYICONDATAW notification_icon_{};
+  bool notification_icon_added_ = false;
+
+  void RegisterNotificationChannel();
+  bool InitializeNotificationIcon();
+  bool ShowNotification(const std::string& title, const std::string& body);
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_

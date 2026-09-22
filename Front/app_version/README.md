@@ -15,20 +15,24 @@
 - 소식 탭은 보유·추천 종목의 저장된 뉴스와 공시를 시간순으로 표시합니다.
 - 소식 탭에서 종목 선택, 뉴스·공시 필터, 외부 Provider 수동 동기화, 원문 열기를 사용할 수 있습니다.
 - 소식 탭에서 자동 수집 활성 여부와 종목별 마지막 동기화 결과를 확인할 수 있습니다.
+- Ubuntu 백엔드의 알림 API를 30초마다 조회하고 Windows Runner의 네이티브 알림 영역에 새 투자 신호를 표시합니다.
+- 알림 탭은 실제 저장 이력을 표시하며 항목을 선택하면 읽음 처리합니다.
 
 ## 백엔드 API 기준
 
 기본 API 주소는 `Front/app_version/.env`의 `SAGOPALGO_API_BASE_URL`에서 읽습니다. 이 값이 없으면 루트 `.env.dev`와 같은 Docker 개발 키를 사용해 `http://{SAGOPALGO_NGINX_SERVER_NAME}:{SAGOPALGO_PROXY_HTTP_PORT}`를 자동으로 만듭니다.
 
 ```dotenv
-SAGOPALGO_API_BASE_URL=http://localhost:8081
+SAGOPALGO_API_BASE_URL=http://ubuntu-server.local:8081
 SAGOPALGO_API_PORT=8080
 SAGOPALGO_PROXY_HTTP_PORT=8081
-SAGOPALGO_NGINX_SERVER_NAME=localhost
+SAGOPALGO_NGINX_SERVER_NAME=ubuntu-server.local
 SAGOPALGO_APP_LOCK_PIN=
 ```
 
 API Key, 계좌번호, access token 같은 민감정보는 Flutter asset `.env`에 넣지 않습니다. 이후 단계에서 Windows Credential Manager 또는 앱 잠금 기반 로컬 보안 저장소로 옮깁니다.
+
+Ubuntu 서버의 IP를 사용할 경우 `SAGOPALGO_API_BASE_URL=http://192.168.x.x:8081`처럼 지정합니다. Windows 방화벽이 아니라 Ubuntu 방화벽에서 Nginx 포트 `8081/tcp`를 같은 사설망에만 허용해야 합니다.
 
 ## Windows 실행
 

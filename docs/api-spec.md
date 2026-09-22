@@ -503,15 +503,29 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ## 12. 알림 API
 
-이 절의 알림 API는 다음 구현 단계의 명세입니다. 현재 앱 알림 탭의 데이터는 `GET /api/v1/dashboard/snapshot`의 `alerts` 필드로 제공됩니다.
+추천 상태가 `BUY_STRONG`, `BUY_WATCH`, `TAKE_PROFIT`, `STOP_LOSS_WATCH`, `RISK`이면 알림이 생성됩니다. `HOLD`는 알림을 만들지 않습니다. 관심 종목에서 알림을 끈 종목도 제외되며, 같은 종목·신호는 기본 60분 쿨다운 동안 중복 생성하지 않습니다.
 
 ### 12.1 알림 목록 조회
 
-`GET /api/v1/alerts?page=0&size=20`
+`GET /api/v1/alerts?unreadOnly=false&page=0&size=20`
+
+응답은 `items`, `page`, `size`, `total`을 포함합니다. 각 항목에는 `alertId`, `recommendationId`, `type`, `title`, `body`, `read`, `sentAt`, `createdAt`, `timeLabel`이 포함됩니다.
 
 ### 12.2 알림 읽음 처리
 
 `PATCH /api/v1/alerts/{alertId}/read`
+
+### 12.3 Windows 전달 대기 알림 조회
+
+`GET /api/v1/alerts/pending?limit=20`
+
+`sentAt`이 아직 없는 알림을 오래된 순서로 반환합니다. Flutter Windows 앱은 기본 30초 간격으로 이 API를 조회하고 Windows Runner 네이티브 알림 표시가 성공한 항목만 전달 완료 처리합니다.
+
+### 12.4 Windows 전달 완료 처리
+
+`PATCH /api/v1/alerts/{alertId}/sent`
+
+호출에 성공하면 `sentAt`이 최초 전달 시각으로 기록됩니다. 같은 요청을 다시 보내도 최초 시각을 유지합니다.
 
 ## 13. AI 서버 연동 API
 
@@ -576,8 +590,8 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ## 14. 다음 구현 순서
 
-1. 실제 가격·뉴스·AI 위험 신호 조건 평가와 Windows 로컬 알림
-2. Flutter 추천 이력 목록·상세 화면과 수동 재분석 액션
-3. Windows Credential Manager 기반 민감정보 보호
+1. Flutter 추천 이력 목록·상세 화면과 수동 재분석 액션
+2. Windows Credential Manager 기반 민감정보 보호
+3. 가격 도달·급등락·신규 뉴스/공시 전용 알림 조건 확장
 4. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
 5. 자동 주문 설계와 수동 승인 기반 주문 실행

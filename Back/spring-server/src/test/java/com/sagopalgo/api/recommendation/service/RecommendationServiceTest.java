@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sagopalgo.api.alert.service.AlertService;
 import com.sagopalgo.api.config.AiAnalysisProperties;
 import com.sagopalgo.api.dashboard.service.DashboardRecommendationEngine;
 import com.sagopalgo.api.holding.dto.HoldingResponse;
@@ -58,6 +59,9 @@ class RecommendationServiceTest {
     @Mock
     private RecommendationStore recommendationStore;
 
+    @Mock
+    private AlertService alertService;
+
     private RecommendationService service;
 
     @BeforeEach
@@ -70,6 +74,7 @@ class RecommendationServiceTest {
             aiAnalysisGateway,
             new DashboardRecommendationEngine(),
             recommendationStore,
+            alertService,
             properties,
             new ObjectMapper().findAndRegisterModules()
         );
@@ -125,6 +130,7 @@ class RecommendationServiceTest {
         assertThat(response.recommendationId()).isEqualTo(99L);
         assertThat(response.status()).isEqualTo("BUY_WATCH");
         assertThat(response.statusLabel()).isEqualTo("매수 관찰");
+        verify(alertService).createFromRecommendation(any(StoredRecommendation.class));
         ArgumentCaptor<AiInvestmentAnalysisRequest> requestCaptor = ArgumentCaptor.forClass(
             AiInvestmentAnalysisRequest.class
         );

@@ -1,5 +1,5 @@
-# 개인 PC 고정 실행용 HTTP 리버스 프록시 템플릿입니다.
-# 현재 프로젝트는 공개 운영 도메인과 HTTPS 배포를 기본 목표로 두지 않습니다.
+# Ubuntu 백엔드용 HTTP 리버스 프록시 템플릿입니다.
+# 개인용 API에 인증 계층이 없으므로 지정한 Windows PC 외 접근을 차단합니다.
 
 server {
     listen 80;
@@ -16,6 +16,9 @@ server {
 
     # 모든 API 요청을 Docker 내부 네트워크의 Spring Boot 컨테이너로 전달합니다.
     location / {
+        allow ${SAGOPALGO_ALLOWED_CLIENT_IP};
+        deny all;
+
         proxy_pass http://spring-api:8080;
         proxy_http_version 1.1;
 

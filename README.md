@@ -39,7 +39,9 @@ docs                   설계, API, 수동 테스트, 로드맵 문서를 관리
 docker                 Docker/Nginx 템플릿과 실행 보조 파일을 관리합니다.
 ```
 
-초기 단계에서는 기존 Spring Boot 백엔드를 유지해 빠르게 Windows 실행 버전을 만들고, 이후 개인용 구조에 맞춰 로컬 저장소와 데스크톱 기능을 점진적으로 정리합니다.
+Flutter 앱은 Windows PC에서 실행하고 Spring Boot, Python AI, MySQL, Nginx는 Ubuntu 컴퓨터의 Docker Compose에서 실행합니다. Ubuntu 백엔드는 앱이 꺼져 있어도 보유 종목을 주기적으로 분석해 알림을 저장하고, Windows 앱은 다시 연결될 때 미전달 알림을 운영체제 알림 센터에 표시합니다.
+
+![Ubuntu 백엔드와 Windows 앱 시스템 구조](docs/images/system-architecture-ubuntu.png)
 
 ## 개발 환경 실행
 
@@ -75,10 +77,20 @@ cd Front/app_version
 flutter build windows
 ```
 
+Ubuntu 백엔드 실행:
+
+```bash
+cp .env.prod.example .env.prod
+# .env.prod의 Ubuntu 호스트명, DB 비밀번호, Provider 키를 수정합니다.
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d --build
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod ps
+curl http://localhost:8081/health
+```
+
 ## 환경 변수
 
 - `.env.dev`: Docker 개발 환경이 읽는 값입니다.
-- `.env.prod`: 과거 운영 배포용 값입니다. 현재 방향에서는 개인용 실행을 우선합니다.
+- `.env.prod`: Ubuntu 컴퓨터에서 백엔드 컨테이너를 실행할 때 쓰는 값입니다.
 - `.env.dev.example`, `.env.prod.example`: Git에 올리는 예시 파일입니다.
 - `Back/spring-server/.env`: Docker 없이 Spring Boot를 직접 실행할 때 쓰는 값입니다.
 - `Front/app_version/.env`: Flutter 앱의 공개 설정값입니다.

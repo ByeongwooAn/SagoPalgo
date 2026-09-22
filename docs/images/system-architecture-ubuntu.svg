@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">SagoPalgo Windows 앱과 Ubuntu 백엔드 시스템 구조</title>
+  <desc id="desc">Windows PC의 Flutter 앱이 사설망을 통해 Ubuntu 컴퓨터의 Nginx, Spring Boot, Python AI, MySQL에 연결되고 외부 금융 데이터 Provider를 조회하는 구조도</desc>
+  <defs>
+    <marker id="arrowGreen" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0 L12 6 L0 12 Z" fill="#35d59a"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0 L12 6 L0 12 Z" fill="#55b8ff"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0 L12 6 L0 12 Z" fill="#ffb454"/>
+    </marker>
+    <style>
+      .bg { fill: #10151d; }
+      .panel { fill: #171e28; stroke: #344154; stroke-width: 2; }
+      .windows { fill: #12291f; stroke: #35d59a; stroke-width: 3; }
+      .ubuntu { fill: #132536; stroke: #55b8ff; stroke-width: 3; }
+      .service { fill: #202a36; stroke: #536277; stroke-width: 2; }
+      .data { fill: #261f38; stroke: #a988ff; stroke-width: 2; }
+      .provider { fill: #30251a; stroke: #ffb454; stroke-width: 2; }
+      .title { fill: #f5f8fb; font: 700 34px 'Malgun Gothic', 'Segoe UI', sans-serif; }
+      .subtitle { fill: #9facbd; font: 400 18px 'Malgun Gothic', 'Segoe UI', sans-serif; }
+      .section { fill: #f5f8fb; font: 700 25px 'Malgun Gothic', 'Segoe UI', sans-serif; }
+      .label { fill: #eef3f8; font: 700 19px 'Malgun Gothic', 'Segoe UI', sans-serif; }
+      .small { fill: #b8c4d2; font: 400 15px 'Malgun Gothic', 'Segoe UI', sans-serif; }
+      .note { fill: #9facbd; font: 400 14px 'Malgun Gothic', 'Segoe UI', sans-serif; }
+      .badgeGreen { fill: #35d59a; font: 700 14px 'Malgun Gothic', 'Segoe UI', sans-serif; }
+      .badgeBlue { fill: #55b8ff; font: 700 14px 'Malgun Gothic', 'Segoe UI', sans-serif; }
+      .badgeOrange { fill: #ffb454; font: 700 14px 'Malgun Gothic', 'Segoe UI', sans-serif; }
+      .flowGreen { fill: none; stroke: #35d59a; stroke-width: 4; marker-end: url(#arrowGreen); }
+      .flowBlue { fill: none; stroke: #55b8ff; stroke-width: 4; marker-end: url(#arrowBlue); }
+      .flowOrange { fill: none; stroke: #ffb454; stroke-width: 4; marker-end: url(#arrowOrange); }
+      .flowDash { fill: none; stroke: #7f8da1; stroke-width: 3; stroke-dasharray: 9 8; marker-end: url(#arrowBlue); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="1000"/>
+  <text class="title" x="70" y="70">SagoPalgo 시스템 구조</text>
+  <text class="subtitle" x="70" y="104">Windows 클라이언트 + Ubuntu 상시 백엔드 · 개인용 사설망 배치</text>
+
+  <rect class="panel" x="55" y="145" width="430" height="720" rx="18"/>
+  <text class="section" x="85" y="190">Windows PC</text>
+  <text class="badgeGreen" x="85" y="218">사용자 화면과 로컬 알림</text>
+
+  <rect class="windows" x="90" y="255" width="360" height="260" rx="12"/>
+  <text class="label" x="120" y="300">SagoPalgo.exe</text>
+  <text class="small" x="120" y="335">Flutter Windows 데스크톱 앱</text>
+  <text class="small" x="120" y="372">계좌 · 포트폴리오 · 차트 · 뉴스/공시</text>
+  <text class="small" x="120" y="409">추천 · 실제 알림 이력 · 읽음 처리</text>
+  <rect x="120" y="445" width="275" height="42" rx="8" fill="#1d3e30"/>
+  <text class="badgeGreen" x="142" y="472">알림 API 30초 폴링</text>
+
+  <rect class="service" x="90" y="570" width="360" height="125" rx="12"/>
+  <text class="label" x="120" y="612">Windows 알림 센터</text>
+  <text class="small" x="120" y="646">새 매수 · 익절 · 위험 신호 토스트</text>
+  <text class="small" x="120" y="672">표시 성공 후 sentAt 기록</text>
+
+  <rect class="service" x="90" y="745" width="360" height="82" rx="12"/>
+  <text class="label" x="120" y="780">앱 로컬 설정</text>
+  <text class="small" x="120" y="807">Ubuntu API 주소 · 선택형 PIN 잠금</text>
+
+  <path class="flowGreen" d="M270 515 L270 565"/>
+
+  <rect class="panel" x="610" y="145" width="660" height="720" rx="18"/>
+  <text class="section" x="640" y="190">Ubuntu 컴퓨터</text>
+  <text class="badgeBlue" x="640" y="218">Docker Compose 상시 실행</text>
+
+  <rect class="ubuntu" x="650" y="255" width="580" height="105" rx="12"/>
+  <text class="label" x="680" y="296">Nginx Reverse Proxy · :8081</text>
+  <text class="small" x="680" y="329">Windows 고정 IP만 허용 · 내부 API 단일 진입점</text>
+
+  <rect class="ubuntu" x="650" y="405" width="355" height="205" rx="12"/>
+  <text class="label" x="680" y="447">Spring Boot API · :8080</text>
+  <text class="small" x="680" y="482">계좌/시세/뉴스/공시 Provider 조정</text>
+  <text class="small" x="680" y="514">추천 저장 · 알림 생성 · REST API</text>
+  <rect x="680" y="545" width="285" height="40" rx="8" fill="#1a354b"/>
+  <text class="badgeBlue" x="700" y="571">15분 자동 분석 스케줄러</text>
+
+  <rect class="service" x="1040" y="405" width="190" height="205" rx="12"/>
+  <text class="label" x="1068" y="447">Python AI</text>
+  <text class="small" x="1068" y="480">:8000 내부 전용</text>
+  <text class="small" x="1068" y="520">가격 추세</text>
+  <text class="small" x="1068" y="548">뉴스 · 공시</text>
+  <text class="small" x="1068" y="576">보유 손익 분석</text>
+
+  <rect class="data" x="650" y="665" width="580" height="135" rx="12"/>
+  <text class="label" x="680" y="708">MySQL 8.4 · :3306 내부 전용</text>
+  <text class="small" x="680" y="742">보유종목 · 추천/근거 · 뉴스/공시 · 알림 이력</text>
+  <text class="small" x="680" y="772">Docker Volume으로 재시작 후에도 데이터 유지</text>
+
+  <path class="flowBlue" d="M940 360 L940 398"/>
+  <path class="flowBlue" d="M1005 507 L1032 507"/>
+  <path class="flowBlue" d="M827 610 L827 657"/>
+
+  <rect class="panel" x="1370" y="145" width="180" height="720" rx="18"/>
+  <text class="section" x="1402" y="190">외부 API</text>
+  <text class="badgeOrange" x="1402" y="218">읽기 중심</text>
+
+  <rect class="provider" x="1395" y="265" width="130" height="72" rx="10"/>
+  <text class="label" x="1428" y="307">KB증권</text>
+  <rect class="provider" x="1395" y="365" width="130" height="72" rx="10"/>
+  <text class="label" x="1415" y="407">한국투자</text>
+  <rect class="provider" x="1395" y="465" width="130" height="72" rx="10"/>
+  <text class="label" x="1420" y="507">토스증권</text>
+  <rect class="provider" x="1395" y="565" width="130" height="72" rx="10"/>
+  <text class="label" x="1415" y="607">네이버뉴스</text>
+  <rect class="provider" x="1395" y="665" width="130" height="72" rx="10"/>
+  <text class="label" x="1411" y="707">OpenDART</text>
+
+  <path class="flowOrange" d="M1278 505 L1386 505"/>
+
+  <path class="flowGreen" d="M490 320 C535 320 548 305 602 305"/>
+  <text class="badgeGreen" x="500" y="292">API 요청</text>
+  <path class="flowGreen" d="M610 350 C555 350 540 430 490 430"/>
+  <text class="badgeGreen" x="500" y="407">미전달 알림</text>
+
+  <rect x="55" y="900" width="1495" height="60" rx="10" fill="#171e28" stroke="#344154"/>
+  <text class="note" x="82" y="927">보안 경계: Windows ↔ Ubuntu는 신뢰할 수 있는 사설망/VPN 사용 · 외부 공개 시 HTTPS 필수</text>
+  <text class="note" x="82" y="950">비공개 포트: Spring 8080 · AI 8000 · MySQL 3306 | 공개 포트: Nginx 8081, Windows 고정 IP만 허용</text>
+</svg>

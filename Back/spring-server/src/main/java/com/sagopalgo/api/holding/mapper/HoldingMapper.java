@@ -28,6 +28,15 @@ public interface HoldingMapper {
     List<Holding> findActiveByUserId(@Param("userId") Long userId);
 
     @Select("""
+        SELECT holding_id
+        FROM holdings
+        WHERE user_id = #{userId}
+          AND status != 'SOLD'
+        ORDER BY holding_id
+        """)
+    List<Long> findActiveIdsByUserId(@Param("userId") Long userId);
+
+    @Select("""
         SELECT holding_id, user_id, stock_code, stock_name, market, buy_price, quantity,
                buy_date, stop_loss_rate, take_profit_rate, status, created_at, updated_at
         FROM holdings
