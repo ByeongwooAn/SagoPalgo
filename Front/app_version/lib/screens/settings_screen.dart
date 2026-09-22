@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/kb_account_snapshot.dart';
 import '../models/provider_setting.dart';
 import '../repositories/kb_account_repository.dart';
+import '../services/app_security_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/section_header.dart';
@@ -16,6 +17,9 @@ class SettingsScreen extends StatelessWidget {
     super.key,
     required this.providerSettingsFuture,
     required this.kbAccountRepository,
+    required this.appSecurityService,
+    required this.appLockPinConfigured,
+    required this.onAppLockPinChanged,
     required this.onRetry,
   });
 
@@ -24,6 +28,15 @@ class SettingsScreen extends StatelessWidget {
 
   /// KB증권 계좌 조회 Repository입니다.
   final KbAccountRepository kbAccountRepository;
+
+  /// 앱 잠금 PIN을 Windows Credential Manager에 저장합니다.
+  final AppSecurityService appSecurityService;
+
+  /// Credential Manager에 앱 잠금 PIN이 등록되어 있는지 여부입니다.
+  final bool appLockPinConfigured;
+
+  /// PIN 상태 변경을 앱 루트에 반영합니다.
+  final ValueChanged<String?> onAppLockPinChanged;
 
   /// 설정 조회를 다시 시도하는 콜백입니다.
   final VoidCallback onRetry;
@@ -95,7 +108,7 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     _SettingLine(
                       icon: Icons.folder_rounded,
-                      label: '민감정보',
+                      label: '서버 비밀값',
                       value: settings.secretStorageType,
                     ),
                     const SizedBox(height: 8),
@@ -117,6 +130,12 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 12),
+              _AppLockCredentialCard(
+                securityService: appSecurityService,
+                configured: appLockPinConfigured,
+                onChanged: onAppLockPinChanged,
               ),
               const SizedBox(height: 12),
               _MarketFallbackCard(settings: settings),
@@ -143,6 +162,246 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _AppLockCredentialCard extends StatefulWidget {
+  const _AppLockCredentialCard({
+    required this.securityService,
+    required this.configured,
+    required this.onChanged,
+  });
+
+  final AppSecurityService securityService;
+  final bool configured;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  State<_AppLockCredentialCard> createState() => _AppLockCredentialCardState();
+}
+
+class _AppLockCredentialCardState extends State<_AppLockCredentialCard> {
+  bool _busy = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    return AppCard(
+      soft: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.password_rounded, color: AppTheme.main),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Windows 앱 잠금',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ),
+              StatusChip(
+                label: widget.configured ? '보호됨' : '설정 안 됨',
+                icon: widget.configured
+                    ? Icons.verified_user_rounded
+                    : Icons.lock_open_rounded,
+                gradient: widget.configured ? AppGradients.main : null,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '앱 잠금 PIN만 현재 Windows 사용자 Credential Manager에 저장합니다. Ubuntu의 증권사 키와 계좌번호는 서버에서 별도로 관리합니다.',
+            style: TextStyle(
+              color: palette.muted,
+              fontSize: 12,
+              height: 1.4,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: _busy ? null : _savePin,
+                  icon: _busy
+                      ? const SizedBox.square(
+                          dimension: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Icon(
+                          widget.configured
+                              ? Icons.edit_rounded
+                              : Icons.add_rounded,
+                        ),
+                  label: Text(widget.configured ? 'PIN 변경' : 'PIN 설정'),
+                ),
+              ),
+              if (widget.configured) ...[
+                const SizedBox(width: 8),
+                IconButton.outlined(
+                  onPressed: _busy ? null : _deletePin,
+                  tooltip: '앱 잠금 PIN 삭제',
+                  icon: const Icon(Icons.delete_outline_rounded),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _savePin() async {
+    final pin = await showDialog<String>(
+      context: context,
+      builder: (_) => const _PinEditorDialog(),
+    );
+    if (pin == null || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      await widget.securityService.savePin(pin);
+      widget.onChanged(pin);
+      if (mounted) _showMessage('Windows Credential Manager에 PIN을 저장했습니다.');
+    } catch (error) {
+      if (mounted) _showMessage(error.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _deletePin() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('앱 잠금 해제'),
+        content: const Text('저장된 PIN을 삭제하면 다음 실행부터 잠금 화면을 표시하지 않습니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('PIN 삭제'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      await widget.securityService.deletePin();
+      widget.onChanged(null);
+      if (mounted) _showMessage('앱 잠금 PIN을 삭제했습니다.');
+    } catch (error) {
+      if (mounted) _showMessage(error.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _PinEditorDialog extends StatefulWidget {
+  const _PinEditorDialog();
+
+  @override
+  State<_PinEditorDialog> createState() => _PinEditorDialogState();
+}
+
+class _PinEditorDialogState extends State<_PinEditorDialog> {
+  final _pinController = TextEditingController();
+  final _confirmController = TextEditingController();
+  bool _obscure = true;
+  String? _error;
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('앱 잠금 PIN 설정'),
+      content: SizedBox(
+        width: 340,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _pinController,
+              autofocus: true,
+              obscureText: _obscure,
+              keyboardType: TextInputType.number,
+              maxLength: 12,
+              decoration: InputDecoration(
+                labelText: '새 PIN',
+                errorText: _error,
+                suffixIcon: IconButton(
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                  tooltip: _obscure ? 'PIN 표시' : 'PIN 숨기기',
+                  icon: Icon(
+                    _obscure
+                        ? Icons.visibility_rounded
+                        : Icons.visibility_off_rounded,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _confirmController,
+              obscureText: _obscure,
+              keyboardType: TextInputType.number,
+              maxLength: 12,
+              onSubmitted: (_) => _submit(),
+              decoration: const InputDecoration(labelText: 'PIN 확인'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('취소'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('저장')),
+      ],
+    );
+  }
+
+  void _submit() {
+    final pin = _pinController.text.trim();
+    if (!RegExp(r'^\d{4,12}$').hasMatch(pin)) {
+      setState(() => _error = '숫자 4~12자리로 입력해 주세요.');
+      return;
+    }
+    if (pin != _confirmController.text.trim()) {
+      setState(() => _error = 'PIN 확인 값이 일치하지 않습니다.');
+      return;
+    }
+    Navigator.pop(context, pin);
   }
 }
 

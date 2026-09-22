@@ -176,13 +176,13 @@ AI 분석은 직접적인 투자 권유보다 개인 판단을 돕는 참고 신
 - 백엔드에서 로그인/JWT/OAuth 코드 제거
 - 백엔드 개인용 모드에서 로컬 사용자 ID 주입
 - `users` 테이블은 다중 회원이 아니라 로컬 소유자 호환 테이블로 유지
-- 선택형 `SAGOPALGO_APP_LOCK_PIN` 기반 앱 시작 잠금 화면 추가
+- Windows Credential Manager 기반 앱 잠금 PIN 등록·변경·삭제 구현 완료
+- 기존 `SAGOPALGO_APP_LOCK_PIN`의 1회 자동 이전 구현 완료
 - KB/KIS/Toss Provider 설정 분리
 - 증권사 연동 상태 조회 API 추가
 - Flutter Windows 설정 탭 추가
 - 주문 권한 기본 OFF
-- 민감정보 저장 방식은 현재 `.env`로 확정
-- 자동 주문 단계 전 Windows Credential Manager 전환 여부 재검토
+- Windows 로컬 PIN은 Credential Manager, Ubuntu Provider 비밀값은 서버 `.env.prod`로 분리
 
 ### 3단계: KB 계좌 연동
 

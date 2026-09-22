@@ -68,7 +68,7 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 
 민감한 API Key, App Secret, 계좌번호는 응답에 포함하지 않습니다. 이 API는 시장 데이터, 뉴스, 공시 Provider의 역할별 활성화 여부와 안전한 누락 설정 이름만 보여줍니다.
 
-2단계 기준 민감정보 저장 방식은 `.env` 파일입니다. Windows Credential Manager는 자동 주문 단계 전 다시 검토합니다.
+응답의 `secretStorageType=ENV_FILE`은 Ubuntu 백엔드의 Provider 비밀값 저장 방식을 뜻합니다. Windows 앱 잠금 PIN은 Credential Manager에 별도로 저장하며 API 응답에 포함하지 않습니다.
 
 응답:
 
@@ -592,7 +592,8 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 Flutter 추천 이력 목록·상세 화면과 보유 종목 수동 재분석 액션까지 연결되었습니다.
 
-1. Windows Credential Manager 기반 민감정보 보호
-2. 가격 도달·급등락·신규 뉴스/공시 전용 알림 조건 확장
-3. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
-4. 자동 주문 설계와 수동 승인 기반 주문 실행
+Windows 앱 잠금 PIN의 Credential Manager 저장과 기존 `.env` 값 자동 이전까지 연결되었습니다.
+
+1. 가격 도달·급등락·신규 뉴스/공시 전용 알림 조건 확장
+2. Toss 공식 시세/종목 정보 path 확정 후 Provider 상세 매핑
+3. 자동 주문 설계와 수동 승인 기반 주문 실행

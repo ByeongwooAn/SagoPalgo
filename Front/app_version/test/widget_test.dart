@@ -114,6 +114,17 @@ void main() {
     expect(find.text('KB 계좌 조회'), findsOneWidget);
     expect(find.text('1종목'), findsOneWidget);
     expect(find.text('5,200,000원'), findsAtLeastNWidgets(1));
+    expect(find.text('Windows 앱 잠금'), findsOneWidget);
+    expect(find.text('설정 안 됨'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('PIN 설정'));
+    await tester.tap(find.text('PIN 설정'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, '새 PIN'), '2468');
+    await tester.enterText(find.widgetWithText(TextField, 'PIN 확인'), '2468');
+    await tester.tap(find.text('저장'));
+    await tester.pumpAndSettle();
+    expect(find.text('보호됨'), findsOneWidget);
   });
 
   testWidgets('app lock requires configured local PIN', (tester) async {

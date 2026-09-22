@@ -22,6 +22,7 @@ import 'repositories/spring_watchlist_repository.dart';
 import 'repositories/watchlist_repository.dart';
 import 'screens/app_lock_screen.dart';
 import 'screens/sago_palgo_home.dart';
+import 'services/app_security_service.dart';
 import 'services/local_notification_service.dart';
 import 'theme/app_theme.dart';
 
@@ -32,7 +33,23 @@ import 'theme/app_theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppEnvironment.load();
-  runApp(SagoPalgoApp.fromEnvironment());
+  final environment = AppEnvironment.instance;
+  const securityService = AppSecurityService(WindowsCredentialStore());
+  String? appLockPin;
+  try {
+    appLockPin = await securityService.loadPin(
+      legacyPin: environment.appLockPin,
+    );
+  } catch (_) {
+    // 네이티브 저장소가 없는 개발 환경에서는 기존 설정으로 실행합니다.
+    appLockPin = environment.appLockPin;
+  }
+  runApp(
+    SagoPalgoApp.fromEnvironment(
+      appSecurityService: securityService,
+      appLockPin: appLockPin,
+    ),
+  );
 }
 
 /// 사고팔고 앱의 최상위 위젯입니다.
@@ -53,15 +70,21 @@ class SagoPalgoApp extends StatefulWidget {
     this.marketDataRepositoryBuilder,
     this.alertRepositoryBuilder,
     this.localNotificationService = const NoopLocalNotificationService(),
+    this.appSecurityService = const AppSecurityService(NoopCredentialStore()),
     this.session = AuthSession.personal,
     this.appLockPin,
   });
 
   /// `.env`에서 읽은 API 주소로 실제 Spring 연동 Repository를 구성합니다.
-  factory SagoPalgoApp.fromEnvironment() {
-    final environment = AppEnvironment.instance;
+  factory SagoPalgoApp.fromEnvironment({
+    AppSecurityService appSecurityService = const AppSecurityService(
+      WindowsCredentialStore(),
+    ),
+    String? appLockPin,
+  }) {
     return SagoPalgoApp(
-      appLockPin: environment.appLockPin,
+      appLockPin: appLockPin,
+      appSecurityService: appSecurityService,
       alertRepositoryBuilder: (session) =>
           SpringAlertRepository(accessToken: session.accessToken),
       localNotificationService: WindowsLocalNotificationService(),
@@ -106,6 +129,9 @@ class SagoPalgoApp extends StatefulWidget {
   /// Windows 네이티브 알림 표시 구현입니다.
   final LocalNotificationService localNotificationService;
 
+  /// Windows Credential Manager의 앱 잠금 PIN 저장 정책입니다.
+  final AppSecurityService appSecurityService;
+
   /// 개인용 프로그램에서 사용할 로컬 프로필 세션입니다.
   final AuthSession session;
 
@@ -121,7 +147,15 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
   ThemeMode _themeMode = ThemeMode.system;
 
   /// 앱 잠금 PIN이 설정된 경우 홈 화면 진입 전 잠금 해제를 기다립니다.
-  late bool _isLocked = widget.appLockPin != null;
+  late bool _isLocked;
+  String? _appLockPin;
+
+  @override
+  void initState() {
+    super.initState();
+    _appLockPin = widget.appLockPin;
+    _isLocked = _appLockPin != null;
+  }
 
   /// 현재 화면 밝기를 기준으로 반대 테마를 선택합니다.
   ///
@@ -138,7 +172,7 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
-    final appLockPin = widget.appLockPin;
+    final appLockPin = _appLockPin;
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -186,6 +220,9 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
                   SpringMarketDataRepository(accessToken: session.accessToken),
               alertRepository: widget.alertRepositoryBuilder?.call(session),
               localNotificationService: widget.localNotificationService,
+              appSecurityService: widget.appSecurityService,
+              appLockPinConfigured: appLockPin != null,
+              onAppLockPinChanged: _updateAppLockPin,
               session: session,
             ),
     );
@@ -193,6 +230,10 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
 
   void _unlockApp() {
     setState(() => _isLocked = false);
+  }
+
+  void _updateAppLockPin(String? pin) {
+    setState(() => _appLockPin = pin);
   }
 }
 
