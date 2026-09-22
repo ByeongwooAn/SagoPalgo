@@ -13,6 +13,7 @@ import '../repositories/investment_repository.dart';
 import '../repositories/alert_repository.dart';
 import '../repositories/kb_account_repository.dart';
 import '../repositories/market_data_repository.dart';
+import '../repositories/order_precheck_repository.dart';
 import '../repositories/paper_trading_repository.dart';
 import '../repositories/portfolio_repository.dart';
 import '../repositories/provider_settings_repository.dart';
@@ -51,6 +52,7 @@ class SagoPalgoHome extends StatefulWidget {
     required this.researchFeedRepository,
     required this.kbAccountRepository,
     required this.marketDataRepository,
+    required this.orderPrecheckRepository,
     required this.paperTradingRepository,
     required this.alertRepository,
     required this.localNotificationService,
@@ -87,6 +89,9 @@ class SagoPalgoHome extends StatefulWidget {
 
   /// 종목 상세 화면에서 일·주·월봉 시세를 조회하는 Repository입니다.
   final MarketDataRepository marketDataRepository;
+
+  /// 포트폴리오 종목의 주문안을 실제 전송 없이 검증합니다.
+  final OrderPrecheckRepository orderPrecheckRepository;
 
   /// 모의매매 현황 조회와 가상 체결을 처리합니다.
   final PaperTradingRepository paperTradingRepository;
@@ -228,6 +233,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       portfolioRepository: widget.portfolioRepository,
                       kbAccountRepository: widget.kbAccountRepository,
                       marketDataRepository: widget.marketDataRepository,
+                      orderPrecheckRepository: widget.orderPrecheckRepository,
                       paperTradingRepository: widget.paperTradingRepository,
                       researchFeedRepository: widget.researchFeedRepository,
                       recommendationRepository: widget.recommendationRepository,
@@ -603,6 +609,7 @@ class _TabContent extends StatelessWidget {
     required this.portfolioRepository,
     required this.kbAccountRepository,
     required this.marketDataRepository,
+    required this.orderPrecheckRepository,
     required this.paperTradingRepository,
     required this.researchFeedRepository,
     required this.recommendationRepository,
@@ -640,6 +647,9 @@ class _TabContent extends StatelessWidget {
 
   /// 포트폴리오 종목 상세 캔들을 조회하는 Repository입니다.
   final MarketDataRepository marketDataRepository;
+
+  /// 주문 안전 조건 사전검증 Repository입니다.
+  final OrderPrecheckRepository orderPrecheckRepository;
 
   /// 모의매매 현황과 체결 액션을 처리하는 Repository입니다.
   final PaperTradingRepository paperTradingRepository;
@@ -719,6 +729,7 @@ class _TabContent extends StatelessWidget {
           holdings: snapshot.holdings,
           repository: portfolioRepository,
           marketDataRepository: marketDataRepository,
+          orderPrecheckRepository: orderPrecheckRepository,
           portfolioFuture: portfolioFuture,
           pendingSetupAction: pendingPortfolioSetupAction,
           onRetry: onPortfolioRetry,

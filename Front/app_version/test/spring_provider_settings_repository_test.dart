@@ -25,7 +25,7 @@ void main() {
             'data': {
               'secretStorageType': 'ENV_FILE',
               'secretStorageDescription': '.env 파일로 민감정보를 관리합니다.',
-              'orderSafetyMode': '주문 기능 기본 OFF',
+              'orderSafetyMode': '주문 기능 OFF · 사전검증만 지원',
               'marketDataFallbackOrder': ['KB', 'KIS', 'TOSS'],
               'marketDataFallbackDescription':
                   '앞 Provider가 실패하면 다음 Provider를 시도합니다.',
@@ -66,7 +66,7 @@ void main() {
     final settings = await repository.fetchProviderSettings();
 
     expect(settings.secretStorageType, 'ENV_FILE');
-    expect(settings.orderSafetyMode, '주문 기능 기본 OFF');
+    expect(settings.orderSafetyMode, '주문 기능 OFF · 사전검증만 지원');
     expect(settings.marketDataFallbackOrder, ['KB', 'KIS', 'TOSS']);
     expect(settings.providers, hasLength(2));
     expect(settings.providers.first.code, 'KB');

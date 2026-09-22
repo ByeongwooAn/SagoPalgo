@@ -57,6 +57,8 @@ public class SecuritiesProviderProperties {
         private String accountProductCode = "";
         private String accountNumberField = "accountNumber";
         private String accountProductCodeField = "accountProductCode";
+        private java.math.BigDecimal maxOrderAmount = new java.math.BigDecimal("1000000");
+        private java.math.BigDecimal maxPriceDeviationRate = new java.math.BigDecimal("5.0");
 
         public boolean isMarketDataEnabled() {
             return marketDataEnabled;
@@ -296,6 +298,22 @@ public class SecuritiesProviderProperties {
 
         public void setAccountProductCodeField(String accountProductCodeField) {
             this.accountProductCodeField = accountProductCodeField;
+        }
+
+        public java.math.BigDecimal getMaxOrderAmount() {
+            return maxOrderAmount;
+        }
+
+        public void setMaxOrderAmount(java.math.BigDecimal maxOrderAmount) {
+            this.maxOrderAmount = maxOrderAmount;
+        }
+
+        public java.math.BigDecimal getMaxPriceDeviationRate() {
+            return maxPriceDeviationRate;
+        }
+
+        public void setMaxPriceDeviationRate(java.math.BigDecimal maxPriceDeviationRate) {
+            this.maxPriceDeviationRate = maxPriceDeviationRate;
         }
 
         private boolean hasText(String value) {

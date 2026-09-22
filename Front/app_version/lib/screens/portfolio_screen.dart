@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/holding.dart';
 import '../repositories/portfolio_repository.dart';
 import '../repositories/market_data_repository.dart';
+import '../repositories/order_precheck_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_text.dart';
@@ -11,6 +12,7 @@ import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
 import 'dashboard_screen.dart';
 import 'market_candle_screen.dart';
+import 'order_precheck_sheet.dart';
 
 /// 다른 탭의 빈 상태 CTA에서 포트폴리오 탭으로 전달하는 초기 작업입니다.
 enum PortfolioSetupAction { editCapital, addHolding }
@@ -28,6 +30,7 @@ class PortfolioScreen extends StatelessWidget {
     required this.holdings,
     required this.repository,
     required this.marketDataRepository,
+    required this.orderPrecheckRepository,
     required this.portfolioFuture,
     required this.pendingSetupAction,
     required this.onRetry,
@@ -49,6 +52,9 @@ class PortfolioScreen extends StatelessWidget {
 
   /// 보유 종목 상세 차트 데이터를 조회하는 Repository입니다.
   final MarketDataRepository marketDataRepository;
+
+  /// 실제 주문을 보내지 않고 KB 계좌 기준 안전 조건을 검증합니다.
+  final OrderPrecheckRepository orderPrecheckRepository;
 
   /// 자본금/보유 종목 API에서 다시 불러오는 최신 포트폴리오 데이터입니다.
   final Future<PortfolioSnapshot> portfolioFuture;
@@ -84,6 +90,7 @@ class PortfolioScreen extends StatelessWidget {
           hasRefreshError: snapshot.hasError,
           repository: repository,
           marketDataRepository: marketDataRepository,
+          orderPrecheckRepository: orderPrecheckRepository,
           pendingSetupAction: pendingSetupAction,
           onRetry: onRetry,
           onChanged: onChanged,
@@ -101,6 +108,7 @@ class _PortfolioContent extends StatelessWidget {
     required this.hasRefreshError,
     required this.repository,
     required this.marketDataRepository,
+    required this.orderPrecheckRepository,
     required this.pendingSetupAction,
     required this.onRetry,
     required this.onChanged,
@@ -112,6 +120,7 @@ class _PortfolioContent extends StatelessWidget {
   final bool hasRefreshError;
   final PortfolioRepository repository;
   final MarketDataRepository marketDataRepository;
+  final OrderPrecheckRepository orderPrecheckRepository;
   final PortfolioSetupAction? pendingSetupAction;
   final VoidCallback onRetry;
   final VoidCallback onChanged;
@@ -169,6 +178,7 @@ class _PortfolioContent extends StatelessWidget {
               PortfolioRow(
                 holding: holding,
                 onChart: () => _openCandleChart(context, holding),
+                onOrderPrecheck: () => _openOrderPrecheck(context, holding),
                 onEdit: () => _openHoldingEditor(context, holding: holding),
                 onDelete: () => _confirmDeleteHolding(context, holding),
               ),
@@ -257,6 +267,18 @@ class _PortfolioContent extends StatelessWidget {
           market: holding.market,
           repository: marketDataRepository,
         ),
+      ),
+    );
+  }
+
+  Future<void> _openOrderPrecheck(BuildContext context, Holding holding) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => OrderPrecheckSheet(
+        holding: holding,
+        repository: orderPrecheckRepository,
       ),
     );
   }
@@ -586,6 +608,7 @@ class PortfolioRow extends StatelessWidget {
     super.key,
     required this.holding,
     required this.onChart,
+    required this.onOrderPrecheck,
     required this.onEdit,
     required this.onDelete,
   });
@@ -593,6 +616,7 @@ class PortfolioRow extends StatelessWidget {
   /// 매수가, 수량, 수익률, 상태를 가진 보유 종목 모델입니다.
   final Holding holding;
   final VoidCallback onChart;
+  final VoidCallback onOrderPrecheck;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -661,9 +685,21 @@ class PortfolioRow extends StatelessWidget {
                   onEdit();
                 case _HoldingMenuAction.delete:
                   onDelete();
+                case _HoldingMenuAction.orderPrecheck:
+                  onOrderPrecheck();
               }
             },
             itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: _HoldingMenuAction.orderPrecheck,
+                child: Row(
+                  children: [
+                    Icon(Icons.verified_user_outlined),
+                    SizedBox(width: 8),
+                    Text('주문 사전검토'),
+                  ],
+                ),
+              ),
               PopupMenuItem(
                 value: _HoldingMenuAction.edit,
                 child: Row(
@@ -692,7 +728,7 @@ class PortfolioRow extends StatelessWidget {
   }
 }
 
-enum _HoldingMenuAction { edit, delete }
+enum _HoldingMenuAction { orderPrecheck, edit, delete }
 
 /// 현재 미실현 손실이 사용하는 위험 한도를 보여주는 리스크 관리 카드입니다.
 class RiskRuleCard extends StatelessWidget {

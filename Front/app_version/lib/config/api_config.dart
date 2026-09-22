@@ -48,6 +48,9 @@ class ApiConfig {
   /// 실제 주문과 분리된 모의매매 조회·체결 API 기본 경로입니다.
   String get paperTradingBaseUrl => '$baseUrl/api/v1/paper-trading';
 
+  /// 실제 전송 없이 주문 안전 조건만 검사하는 API 기본 경로입니다.
+  String get orderBaseUrl => '$baseUrl/api/v1/orders';
+
   /// KB증권 보유 주식 조회 API 경로입니다.
   String get kbHoldingsUrl => '$baseUrl/api/v1/kb/accounts/primary/holdings';
 

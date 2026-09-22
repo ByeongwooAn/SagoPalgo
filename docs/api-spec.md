@@ -78,7 +78,7 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
   "data": {
     "secretStorageType": "ENV_FILE",
     "secretStorageDescription": ".env 파일과 Docker env-file로 개인용 API Key, App Secret, 계좌번호를 관리합니다.",
-    "orderSafetyMode": "주문 기능 기본 OFF",
+    "orderSafetyMode": "주문 기능 OFF · 사전검증만 지원",
     "marketDataFallbackOrder": ["KB", "KIS", "TOSS"],
     "marketDataFallbackDescription": "앞 Provider가 비활성·미설정·조회 실패이면 다음 Provider를 시도하고, 모두 실패하면 등록 매수가를 사용합니다.",
     "providers": [
@@ -641,7 +641,36 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 현재 모의 보유 수량까지만 매도할 수 있습니다. 평균 원가법으로 매도 수량의 실현손익을 계산하고 원장에 저장합니다.
 
-## 15. 다음 구현 순서
+## 15. 주문 사전검증 API
+
+주문 사전검증은 사용자가 입력한 지정가 주문안을 최신 시세와 KB 계좌 자원에 대조하고 결과를 감사 로그로 저장합니다. 이 단계에는 실제 주문 제출 API가 없으며 응답의 `canSubmit`은 항상 `false`입니다.
+
+### 15.1 주문안 사전검증
+
+`POST /api/v1/orders/precheck`
+
+```json
+{
+  "stockCode": "005930",
+  "stockName": "삼성전자",
+  "market": "KOSPI",
+  "side": "SELL",
+  "limitPrice": 76000,
+  "quantity": 4
+}
+```
+
+검증 항목은 KB 주문 스위치, KB 계좌 연결, 국내주식 지원 시장, 1회 최대 주문금액, 실제 현재가 확인, 지정가 이탈률, 매수 주문가능현금 또는 매도 주문가능수량입니다. 기본 한도는 1회 100만원, 현재가 대비 지정가 이탈률 5%이며 환경 변수로 낮추거나 조정할 수 있습니다.
+
+응답의 `eligible`은 모든 안전 조건 통과 여부이며 `checks`에는 각 조건의 코드, 라벨, 통과 여부, 설명이 포함됩니다. 결과는 `order_prechecks`에 저장되지만 KB 주문 API는 호출하지 않습니다.
+
+### 15.2 최근 사전검증 감사 로그
+
+`GET /api/v1/orders/prechecks?limit=20`
+
+`limit`은 1~100입니다. 최근 검증 결과를 최신순으로 반환하며 계좌번호나 API Key 같은 민감정보는 저장하거나 반환하지 않습니다.
+
+## 16. 다음 구현 순서
 
 Flutter 추천 이력 목록·상세 화면과 보유 종목 수동 재분석 액션까지 연결되었습니다.
 
@@ -651,6 +680,8 @@ Windows 항상 위 미니 위젯과 시스템 트레이 메뉴까지 연결되�
 
 AI 신호 기반 모의매매와 수익률·승률·최대 손실·회전율 지표까지 연결되었습니다.
 
-1. 자동 주문 설계와 수동 승인 기반 주문 실행
-2. 배포 패키지 자동 업데이트와 운영 상태 진단
-3. 모의매매 전략·기간별 성과 비교 차트
+주문 가능 금액·수량과 안전 한도를 검사하는 주문 사전검증 및 감사 로그까지 연결되었습니다. 실제 주문 전송은 아직 구현하지 않았습니다.
+
+1. 일회용 확인 토큰과 수동 승인 기반 KB 주문 실행
+2. 주문 결과·실패·취소·정정 상태 동기화
+3. 배포 패키지 자동 업데이트와 운영 상태 진단

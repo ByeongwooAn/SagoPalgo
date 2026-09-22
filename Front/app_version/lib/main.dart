@@ -6,6 +6,7 @@ import 'repositories/investment_repository.dart';
 import 'repositories/alert_repository.dart';
 import 'repositories/kb_account_repository.dart';
 import 'repositories/market_data_repository.dart';
+import 'repositories/order_precheck_repository.dart';
 import 'repositories/paper_trading_repository.dart';
 import 'repositories/portfolio_repository.dart';
 import 'repositories/provider_settings_repository.dart';
@@ -15,6 +16,7 @@ import 'repositories/spring_investment_repository.dart';
 import 'repositories/spring_alert_repository.dart';
 import 'repositories/spring_kb_account_repository.dart';
 import 'repositories/spring_market_data_repository.dart';
+import 'repositories/spring_order_precheck_repository.dart';
 import 'repositories/spring_paper_trading_repository.dart';
 import 'repositories/spring_portfolio_repository.dart';
 import 'repositories/spring_provider_settings_repository.dart';
@@ -71,6 +73,7 @@ class SagoPalgoApp extends StatefulWidget {
     this.researchFeedRepositoryBuilder,
     this.kbAccountRepositoryBuilder,
     this.marketDataRepositoryBuilder,
+    this.orderPrecheckRepositoryBuilder,
     this.paperTradingRepositoryBuilder,
     this.alertRepositoryBuilder,
     this.localNotificationService = const NoopLocalNotificationService(),
@@ -128,6 +131,10 @@ class SagoPalgoApp extends StatefulWidget {
   /// 테스트에서 캔들 시세 Repository를 교체하기 위한 빌더입니다.
   final MarketDataRepository Function(AuthSession session)?
   marketDataRepositoryBuilder;
+
+  /// 실제 주문 전 안전 조건 검증 Repository를 교체하기 위한 빌더입니다.
+  final OrderPrecheckRepository Function(AuthSession session)?
+  orderPrecheckRepositoryBuilder;
 
   /// AI 신호 기반 모의매매 Repository를 교체하기 위한 빌더입니다.
   final PaperTradingRepository Function(AuthSession session)?
@@ -231,6 +238,11 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
               marketDataRepository:
                   widget.marketDataRepositoryBuilder?.call(session) ??
                   SpringMarketDataRepository(accessToken: session.accessToken),
+              orderPrecheckRepository:
+                  widget.orderPrecheckRepositoryBuilder?.call(session) ??
+                  SpringOrderPrecheckRepository(
+                    accessToken: session.accessToken,
+                  ),
               paperTradingRepository:
                   widget.paperTradingRepositoryBuilder?.call(session) ??
                   SpringPaperTradingRepository(

@@ -58,7 +58,7 @@ class ProviderSettingsServiceTest {
         ProviderSettingsResponse response = service.getSettings();
 
         assertThat(response.secretStorageType()).isEqualTo("ENV_FILE");
-        assertThat(response.orderSafetyMode()).isEqualTo("주문 기능 기본 OFF");
+        assertThat(response.orderSafetyMode()).isEqualTo("주문 기능 OFF · 사전검증만 지원");
         assertThat(response.marketDataFallbackOrder()).containsExactly("KB", "KIS", "TOSS");
         assertThat(response.providers())
             .extracting("code")
