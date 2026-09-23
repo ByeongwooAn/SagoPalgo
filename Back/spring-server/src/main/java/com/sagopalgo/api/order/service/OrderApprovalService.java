@@ -2,6 +2,7 @@ package com.sagopalgo.api.order.service;
 
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
+import com.sagopalgo.api.order.client.KbLimitOrderContract;
 import com.sagopalgo.api.order.dto.OrderApprovalConfirmRequest;
 import com.sagopalgo.api.order.dto.OrderApprovalConfirmResponse;
 import com.sagopalgo.api.order.dto.OrderApprovalPrepareResponse;
@@ -16,7 +17,6 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
-import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +37,7 @@ public class OrderApprovalService {
     }
 
     public OrderApprovalPrepareResponse prepare(Long userId, OrderPrecheckRequest request) {
-        requireDomesticWholeShareOrder(request);
+        KbLimitOrderContract.requireSupported(request);
         OrderPrecheckResponse precheck = precheckService.precheck(userId, request);
         if (!precheck.eligible()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "안전 조건을 통과하지 못해 승인할 수 없습니다.");
@@ -70,19 +70,6 @@ public class OrderApprovalService {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "승인 토큰이 만료되었거나 이미 사용되었습니다. 다시 검증해 주세요.");
         }
         return new OrderApprovalConfirmResponse(request.approvalId(), "ACKNOWLEDGED", false, NOT_SUBMITTED);
-    }
-
-    private void requireDomesticWholeShareOrder(OrderPrecheckRequest request) {
-        String market = request.market().trim().toUpperCase(Locale.ROOT);
-        if (!request.stockCode().trim().matches("[0-9]{6}")
-            || !("KOSPI".equals(market) || "KOSDAQ".equals(market))
-            || request.limitPrice().stripTrailingZeros().scale() > 0
-            || request.quantity().stripTrailingZeros().scale() > 0) {
-            throw new ApiException(
-                ErrorCode.VALIDATION_ERROR,
-                "승인 준비는 KOSPI/KOSDAQ 6자리 종목코드와 정수 원화 지정가·정수 주식 수량만 지원합니다."
-            );
-        }
     }
 
     private String hash(String token) {

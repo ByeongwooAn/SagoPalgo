@@ -123,6 +123,21 @@ class OrderPrecheckServiceTest {
             .contains("MAX_ORDER_AMOUNT", "REAL_PRICE", "PRICE_DEVIATION");
     }
 
+    @Test
+    @DisplayName("KB 지정가 주문 필드 범위를 벗어난 주문안은 사전검증에서 차단한다")
+    void invalidKbOrderFormatIsBlocked() {
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("KB", "100"));
+        when(kbAccountService.settlementBalance()).thenReturn(balance("2000", List.of()));
+
+        OrderPrecheckResponse response = service().precheck(1L, request("BUY", "100.5", "1"));
+
+        assertThat(response.eligible()).isFalse();
+        assertThat(response.checks())
+            .filteredOn(check -> check.code().equals("KB_ORDER_FORMAT"))
+            .singleElement()
+            .satisfies(check -> assertThat(check.passed()).isFalse());
+    }
+
     private OrderPrecheckService service() {
         return new OrderPrecheckService(mapper, kbAccountService, marketPriceService, properties);
     }

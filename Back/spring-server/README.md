@@ -164,6 +164,8 @@ Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read
 
 주문 사전검증 후 `POST /api/v1/orders/approvals/prepare`로 90초짜리 일회용 토큰을 발급하고, `POST /api/v1/orders/approvals/confirm`으로 수동 승인 **기록만** 저장할 수 있습니다. `orderSubmitted=false`이며 KB 주문은 전송되지 않습니다. 기존 DB에는 `Back/database/migrations/007_order_approvals.sql`을 적용해야 합니다.
 
-1. KB 공식 주문 TR 명세 확보 후 수동 승인 기반 실주문 전송과 계약 테스트
+KB 공식 매수 `SSAM1802`·매도 `SSAM1801` 지정가 요청 형식과 응답 판정은 `KbLimitOrderContract` 및 단위 테스트로 고정했습니다. 이는 순수 형식 검사기이며 외부 주문 API에 연결되지 않았습니다. HTTP/헤더의 `resultCode=200`만으로 주문 접수로 판단하지 않고 `processFlag`와 실제 주문번호를 함께 확인합니다. 자세한 필드와 후속 안전 작업은 `docs/api-spec.md` 15.4절을 참고하세요.
+
+1. KB 주문 상태 조회·대조와 중복 제출 차단 후 별도 활성화 설정 아래 수동 승인 기반 실주문 전송
 2. 주문 결과·실패·취소·정정 상태 동기화
 3. 배포 패키지 자동 업데이트와 운영 상태 진단
