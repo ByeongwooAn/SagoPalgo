@@ -672,11 +672,19 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ### 15.3 수동 승인 준비 및 기록 (실주문 미전송)
 
-`POST /api/v1/orders/approvals/prepare`는 15.1과 같은 지정가 주문안을 받아 안전 조건을 **다시** 검사합니다. KOSPI/KOSDAQ 6자리 종목코드, 정수 원화 지정가, 정수 주식 수량만 허용합니다. 모든 검사가 통과하면 새 사전검증 ID와 90초짜리 일회용 토큰을 반환합니다. 토큰 원문은 서버 DB에 저장하지 않고 SHA-256 해시만 `order_approvals`에 보존합니다.
+`POST /api/v1/orders/approvals/prepare`는 15.1과 같은 지정가 주문안을 받아 안전 조건을 **다시** 검사합니다. KOSPI/KOSDAQ 6자리 종목코드, 9자리 이하 정수 원화 지정가, 10자리 이하 정수 주식 수량만 허용합니다. 모든 검사가 통과하면 새 사전검증 ID와 90초짜리 일회용 토큰을 반환합니다. 토큰 원문은 서버 DB에 저장하지 않고 SHA-256 해시만 `order_approvals`에 보존합니다.
 
 사용자가 새 검증 결과와 “실제 주문 미전송” 안내를 확인한 뒤 `POST /api/v1/orders/approvals/confirm`에 `approvalId`, `token`, `acknowledged: true`를 보냅니다. 서버는 사용자·토큰·만료·미사용 상태를 원자적으로 검사하고 `ACKNOWLEDGED`로 기록합니다. 재사용하거나 만료된 토큰은 거절합니다. 응답의 `orderSubmitted`는 항상 `false`이며 KB 주문 API를 호출하지 않습니다.
 
-이 단계는 실제 거래 승인/체결이 아닙니다. [KB증권 공식 개발가이드](https://openapi.kbsec.com/guide_b2c)는 주문 호출의 개요만 보여 주므로, 정확한 주문 TR의 요청·응답 필드와 상태 조회 계약을 확보하기 전에는 실주문 전송을 활성화하지 않습니다. 기존 DB에는 `Back/database/migrations/007_order_approvals.sql`을 적용해야 합니다.
+이 단계는 실제 거래 승인/체결이 아닙니다. 기존 DB에는 `Back/database/migrations/007_order_approvals.sql`을 적용해야 합니다.
+
+### 15.4 KB 공식 지정가 주문 계약 (전송 미연결)
+
+[매수주문 `SSAM1802`](https://openapi.kbsec.com/apidoc_b2c#O_5e895db9-9f4c-4c98-aeb1-efc9c57df6f8#G_domestic#A_b5c9ce31-f3f8-4f9c-a4cd-987ce047c39f)과 [매도주문 `SSAM1801`](https://openapi.kbsec.com/apidoc_b2c#O_5e895db9-9f4c-4c98-aeb1-efc9c57df6f8#G_domestic#A_402bb495-8f3d-4de5-99e4-161d378a4f55)의 공식 요청 필드를 확인했습니다. 둘 다 `POST /api/v1/ssam1802` 또는 `/api/v1/ssam1801`에 `dataBody`의 `mkt_tm_clsf=1`(정규장), `is_cd`(종목코드), `ordr_q`(수량), `ordr_uprc`(단가), `ordr_ccd=00`(지정가), `sor_ordr_ccd=K`(KRX)를 사용합니다. 현재 계약 코드는 이 본문을 생성하고 길이·정수 조건을 검증하지만 네트워크 요청은 보내지 않습니다.
+
+응답은 `dataHeader.resultCode=200` **만으로 성공 처리하지 않습니다**. `processFlag=A`와 0이 아닌 `dataBody.ordr_no`가 함께 있을 때만 접수로 분류합니다. 공식 매도 실패 샘플은 `resultCode=200`, `processFlag=B`, `ordr_no=0000000000`입니다. 명시적 실패는 거절, 서로 모순되거나 누락된 필드는 확인 필요(`UNKNOWN`)로 분류하고 자동 재시도하지 않는 것이 다음 구현의 원칙입니다. 이 분류는 체결 완료를 의미하지 않습니다.
+
+[체결미체결 조회 `SSQM2341`](https://openapi.kbsec.com/apidoc_b2c#O_5e895db9-9f4c-4c98-aeb1-efc9c57df6f8#G_domestic#A_66998ea3-85f3-4060-bf6d-f88a163eee35)는 `ccls_clsf`, `ordr_dt`, 선택적 `nxt_key`로 조회하고 `Record1`에 주문번호, 체결·미체결 수량을 반환합니다. 실주문 연결 전에는 운영용 `ipAddr`·`macAddr` 헤더, 응답 불명확 시 이력 대조, 서버 측 중복 제출 차단과 실제 계좌의 수동 검증을 마쳐야 합니다.
 
 ## 16. 다음 구현 순서
 
@@ -688,8 +696,8 @@ Windows 항상 위 미니 위젯과 시스템 트레이 메뉴까지 연결되�
 
 AI 신호 기반 모의매매와 수익률·승률·최대 손실·회전율 지표까지 연결되었습니다.
 
-주문 사전검증, 일회용 토큰을 이용한 수동 승인 기록, 감사 로그까지 연결되었습니다. 실제 주문 전송은 아직 구현하지 않았습니다.
+주문 사전검증, 일회용 토큰을 이용한 수동 승인 기록, 공식 KB 지정가 주문 요청·응답 계약 테스트까지 연결되었습니다. 실제 주문 전송은 아직 구현하지 않았습니다.
 
-1. KB 공식 주문 TR 명세 확보 후 수동 승인 기반 실주문 전송과 주문 상태 계약 테스트
+1. `SSQM2341` 주문 상태 조회·대조와 중복 제출 차단을 먼저 구현하고, 별도 실주문 활성화 설정 아래 수동 승인 기반 전송 연결
 2. 주문 결과·실패·취소·정정 상태 동기화
 3. 배포 패키지 자동 업데이트와 운영 상태 진단

@@ -8,6 +8,7 @@ import com.sagopalgo.api.kb.service.KbAccountService;
 import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockQuote;
 import com.sagopalgo.api.market.service.MarketPriceService;
+import com.sagopalgo.api.order.client.KbLimitOrderContract;
 import com.sagopalgo.api.order.dto.OrderPrecheckHistoryItemResponse;
 import com.sagopalgo.api.order.dto.OrderPrecheckHistoryResponse;
 import com.sagopalgo.api.order.dto.OrderPrecheckRequest;
@@ -82,13 +83,23 @@ public class OrderPrecheckService {
             accountEnabled,
             accountEnabled ? "KB 계좌 조회가 활성화되어 있습니다." : "KB 계좌 조회 설정이 필요합니다."
         );
-        boolean supportedMarket = List.of("KOSPI", "KOSDAQ", "KONEX").contains(market);
+        boolean supportedMarket = List.of("KOSPI", "KOSDAQ").contains(market);
         addCheck(
             checks,
             "SUPPORTED_MARKET",
             "주문 시장",
             supportedMarket,
-            supportedMarket ? "KB 국내주식 주문 대상 시장입니다." : "현재 사전검증은 국내주식 시장만 지원합니다."
+            supportedMarket ? "KB 국내주식 주문 대상 시장입니다." : "현재 주문 준비는 KOSPI/KOSDAQ만 지원합니다."
+        );
+        boolean orderFormatSupported = KbLimitOrderContract.isSupported(request);
+        addCheck(
+            checks,
+            "KB_ORDER_FORMAT",
+            "KB 지정가 주문 형식",
+            orderFormatSupported,
+            orderFormatSupported
+                ? "종목코드, 지정가와 수량이 KB 주문 필드 범위에 맞습니다."
+                : "6자리 종목코드와 9자리 이하 정수 원화 지정가·10자리 이하 정수 주식 수량이 필요합니다."
         );
         addCheck(
             checks,
