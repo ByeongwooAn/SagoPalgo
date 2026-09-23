@@ -44,4 +44,19 @@ public interface OrderPrecheckMapper {
         @Param("userId") Long userId,
         @Param("limit") int limit
     );
+
+    @Select("""
+        SELECT p.order_precheck_id, p.user_id, p.stock_code, p.stock_name,
+               p.order_side, p.order_type, p.requested_price, p.quantity,
+               p.created_at
+        FROM order_prechecks p
+        JOIN order_approvals a ON a.order_precheck_id = p.order_precheck_id
+        WHERE a.order_approval_id = #{approvalId}
+          AND a.user_id = #{userId}
+          AND p.user_id = #{userId}
+        """)
+    OrderPrecheckRecord findForApproval(
+        @Param("approvalId") Long approvalId,
+        @Param("userId") Long userId
+    );
 }
