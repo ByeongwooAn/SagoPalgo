@@ -14,6 +14,7 @@ import com.sagopalgo.api.order.dto.OrderApprovalPrepareResponse;
 import com.sagopalgo.api.order.dto.OrderPrecheckRequest;
 import com.sagopalgo.api.order.dto.OrderPrecheckResponse;
 import com.sagopalgo.api.order.mapper.OrderApprovalMapper;
+import com.sagopalgo.api.order.mapper.OrderSubmissionGuardMapper;
 import com.sagopalgo.api.order.model.OrderApprovalRecord;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,12 +29,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class OrderApprovalServiceTest {
     @Mock private OrderPrecheckService precheckService;
     @Mock private OrderApprovalMapper mapper;
+    @Mock private OrderSubmissionGuardMapper submissionGuardMapper;
 
     private OrderApprovalService service;
 
     @BeforeEach
     void setUp() {
-        service = new OrderApprovalService(precheckService, mapper);
+        service = new OrderApprovalService(precheckService, mapper, submissionGuardMapper);
     }
 
     @Test
@@ -73,6 +75,8 @@ class OrderApprovalServiceTest {
     void consumesTokenOnceWithoutSubmittingAnOrder() {
         when(mapper.acknowledge(eq(7L), eq(1L), any(), any(LocalDateTime.class)))
             .thenReturn(1, 0);
+        when(submissionGuardMapper.insertReady(eq(7L), eq(1L), any(LocalDateTime.class)))
+            .thenReturn(1);
         OrderApprovalConfirmRequest request = new OrderApprovalConfirmRequest(7L, "one-time-token", true);
 
         var response = service.confirm(1L, request);
@@ -80,6 +84,15 @@ class OrderApprovalServiceTest {
         assertThat(response.status()).isEqualTo("ACKNOWLEDGED");
         assertThat(response.orderSubmitted()).isFalse();
         assertThatThrownBy(() -> service.confirm(1L, request)).isInstanceOf(ApiException.class);
+        verify(submissionGuardMapper).insertReady(eq(7L), eq(1L), any(LocalDateTime.class));
+    }
+
+    @Test
+    void failsConfirmationWhenGuardCannotBeCreated() {
+        when(mapper.acknowledge(eq(7L), eq(1L), any(), any(LocalDateTime.class))).thenReturn(1);
+        assertThatThrownBy(() -> service.confirm(
+            1L, new OrderApprovalConfirmRequest(7L, "one-time-token", true)
+        )).isInstanceOf(ApiException.class);
     }
 
     @Test
@@ -87,6 +100,7 @@ class OrderApprovalServiceTest {
         assertThatThrownBy(() -> service.confirm(1L, new OrderApprovalConfirmRequest(7L, "token", false)))
             .isInstanceOf(ApiException.class);
         verify(mapper, never()).acknowledge(any(), any(), any(), any());
+        verify(submissionGuardMapper, never()).insertReady(any(), any(), any());
     }
 
     private OrderPrecheckRequest request(String price, String quantity) {

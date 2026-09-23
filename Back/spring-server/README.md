@@ -113,7 +113,7 @@ Invoke-RestMethod `
 - 자동 동기화를 켜면 개인 사용자의 관심 종목을 cron 주기마다 순회하며, 한 종목 실패가 다음 종목 처리를 막지 않습니다.
 - `/api/v1/research/sync/status`에서 자동 수집 활성 여부와 종목별 마지막 실행 상태를 조회합니다.
 
-기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql), [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql), [`Back/database/migrations/004_event_alerts.sql`](../database/migrations/004_event_alerts.sql), [`Back/database/migrations/005_paper_trading.sql`](../database/migrations/005_paper_trading.sql), [`Back/database/migrations/006_order_prechecks.sql`](../database/migrations/006_order_prechecks.sql), [`Back/database/migrations/007_order_approvals.sql`](../database/migrations/007_order_approvals.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
+기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql), [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql), [`Back/database/migrations/004_event_alerts.sql`](../database/migrations/004_event_alerts.sql), [`Back/database/migrations/005_paper_trading.sql`](../database/migrations/005_paper_trading.sql), [`Back/database/migrations/006_order_prechecks.sql`](../database/migrations/006_order_prechecks.sql), [`Back/database/migrations/007_order_approvals.sql`](../database/migrations/007_order_approvals.sql), [`Back/database/migrations/008_order_submission_guards.sql`](../database/migrations/008_order_submission_guards.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
 
 ## 주문 사전검증
 
@@ -162,12 +162,14 @@ Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read
 
 ## 다음 구현 후보
 
-주문 사전검증 후 `POST /api/v1/orders/approvals/prepare`로 90초짜리 일회용 토큰을 발급하고, `POST /api/v1/orders/approvals/confirm`으로 수동 승인 **기록만** 저장할 수 있습니다. `orderSubmitted=false`이며 KB 주문은 전송되지 않습니다. 기존 DB에는 `Back/database/migrations/007_order_approvals.sql`을 적용해야 합니다.
+주문 사전검증 후 `POST /api/v1/orders/approvals/prepare`로 90초짜리 일회용 토큰을 발급하고, `POST /api/v1/orders/approvals/confirm`으로 수동 승인 **기록만** 저장할 수 있습니다. 승인 확인과 제출 가드 `READY` 행 생성은 한 트랜잭션이며, `GET /api/v1/orders/approvals/{approvalId}/submission`에서 상태를 읽을 수 있습니다. `orderSubmitted=false`이며 KB 주문은 전송되지 않습니다. 기존 DB에는 `007_order_approvals.sql` 다음 `008_order_submission_guards.sql`을 적용해야 합니다.
+
+서버 내부의 `OrderSubmissionGuardService.reserveOnce`는 `READY`를 원자적으로 `RESERVED`로 한 번만 바꿉니다. 예약 후 통신 결과가 불명확하면 `UNCERTAIN`으로 기록하며 두 상태 모두 자동 재시도를 허용하지 않습니다. 마이그레이션 전 이미 확인된 승인은 재사용할 수 없는 `LEGACY_REVIEW`로 기록합니다. 현재는 주문 전송자가 이 서비스를 호출하지 않으므로 새 승인 건은 `READY`에 머뭅니다.
 
 KB 공식 매수 `SSAM1802`·매도 `SSAM1801` 지정가 요청 형식과 응답 판정은 `KbLimitOrderContract` 및 단위 테스트로 고정했습니다. 이는 순수 형식 검사기이며 외부 주문 API에 연결되지 않았습니다. HTTP/헤더의 `resultCode=200`만으로 주문 접수로 판단하지 않고 `processFlag`와 실제 주문번호를 함께 확인합니다. 자세한 필드와 후속 안전 작업은 `docs/api-spec.md` 15.4절을 참고하세요.
 
 `GET /api/v1/orders/kb/executions`와 `GET /api/v1/orders/kb/executions/{orderNo}`는 KB `SSQM2341`의 읽기 전용 체결미체결 조회 및 최대 10페이지 주문번호 대조 API입니다. 주문 제출·취소·정정은 호출하지 않습니다. 실제 KB 응답 형태와 계좌 권한은 운영 계좌에서 별도 수동 확인이 필요합니다. 진척도 산정은 `docs/development-progress.md`를 참고하세요.
 
-1. 서버 측 중복 제출 차단과 불명확 응답 대조 후 별도 활성화 설정 아래 수동 승인 기반 실주문 전송
+1. 주문 전송 어댑터가 단일 예약을 사용하도록 연결하고, 불명확 응답의 수동 대조 절차를 완성한 뒤 별도 활성화 설정 아래 수동 승인 기반 실주문 전송
 2. 주문 결과·실패·취소·정정 상태 동기화
 3. 배포 패키지 자동 업데이트와 운영 상태 진단

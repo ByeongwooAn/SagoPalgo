@@ -388,6 +388,14 @@ $page.data
 3. 실제 주문번호 10자리로 `/api/v1/orders/kb/executions/{orderNo}?orderDate=yyyyMMdd`를 조회하고 `matches` 및 `completeScan`을 확인합니다. `completeScan=false`이면 빈 `matches`를 주문 부재로 해석하지 않습니다.
 4. KB 권한 오류나 비정상 `Record1` 응답이 빈 성공 목록으로 바뀌지 않고 오류로 표시되는지 확인합니다. 이 확인 과정에서 주문 전송 API는 호출하지 않습니다.
 
+주문 승인별 제출 가드 확인:
+
+1. 기존 MySQL 데이터 볼륨에 `007_order_approvals.sql` 다음 `008_order_submission_guards.sql`을 적용합니다. 새 볼륨은 `schema.sql`에 포함됩니다.
+2. 마이그레이션 전 이미 확인된 승인은 `LEGACY_REVIEW`로 표시되고 예약 불가능한지 확인합니다. 이후 새 주문 사전검증, 승인 준비, 승인 확인을 진행한 뒤 `GET /api/v1/orders/approvals/{approvalId}/submission`에서 `status=READY`와 비어 있는 `reservedAt`을 확인합니다.
+3. 같은 승인 토큰으로 다시 확인하면 거절되고, 해당 승인 ID의 `order_submission_guards` 행이 하나만 있는지 확인합니다.
+4. 다른 사용자 ID로 해당 가드 상태를 조회할 수 없어야 합니다. 현재 개인용 API에서는 서버 단위 사용자 분리를 시험 환경에서만 확인합니다.
+5. `RESERVED`·`UNCERTAIN` 전환은 현재 내부 서비스 계약이며 HTTP API나 KB 주문 전송에 연결되지 않았습니다. 수동 테스트 중 DB 값을 직접 변경해 거래 성공으로 해석하지 않습니다.
+
 Windows 알림 흐름 확인:
 
 ```powershell

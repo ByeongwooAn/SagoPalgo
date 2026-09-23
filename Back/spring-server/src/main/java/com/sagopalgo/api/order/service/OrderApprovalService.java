@@ -9,6 +9,7 @@ import com.sagopalgo.api.order.dto.OrderApprovalPrepareResponse;
 import com.sagopalgo.api.order.dto.OrderPrecheckRequest;
 import com.sagopalgo.api.order.dto.OrderPrecheckResponse;
 import com.sagopalgo.api.order.mapper.OrderApprovalMapper;
+import com.sagopalgo.api.order.mapper.OrderSubmissionGuardMapper;
 import com.sagopalgo.api.order.model.OrderApprovalRecord;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -29,11 +30,17 @@ public class OrderApprovalService {
 
     private final OrderPrecheckService precheckService;
     private final OrderApprovalMapper mapper;
+    private final OrderSubmissionGuardMapper submissionGuardMapper;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public OrderApprovalService(OrderPrecheckService precheckService, OrderApprovalMapper mapper) {
+    public OrderApprovalService(
+        OrderPrecheckService precheckService,
+        OrderApprovalMapper mapper,
+        OrderSubmissionGuardMapper submissionGuardMapper
+    ) {
         this.precheckService = precheckService;
         this.mapper = mapper;
+        this.submissionGuardMapper = submissionGuardMapper;
     }
 
     public OrderApprovalPrepareResponse prepare(Long userId, OrderPrecheckRequest request) {
@@ -68,6 +75,9 @@ public class OrderApprovalService {
         int changed = mapper.acknowledge(request.approvalId(), userId, hash(request.token()), LocalDateTime.now());
         if (changed != 1) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "승인 토큰이 만료되었거나 이미 사용되었습니다. 다시 검증해 주세요.");
+        }
+        if (submissionGuardMapper.insertReady(request.approvalId(), userId, LocalDateTime.now()) != 1) {
+            throw new ApiException(ErrorCode.INTERNAL_ERROR, "제출 가드 기록을 만들 수 없어 승인을 저장하지 않았습니다.");
         }
         return new OrderApprovalConfirmResponse(request.approvalId(), "ACKNOWLEDGED", false, NOT_SUBMITTED);
     }
