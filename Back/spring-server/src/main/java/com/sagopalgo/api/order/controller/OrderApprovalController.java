@@ -4,12 +4,16 @@ import com.sagopalgo.api.common.response.ApiResponse;
 import com.sagopalgo.api.order.dto.OrderApprovalConfirmRequest;
 import com.sagopalgo.api.order.dto.OrderApprovalConfirmResponse;
 import com.sagopalgo.api.order.dto.OrderApprovalPrepareResponse;
+import com.sagopalgo.api.order.dto.OrderDateReconciliationHistoryItemResponse;
+import com.sagopalgo.api.order.dto.OrderDateReconciliationRequest;
+import com.sagopalgo.api.order.dto.OrderDateReconciliationResponse;
 import com.sagopalgo.api.order.dto.OrderPrecheckRequest;
 import com.sagopalgo.api.order.dto.OrderReconciliationHistoryItemResponse;
 import com.sagopalgo.api.order.dto.OrderReconciliationReviewRequest;
 import com.sagopalgo.api.order.dto.OrderReconciliationReviewResponse;
 import com.sagopalgo.api.order.dto.OrderSubmissionStatusResponse;
 import com.sagopalgo.api.order.service.OrderApprovalService;
+import com.sagopalgo.api.order.service.OrderDateReconciliationService;
 import com.sagopalgo.api.order.service.OrderReconciliationService;
 import com.sagopalgo.api.order.service.OrderSubmissionGuardService;
 import com.sagopalgo.api.user.service.LocalUserContext;
@@ -29,17 +33,20 @@ public class OrderApprovalController {
     private final OrderApprovalService service;
     private final OrderSubmissionGuardService submissionGuardService;
     private final OrderReconciliationService reconciliationService;
+    private final OrderDateReconciliationService dateReconciliationService;
     private final LocalUserContext localUserContext;
 
     public OrderApprovalController(
         OrderApprovalService service,
         OrderSubmissionGuardService submissionGuardService,
         OrderReconciliationService reconciliationService,
+        OrderDateReconciliationService dateReconciliationService,
         LocalUserContext localUserContext
     ) {
         this.service = service;
         this.submissionGuardService = submissionGuardService;
         this.reconciliationService = reconciliationService;
+        this.dateReconciliationService = dateReconciliationService;
         this.localUserContext = localUserContext;
     }
 
@@ -91,6 +98,27 @@ public class OrderApprovalController {
         return ResponseEntity.ok(ApiResponse.success(
             reconciliationService.history(localUserContext.userId(), approvalId),
             "최근 주문 대조 기록이 조회되었습니다."
+        ));
+    }
+
+    @PostMapping("/{approvalId}/date-reconciliation-checks")
+    public ResponseEntity<ApiResponse<OrderDateReconciliationResponse>> checkDateReconciliation(
+        @PathVariable Long approvalId,
+        @Valid @RequestBody OrderDateReconciliationRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+            dateReconciliationService.review(localUserContext.userId(), approvalId, request),
+            "날짜별 KB 주문 내역이 조회되었습니다. 같은 주문 여부는 자동 판정하지 않습니다."
+        ));
+    }
+
+    @GetMapping("/{approvalId}/date-reconciliation-checks")
+    public ResponseEntity<ApiResponse<List<OrderDateReconciliationHistoryItemResponse>>> dateReconciliationHistory(
+        @PathVariable Long approvalId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+            dateReconciliationService.history(localUserContext.userId(), approvalId),
+            "최근 날짜별 대조 기록이 조회되었습니다."
         ));
     }
 }

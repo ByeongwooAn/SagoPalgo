@@ -6,6 +6,7 @@ import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.kb.client.KbSecuritiesAccountClient;
 import com.sagopalgo.api.order.dto.KbOrderExecutionItemResponse;
 import com.sagopalgo.api.order.dto.KbOrderExecutionPageResponse;
+import com.sagopalgo.api.order.dto.KbOrderDateScanResponse;
 import com.sagopalgo.api.order.dto.KbOrderLookupResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,6 +24,7 @@ import org.springframework.util.StringUtils;
 @Service
 public class KbOrderExecutionService {
     private static final int MAX_LOOKUP_PAGES = 10;
+    private static final int MAX_DATE_SCAN_ITEMS = 200;
     private static final int MAX_NEXT_KEY_LENGTH = 40;
     private static final ZoneId KOREA_TIME = ZoneId.of("Asia/Seoul");
 
@@ -81,6 +83,35 @@ public class KbOrderExecutionService {
             }
         }
         return new KbOrderLookupResponse(date, orderNo, false, MAX_LOOKUP_PAGES, List.copyOf(matches));
+    }
+
+    public KbOrderDateScanResponse scanDate(String orderDate) {
+        String date = validDate(orderDate);
+        List<KbOrderExecutionItemResponse> items = new ArrayList<>();
+        Set<String> seenKeys = new HashSet<>();
+        String nextKey = "";
+        for (int pageNumber = 1; pageNumber <= MAX_LOOKUP_PAGES; pageNumber++) {
+            KbOrderExecutionPageResponse result = page(date, "0", nextKey);
+            int remaining = MAX_DATE_SCAN_ITEMS - items.size();
+            if (result.items().size() > remaining) {
+                items.addAll(result.items().subList(0, remaining));
+                return new KbOrderDateScanResponse(date, false, pageNumber, true, List.copyOf(items));
+            }
+            items.addAll(result.items());
+            nextKey = result.nextKey();
+            if (nextKey.isEmpty()) {
+                return new KbOrderDateScanResponse(
+                    date, result.continuationFlag().isEmpty(), pageNumber, false, List.copyOf(items)
+                );
+            }
+            if (items.size() == MAX_DATE_SCAN_ITEMS) {
+                return new KbOrderDateScanResponse(date, false, pageNumber, true, List.copyOf(items));
+            }
+            if (!seenKeys.add(nextKey)) {
+                return new KbOrderDateScanResponse(date, false, pageNumber, false, List.copyOf(items));
+            }
+        }
+        return new KbOrderDateScanResponse(date, false, MAX_LOOKUP_PAGES, false, List.copyOf(items));
     }
 
     private KbOrderExecutionItemResponse item(JsonNode record) {

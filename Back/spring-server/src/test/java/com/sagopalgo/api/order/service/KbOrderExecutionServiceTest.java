@@ -8,6 +8,8 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.kb.client.KbSecuritiesAccountClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,6 +95,61 @@ class KbOrderExecutionServiceTest {
 
         assertThat(lookup.completeScan()).isFalse();
         assertThat(lookup.matches()).isEmpty();
+    }
+
+    @Test
+    void scansWholeDateAcrossPagesWithoutInferringAnOrderMatch() throws Exception {
+        when(kbClient.fetchOrderExecutions("20260923", "0", ""))
+            .thenReturn(response("NEXT", """
+                {"ordr_no":"0040000001","ordr_q":"1","tl_ccls_q":"0","nccls_q":"1"}
+                """));
+        when(kbClient.fetchOrderExecutions("20260923", "0", "NEXT"))
+            .thenReturn(response("", """
+                {"ordr_no":"0040000002","ordr_q":"2","tl_ccls_q":"2","nccls_q":"0"}
+                """));
+
+        var scan = service.scanDate("20260923");
+
+        assertThat(scan.completeScan()).isTrue();
+        assertThat(scan.pagesScanned()).isEqualTo(2);
+        assertThat(scan.itemLimitReached()).isFalse();
+        assertThat(scan.items()).extracting("orderNo").containsExactly("0040000001", "0040000002");
+    }
+
+    @Test
+    void repeatedDateCursorRemainsIncomplete() throws Exception {
+        when(kbClient.fetchOrderExecutions("20260923", "0", ""))
+            .thenReturn(response("NEXT", ""));
+        when(kbClient.fetchOrderExecutions("20260923", "0", "NEXT"))
+            .thenReturn(response("NEXT", ""));
+
+        var scan = service.scanDate("20260923");
+
+        assertThat(scan.completeScan()).isFalse();
+        assertThat(scan.pagesScanned()).isEqualTo(2);
+    }
+
+    @Test
+    void dateScanItemCapNeverLooksComplete() {
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("nxt_key", "");
+        ArrayNode records = body.putArray("Record1");
+        for (int index = 1; index <= 201; index++) {
+            ObjectNode record = records.addObject();
+            record.put("ordr_no", "%010d".formatted(index));
+            record.put("ordr_q", "1");
+            record.put("tl_ccls_q", "0");
+            record.put("nccls_q", "1");
+        }
+        ObjectNode response = objectMapper.createObjectNode();
+        response.set("dataBody", body);
+        when(kbClient.fetchOrderExecutions("20260923", "0", "")).thenReturn(response);
+
+        var scan = service.scanDate("20260923");
+
+        assertThat(scan.completeScan()).isFalse();
+        assertThat(scan.itemLimitReached()).isTrue();
+        assertThat(scan.items()).hasSize(200);
     }
 
     @Test
