@@ -163,6 +163,25 @@ CREATE TABLE IF NOT EXISTS order_approvals (
   CONSTRAINT fk_order_approvals_precheck FOREIGN KEY (order_precheck_id) REFERENCES order_prechecks (order_precheck_id) ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT='실주문 미전송 수동 승인 감사 기록';
 
+-- 승인별 단일 제출 예약입니다. RESERVED와 UNCERTAIN은 자동 재전송할 수 없습니다.
+CREATE TABLE IF NOT EXISTS order_submission_guards (
+  order_approval_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'READY',
+  reserved_at DATETIME NULL,
+  uncertain_at DATETIME NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  PRIMARY KEY (order_approval_id),
+  KEY idx_order_submission_guards_user_created (user_id, created_at),
+  CONSTRAINT fk_order_submission_guards_approval FOREIGN KEY (order_approval_id)
+    REFERENCES order_approvals (order_approval_id) ON DELETE CASCADE,
+  CONSTRAINT fk_order_submission_guards_user FOREIGN KEY (user_id)
+    REFERENCES users (user_id) ON DELETE CASCADE,
+  CONSTRAINT chk_order_submission_guards_status
+    CHECK (status IN ('READY', 'RESERVED', 'UNCERTAIN', 'LEGACY_REVIEW'))
+) ENGINE=InnoDB COMMENT='승인별 단일 제출 예약 및 불명확 응답 차단 상태';
+
 -- AI 추천 결과 테이블입니다.
 -- 매수/매도/관망 판단의 대표 결과와 점수를 저장합니다.
 CREATE TABLE IF NOT EXISTS recommendations (
