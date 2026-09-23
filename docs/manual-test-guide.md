@@ -375,6 +375,19 @@ Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/orders/prechecks?limit=20'
 4. 검증할 때마다 `order_prechecks`에 계좌번호나 API Key 없이 결과와 차단 요약만 저장되는지 확인합니다.
 5. 모든 검사에 통과해 `eligible=true`여도 `canSubmit=false`이고 KB 주문·계좌 잔고 변화가 없는지 확인합니다.
 
+KB 주문 이력 읽기 전용 API 확인:
+
+```powershell
+$orderDate = (Get-Date).ToString('yyyyMMdd')
+$page = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/orders/kb/executions?orderDate=$orderDate&classification=0"
+$page.data
+```
+
+1. `items`의 주문번호와 체결·미체결 수량을 KB 공식 앱의 같은 날짜 내역과 비교합니다. 계좌명·계좌번호·App Secret이 API 응답에 없는지도 확인합니다.
+2. `nextKey`가 비어 있지 않으면 URL 인코딩한 값을 `nextKey` 쿼리로 전달해 다음 페이지를 확인합니다. 원문의 끝 공백도 임의로 제거하지 않습니다.
+3. 실제 주문번호 10자리로 `/api/v1/orders/kb/executions/{orderNo}?orderDate=yyyyMMdd`를 조회하고 `matches` 및 `completeScan`을 확인합니다. `completeScan=false`이면 빈 `matches`를 주문 부재로 해석하지 않습니다.
+4. KB 권한 오류나 비정상 `Record1` 응답이 빈 성공 목록으로 바뀌지 않고 오류로 표시되는지 확인합니다. 이 확인 과정에서 주문 전송 API는 호출하지 않습니다.
+
 Windows 알림 흐름 확인:
 
 ```powershell

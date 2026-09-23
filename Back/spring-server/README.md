@@ -166,6 +166,8 @@ Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read
 
 KB 공식 매수 `SSAM1802`·매도 `SSAM1801` 지정가 요청 형식과 응답 판정은 `KbLimitOrderContract` 및 단위 테스트로 고정했습니다. 이는 순수 형식 검사기이며 외부 주문 API에 연결되지 않았습니다. HTTP/헤더의 `resultCode=200`만으로 주문 접수로 판단하지 않고 `processFlag`와 실제 주문번호를 함께 확인합니다. 자세한 필드와 후속 안전 작업은 `docs/api-spec.md` 15.4절을 참고하세요.
 
-1. KB 주문 상태 조회·대조와 중복 제출 차단 후 별도 활성화 설정 아래 수동 승인 기반 실주문 전송
+`GET /api/v1/orders/kb/executions`와 `GET /api/v1/orders/kb/executions/{orderNo}`는 KB `SSQM2341`의 읽기 전용 체결미체결 조회 및 최대 10페이지 주문번호 대조 API입니다. 주문 제출·취소·정정은 호출하지 않습니다. 실제 KB 응답 형태와 계좌 권한은 운영 계좌에서 별도 수동 확인이 필요합니다. 진척도 산정은 `docs/development-progress.md`를 참고하세요.
+
+1. 서버 측 중복 제출 차단과 불명확 응답 대조 후 별도 활성화 설정 아래 수동 승인 기반 실주문 전송
 2. 주문 결과·실패·취소·정정 상태 동기화
 3. 배포 패키지 자동 업데이트와 운영 상태 진단
