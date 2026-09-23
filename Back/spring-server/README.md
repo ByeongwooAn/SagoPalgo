@@ -113,7 +113,7 @@ Invoke-RestMethod `
 - 자동 동기화를 켜면 개인 사용자의 관심 종목을 cron 주기마다 순회하며, 한 종목 실패가 다음 종목 처리를 막지 않습니다.
 - `/api/v1/research/sync/status`에서 자동 수집 활성 여부와 종목별 마지막 실행 상태를 조회합니다.
 
-기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql), [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql), [`Back/database/migrations/004_event_alerts.sql`](../database/migrations/004_event_alerts.sql), [`Back/database/migrations/005_paper_trading.sql`](../database/migrations/005_paper_trading.sql), [`Back/database/migrations/006_order_prechecks.sql`](../database/migrations/006_order_prechecks.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
+기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql), [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql), [`Back/database/migrations/004_event_alerts.sql`](../database/migrations/004_event_alerts.sql), [`Back/database/migrations/005_paper_trading.sql`](../database/migrations/005_paper_trading.sql), [`Back/database/migrations/006_order_prechecks.sql`](../database/migrations/006_order_prechecks.sql), [`Back/database/migrations/007_order_approvals.sql`](../database/migrations/007_order_approvals.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
 
 ## 주문 사전검증
 
@@ -162,6 +162,8 @@ Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read
 
 ## 다음 구현 후보
 
-1. 일회용 확인 토큰과 수동 승인 기반 KB 주문 실행
+주문 사전검증 후 `POST /api/v1/orders/approvals/prepare`로 90초짜리 일회용 토큰을 발급하고, `POST /api/v1/orders/approvals/confirm`으로 수동 승인 **기록만** 저장할 수 있습니다. `orderSubmitted=false`이며 KB 주문은 전송되지 않습니다. 기존 DB에는 `Back/database/migrations/007_order_approvals.sql`을 적용해야 합니다.
+
+1. KB 공식 주문 TR 명세 확보 후 수동 승인 기반 실주문 전송과 계약 테스트
 2. 주문 결과·실패·취소·정정 상태 동기화
 3. 배포 패키지 자동 업데이트와 운영 상태 진단

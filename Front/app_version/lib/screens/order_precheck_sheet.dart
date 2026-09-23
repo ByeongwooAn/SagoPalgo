@@ -33,6 +33,7 @@ class _OrderPrecheckSheetState extends State<OrderPrecheckSheet> {
   _OrderSide _side = _OrderSide.sell;
   OrderPrecheckResult? _result;
   String? _errorMessage;
+  String? _approvalMessage;
   bool _loading = false;
 
   @override
@@ -113,6 +114,7 @@ class _OrderPrecheckSheetState extends State<OrderPrecheckSheet> {
                             _side = selection.single;
                             _result = null;
                             _errorMessage = null;
+                            _approvalMessage = null;
                           });
                         },
                 ),
@@ -124,6 +126,7 @@ class _OrderPrecheckSheetState extends State<OrderPrecheckSheet> {
                   Expanded(
                     child: TextFormField(
                       controller: _priceController,
+                      onChanged: (_) => _clearResult(),
                       enabled: !_loading,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -141,6 +144,7 @@ class _OrderPrecheckSheetState extends State<OrderPrecheckSheet> {
                   Expanded(
                     child: TextFormField(
                       controller: _quantityController,
+                      onChanged: (_) => _clearResult(),
                       enabled: !_loading,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -184,6 +188,21 @@ class _OrderPrecheckSheetState extends State<OrderPrecheckSheet> {
               if (_result != null) ...[
                 const SizedBox(height: 16),
                 _OrderPrecheckResultCard(result: _result!),
+                if (_result!.eligible && _approvalMessage == null) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _loading ? null : _prepareApproval,
+                      icon: const Icon(Icons.fact_check_outlined),
+                      label: const Text('수동 승인 기록'),
+                    ),
+                  ),
+                ],
+              ],
+              if (_approvalMessage != null) ...[
+                const SizedBox(height: 10),
+                TextBody(_approvalMessage!),
               ],
               const SizedBox(height: 12),
               Row(
@@ -197,7 +216,7 @@ class _OrderPrecheckSheetState extends State<OrderPrecheckSheet> {
                   const SizedBox(width: 7),
                   Expanded(
                     child: Text(
-                      '실제 주문 전송 미지원',
+                      '승인 기록만 저장 · 실제 주문 전송 미지원',
                       style: TextStyle(
                         color: palette.muted,
                         fontSize: 12,
@@ -221,18 +240,10 @@ class _OrderPrecheckSheetState extends State<OrderPrecheckSheet> {
       _loading = true;
       _errorMessage = null;
       _result = null;
+      _approvalMessage = null;
     });
     try {
-      final result = await widget.repository.precheck(
-        OrderPrecheckInput(
-          stockCode: widget.holding.stockCode,
-          stockName: widget.holding.stockName,
-          market: widget.holding.market,
-          side: _side == _OrderSide.buy ? 'BUY' : 'SELL',
-          limitPrice: double.parse(_priceController.text.trim()),
-          quantity: double.parse(_quantityController.text.trim()),
-        ),
-      );
+      final result = await widget.repository.precheck(_currentInput());
       if (mounted) setState(() => _result = result);
     } catch (error) {
       if (!mounted) return;
@@ -240,6 +251,81 @@ class _OrderPrecheckSheetState extends State<OrderPrecheckSheet> {
         _errorMessage = switch (error) {
           OrderPrecheckRepositoryException exception => exception.message,
           _ => '주문 사전검증에 실패했습니다.',
+        };
+      });
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  OrderPrecheckInput _currentInput() => OrderPrecheckInput(
+    stockCode: widget.holding.stockCode,
+    stockName: widget.holding.stockName,
+    market: widget.holding.market,
+    side: _side == _OrderSide.buy ? 'BUY' : 'SELL',
+    limitPrice: double.parse(_priceController.text.trim()),
+    quantity: double.parse(_quantityController.text.trim()),
+  );
+
+  void _clearResult() {
+    if (_result == null && _approvalMessage == null) return;
+    setState(() {
+      _result = null;
+      _approvalMessage = null;
+    });
+  }
+
+  Future<void> _prepareApproval() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+      _approvalMessage = null;
+    });
+    try {
+      final preparation = await widget.repository.prepareApproval(
+        _currentInput(),
+      );
+      if (!mounted) return;
+      setState(() {
+        _result = preparation.precheck;
+        _loading = false;
+      });
+      final reviewed = preparation.precheck;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('수동 승인 기록'),
+          content: Text(
+            '${reviewed.stockName} ${reviewed.side == 'BUY' ? '매수' : '매도'} '
+            '${_formatQuantity(reviewed.quantity)}주\n'
+            '지정가 ${formatCurrency(reviewed.limitPrice.round())}원 · '
+            '예상 ${formatCurrency(reviewed.estimatedAmount.round())}원\n\n'
+            '방금 안전 조건을 다시 검증했습니다. 90초 이내에 승인하면 기록만 저장됩니다. '
+            'KB증권에 실제 주문은 전송되지 않습니다.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('기록 승인'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+      setState(() => _loading = true);
+      final message = await widget.repository.confirmApproval(preparation);
+      if (mounted) setState(() => _approvalMessage = message);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = switch (error) {
+          OrderPrecheckRepositoryException exception => exception.message,
+          _ => '수동 승인 기록에 실패했습니다.',
         };
       });
     } finally {

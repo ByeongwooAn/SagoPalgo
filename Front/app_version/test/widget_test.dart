@@ -209,7 +209,7 @@ class FakePaperTradingRepository implements PaperTradingRepository {
   }) async => _testPaperTrading;
 }
 
-class FakeOrderPrecheckRepository implements OrderPrecheckRepository {
+class FakeOrderPrecheckRepository extends OrderPrecheckRepository {
   const FakeOrderPrecheckRepository();
 
   @override
