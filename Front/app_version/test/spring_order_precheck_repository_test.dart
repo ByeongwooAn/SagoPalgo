@@ -85,6 +85,79 @@ void main() {
       ),
     );
   });
+
+  test(
+    'approval endpoints keep the one-time token and report no submission',
+    () async {
+      final calls = <String>[];
+      final repository = SpringOrderPrecheckRepository(
+        accessToken: 'test-token',
+        config: ApiConfig(baseUrl: 'http://localhost:8080'),
+        client: MockClient((request) async {
+          calls.add(request.url.path);
+          expect(request.headers['Authorization'], 'Bearer test-token');
+          if (request.url.path.endsWith('/prepare')) {
+            return http.Response.bytes(
+              utf8.encode(
+                jsonEncode({
+                  'success': true,
+                  'data': {
+                    'approvalId': 7,
+                    'token': 'one-time-token',
+                    'expiresAt': '2026-09-23T12:01:30',
+                    'precheck':
+                        (jsonDecode(_successResponse().body)
+                            as Map<String, dynamic>)['data'],
+                  },
+                }),
+              ),
+              200,
+              headers: {'content-type': 'application/json; charset=utf-8'},
+            );
+          }
+          expect(jsonDecode(request.body), {
+            'approvalId': 7,
+            'token': 'one-time-token',
+            'acknowledged': true,
+          });
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode({
+                'success': true,
+                'data': {
+                  'approvalId': 7,
+                  'status': 'ACKNOWLEDGED',
+                  'orderSubmitted': false,
+                  'message': '실제 주문은 전송되지 않았습니다.',
+                },
+              }),
+            ),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }),
+      );
+
+      final preparation = await repository.prepareApproval(
+        const OrderPrecheckInput(
+          stockCode: '005930',
+          stockName: '삼성전자',
+          market: 'KOSPI',
+          side: 'SELL',
+          limitPrice: 76000,
+          quantity: 2,
+        ),
+      );
+      final message = await repository.confirmApproval(preparation);
+
+      expect(preparation.token, 'one-time-token');
+      expect(message, contains('전송되지'));
+      expect(calls, [
+        '/api/v1/orders/approvals/prepare',
+        '/api/v1/orders/approvals/confirm',
+      ]);
+    },
+  );
 }
 
 http.Response _successResponse() {

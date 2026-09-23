@@ -146,6 +146,23 @@ CREATE TABLE IF NOT EXISTS order_prechecks (
     ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT='실제 주문 전 안전 검증 감사 로그';
 
+-- 실주문 API 연결 전 수동 승인 단계의 일회용 토큰 감사 기록입니다.
+CREATE TABLE IF NOT EXISTS order_approvals (
+  order_approval_id BIGINT NOT NULL AUTO_INCREMENT,
+  user_id BIGINT NOT NULL,
+  order_precheck_id BIGINT NOT NULL,
+  token_hash CHAR(64) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'PREPARED',
+  expires_at DATETIME NOT NULL,
+  acknowledged_at DATETIME NULL,
+  created_at DATETIME NOT NULL,
+  PRIMARY KEY (order_approval_id),
+  UNIQUE KEY uq_order_approvals_precheck (order_precheck_id),
+  KEY idx_order_approvals_user_created (user_id, created_at),
+  CONSTRAINT fk_order_approvals_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+  CONSTRAINT fk_order_approvals_precheck FOREIGN KEY (order_precheck_id) REFERENCES order_prechecks (order_precheck_id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='실주문 미전송 수동 승인 감사 기록';
+
 -- AI 추천 결과 테이블입니다.
 -- 매수/매도/관망 판단의 대표 결과와 점수를 저장합니다.
 CREATE TABLE IF NOT EXISTS recommendations (

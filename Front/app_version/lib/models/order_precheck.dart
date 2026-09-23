@@ -131,6 +131,31 @@ class OrderSafetyCheck {
   }
 }
 
+class OrderApprovalPreparation {
+  const OrderApprovalPreparation({
+    required this.approvalId,
+    required this.token,
+    required this.expiresAt,
+    required this.precheck,
+  });
+
+  final int approvalId;
+  final String token;
+  final DateTime expiresAt;
+  final OrderPrecheckResult precheck;
+
+  factory OrderApprovalPreparation.fromJson(Map<String, dynamic> json) {
+    return OrderApprovalPreparation(
+      approvalId: _readInt(json['approvalId']),
+      token: json['token'] as String,
+      expiresAt: DateTime.parse(json['expiresAt'] as String),
+      precheck: OrderPrecheckResult.fromJson(
+        json['precheck'] as Map<String, dynamic>,
+      ),
+    );
+  }
+}
+
 int _readInt(Object? value) {
   return switch (value) {
     int number => number,
