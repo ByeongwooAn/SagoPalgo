@@ -132,6 +132,15 @@ public class KbSecuritiesAccountClient {
         return post(properties.getExecutionBalancePath(), "", dataBody);
     }
 
+    public JsonNode fetchOrderExecutions(String orderDate, String executionClassification, String nextKey) {
+        ensureAccountConfigured();
+        Map<String, Object> dataBody = new LinkedHashMap<>();
+        dataBody.put("ccls_clsf", executionClassification);
+        dataBody.put("ordr_dt", orderDate);
+        dataBody.put("nxt_key", nextKey);
+        return post("/api/v1/ssqm2341", "", dataBody);
+    }
+
     public JsonNode fetchCurrentPrice(String stockCode) {
         ensureMarketDataConfigured();
         ensurePathConfigured(properties.getCurrentPricePath(), "KB증권 현재가 API 경로 설정이 필요합니다.");

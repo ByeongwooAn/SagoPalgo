@@ -429,6 +429,61 @@ class KbSecuritiesAccountClientTest {
         server.verify();
     }
 
+    @Test
+    @DisplayName("체결미체결 조회는 읽기 전용 SSQM2341과 다음키를 사용한다")
+    void fetchOrderExecutionsUsesOfficialRequestFields() {
+        server.expect(requestTo("https://kb.test/oauth2/token"))
+            .andRespond(withSuccess("""
+                {"access_token":"access-token","expires_in":3600}
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kb.test/api/v1/ssqm2341"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+            .andExpect(content().json("""
+                {
+                  "dataHeader": {"custtype":"P"},
+                  "dataBody": {
+                    "ccls_clsf":"0",
+                    "ordr_dt":"20260923",
+                    "nxt_key":"CURSOR  "
+                  }
+                }
+                """))
+            .andRespond(withSuccess("""
+                {
+                  "dataHeader":{"resultCode":"200","processFlag":"A"},
+                  "dataBody":{"nxt_key":"","Record1":[]}
+                }
+                """, MediaType.APPLICATION_JSON));
+
+        JsonNode response = client.fetchOrderExecutions("20260923", "0", "CURSOR  ");
+
+        assertThat(response.path("dataBody").path("Record1").isArray()).isTrue();
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("KB가 조회 실패를 반환하면 빈 주문 목록으로 오인하지 않는다")
+    void fetchOrderExecutionsRejectsBrokerFailure() {
+        server.expect(requestTo("https://kb.test/oauth2/token"))
+            .andRespond(withSuccess("""
+                {"access_token":"access-token","expires_in":3600}
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kb.test/api/v1/ssqm2341"))
+            .andRespond(withSuccess("""
+                {
+                  "dataHeader":{"resultCode":"200","processFlag":"B","processMessage":"계좌 조회 실패"},
+                  "dataBody":{"Record1":[]}
+                }
+                """, MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> client.fetchOrderExecutions("20260923", "0", ""))
+            .isInstanceOf(ApiException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
+        server.verify();
+    }
+
     private SecuritiesProviderProperties securitiesProperties() {
         SecuritiesProviderProperties properties = new SecuritiesProviderProperties();
         Provider kb = new Provider();
