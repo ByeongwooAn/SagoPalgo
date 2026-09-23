@@ -113,7 +113,7 @@ Invoke-RestMethod `
 - 자동 동기화를 켜면 개인 사용자의 관심 종목을 cron 주기마다 순회하며, 한 종목 실패가 다음 종목 처리를 막지 않습니다.
 - `/api/v1/research/sync/status`에서 자동 수집 활성 여부와 종목별 마지막 실행 상태를 조회합니다.
 
-기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql), [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql), [`Back/database/migrations/004_event_alerts.sql`](../database/migrations/004_event_alerts.sql), [`Back/database/migrations/005_paper_trading.sql`](../database/migrations/005_paper_trading.sql), [`Back/database/migrations/006_order_prechecks.sql`](../database/migrations/006_order_prechecks.sql), [`Back/database/migrations/007_order_approvals.sql`](../database/migrations/007_order_approvals.sql), [`Back/database/migrations/008_order_submission_guards.sql`](../database/migrations/008_order_submission_guards.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
+기존 MySQL 데이터 볼륨에는 [`Back/database/migrations/002_research_feed_storage.sql`](../database/migrations/002_research_feed_storage.sql), [`Back/database/migrations/003_research_sync_status.sql`](../database/migrations/003_research_sync_status.sql), [`Back/database/migrations/004_event_alerts.sql`](../database/migrations/004_event_alerts.sql), [`Back/database/migrations/005_paper_trading.sql`](../database/migrations/005_paper_trading.sql), [`Back/database/migrations/006_order_prechecks.sql`](../database/migrations/006_order_prechecks.sql), [`Back/database/migrations/007_order_approvals.sql`](../database/migrations/007_order_approvals.sql), [`Back/database/migrations/008_order_submission_guards.sql`](../database/migrations/008_order_submission_guards.sql), [`Back/database/migrations/009_order_reconciliation_checks.sql`](../database/migrations/009_order_reconciliation_checks.sql)을 순서대로 한 번 적용해야 합니다. 새 데이터 볼륨은 `Back/database/schema.sql`에서 저장 테이블을 함께 생성합니다.
 
 ## 주문 사전검증
 
@@ -170,6 +170,8 @@ KB 공식 매수 `SSAM1802`·매도 `SSAM1801` 지정가 요청 형식과 응답
 
 `GET /api/v1/orders/kb/executions`와 `GET /api/v1/orders/kb/executions/{orderNo}`는 KB `SSQM2341`의 읽기 전용 체결미체결 조회 및 최대 10페이지 주문번호 대조 API입니다. 주문 제출·취소·정정은 호출하지 않습니다. 실제 KB 응답 형태와 계좌 권한은 운영 계좌에서 별도 수동 확인이 필요합니다. 진척도 산정은 `docs/development-progress.md`를 참고하세요.
 
-1. 주문 전송 어댑터가 단일 예약을 사용하도록 연결하고, 불명확 응답의 수동 대조 절차를 완성한 뒤 별도 활성화 설정 아래 수동 승인 기반 실주문 전송
+`POST /api/v1/orders/approvals/{approvalId}/reconciliation-checks`는 `RESERVED` 또는 `UNCERTAIN` 승인에 한해 주문일자와 이미 알고 있는 KB 주문번호를 읽기 전용으로 대조하고 조회 요약을 감사 기록으로 저장합니다. 응답에는 승인 당시 주문안과 KB 조회 행을 함께 반환하지만 접수·체결 여부를 자동 확정하지 않습니다. `GET` 같은 경로에서 최근 20건의 대조 기록을 확인합니다. 주문번호가 없으면 KB 앱·증권사에서 수동 확인해야 합니다.
+
+1. 주문 전송 어댑터가 단일 예약을 사용하도록 연결하고, 주문번호가 없는 불명확 응답의 수동 대조 절차와 별도 활성화 설정을 완성한 뒤 수동 승인 기반 실주문 전송
 2. 주문 결과·실패·취소·정정 상태 동기화
 3. 배포 패키지 자동 업데이트와 운영 상태 진단

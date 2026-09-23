@@ -390,11 +390,27 @@ $page.data
 
 주문 승인별 제출 가드 확인:
 
-1. 기존 MySQL 데이터 볼륨에 `007_order_approvals.sql` 다음 `008_order_submission_guards.sql`을 적용합니다. 새 볼륨은 `schema.sql`에 포함됩니다.
+1. 기존 MySQL 데이터 볼륨에 `007_order_approvals.sql`, `008_order_submission_guards.sql`, `009_order_reconciliation_checks.sql`을 순서대로 적용합니다. 새 볼륨은 `schema.sql`에 포함됩니다.
 2. 마이그레이션 전 이미 확인된 승인은 `LEGACY_REVIEW`로 표시되고 예약 불가능한지 확인합니다. 이후 새 주문 사전검증, 승인 준비, 승인 확인을 진행한 뒤 `GET /api/v1/orders/approvals/{approvalId}/submission`에서 `status=READY`와 비어 있는 `reservedAt`을 확인합니다.
 3. 같은 승인 토큰으로 다시 확인하면 거절되고, 해당 승인 ID의 `order_submission_guards` 행이 하나만 있는지 확인합니다.
 4. 다른 사용자 ID로 해당 가드 상태를 조회할 수 없어야 합니다. 현재 개인용 API에서는 서버 단위 사용자 분리를 시험 환경에서만 확인합니다.
 5. `RESERVED`·`UNCERTAIN` 전환은 현재 내부 서비스 계약이며 HTTP API나 KB 주문 전송에 연결되지 않았습니다. 수동 테스트 중 DB 값을 직접 변경해 거래 성공으로 해석하지 않습니다.
+
+불명확한 주문 대조 API 확인:
+
+```powershell
+# 격리된 테스트 DB와 모의 KB 응답에서만 실행합니다.
+$approvalId = 7
+$body = @{ orderDate = '20260923'; orderNo = '1234567890' } | ConvertTo-Json
+Invoke-RestMethod -Method Post -ContentType 'application/json' -Body $body `
+  -Uri "http://localhost:8080/api/v1/orders/approvals/$approvalId/reconciliation-checks"
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/orders/approvals/$approvalId/reconciliation-checks"
+```
+
+1. 일반 `READY` 승인에 대한 POST는 거절되어야 합니다. 실제 주문번호를 임의로 만들어 운영 계좌 조회를 시도하지 않습니다.
+2. `RESERVED`·`UNCERTAIN` 성공 경로는 주문 전송이 아직 없으므로 격리된 테스트 DB·모의 KB 응답으로 검증합니다. 승인 당시 주문안, 조회 행, `completeScan`, `reviewStatus`와 최근 기록이 일치하는지 확인합니다.
+3. `INCOMPLETE_SCAN` 또는 `NO_MATCH_IN_SCAN`을 주문 미접수의 증거로 단정하지 않고, `MATCHES_REQUIRE_REVIEW`도 주문 성공으로 해석하지 않습니다. 호출 전후 가드 상태가 그대로인지 확인합니다.
+4. 주문번호가 없거나 KB 조회가 실패하면 KB 앱·증권사에서 별도 확인합니다. 자동 재주문은 하지 않습니다.
 
 Windows 알림 흐름 확인:
 
