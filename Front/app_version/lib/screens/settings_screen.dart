@@ -140,6 +140,10 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _MarketFallbackCard(settings: settings),
               const SizedBox(height: 12),
+              if (settings.orderReadiness != null) ...[
+                _OrderReadinessCard(readiness: settings.orderReadiness!),
+                const SizedBox(height: 12),
+              ],
               ...providers.map(
                 (provider) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
@@ -414,6 +418,105 @@ ProviderSetting? _findProvider(List<ProviderSetting> providers, String code) {
 
   return null;
 }
+
+class _OrderReadinessCard extends StatelessWidget {
+  const _OrderReadinessCard({required this.readiness});
+
+  final OrderReadiness readiness;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    final passed = readiness.checks.where((check) => check.passed).length;
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.verified_user_outlined, color: palette.text, size: 20),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  'KB 실주문 준비 상태',
+                  style: TextStyle(
+                    color: palette.text,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              StatusChip(label: readiness.canSubmit ? '가능' : '잠금'),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '$passed/${readiness.checks.length} 조건 확인',
+            style: TextStyle(color: palette.muted, fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+          ...readiness.checks.map(
+            (check) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    check.passed
+                        ? Icons.check_circle_outline_rounded
+                        : Icons.error_outline_rounded,
+                    color: check.passed
+                        ? const Color(0xff17834a)
+                        : const Color(0xffba5038),
+                    size: 17,
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _orderCheckLabel(check.code),
+                          style: TextStyle(
+                            color: palette.text,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        if (!check.passed)
+                          Text(
+                            check.message,
+                            style: TextStyle(
+                              color: palette.muted,
+                              fontSize: 11,
+                              height: 1.3,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _orderCheckLabel(String code) => switch (code) {
+  'ACCOUNT_SWITCH' => 'KB 계좌 조회',
+  'ORDER_PRECHECK_SWITCH' => '주문 사전검증',
+  'LIVE_ORDER_SWITCH' => '실주문 별도 스위치',
+  'CREDENTIALS' => 'KB API 인증',
+  'ACCOUNT_NUMBER' => '계좌번호',
+  'HTTPS_ENDPOINT' => 'KB HTTPS 연결',
+  'ORDER_IP' => '운영 주문 IP',
+  'ORDER_MAC' => '운영 주문 MAC',
+  'SUBMISSION_TRANSPORT' => '실주문 전송 연결',
+  _ => code,
+};
 
 class _ProviderCard extends StatelessWidget {
   const _ProviderCard({

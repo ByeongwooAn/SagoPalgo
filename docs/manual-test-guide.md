@@ -31,6 +31,9 @@ SAGOPALGO_PERSONAL_MODE_EMAIL=local@sagopalgo.local
 
 SAGOPALGO_KB_ACCOUNT_ENABLED=false
 SAGOPALGO_KB_ORDER_ENABLED=false
+SAGOPALGO_KB_LIVE_ORDER_ENABLED=false
+SAGOPALGO_KB_ORDER_IP_ADDRESS=
+SAGOPALGO_KB_ORDER_MAC_ADDRESS=
 SAGOPALGO_KB_APP_KEY=
 SAGOPALGO_KB_APP_SECRET=
 SAGOPALGO_KB_ACCOUNT_NUMBER=
@@ -374,6 +377,17 @@ Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/orders/prechecks?limit=20'
 3. 매수 예상금액이 주문가능현금보다 크거나 매도 수량이 주문가능수량보다 크면 차단되는지 확인합니다.
 4. 검증할 때마다 `order_prechecks`에 계좌번호나 API Key 없이 결과와 차단 요약만 저장되는지 확인합니다.
 5. 모든 검사에 통과해 `eligible=true`여도 `canSubmit=false`이고 KB 주문·계좌 잔고 변화가 없는지 확인합니다.
+
+실주문 준비 상태 확인:
+
+```powershell
+Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/orders/readiness'
+```
+
+1. 기본 설정에서 `LIVE_ORDER_SWITCH`, `ORDER_IP`, `ORDER_MAC`, `SUBMISSION_TRANSPORT`가 실패하고 `canSubmit=false`인지 확인합니다.
+2. 격리 환경에서만 별도 스위치와 형식에 맞는 주소를 설정해도 `SUBMISSION_TRANSPORT`가 실패하고 `canSubmit=false`인지 확인합니다. 실제 주문 호출은 없어야 합니다.
+3. 응답·로그·Flutter 설정 화면에 App Key, App Secret, 계좌번호, IP/MAC 원문이 표시되지 않는지 확인합니다. 설정 화면에는 차단 사유만 표시합니다.
+4. 주소 형식 통과는 KB 운영 승인이나 실제 발신지 확인이 아닙니다. 운영 주소와 계좌 권한은 증권사와 별도로 확인합니다.
 
 KB 주문 이력 읽기 전용 API 확인:
 

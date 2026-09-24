@@ -64,6 +64,42 @@ class ProviderSetting {
   }
 }
 
+class OrderReadinessCheck {
+  const OrderReadinessCheck({
+    required this.code,
+    required this.passed,
+    required this.message,
+  });
+
+  final String code;
+  final bool passed;
+  final String message;
+
+  factory OrderReadinessCheck.fromJson(Map<String, dynamic> json) {
+    return OrderReadinessCheck(
+      code: json['code'] as String? ?? '',
+      passed: json['passed'] as bool? ?? false,
+      message: json['message'] as String? ?? '',
+    );
+  }
+}
+
+class OrderReadiness {
+  const OrderReadiness({required this.canSubmit, required this.checks});
+
+  final bool canSubmit;
+  final List<OrderReadinessCheck> checks;
+
+  factory OrderReadiness.fromJson(Map<String, dynamic> json) {
+    return OrderReadiness(
+      canSubmit: json['canSubmit'] as bool? ?? false,
+      checks: (json['checks'] as List<dynamic>? ?? const [])
+          .map((item) => OrderReadinessCheck.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
 /// 증권사 설정 API의 루트 응답 모델입니다.
 class ProviderSettingsSnapshot {
   /// 설정된 증권사 목록을 받습니다.
@@ -71,6 +107,7 @@ class ProviderSettingsSnapshot {
     required this.secretStorageType,
     required this.secretStorageDescription,
     required this.orderSafetyMode,
+    this.orderReadiness,
     required this.marketDataFallbackOrder,
     required this.marketDataFallbackDescription,
     required this.providers,
@@ -84,6 +121,9 @@ class ProviderSettingsSnapshot {
 
   /// 주문 기능 안전 모드 설명입니다.
   final String orderSafetyMode;
+
+  /// KB 실주문 전송 전 안전 조건입니다. 실제 주문 가능 여부와는 별도로 표시합니다.
+  final OrderReadiness? orderReadiness;
 
   /// 현재가 조회 시 시도하는 Provider 코드 순서입니다.
   final List<String> marketDataFallbackOrder;
@@ -103,6 +143,11 @@ class ProviderSettingsSnapshot {
           json['secretStorageDescription'] as String? ?? '.env 파일',
       orderSafetyMode:
           json['orderSafetyMode'] as String? ?? '주문 기능 OFF · 사전검증만 지원',
+      orderReadiness: json['orderReadiness'] is Map<String, dynamic>
+          ? OrderReadiness.fromJson(
+              json['orderReadiness'] as Map<String, dynamic>,
+            )
+          : null,
       marketDataFallbackOrder:
           (json['marketDataFallbackOrder'] as List<dynamic>? ?? const [])
               .map((item) => item as String)

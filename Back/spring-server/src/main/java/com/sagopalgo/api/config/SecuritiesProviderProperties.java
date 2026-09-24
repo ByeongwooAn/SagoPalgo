@@ -31,6 +31,9 @@ public class SecuritiesProviderProperties {
         private boolean marketDataEnabled = false;
         private boolean accountEnabled = false;
         private boolean orderEnabled = false;
+        private boolean liveOrderEnabled = false;
+        private String orderIpAddress = "";
+        private String orderMacAddress = "";
         private String baseUrl = "";
         private String grantType = "client_credentials";
         private String tokenPath = "";
@@ -82,6 +85,30 @@ public class SecuritiesProviderProperties {
 
         public void setOrderEnabled(boolean orderEnabled) {
             this.orderEnabled = orderEnabled;
+        }
+
+        public boolean isLiveOrderEnabled() {
+            return liveOrderEnabled;
+        }
+
+        public void setLiveOrderEnabled(boolean liveOrderEnabled) {
+            this.liveOrderEnabled = liveOrderEnabled;
+        }
+
+        public String getOrderIpAddress() {
+            return orderIpAddress;
+        }
+
+        public void setOrderIpAddress(String orderIpAddress) {
+            this.orderIpAddress = orderIpAddress;
+        }
+
+        public String getOrderMacAddress() {
+            return orderMacAddress;
+        }
+
+        public void setOrderMacAddress(String orderMacAddress) {
+            this.orderMacAddress = orderMacAddress;
         }
 
         public String getBaseUrl() {

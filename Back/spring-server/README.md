@@ -121,6 +121,9 @@ Invoke-RestMethod `
 - `GET /api/v1/orders/prechecks?limit=20`: 최근 사전검증 감사 로그 조회
 - `SAGOPALGO_KB_MAX_ORDER_AMOUNT`: 1회 최대 주문금액, 기본 100만원
 - `SAGOPALGO_KB_MAX_PRICE_DEVIATION_RATE`: 현재가 대비 지정가 최대 이탈률, 기본 5%
+- `SAGOPALGO_KB_LIVE_ORDER_ENABLED`: 실주문 별도 스위치, 기본 `false`. 현재는 `true`여도 주문 전송이 불가능합니다.
+- `SAGOPALGO_KB_ORDER_IP_ADDRESS`, `SAGOPALGO_KB_ORDER_MAC_ADDRESS`: 향후 운영 주문 헤더에 사용할 값의 형식 점검용 설정. API 응답에는 원문을 내보내지 않습니다.
+- `GET /api/v1/orders/readiness`: 계좌·키·주문 스위치·운영 주소 형식과 전송 연결 상태를 민감값 없이 확인합니다. 설정 탭에도 같은 차단 항목이 표시됩니다.
 - 실제 KB 주문 제출 API는 아직 없으며 사전검증 응답의 `canSubmit`은 항상 `false`입니다.
 
 ## 모의매매
