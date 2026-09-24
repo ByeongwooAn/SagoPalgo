@@ -168,6 +168,7 @@ CREATE TABLE IF NOT EXISTS order_submission_guards (
   order_approval_id BIGINT NOT NULL,
   user_id BIGINT NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'READY',
+  expires_at DATETIME(6) NULL,
   reserved_at DATETIME NULL,
   uncertain_at DATETIME NULL,
   created_at DATETIME NOT NULL,
@@ -179,7 +180,9 @@ CREATE TABLE IF NOT EXISTS order_submission_guards (
   CONSTRAINT fk_order_submission_guards_user FOREIGN KEY (user_id)
     REFERENCES users (user_id) ON DELETE CASCADE,
   CONSTRAINT chk_order_submission_guards_status
-    CHECK (status IN ('READY', 'RESERVED', 'UNCERTAIN', 'LEGACY_REVIEW'))
+    CHECK (status IN ('READY', 'RESERVED', 'UNCERTAIN', 'LEGACY_REVIEW')),
+  CONSTRAINT chk_order_submission_guards_ready_expiry
+    CHECK (status <> 'READY' OR expires_at IS NOT NULL)
 ) ENGINE=InnoDB COMMENT='승인별 단일 제출 예약 및 불명확 응답 차단 상태';
 
 -- 주문번호 조회는 결론이 아니라 수동 검토를 위한 감사 증거로 저장합니다.

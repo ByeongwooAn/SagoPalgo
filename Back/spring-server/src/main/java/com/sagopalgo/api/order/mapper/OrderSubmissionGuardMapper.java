@@ -12,9 +12,9 @@ import org.apache.ibatis.annotations.Update;
 public interface OrderSubmissionGuardMapper {
     @Insert("""
         INSERT INTO order_submission_guards (
-          order_approval_id, user_id, status, created_at, updated_at
+          order_approval_id, user_id, status, expires_at, created_at, updated_at
         )
-        SELECT order_approval_id, user_id, 'READY', #{now}, #{now}
+        SELECT order_approval_id, user_id, 'READY', #{expiresAt}, #{now}, #{now}
         FROM order_approvals
         WHERE order_approval_id = #{approvalId}
           AND user_id = #{userId}
@@ -23,7 +23,8 @@ public interface OrderSubmissionGuardMapper {
     int insertReady(
         @Param("approvalId") Long approvalId,
         @Param("userId") Long userId,
-        @Param("now") LocalDateTime now
+        @Param("now") LocalDateTime now,
+        @Param("expiresAt") LocalDateTime expiresAt
     );
 
     @Update("""
@@ -32,6 +33,7 @@ public interface OrderSubmissionGuardMapper {
         WHERE order_approval_id = #{approvalId}
           AND user_id = #{userId}
           AND status = 'READY'
+          AND expires_at > #{now}
         """)
     int reserveOnce(
         @Param("approvalId") Long approvalId,
@@ -53,7 +55,7 @@ public interface OrderSubmissionGuardMapper {
     );
 
     @Select("""
-        SELECT order_approval_id, user_id, status, reserved_at, uncertain_at,
+        SELECT order_approval_id, user_id, status, expires_at, reserved_at, uncertain_at,
                created_at, updated_at
         FROM order_submission_guards
         WHERE order_approval_id = #{approvalId} AND user_id = #{userId}
