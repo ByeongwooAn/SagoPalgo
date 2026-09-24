@@ -6,6 +6,7 @@ import com.sagopalgo.api.config.KisMarketProperties;
 import com.sagopalgo.api.config.ResearchProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties.Provider;
+import com.sagopalgo.api.order.service.OrderReadinessService;
 import com.sagopalgo.api.settings.dto.ProviderSettingsResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,13 +53,18 @@ class ProviderSettingsServiceTest {
         ProviderSettingsService service = new ProviderSettingsService(
             kisProperties,
             securitiesProperties,
-            researchProperties
+            researchProperties,
+            new OrderReadinessService(securitiesProperties)
         );
 
         ProviderSettingsResponse response = service.getSettings();
 
         assertThat(response.secretStorageType()).isEqualTo("ENV_FILE");
         assertThat(response.orderSafetyMode()).isEqualTo("주문 기능 OFF · 사전검증만 지원");
+        assertThat(response.orderReadiness().canSubmit()).isFalse();
+        assertThat(response.orderReadiness().toString()).doesNotContain(
+            "kb-app-key", "kb-app-secret", "12345678"
+        );
         assertThat(response.marketDataFallbackOrder()).containsExactly("KB", "KIS", "TOSS");
         assertThat(response.providers())
             .extracting("code")

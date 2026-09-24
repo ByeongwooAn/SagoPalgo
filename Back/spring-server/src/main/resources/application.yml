@@ -59,6 +59,9 @@ sagopalgo:
       market-data-enabled: ${SAGOPALGO_KB_MARKET_DATA_ENABLED:false}
       account-enabled: ${SAGOPALGO_KB_ACCOUNT_ENABLED:false}
       order-enabled: ${SAGOPALGO_KB_ORDER_ENABLED:false}
+      live-order-enabled: ${SAGOPALGO_KB_LIVE_ORDER_ENABLED:false}
+      order-ip-address: ${SAGOPALGO_KB_ORDER_IP_ADDRESS:}
+      order-mac-address: ${SAGOPALGO_KB_ORDER_MAC_ADDRESS:}
       max-order-amount: ${SAGOPALGO_KB_MAX_ORDER_AMOUNT:1000000}
       max-price-deviation-rate: ${SAGOPALGO_KB_MAX_PRICE_DEVIATION_RATE:5.0}
       # KB증권 공식 API 문서 all_kbstock_excel 기준 기본값입니다. 비밀값이 아니므로 코드 설정에 둡니다.

@@ -4,6 +4,7 @@ import com.sagopalgo.api.config.KisMarketProperties;
 import com.sagopalgo.api.config.ResearchProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties.Provider;
+import com.sagopalgo.api.order.service.OrderReadinessService;
 import com.sagopalgo.api.settings.dto.ProviderSettingResponse;
 import com.sagopalgo.api.settings.dto.ProviderSettingsResponse;
 import java.util.ArrayList;
@@ -20,15 +21,18 @@ public class ProviderSettingsService {
     private final KisMarketProperties kisMarketProperties;
     private final SecuritiesProviderProperties securitiesProviderProperties;
     private final ResearchProviderProperties researchProviderProperties;
+    private final OrderReadinessService orderReadinessService;
 
     public ProviderSettingsService(
         KisMarketProperties kisMarketProperties,
         SecuritiesProviderProperties securitiesProviderProperties,
-        ResearchProviderProperties researchProviderProperties
+        ResearchProviderProperties researchProviderProperties,
+        OrderReadinessService orderReadinessService
     ) {
         this.kisMarketProperties = kisMarketProperties;
         this.securitiesProviderProperties = securitiesProviderProperties;
         this.researchProviderProperties = researchProviderProperties;
+        this.orderReadinessService = orderReadinessService;
     }
 
     public ProviderSettingsResponse getSettings() {
@@ -63,6 +67,7 @@ public class ProviderSettingsService {
             kb.isOrderEnabled()
                 ? "KB 주문 스위치 ON · 실제 주문 미지원"
                 : "주문 기능 OFF · 사전검증만 지원",
+            orderReadinessService.status(),
             List.of("KB", "KIS", "TOSS"),
             "앞 Provider가 비활성·미설정·조회 실패이면 다음 Provider를 시도하고, 모두 실패하면 등록 매수가를 사용합니다.",
             List.of(
