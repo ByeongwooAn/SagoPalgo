@@ -19,7 +19,7 @@ public class OrderSubmissionGuardService {
 
     public void reserveOnce(Long userId, Long approvalId) {
         if (mapper.reserveOnce(approvalId, userId, LocalDateTime.now()) != 1) {
-            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "제출 예약이 이미 사용되었거나 승인 기록이 없습니다.");
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "제출 예약이 만료·사용되었거나 승인 기록이 없습니다.");
         }
     }
 
@@ -34,8 +34,13 @@ public class OrderSubmissionGuardService {
         if (record == null) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "해당 주문 승인 기록을 찾을 수 없습니다.");
         }
+        String status = record.getStatus();
+        if ("READY".equals(status)
+            && (record.getExpiresAt() == null || !record.getExpiresAt().isAfter(LocalDateTime.now()))) {
+            status = "EXPIRED";
+        }
         return new OrderSubmissionStatusResponse(
-            record.getOrderApprovalId(), record.getStatus(),
+            record.getOrderApprovalId(), status, record.getExpiresAt(),
             record.getReservedAt(), record.getUncertainAt()
         );
     }

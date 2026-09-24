@@ -6,6 +6,7 @@ public class OrderSubmissionGuardRecord {
     private Long orderApprovalId;
     private Long userId;
     private String status;
+    private LocalDateTime expiresAt;
     private LocalDateTime reservedAt;
     private LocalDateTime uncertainAt;
     private LocalDateTime createdAt;
@@ -17,6 +18,8 @@ public class OrderSubmissionGuardRecord {
     public void setUserId(Long userId) { this.userId = userId; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
     public LocalDateTime getReservedAt() { return reservedAt; }
     public void setReservedAt(LocalDateTime reservedAt) { this.reservedAt = reservedAt; }
     public LocalDateTime getUncertainAt() { return uncertainAt; }

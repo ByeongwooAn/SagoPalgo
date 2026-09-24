@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderApprovalService {
     private static final int TOKEN_BYTES = 32;
     private static final int TOKEN_TTL_SECONDS = 90;
+    private static final int RESERVATION_TTL_SECONDS = 90;
     private static final String NOT_SUBMITTED = "승인 기록만 저장되었습니다. KB증권에 실제 주문은 전송되지 않았습니다.";
 
     private final OrderPrecheckService precheckService;
@@ -72,11 +73,14 @@ public class OrderApprovalService {
         if (!request.acknowledged()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "실주문 미전송 안내를 확인해야 합니다.");
         }
-        int changed = mapper.acknowledge(request.approvalId(), userId, hash(request.token()), LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        int changed = mapper.acknowledge(request.approvalId(), userId, hash(request.token()), now);
         if (changed != 1) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "승인 토큰이 만료되었거나 이미 사용되었습니다. 다시 검증해 주세요.");
         }
-        if (submissionGuardMapper.insertReady(request.approvalId(), userId, LocalDateTime.now()) != 1) {
+        if (submissionGuardMapper.insertReady(
+            request.approvalId(), userId, now, now.plusSeconds(RESERVATION_TTL_SECONDS)
+        ) != 1) {
             throw new ApiException(ErrorCode.INTERNAL_ERROR, "제출 가드 기록을 만들 수 없어 승인을 저장하지 않았습니다.");
         }
         return new OrderApprovalConfirmResponse(request.approvalId(), "ACKNOWLEDGED", false, NOT_SUBMITTED);

@@ -53,13 +53,28 @@ class OrderSubmissionGuardServiceTest {
         record.setOrderApprovalId(7L);
         record.setUserId(1L);
         record.setStatus("READY");
+        record.setExpiresAt(LocalDateTime.now().plusSeconds(30));
         when(mapper.findByApprovalId(7L, 1L)).thenReturn(record);
 
         var response = service.status(1L, 7L);
 
         assertThat(response.approvalId()).isEqualTo(7L);
         assertThat(response.status()).isEqualTo("READY");
+        assertThat(response.expiresAt()).isEqualTo(record.getExpiresAt());
         assertThat(response.reservedAt()).isNull();
+    }
+
+    @Test
+    void expiredAndUnboundedReadyGuardsAreNotReportedAsAvailable() {
+        OrderSubmissionGuardRecord record = new OrderSubmissionGuardRecord();
+        record.setOrderApprovalId(7L);
+        record.setStatus("READY");
+        record.setExpiresAt(LocalDateTime.now().minusSeconds(1));
+        when(mapper.findByApprovalId(7L, 1L)).thenReturn(record);
+
+        assertThat(service.status(1L, 7L).status()).isEqualTo("EXPIRED");
+        record.setExpiresAt(null);
+        assertThat(service.status(1L, 7L).status()).isEqualTo("EXPIRED");
     }
 
     @Test

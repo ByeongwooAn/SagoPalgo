@@ -89,8 +89,8 @@ class OrderReconciliationServiceTest {
     @Test
     void readyOrLegacyApprovalCannotStartReconciliation() {
         when(guardService.status(1L, 7L))
-            .thenReturn(new OrderSubmissionStatusResponse(7L, "READY", null, null),
-                new OrderSubmissionStatusResponse(7L, "LEGACY_REVIEW", null, null));
+            .thenReturn(new OrderSubmissionStatusResponse(7L, "READY", null, null, null),
+                new OrderSubmissionStatusResponse(7L, "LEGACY_REVIEW", null, null, null));
         var request = new OrderReconciliationReviewRequest("20260923", "1234567890");
 
         assertThatThrownBy(() -> service.review(1L, 7L, request)).isInstanceOf(ApiException.class);
@@ -114,7 +114,7 @@ class OrderReconciliationServiceTest {
     @Test
     void historyRequiresOwnedApproval() {
         when(guardService.status(1L, 7L))
-            .thenReturn(new OrderSubmissionStatusResponse(7L, "UNCERTAIN", null, null));
+            .thenReturn(new OrderSubmissionStatusResponse(7L, "UNCERTAIN", null, null, null));
         OrderReconciliationCheckRecord check = new OrderReconciliationCheckRecord();
         check.setOrderReconciliationCheckId(41L);
         check.setOrderDate(LocalDate.of(2026, 9, 23));
@@ -128,7 +128,7 @@ class OrderReconciliationServiceTest {
 
     private void readyForReview(String status) {
         when(guardService.status(1L, 7L))
-            .thenReturn(new OrderSubmissionStatusResponse(7L, status, null, null));
+            .thenReturn(new OrderSubmissionStatusResponse(7L, status, null, null, null));
         OrderPrecheckRecord precheck = new OrderPrecheckRecord();
         precheck.setStockCode("005930");
         precheck.setOrderSide("BUY");

@@ -75,7 +75,9 @@ class OrderApprovalServiceTest {
     void consumesTokenOnceWithoutSubmittingAnOrder() {
         when(mapper.acknowledge(eq(7L), eq(1L), any(), any(LocalDateTime.class)))
             .thenReturn(1, 0);
-        when(submissionGuardMapper.insertReady(eq(7L), eq(1L), any(LocalDateTime.class)))
+        when(submissionGuardMapper.insertReady(
+            eq(7L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)
+        ))
             .thenReturn(1);
         OrderApprovalConfirmRequest request = new OrderApprovalConfirmRequest(7L, "one-time-token", true);
 
@@ -84,7 +86,10 @@ class OrderApprovalServiceTest {
         assertThat(response.status()).isEqualTo("ACKNOWLEDGED");
         assertThat(response.orderSubmitted()).isFalse();
         assertThatThrownBy(() -> service.confirm(1L, request)).isInstanceOf(ApiException.class);
-        verify(submissionGuardMapper).insertReady(eq(7L), eq(1L), any(LocalDateTime.class));
+        ArgumentCaptor<LocalDateTime> confirmedAt = ArgumentCaptor.forClass(LocalDateTime.class);
+        ArgumentCaptor<LocalDateTime> expiresAt = ArgumentCaptor.forClass(LocalDateTime.class);
+        verify(submissionGuardMapper).insertReady(eq(7L), eq(1L), confirmedAt.capture(), expiresAt.capture());
+        assertThat(expiresAt.getValue()).isEqualTo(confirmedAt.getValue().plusSeconds(90));
     }
 
     @Test
@@ -100,7 +105,7 @@ class OrderApprovalServiceTest {
         assertThatThrownBy(() -> service.confirm(1L, new OrderApprovalConfirmRequest(7L, "token", false)))
             .isInstanceOf(ApiException.class);
         verify(mapper, never()).acknowledge(any(), any(), any(), any());
-        verify(submissionGuardMapper, never()).insertReady(any(), any(), any());
+        verify(submissionGuardMapper, never()).insertReady(any(), any(), any(), any());
     }
 
     private OrderPrecheckRequest request(String price, String quantity) {

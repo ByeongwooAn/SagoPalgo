@@ -71,7 +71,7 @@ class OrderDateReconciliationServiceTest {
     @Test
     void readyApprovalCannotScanBrokerHistory() {
         when(guardService.status(1L, 7L))
-            .thenReturn(new OrderSubmissionStatusResponse(7L, "READY", null, null));
+            .thenReturn(new OrderSubmissionStatusResponse(7L, "READY", null, null, null));
 
         assertThatThrownBy(() -> service.review(
             1L, 7L, new OrderDateReconciliationRequest("20260923")
@@ -95,7 +95,7 @@ class OrderDateReconciliationServiceTest {
     @Test
     void historyIsScopedToOwnedApproval() {
         when(guardService.status(1L, 7L))
-            .thenReturn(new OrderSubmissionStatusResponse(7L, "UNCERTAIN", null, null));
+            .thenReturn(new OrderSubmissionStatusResponse(7L, "UNCERTAIN", null, null, null));
         OrderDateReconciliationCheckRecord record = new OrderDateReconciliationCheckRecord();
         record.setOrderDateReconciliationCheckId(21L);
         record.setOrderDate(LocalDate.of(2026, 9, 23));
@@ -107,7 +107,7 @@ class OrderDateReconciliationServiceTest {
 
     private void allowReview(String status) {
         when(guardService.status(1L, 7L))
-            .thenReturn(new OrderSubmissionStatusResponse(7L, status, null, null));
+            .thenReturn(new OrderSubmissionStatusResponse(7L, status, null, null, null));
         OrderPrecheckRecord precheck = new OrderPrecheckRecord();
         precheck.setStockCode("005930");
         precheck.setOrderSide("BUY");
