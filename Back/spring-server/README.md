@@ -138,7 +138,7 @@ Invoke-RestMethod `
 
 ## 추천 기준
 
-- Python `WEIGHTED_SIGNAL_V1` 분석기는 최근 일봉, 저장 뉴스·공시, 보유 손익과 손절·익절 기준을 종합합니다.
+- Python `WEIGHTED_SIGNAL_V1` 분석기는 최근 일봉, 저장 뉴스·공시, 보유 손익·매입 원금 비중과 손절·익절 기준을 종합합니다. 동일 종목의 여러 활성 보유 건을 합산하고 설정 자본금 대비 권장 한도를 넘으면 신규 매수 신호를 보류합니다. 이 비중은 실시간 KB 계좌 평가 비중이 아닙니다.
 - `POST /api/v1/recommendations/analyze/{holdingId}`는 추천 본문, 점수 근거, 분석 원문을 한 트랜잭션으로 저장합니다.
 - Python 서버가 비활성 또는 실패 상태이면 `DashboardRecommendationEngine`의 규칙 결과를 같은 저장 계약으로 대체합니다.
 - 대시보드는 저장된 최신 추천을 우선 표시하고, 저장 결과가 없을 때만 즉시 계산한 규칙 추천을 사용합니다.

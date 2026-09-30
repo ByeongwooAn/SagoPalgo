@@ -55,6 +55,8 @@ def analyze(request: InvestmentAnalysisRequest) -> InvestmentAnalysisResponse:
         _news_signal(request),
         _disclosure_signal(request),
     ]
+    if request.analysis_type == "HOLDING" and request.portfolio_weight_rate is not None:
+        signals.append(_portfolio_signal(request))
     score = max(0, min(100, 50 + sum(signal.score for signal in signals)))
     recommendation_type, status = _decision(request, score)
     summary = _summary(request, status, score)
@@ -94,6 +96,31 @@ def _risk_signal(request: InvestmentAnalysisRequest) -> Signal:
         f"현재 수익률 {request.profit_rate:.2f}%는 설정한 손절·익절 구간 안에 있습니다.",
         "RISK",
         contribution,
+    )
+
+
+def _portfolio_signal(request: InvestmentAnalysisRequest) -> Signal:
+    assert request.portfolio_weight_rate is not None
+    weight = request.portfolio_weight_rate
+    capital_weight = request.capital_weight_rate
+    limit = request.max_capital_weight_rate
+    if capital_weight is not None and limit is not None and capital_weight > limit:
+        return Signal(
+            "매입 원금 비중",
+            f"동일 종목 매입 원금은 설정 자본금의 {capital_weight:.2f}%로 권장 한도 {limit:.2f}%를 넘습니다. "
+            f"등록 보유 종목 원금 중 비중은 {weight:.2f}%입니다.",
+            "PORTFOLIO",
+            -12,
+        )
+    capital_description = (
+        f"설정 자본금의 {capital_weight:.2f}%입니다."
+        if capital_weight is not None else "설정 자본금이 없어 자본금 대비 비중은 판단하지 않았습니다."
+    )
+    return Signal(
+        "매입 원금 비중",
+        f"동일 종목은 등록 보유 종목 매입 원금의 {weight:.2f}%, {capital_description}",
+        "PORTFOLIO",
+        0,
     )
 
 
@@ -159,6 +186,12 @@ def _decision(request: InvestmentAnalysisRequest, score: int) -> tuple[str, str]
             return "SELL", "STOP_LOSS_WATCH"
         if request.profit_rate >= request.take_profit_rate - 1:
             return "SELL", "TAKE_PROFIT"
+        if (
+            request.capital_weight_rate is not None
+            and request.max_capital_weight_rate is not None
+            and request.capital_weight_rate > request.max_capital_weight_rate
+        ):
+            return "HOLD", "RISK"
     if score >= 75:
         return "BUY", "BUY_STRONG"
     if score >= 62:
@@ -177,6 +210,16 @@ def _summary(request: InvestmentAnalysisRequest, status: str, score: int) -> str
             "HOLD": "신호가 중립이므로 관심 종목으로 관찰하며 다음 변화를 확인하세요.",
         }
         return f"{request.stock_name} 관심 종목 점수는 {score}점입니다. {messages[status]}"
+    if (
+        status == "RISK"
+        and request.capital_weight_rate is not None
+        and request.max_capital_weight_rate is not None
+        and request.capital_weight_rate > request.max_capital_weight_rate
+    ):
+        return (
+            f"{request.stock_name} 종합 점수는 {score}점입니다. "
+            "설정 자본금 대비 동일 종목 매입 원금이 권장 한도를 넘어 추가 매수 신호를 보류합니다."
+        )
     messages = {
         "STOP_LOSS_WATCH": "손절 기준 접근 신호가 우선입니다. 추가 매수보다 손실 제한 계획을 확인하세요.",
         "TAKE_PROFIT": "익절 기준 접근 신호가 우선입니다. 일부 수익 실현과 잔여 물량 관리를 검토하세요.",

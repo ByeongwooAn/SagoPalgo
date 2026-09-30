@@ -88,7 +88,10 @@ class HttpAiAnalysisClientTest {
             List.of(),
             List.of(),
             List.of(),
-            "HOLDING"
+            "HOLDING",
+            null,
+            null,
+            null
         );
     }
 }

@@ -11,6 +11,7 @@ import com.sagopalgo.api.alert.service.AlertService;
 import com.sagopalgo.api.config.AiAnalysisProperties;
 import com.sagopalgo.api.dashboard.service.DashboardRecommendationEngine;
 import com.sagopalgo.api.holding.dto.HoldingResponse;
+import com.sagopalgo.api.holding.dto.PortfolioCostExposure;
 import com.sagopalgo.api.holding.service.HoldingService;
 import com.sagopalgo.api.market.dto.MarketCandleResponse;
 import com.sagopalgo.api.market.model.CandleInterval;
@@ -97,6 +98,9 @@ class RecommendationServiceTest {
     void analyzeHoldingCombinesSignalsAndStoresResult() {
         HoldingResponse holding = holding("4.2", "9");
         when(holdingService.findOne(1L, 21L)).thenReturn(holding);
+        when(holdingService.costExposure(1L, "005930", "KOSPI")).thenReturn(Optional.of(
+            new PortfolioCostExposure(new BigDecimal("40"), new BigDecimal("22"), new BigDecimal("20"))
+        ));
         when(researchFeedStore.find(any())).thenReturn(new StoredResearchFeed(
             List.of(new NewsArticle(
                 "NAVER_NEWS",
@@ -151,6 +155,9 @@ class RecommendationServiceTest {
         assertThat(requestCaptor.getValue().news()).hasSize(1);
         assertThat(requestCaptor.getValue().disclosures()).hasSize(1);
         assertThat(requestCaptor.getValue().analysisType()).isEqualTo("HOLDING");
+        assertThat(requestCaptor.getValue().portfolioWeightRate()).isEqualByComparingTo("40");
+        assertThat(requestCaptor.getValue().capitalWeightRate()).isEqualByComparingTo("22");
+        assertThat(requestCaptor.getValue().maxCapitalWeightRate()).isEqualByComparingTo("20");
     }
 
     @Test
@@ -194,6 +201,7 @@ class RecommendationServiceTest {
         assertThat(requestCaptor.getValue().analysisType()).isEqualTo("WATCHLIST");
         assertThat(requestCaptor.getValue().buyPrice()).isNull();
         assertThat(requestCaptor.getValue().profitRate()).isNull();
+        assertThat(requestCaptor.getValue().portfolioWeightRate()).isNull();
         org.mockito.Mockito.verifyNoInteractions(alertService);
     }
 
