@@ -109,6 +109,24 @@ class KbAccountServiceTest {
     }
 
     @Test
+    void missingKbValuationWeightRemainsUnknown() throws Exception {
+        KbAccountService service = new KbAccountService(new FixtureKbClient(null, json("""
+            {
+              "dataBody": {
+                "Record1": [
+                  {"is_cd": "005930", "is_nm": "삼성전자", "val_amt": "770000"}
+                ]
+              }
+            }
+            """)));
+
+        KbBalanceResponse response = service.settlementBalance();
+
+        assertThat(response.items()).hasSize(1);
+        assertThat(response.items().get(0).valuationWeightRate()).isNull();
+    }
+
+    @Test
     @DisplayName("보유 주식 응답에 종목 배열이 없으면 가짜 알 수 없는 종목을 만들지 않는다")
     void holdingsDoesNotCreateUnknownItemWhenRecordArrayIsMissing() throws Exception {
         KbAccountService service = new KbAccountService(new FixtureKbClient(json("""

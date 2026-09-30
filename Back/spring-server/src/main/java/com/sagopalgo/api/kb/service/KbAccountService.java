@@ -181,7 +181,8 @@ public class KbAccountService {
             money(kbClient.decimal(node, "val_amt")),
             money(kbClient.decimal(node, "pl_amt", "val_pl")),
             rate(kbClient.decimal(node, "yld", "val_yld")),
-            rate(kbClient.decimal(node, "val_sgrvt_p2")),
+            StringUtils.hasText(kbClient.text(node, "val_sgrvt_p2"))
+                ? rate(kbClient.decimal(node, "val_sgrvt_p2")) : null,
             kbClient.text(node, "is_dtl_typ_cd"),
             kbClient.text(node, "fnl_ccls_excg_cd")
         );

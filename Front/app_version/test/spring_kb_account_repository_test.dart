@@ -35,6 +35,7 @@ void main() {
                 'valuationAmount': 760000,
                 'profitAmount': 69000,
                 'profitRate': 10,
+                'weightRate': 14.62,
               },
             ],
           });
@@ -52,7 +53,15 @@ void main() {
               'totalProfitAmount': 400000,
               'totalYieldRate': 8.3,
             },
-            'items': [],
+            'items': [
+              {
+                'stockCode': '005930',
+                'stockName': '삼성전자',
+                'quantity': 10,
+                'valuationAmount': 770000,
+                'valuationWeightRate': 68.14,
+              },
+            ],
           });
         }
 
@@ -79,6 +88,8 @@ void main() {
       'http://localhost:8080/api/v1/kb/accounts/primary/balances/execution',
     ]);
     expect(snapshot.holdings.items.single.stockName, '삼성전자');
+    expect(snapshot.holdings.items.single.weightRate, 14.62);
+    expect(snapshot.settlementBalance.items.single.valuationWeightRate, 68.14);
     expect(snapshot.settlementBalance.summary.cashDeposit, 1200000);
     expect(snapshot.executionBalance.summary.netAssetValuationAmount, 5200000);
   });
