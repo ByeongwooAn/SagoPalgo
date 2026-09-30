@@ -12,9 +12,9 @@ import org.apache.ibatis.annotations.Update;
 public interface OrderApprovalMapper {
     @Insert("""
         INSERT INTO order_approvals (
-          user_id, order_precheck_id, token_hash, status, expires_at, created_at
+          user_id, order_precheck_id, token_hash, account_fingerprint, status, expires_at, created_at
         ) VALUES (
-          #{userId}, #{orderPrecheckId}, #{tokenHash}, 'PREPARED', #{expiresAt}, #{createdAt}
+          #{userId}, #{orderPrecheckId}, #{tokenHash}, #{accountFingerprint}, 'PREPARED', #{expiresAt}, #{createdAt}
         )
         """)
     @Options(useGeneratedKeys = true, keyProperty = "orderApprovalId", keyColumn = "order_approval_id")
@@ -26,6 +26,7 @@ public interface OrderApprovalMapper {
         WHERE order_approval_id = #{approvalId}
           AND user_id = #{userId}
           AND token_hash = #{tokenHash}
+          AND account_fingerprint = #{accountFingerprint}
           AND status = 'PREPARED'
           AND expires_at > #{now}
         """)
@@ -33,6 +34,7 @@ public interface OrderApprovalMapper {
         @Param("approvalId") Long approvalId,
         @Param("userId") Long userId,
         @Param("tokenHash") String tokenHash,
+        @Param("accountFingerprint") String accountFingerprint,
         @Param("now") LocalDateTime now
     );
 }

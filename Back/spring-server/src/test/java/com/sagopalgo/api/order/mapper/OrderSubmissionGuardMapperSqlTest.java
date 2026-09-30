@@ -14,10 +14,11 @@ class OrderSubmissionGuardMapperSqlTest {
             .getMethod("insertReady", Long.class, Long.class, LocalDateTime.class, LocalDateTime.class)
             .getAnnotation(Insert.class).value());
         String reserve = String.join(" ", OrderSubmissionGuardMapper.class
-            .getMethod("reserveOnce", Long.class, Long.class, LocalDateTime.class)
+            .getMethod("reserveOnce", Long.class, Long.class, String.class, LocalDateTime.class)
             .getAnnotation(Update.class).value());
 
         assertThat(insert).contains("expires_at", "#{expiresAt}");
-        assertThat(reserve).contains("status = 'READY'", "expires_at > #{now}");
+        assertThat(reserve).contains("status = 'READY'", "expires_at > #{now}",
+            "a.account_fingerprint = #{accountFingerprint}");
     }
 }

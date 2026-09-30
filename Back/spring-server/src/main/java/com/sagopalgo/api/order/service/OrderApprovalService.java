@@ -32,16 +32,19 @@ public class OrderApprovalService {
     private final OrderPrecheckService precheckService;
     private final OrderApprovalMapper mapper;
     private final OrderSubmissionGuardMapper submissionGuardMapper;
+    private final OrderAccountBinding accountBinding;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public OrderApprovalService(
         OrderPrecheckService precheckService,
         OrderApprovalMapper mapper,
-        OrderSubmissionGuardMapper submissionGuardMapper
+        OrderSubmissionGuardMapper submissionGuardMapper,
+        OrderAccountBinding accountBinding
     ) {
         this.precheckService = precheckService;
         this.mapper = mapper;
         this.submissionGuardMapper = submissionGuardMapper;
+        this.accountBinding = accountBinding;
     }
 
     public OrderApprovalPrepareResponse prepare(Long userId, OrderPrecheckRequest request) {
@@ -59,6 +62,7 @@ public class OrderApprovalService {
         record.setUserId(userId);
         record.setOrderPrecheckId(precheck.orderPrecheckId());
         record.setTokenHash(hash(token));
+        record.setAccountFingerprint(accountBinding.requireFingerprint());
         record.setCreatedAt(now);
         record.setExpiresAt(now.plusSeconds(TOKEN_TTL_SECONDS));
         mapper.insert(record);
@@ -74,7 +78,9 @@ public class OrderApprovalService {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "실주문 미전송 안내를 확인해야 합니다.");
         }
         LocalDateTime now = LocalDateTime.now();
-        int changed = mapper.acknowledge(request.approvalId(), userId, hash(request.token()), now);
+        int changed = mapper.acknowledge(
+            request.approvalId(), userId, hash(request.token()), accountBinding.requireFingerprint(), now
+        );
         if (changed != 1) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "승인 토큰이 만료되었거나 이미 사용되었습니다. 다시 검증해 주세요.");
         }

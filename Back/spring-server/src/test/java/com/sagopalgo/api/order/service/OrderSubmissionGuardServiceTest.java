@@ -20,22 +20,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class OrderSubmissionGuardServiceTest {
     @Mock private OrderSubmissionGuardMapper mapper;
+    @Mock private OrderAccountBinding accountBinding;
     private OrderSubmissionGuardService service;
 
     @BeforeEach
     void setUp() {
-        service = new OrderSubmissionGuardService(mapper);
+        service = new OrderSubmissionGuardService(mapper, accountBinding);
     }
 
     @Test
     void reservesOnlyOnceForTheOwningUser() {
-        when(mapper.reserveOnce(eq(7L), eq(1L), any(LocalDateTime.class))).thenReturn(1, 0);
+        when(accountBinding.requireFingerprint()).thenReturn("account-fingerprint");
+        when(mapper.reserveOnce(eq(7L), eq(1L), eq("account-fingerprint"), any(LocalDateTime.class)))
+            .thenReturn(1, 0);
 
         service.reserveOnce(1L, 7L);
 
         assertThatThrownBy(() -> service.reserveOnce(1L, 7L)).isInstanceOf(ApiException.class);
         verify(mapper, org.mockito.Mockito.times(2))
-            .reserveOnce(eq(7L), eq(1L), any(LocalDateTime.class));
+            .reserveOnce(eq(7L), eq(1L), eq("account-fingerprint"), any(LocalDateTime.class));
     }
 
     @Test
@@ -53,8 +56,10 @@ class OrderSubmissionGuardServiceTest {
         record.setOrderApprovalId(7L);
         record.setUserId(1L);
         record.setStatus("READY");
+        record.setAccountFingerprint("account-fingerprint");
         record.setExpiresAt(LocalDateTime.now().plusSeconds(30));
         when(mapper.findByApprovalId(7L, 1L)).thenReturn(record);
+        when(accountBinding.matches("account-fingerprint")).thenReturn(true);
 
         var response = service.status(1L, 7L);
 
@@ -80,5 +85,20 @@ class OrderSubmissionGuardServiceTest {
     @Test
     void hidesOtherUsersGuard() {
         assertThatThrownBy(() -> service.status(2L, 7L)).isInstanceOf(ApiException.class);
+    }
+
+    @Test
+    void changedAccountIsVisibleAndCannotBeReserved() {
+        OrderSubmissionGuardRecord record = new OrderSubmissionGuardRecord();
+        record.setOrderApprovalId(7L);
+        record.setStatus("READY");
+        record.setAccountFingerprint("old-account-fingerprint");
+        record.setExpiresAt(LocalDateTime.now().plusSeconds(30));
+        when(mapper.findByApprovalId(7L, 1L)).thenReturn(record);
+        when(accountBinding.requireFingerprint()).thenReturn("new-account-fingerprint");
+
+        assertThat(service.status(1L, 7L).status()).isEqualTo("ACCOUNT_CHANGED");
+        assertThatThrownBy(() -> service.reserveOnce(1L, 7L)).isInstanceOf(ApiException.class);
+        verify(mapper).reserveOnce(eq(7L), eq(1L), eq("new-account-fingerprint"), any(LocalDateTime.class));
     }
 }

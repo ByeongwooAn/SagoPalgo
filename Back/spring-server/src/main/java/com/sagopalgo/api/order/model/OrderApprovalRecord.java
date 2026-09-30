@@ -7,6 +7,7 @@ public class OrderApprovalRecord {
     private Long userId;
     private Long orderPrecheckId;
     private String tokenHash;
+    private String accountFingerprint;
     private LocalDateTime expiresAt;
     private LocalDateTime createdAt;
 
@@ -18,6 +19,8 @@ public class OrderApprovalRecord {
     public void setOrderPrecheckId(Long orderPrecheckId) { this.orderPrecheckId = orderPrecheckId; }
     public String getTokenHash() { return tokenHash; }
     public void setTokenHash(String tokenHash) { this.tokenHash = tokenHash; }
+    public String getAccountFingerprint() { return accountFingerprint; }
+    public void setAccountFingerprint(String accountFingerprint) { this.accountFingerprint = accountFingerprint; }
     public LocalDateTime getExpiresAt() { return expiresAt; }
     public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }

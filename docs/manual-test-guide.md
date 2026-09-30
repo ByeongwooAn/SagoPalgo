@@ -404,12 +404,13 @@ $page.data
 
 주문 승인별 제출 가드 확인:
 
-1. 기존 MySQL 데이터 볼륨에는 백엔드를 중지한 뒤 `007_order_approvals.sql`, `008_order_submission_guards.sql`, `009_order_reconciliation_checks.sql`, `010_order_date_reconciliation_checks.sql`, `011_order_submission_expiry.sql`을 순서대로 적용합니다. 이미 010까지 적용했다면 011만 적용합니다. 새 볼륨은 `schema.sql`에 포함됩니다.
+1. 기존 MySQL 데이터 볼륨에는 백엔드를 중지한 뒤 `007_order_approvals.sql`, `008_order_submission_guards.sql`, `009_order_reconciliation_checks.sql`, `010_order_date_reconciliation_checks.sql`, `011_order_submission_expiry.sql`, `012_order_approval_account_binding.sql`을 순서대로 한 번씩 적용합니다. 이미 011까지 적용했다면 012만 적용합니다. 새 볼륨은 `schema.sql`에 포함됩니다.
 2. 011 이전에 생성된 `READY`는 `LEGACY_REVIEW`로 이관되고 예약 불가능한지 확인합니다. 이후 새 주문 사전검증, 승인 준비, 승인 확인을 진행한 뒤 `GET /api/v1/orders/approvals/{approvalId}/submission`에서 `status=READY`, 확인 시각으로부터 90초 뒤의 `expiresAt`, 비어 있는 `reservedAt`을 확인합니다.
 3. 같은 승인 토큰으로 다시 확인하면 거절되고, 해당 승인 ID의 `order_submission_guards` 행이 하나만 있는지 확인합니다.
 4. 다른 사용자 ID로 해당 가드 상태를 조회할 수 없어야 합니다. 현재 개인용 API에서는 서버 단위 사용자 분리를 시험 환경에서만 확인합니다.
 5. `RESERVED`·`UNCERTAIN` 전환은 현재 내부 서비스 계약이며 HTTP API나 KB 주문 전송에 연결되지 않았습니다. 수동 테스트 중 DB 값을 직접 변경해 거래 성공으로 해석하지 않습니다.
 6. 90초가 지난 새 승인 건은 상태 조회에서 `EXPIRED`로 표시되는지 확인합니다. 격리된 테스트 DB에서 원자적 예약의 `expires_at > now` 조건이 만료 건과 기한 없는 건을 모두 거절하는지 검증합니다.
+7. 테스트 환경에서만 승인 준비 직후 KB 계좌번호 또는 상품코드를 바꾸고 같은 토큰으로 확인하면 거절되는지 확인합니다. 승인 확인 뒤 변경했다면 기한 안의 가드 상태가 `ACCOUNT_CHANGED`로 보이고 내부 예약이 실패해야 합니다. 설정을 원복해 오래된 승인을 재사용하지 말고 새 검증부터 진행합니다. `012` 적용 전의 `READY`는 `LEGACY_REVIEW`로 이관되어야 합니다.
 
 불명확한 주문 대조 API 확인:
 

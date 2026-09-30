@@ -34,10 +34,17 @@ public interface OrderSubmissionGuardMapper {
           AND user_id = #{userId}
           AND status = 'READY'
           AND expires_at > #{now}
+          AND EXISTS (
+            SELECT 1 FROM order_approvals a
+            WHERE a.order_approval_id = order_submission_guards.order_approval_id
+              AND a.user_id = #{userId}
+              AND a.account_fingerprint = #{accountFingerprint}
+          )
         """)
     int reserveOnce(
         @Param("approvalId") Long approvalId,
         @Param("userId") Long userId,
+        @Param("accountFingerprint") String accountFingerprint,
         @Param("now") LocalDateTime now
     );
 
@@ -55,10 +62,12 @@ public interface OrderSubmissionGuardMapper {
     );
 
     @Select("""
-        SELECT order_approval_id, user_id, status, expires_at, reserved_at, uncertain_at,
-               created_at, updated_at
-        FROM order_submission_guards
-        WHERE order_approval_id = #{approvalId} AND user_id = #{userId}
+        SELECT g.order_approval_id, g.user_id, g.status, g.expires_at,
+               g.reserved_at, g.uncertain_at, g.created_at, g.updated_at,
+               a.account_fingerprint
+        FROM order_submission_guards g
+        JOIN order_approvals a ON a.order_approval_id = g.order_approval_id
+        WHERE g.order_approval_id = #{approvalId} AND g.user_id = #{userId}
         """)
     OrderSubmissionGuardRecord findByApprovalId(
         @Param("approvalId") Long approvalId,

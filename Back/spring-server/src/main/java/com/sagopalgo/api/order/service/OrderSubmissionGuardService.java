@@ -12,13 +12,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderSubmissionGuardService {
     private final OrderSubmissionGuardMapper mapper;
+    private final OrderAccountBinding accountBinding;
 
-    public OrderSubmissionGuardService(OrderSubmissionGuardMapper mapper) {
+    public OrderSubmissionGuardService(OrderSubmissionGuardMapper mapper, OrderAccountBinding accountBinding) {
         this.mapper = mapper;
+        this.accountBinding = accountBinding;
     }
 
     public void reserveOnce(Long userId, Long approvalId) {
-        if (mapper.reserveOnce(approvalId, userId, LocalDateTime.now()) != 1) {
+        if (mapper.reserveOnce(approvalId, userId, accountBinding.requireFingerprint(), LocalDateTime.now()) != 1) {
             throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "제출 예약이 만료·사용되었거나 승인 기록이 없습니다.");
         }
     }
@@ -38,6 +40,8 @@ public class OrderSubmissionGuardService {
         if ("READY".equals(status)
             && (record.getExpiresAt() == null || !record.getExpiresAt().isAfter(LocalDateTime.now()))) {
             status = "EXPIRED";
+        } else if ("READY".equals(status) && !accountBinding.matches(record.getAccountFingerprint())) {
+            status = "ACCOUNT_CHANGED";
         }
         return new OrderSubmissionStatusResponse(
             record.getOrderApprovalId(), status, record.getExpiresAt(),

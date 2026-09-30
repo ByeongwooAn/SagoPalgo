@@ -30,12 +30,13 @@ class OrderApprovalServiceTest {
     @Mock private OrderPrecheckService precheckService;
     @Mock private OrderApprovalMapper mapper;
     @Mock private OrderSubmissionGuardMapper submissionGuardMapper;
+    @Mock private OrderAccountBinding accountBinding;
 
     private OrderApprovalService service;
 
     @BeforeEach
     void setUp() {
-        service = new OrderApprovalService(precheckService, mapper, submissionGuardMapper);
+        service = new OrderApprovalService(precheckService, mapper, submissionGuardMapper, accountBinding);
     }
 
     @Test
@@ -43,6 +44,7 @@ class OrderApprovalServiceTest {
         OrderPrecheckRequest request = request("100", "2");
         OrderPrecheckResponse precheck = precheck(true);
         when(precheckService.precheck(1L, request)).thenReturn(precheck);
+        when(accountBinding.requireFingerprint()).thenReturn("account-fingerprint");
         when(mapper.insert(any())).thenAnswer(invocation -> {
             OrderApprovalRecord record = invocation.getArgument(0);
             record.setOrderApprovalId(7L);
@@ -58,6 +60,7 @@ class OrderApprovalServiceTest {
         assertThat(response.precheck()).isSameAs(precheck);
         assertThat(response.token()).hasSizeGreaterThan(30);
         assertThat(stored.getTokenHash()).matches("[0-9a-f]{64}").isNotEqualTo(response.token());
+        assertThat(stored.getAccountFingerprint()).isEqualTo("account-fingerprint");
         assertThat(stored.getExpiresAt()).isEqualTo(stored.getCreatedAt().plusSeconds(90));
     }
 
@@ -73,7 +76,8 @@ class OrderApprovalServiceTest {
 
     @Test
     void consumesTokenOnceWithoutSubmittingAnOrder() {
-        when(mapper.acknowledge(eq(7L), eq(1L), any(), any(LocalDateTime.class)))
+        when(accountBinding.requireFingerprint()).thenReturn("account-fingerprint");
+        when(mapper.acknowledge(eq(7L), eq(1L), any(), eq("account-fingerprint"), any(LocalDateTime.class)))
             .thenReturn(1, 0);
         when(submissionGuardMapper.insertReady(
             eq(7L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)
@@ -89,12 +93,17 @@ class OrderApprovalServiceTest {
         ArgumentCaptor<LocalDateTime> confirmedAt = ArgumentCaptor.forClass(LocalDateTime.class);
         ArgumentCaptor<LocalDateTime> expiresAt = ArgumentCaptor.forClass(LocalDateTime.class);
         verify(submissionGuardMapper).insertReady(eq(7L), eq(1L), confirmedAt.capture(), expiresAt.capture());
+        verify(mapper, org.mockito.Mockito.times(2)).acknowledge(
+            eq(7L), eq(1L), any(), eq("account-fingerprint"), any(LocalDateTime.class)
+        );
         assertThat(expiresAt.getValue()).isEqualTo(confirmedAt.getValue().plusSeconds(90));
     }
 
     @Test
     void failsConfirmationWhenGuardCannotBeCreated() {
-        when(mapper.acknowledge(eq(7L), eq(1L), any(), any(LocalDateTime.class))).thenReturn(1);
+        when(accountBinding.requireFingerprint()).thenReturn("account-fingerprint");
+        when(mapper.acknowledge(eq(7L), eq(1L), any(), eq("account-fingerprint"), any(LocalDateTime.class)))
+            .thenReturn(1);
         assertThatThrownBy(() -> service.confirm(
             1L, new OrderApprovalConfirmRequest(7L, "one-time-token", true)
         )).isInstanceOf(ApiException.class);
@@ -104,7 +113,19 @@ class OrderApprovalServiceTest {
     void refusesConfirmationWithoutExplicitAcknowledgement() {
         assertThatThrownBy(() -> service.confirm(1L, new OrderApprovalConfirmRequest(7L, "token", false)))
             .isInstanceOf(ApiException.class);
-        verify(mapper, never()).acknowledge(any(), any(), any(), any());
+        verify(mapper, never()).acknowledge(any(), any(), any(), any(), any());
+        verify(submissionGuardMapper, never()).insertReady(any(), any(), any(), any());
+    }
+
+    @Test
+    void changedAccountCannotConfirmOrCreateSubmissionGuard() {
+        when(accountBinding.requireFingerprint()).thenReturn("new-account-fingerprint");
+        assertThatThrownBy(() -> service.confirm(
+            1L, new OrderApprovalConfirmRequest(7L, "one-time-token", true)
+        )).isInstanceOf(ApiException.class);
+        verify(mapper).acknowledge(
+            eq(7L), eq(1L), any(), eq("new-account-fingerprint"), any(LocalDateTime.class)
+        );
         verify(submissionGuardMapper, never()).insertReady(any(), any(), any(), any());
     }
 
