@@ -94,8 +94,37 @@ class OrderReadiness {
     return OrderReadiness(
       canSubmit: json['canSubmit'] as bool? ?? false,
       checks: (json['checks'] as List<dynamic>? ?? const [])
-          .map((item) => OrderReadinessCheck.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) =>
+                OrderReadinessCheck.fromJson(item as Map<String, dynamic>),
+          )
           .toList(),
+    );
+  }
+}
+
+class OrderReadOnlyProbe {
+  const OrderReadOnlyProbe({
+    required this.status,
+    required this.orderDate,
+    required this.checkedAt,
+    required this.readOnly,
+    required this.message,
+  });
+
+  final String status;
+  final String orderDate;
+  final DateTime checkedAt;
+  final bool readOnly;
+  final String message;
+
+  factory OrderReadOnlyProbe.fromJson(Map<String, dynamic> json) {
+    return OrderReadOnlyProbe(
+      status: json['status'] as String? ?? 'UNVERIFIED',
+      orderDate: json['orderDate'] as String? ?? '',
+      checkedAt: DateTime.parse(json['checkedAt'] as String),
+      readOnly: json['readOnly'] as bool? ?? false,
+      message: json['message'] as String? ?? '',
     );
   }
 }

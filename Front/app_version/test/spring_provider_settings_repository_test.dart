@@ -106,4 +106,41 @@ void main() {
       ),
     );
   });
+
+  test(
+    'probeReadOnlyOrderHistory uses manual POST and maps safe result',
+    () async {
+      final repository = SpringProviderSettingsRepository(
+        accessToken: '',
+        config: ApiConfig(baseUrl: 'http://localhost:8080'),
+        client: MockClient((request) async {
+          expect(request.method, 'POST');
+          expect(
+            request.url.toString(),
+            'http://localhost:8080/api/v1/orders/readiness/probe',
+          );
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'data': {
+                'status': 'VERIFIED',
+                'orderDate': '20260930',
+                'checkedAt': '2026-09-30T10:00:00',
+                'readOnly': true,
+                'message': '조회 응답 확인',
+              },
+            }),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }),
+      );
+
+      final result = await repository.probeReadOnlyOrderHistory();
+
+      expect(result.status, 'VERIFIED');
+      expect(result.readOnly, isTrue);
+      expect(result.orderDate, '20260930');
+    },
+  );
 }
