@@ -17,6 +17,23 @@ void main() {
     );
   });
 
+  test('reported item count accepts numeric text but not invalid values', () {
+    expect(
+      KbBalanceSummary.fromJson({'totalDataCount': '1,234'}).reportedItemCount,
+      1234,
+    );
+    expect(
+      KbBalanceSummary.fromJson({
+        'totalDataCount': 'unknown',
+      }).reportedItemCount,
+      isNull,
+    );
+    expect(
+      KbBalanceSummary.fromJson({'totalDataCount': '-1'}).reportedItemCount,
+      isNull,
+    );
+  });
+
   testWidgets('shows all KB holdings and the stock-only weight basis', (
     tester,
   ) async {
@@ -70,6 +87,40 @@ void main() {
     expect(find.text('40.0%'), findsOneWidget);
   });
 
+  testWidgets(
+    'settlement count mismatch is visible without claiming completeness',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: KbHoldingsDetailDialog(
+              snapshot: _snapshot(
+                reportedCount: '3',
+                settlementItems: [
+                  const KbBalanceItem(
+                    stockCode: '005930',
+                    stockName: '삼성전자',
+                    quantity: 10,
+                    orderableQuantity: 8,
+                    currentPrice: 77000,
+                    averageBuyPrice: 70000,
+                    valuationAmount: 770000,
+                    profitAmount: 70000,
+                    profitRate: 10,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.textContaining('KB 보고 3건 · 현재 응답 1건'), findsOneWidget);
+      expect(find.textContaining('건수 확인 필요'), findsOneWidget);
+      expect(find.textContaining('완전'), findsNothing);
+    },
+  );
+
   testWidgets('zero valuation does not display a calculated weight', (
     tester,
   ) async {
@@ -120,10 +171,16 @@ void main() {
 KbAccountSnapshot _snapshot({
   KbHoldingsSnapshot? holdings,
   List<KbBalanceItem> settlementItems = const [],
+  String? reportedCount,
 }) => KbAccountSnapshot(
   holdings: holdings ?? _holdings(),
   settlementBalance: KbBalanceSnapshot(
-    summary: _balanceSummary,
+    summary: reportedCount == null
+        ? _balanceSummary
+        : KbBalanceSummary.fromJson({
+            'basis': 'SETTLEMENT',
+            'totalDataCount': reportedCount,
+          }),
     items: settlementItems,
   ),
   executionBalance: const KbBalanceSnapshot(

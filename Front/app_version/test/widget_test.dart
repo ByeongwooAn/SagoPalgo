@@ -127,6 +127,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('KB 계좌 조회'), findsOneWidget);
+    expect(find.textContaining('건수 확인 필요'), findsOneWidget);
     expect(find.text('1종목'), findsOneWidget);
     expect(find.text('5,200,000원'), findsAtLeastNWidgets(1));
     await tester.ensureVisible(find.text('전체 보유 종목 (1)'));
@@ -603,6 +604,7 @@ const _testKbAccountSnapshot = KbAccountSnapshot(
       totalValuationAmount: 5200000,
       totalProfitAmount: 400000,
       totalYieldRate: 8.3,
+      totalDataCount: '2',
     ),
     items: [],
   ),
