@@ -46,9 +46,12 @@ public class AlertController {
 
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<AlertResponse>>> findPending(
-        @RequestParam(defaultValue = "20") int limit
+        @RequestParam(defaultValue = "20") int limit,
+        @RequestParam(required = false) Long afterAlertId
     ) {
-        List<AlertResponse> response = alertService.findPending(localUserContext.userId(), limit);
+        List<AlertResponse> response = alertService.findPending(
+            localUserContext.userId(), limit, afterAlertId
+        );
         return ResponseEntity.ok(ApiResponse.success(response, "전달 대기 알림이 조회되었습니다."));
     }
 

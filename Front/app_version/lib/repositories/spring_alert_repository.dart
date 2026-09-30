@@ -39,10 +39,13 @@ class SpringAlertRepository implements AlertRepository {
   }
 
   @override
-  Future<List<AppAlert>> fetchPending() async {
-    final uri = Uri.parse(
-      '${config.alertsBaseUrl}/pending',
-    ).replace(queryParameters: {'limit': '20'});
+  Future<List<AppAlert>> fetchPending({int? afterAlertId}) async {
+    final uri = Uri.parse('${config.alertsBaseUrl}/pending').replace(
+      queryParameters: {
+        'limit': '20',
+        if (afterAlertId != null) 'afterAlertId': afterAlertId.toString(),
+      },
+    );
     final decoded = await _get(uri);
     final data = decoded['data'];
     if (data is! List<dynamic>) {

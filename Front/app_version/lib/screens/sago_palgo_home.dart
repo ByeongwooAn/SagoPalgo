@@ -21,6 +21,7 @@ import '../repositories/recommendation_repository.dart';
 import '../repositories/research_feed_repository.dart';
 import '../repositories/watchlist_repository.dart';
 import '../services/app_security_service.dart';
+import '../services/alert_delivery_service.dart';
 import '../services/desktop_window_service.dart';
 import '../services/local_notification_service.dart';
 import '../theme/app_theme.dart';
@@ -145,6 +146,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
 
   List<AppAlert>? _alerts;
   Timer? _alertTimer;
+  AlertDeliveryService? _alertDeliveryService;
   bool _pollingAlerts = false;
   bool _isMiniMode = false;
 
@@ -167,6 +169,10 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
       ),
     );
     if (widget.alertRepository != null) {
+      _alertDeliveryService = AlertDeliveryService(
+        repository: widget.alertRepository!,
+        notificationService: widget.localNotificationService,
+      );
       unawaited(_refreshAlerts());
       unawaited(_pollPendingAlerts());
       _alertTimer = Timer.periodic(
@@ -352,21 +358,13 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
   }
 
   Future<void> _pollPendingAlerts() async {
-    final repository = widget.alertRepository;
-    if (repository == null || _pollingAlerts) {
+    final deliveryService = _alertDeliveryService;
+    if (deliveryService == null || _pollingAlerts) {
       return;
     }
     _pollingAlerts = true;
     try {
-      final pending = await repository.fetchPending();
-      for (final alert in pending) {
-        await widget.localNotificationService.show(alert);
-        final alertId = alert.alertId;
-        if (alertId != null) {
-          await repository.markSent(alertId);
-        }
-      }
-      if (pending.isNotEmpty) {
+      if (await deliveryService.deliverPending()) {
         await _refreshAlerts();
       }
     } catch (_) {

@@ -87,11 +87,16 @@ public interface AlertMapper {
         FROM alerts
         WHERE user_id = #{userId}
           AND sent_at IS NULL
-        ORDER BY created_at, alert_id
+          AND alert_id > #{afterAlertId}
+        ORDER BY alert_id
         LIMIT #{limit}
         """)
     @ResultMap("alertRecordMap")
-    List<AlertRecord> findPending(@Param("userId") Long userId, @Param("limit") int limit);
+    List<AlertRecord> findPending(
+        @Param("userId") Long userId,
+        @Param("limit") int limit,
+        @Param("afterAlertId") Long afterAlertId
+    );
 
     @Select("""
         SELECT alert_id, user_id, recommendation_id, alert_type, event_type, event_key,
