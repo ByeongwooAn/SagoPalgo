@@ -39,6 +39,9 @@ class InvestmentAnalysisRequest(ApiModel):
     stop_loss_rate: float | None = None
     take_profit_rate: float | None = None
     analysis_type: Literal["HOLDING", "WATCHLIST"] = "HOLDING"
+    portfolio_weight_rate: float | None = Field(default=None, ge=0)
+    capital_weight_rate: float | None = Field(default=None, ge=0)
+    max_capital_weight_rate: float | None = Field(default=None, ge=0)
     candles: list[CandleInput] = Field(default_factory=list)
     news: list[NewsInput] = Field(default_factory=list)
     disclosures: list[DisclosureInput] = Field(default_factory=list)

@@ -85,3 +85,88 @@ def test_watchlist_negative_signals_mean_avoid_entry_not_sell() -> None:
 def test_holding_analysis_still_requires_risk_fields() -> None:
     with pytest.raises(ValidationError):
         request(profit_rate=None)
+
+
+def test_overweight_position_blocks_new_buy_but_keeps_score_reason() -> None:
+    result = analyze(request(
+        portfolio_weight_rate=50,
+        capital_weight_rate=30,
+        max_capital_weight_rate=20,
+    ))
+
+    assert result.recommendation_type == "HOLD"
+    assert result.status == "RISK"
+    assert "추가 매수 신호를 보류" in result.summary
+    assert any(reason.type == "PORTFOLIO" and reason.score == -12 for reason in result.reasons)
+
+
+def test_equal_to_limit_does_not_block_buy() -> None:
+    result = analyze(request(
+        portfolio_weight_rate=30,
+        capital_weight_rate=20,
+        max_capital_weight_rate=20,
+    ))
+
+    assert result.recommendation_type == "BUY"
+    assert result.status in {"BUY_STRONG", "BUY_WATCH"}
+
+
+def test_small_excess_above_limit_still_blocks_buy() -> None:
+    result = analyze(request(
+        portfolio_weight_rate=100,
+        capital_weight_rate=20.0000001,
+        max_capital_weight_rate=20,
+    ))
+
+    assert result.recommendation_type == "HOLD"
+    assert result.status == "RISK"
+
+
+def test_stop_loss_takes_priority_over_position_weight() -> None:
+    result = analyze(request(
+        profit_rate=-4.5,
+        portfolio_weight_rate=60,
+        capital_weight_rate=30,
+        max_capital_weight_rate=20,
+    ))
+
+    assert result.recommendation_type == "SELL"
+    assert result.status == "STOP_LOSS_WATCH"
+
+
+def test_missing_capital_does_not_block_buy() -> None:
+    result = analyze(request(
+        portfolio_weight_rate=100,
+        capital_weight_rate=None,
+        max_capital_weight_rate=None,
+    ))
+
+    assert result.recommendation_type == "BUY"
+    assert any("설정 자본금이 없어" in reason.description for reason in result.reasons)
+
+
+def test_sole_small_holding_does_not_lose_points_for_portfolio_share_alone() -> None:
+    result = analyze(request(
+        portfolio_weight_rate=100,
+        capital_weight_rate=1,
+        max_capital_weight_rate=20,
+    ))
+
+    assert result.recommendation_type == "BUY"
+    assert next(reason.score for reason in result.reasons if reason.type == "PORTFOLIO") == 0
+
+
+def test_watchlist_ignores_supplied_portfolio_weight() -> None:
+    result = analyze(request(
+        analysis_type="WATCHLIST",
+        buy_price=None,
+        profit_rate=None,
+        stop_loss_rate=None,
+        take_profit_rate=None,
+        portfolio_weight_rate=100,
+        capital_weight_rate=40,
+        max_capital_weight_rate=20,
+    ))
+
+    assert result.recommendation_type == "BUY"
+    assert all(reason.type != "PORTFOLIO" for reason in result.reasons)

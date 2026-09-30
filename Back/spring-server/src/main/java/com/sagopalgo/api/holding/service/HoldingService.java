@@ -1,5 +1,6 @@
 package com.sagopalgo.api.holding.service;
 
+import com.sagopalgo.api.capital.dto.CapitalResponse;
 import com.sagopalgo.api.capital.service.CapitalService;
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
@@ -7,6 +8,7 @@ import com.sagopalgo.api.holding.dto.HoldingCreateResponse;
 import com.sagopalgo.api.holding.dto.HoldingRequest;
 import com.sagopalgo.api.holding.dto.HoldingResponse;
 import com.sagopalgo.api.holding.dto.HoldingsListResponse;
+import com.sagopalgo.api.holding.dto.PortfolioCostExposure;
 import com.sagopalgo.api.holding.dto.PortfolioSummaryResponse;
 import com.sagopalgo.api.holding.mapper.HoldingMapper;
 import com.sagopalgo.api.holding.model.Holding;
@@ -14,6 +16,7 @@ import com.sagopalgo.api.market.service.MarketPriceService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +69,41 @@ public class HoldingService {
     public Holding findRecord(Long userId, Long holdingId) {
         return holdingMapper.findByIdAndUserId(holdingId, userId)
             .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "보유 종목을 찾을 수 없습니다."));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<PortfolioCostExposure> costExposure(Long userId, String stockCode, String market) {
+        BigDecimal totalCost = BigDecimal.ZERO;
+        BigDecimal stockCost = BigDecimal.ZERO;
+        for (Holding holding : holdingMapper.findActiveByUserId(userId)) {
+            if (holding.getBuyPrice() == null || holding.getQuantity() == null
+                || holding.getBuyPrice().signum() <= 0 || holding.getQuantity().signum() <= 0) {
+                continue;
+            }
+            BigDecimal cost = holding.getBuyPrice().multiply(holding.getQuantity());
+            totalCost = totalCost.add(cost);
+            if (holding.getStockCode().equals(stockCode) && holding.getMarket().equals(market)) {
+                stockCost = stockCost.add(cost);
+            }
+        }
+        if (totalCost.signum() <= 0 || stockCost.signum() <= 0) {
+            return Optional.empty();
+        }
+        BigDecimal portfolioRate = percent(stockCost, totalCost);
+        CapitalResponse capital = capitalService.findByUserId(userId);
+        if (capital.availableCapital() == null || capital.availableCapital().signum() <= 0) {
+            return Optional.of(new PortfolioCostExposure(portfolioRate, null, null));
+        }
+        return Optional.of(new PortfolioCostExposure(
+            portfolioRate,
+            percent(stockCost, capital.availableCapital()),
+            percent(capital.recommendedMaxPosition(), capital.availableCapital())
+        ));
+    }
+
+    private BigDecimal percent(BigDecimal numerator, BigDecimal denominator) {
+        return numerator.multiply(new BigDecimal("100"))
+            .divide(denominator, 12, RoundingMode.HALF_UP);
     }
 
     @Transactional

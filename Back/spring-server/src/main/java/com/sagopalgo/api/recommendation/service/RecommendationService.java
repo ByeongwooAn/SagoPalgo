@@ -10,6 +10,7 @@ import com.sagopalgo.api.dashboard.dto.DashboardRecommendationReasonResponse;
 import com.sagopalgo.api.dashboard.dto.DashboardRecommendationResponse;
 import com.sagopalgo.api.dashboard.service.DashboardRecommendationEngine;
 import com.sagopalgo.api.holding.dto.HoldingResponse;
+import com.sagopalgo.api.holding.dto.PortfolioCostExposure;
 import com.sagopalgo.api.holding.service.HoldingService;
 import com.sagopalgo.api.market.dto.MarketCandleResponse;
 import com.sagopalgo.api.market.model.CandleInterval;
@@ -93,7 +94,10 @@ public class RecommendationService {
     @Transactional
     public RecommendationResponse analyzeHolding(Long userId, Long holdingId) {
         HoldingResponse holding = holdingService.findOne(userId, holdingId);
-        AiInvestmentAnalysisRequest request = analysisRequest(holding);
+        PortfolioCostExposure exposure = holdingService.costExposure(
+            userId, holding.stockCode(), holding.market()
+        ).orElse(null);
+        AiInvestmentAnalysisRequest request = analysisRequest(holding, exposure);
         AiInvestmentAnalysisResponse analysis = aiAnalysisGateway.analyze(request)
             .orElseGet(() -> fallbackAnalysis(holding));
         StoredRecommendation stored = recommendationStore.save(
@@ -118,7 +122,7 @@ public class RecommendationService {
         }
         AiInvestmentAnalysisRequest request = analysisRequest(
             item.getStockCode(), item.getStockName(), item.getMarket(), quote.currentPrice(),
-            null, null, null, null, "WATCHLIST"
+            null, null, null, null, "WATCHLIST", null
         );
         AiInvestmentAnalysisResponse analysis = aiAnalysisGateway.analyze(request)
             .filter(this::isWatchlistSafe)
@@ -168,11 +172,14 @@ public class RecommendationService {
         return recommendationStore.findLatest(userId).map(this::dashboardResponse);
     }
 
-    private AiInvestmentAnalysisRequest analysisRequest(HoldingResponse holding) {
+    private AiInvestmentAnalysisRequest analysisRequest(
+        HoldingResponse holding,
+        PortfolioCostExposure exposure
+    ) {
         return analysisRequest(
             holding.stockCode(), holding.stockName(), holding.market(), holding.currentPrice(),
             holding.buyPrice(), holding.profitRate(), holding.stopLossRate(), holding.takeProfitRate(),
-            "HOLDING"
+            "HOLDING", exposure
         );
     }
 
@@ -185,7 +192,8 @@ public class RecommendationService {
         BigDecimal profitRate,
         BigDecimal stopLossRate,
         BigDecimal takeProfitRate,
-        String analysisType
+        String analysisType,
+        PortfolioCostExposure exposure
     ) {
         LocalDate toDate = LocalDate.now();
         LocalDate fromDate = toDate.minusDays(Math.max(1, properties.getLookbackDays()));
@@ -212,7 +220,10 @@ public class RecommendationService {
             research.disclosures().stream()
                 .map(item -> new AiInvestmentAnalysisRequest.DisclosureInput(item.reportName()))
                 .toList(),
-            analysisType
+            analysisType,
+            exposure == null ? null : exposure.portfolioWeightRate(),
+            exposure == null ? null : exposure.capitalWeightRate(),
+            exposure == null ? null : exposure.maxCapitalWeightRate()
         );
     }
 
