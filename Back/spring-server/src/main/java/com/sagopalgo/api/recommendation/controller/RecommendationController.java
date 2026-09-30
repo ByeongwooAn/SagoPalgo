@@ -42,6 +42,16 @@ public class RecommendationController {
         return ResponseEntity.ok(ApiResponse.success(response, "종목 분석과 추천 저장이 완료되었습니다."));
     }
 
+    @PostMapping("/analyze/watchlist/{watchlistId}")
+    public ResponseEntity<ApiResponse<RecommendationResponse>> analyzeWatchlist(
+        @PathVariable Long watchlistId
+    ) {
+        RecommendationResponse response = recommendationService.analyzeWatchlist(
+            localUserContext.userId(), watchlistId
+        );
+        return ResponseEntity.ok(ApiResponse.success(response, "관심 종목 분석과 추천 저장이 완료되었습니다."));
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<RecommendationListResponse>> findAll(
         @RequestParam(required = false) String status,

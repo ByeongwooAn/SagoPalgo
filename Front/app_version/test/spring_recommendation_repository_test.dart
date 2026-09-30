@@ -75,6 +75,33 @@ void main() {
     expect(result.score, 86);
     expect(result.createdAt, DateTime.parse('2026-09-22T11:30:00'));
   });
+
+  test(
+    'analyzeWatchlist posts watchlist id and keeps nullable holding metrics',
+    () async {
+      final repository = SpringRecommendationRepository(
+        accessToken: '',
+        config: ApiConfig(baseUrl: 'http://ubuntu-server:8081'),
+        client: MockClient((request) async {
+          expect(request.method, 'POST');
+          expect(
+            request.url.path,
+            '/api/v1/recommendations/analyze/watchlist/12',
+          );
+          final data = _recommendationJson();
+          data['analysisContext'] = 'WATCHLIST';
+          data['stopLossRate'] = null;
+          data['takeProfitRate'] = null;
+          return _success(data);
+        }),
+      );
+
+      final result = await repository.analyzeWatchlist(12);
+
+      expect(result.analysisContext, 'WATCHLIST');
+      expect(result.stopLossRate, isNull);
+    },
+  );
 }
 
 http.Response _success(Object data) {
@@ -85,7 +112,7 @@ http.Response _success(Object data) {
   );
 }
 
-Map<String, Object> _recommendationJson() {
+Map<String, Object?> _recommendationJson() {
   return {
     'recommendationId': 41,
     'stockCode': '005930',

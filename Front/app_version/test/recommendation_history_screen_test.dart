@@ -53,10 +53,47 @@ void main() {
     expect(find.text('91점'), findsOneWidget);
     expect(find.text('재분석 결과입니다.'), findsOneWidget);
   });
+
+  testWidgets('analyzes a selected watchlist item without holding metrics', (
+    tester,
+  ) async {
+    final repository = _FakeRecommendationRepository();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: RecommendationScreen(
+            recommendation: _recommendation,
+            holdings: const [],
+            recommendationRepository: repository,
+            watchlistRepository: const _AnalysisWatchlistRepository(),
+            onRecommendationChanged: () {},
+            onCapitalSetupOpen: () {},
+            onHoldingSetupOpen: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('관심 종목 분석'));
+    await tester.tap(find.widgetWithText(FilledButton, '분석').last);
+    await tester.pumpAndSettle();
+    final pickerItem = find.widgetWithText(ListTile, '삼성전자');
+    await tester.ensureVisible(pickerItem);
+    await tester.tap(pickerItem);
+    await tester.pumpAndSettle();
+
+    expect(repository.analyzedWatchlistId, 12);
+    expect(find.textContaining('관심 종목'), findsWidgets);
+    expect(find.text('손절 기준'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _FakeRecommendationRepository implements RecommendationRepository {
   int? analyzedHoldingId;
+  int? analyzedWatchlistId;
 
   @override
   Future<InvestmentRecommendation> analyzeHolding(int holdingId) async {
@@ -65,8 +102,16 @@ class _FakeRecommendationRepository implements RecommendationRepository {
   }
 
   @override
+  Future<InvestmentRecommendation> analyzeWatchlist(int watchlistId) async {
+    analyzedWatchlistId = watchlistId;
+    return _watchlistRecommendation;
+  }
+
+  @override
   Future<InvestmentRecommendation> fetchDetail(int recommendationId) async {
-    return _recommendation;
+    return analyzedWatchlistId == null
+        ? _recommendation
+        : _watchlistRecommendation;
   }
 
   @override
@@ -77,7 +122,11 @@ class _FakeRecommendationRepository implements RecommendationRepository {
   }) async {
     return RecommendationPage(
       items: [
-        analyzedHoldingId == null ? _recommendation : _reanalyzedRecommendation,
+        analyzedWatchlistId != null
+            ? _watchlistRecommendation
+            : analyzedHoldingId == null
+            ? _recommendation
+            : _reanalyzedRecommendation,
       ],
       page: page,
       size: size,
@@ -91,6 +140,34 @@ class _NoopWatchlistRepository implements WatchlistRepository {
 
   @override
   Future<List<WatchlistItem>> fetchWatchlist() async => const [];
+
+  @override
+  Future<WatchlistActionResult> addRecommendation(
+    InvestmentRecommendation recommendation,
+  ) async => const WatchlistActionResult(message: '등록');
+
+  @override
+  Future<WatchlistActionResult> enableAlert(
+    InvestmentRecommendation recommendation,
+  ) async => const WatchlistActionResult(message: '알림');
+}
+
+class _AnalysisWatchlistRepository implements WatchlistRepository {
+  const _AnalysisWatchlistRepository();
+
+  @override
+  Future<List<WatchlistItem>> fetchWatchlist() async => const [
+    WatchlistItem(
+      watchlistId: 12,
+      stockCode: '005930',
+      stockName: '삼성전자',
+      market: 'KOSPI',
+      alertEnabled: false,
+      provider: 'KB',
+      currentPrice: 75200,
+      changeRate: 0,
+    ),
+  ];
 
   @override
   Future<WatchlistActionResult> addRecommendation(
@@ -154,6 +231,23 @@ final _reanalyzedRecommendation = InvestmentRecommendation(
   stopLossRate: -5,
   takeProfitRate: 9.5,
   aiSummary: '재분석 결과입니다.',
+  reasons: [],
+  createdAt: _createdAt,
+);
+
+final _watchlistRecommendation = InvestmentRecommendation(
+  recommendationId: 43,
+  stockName: '삼성전자',
+  stockCode: '005930',
+  market: 'KOSPI',
+  status: '매수 관찰',
+  machineStatus: 'BUY_WATCH',
+  recommendationType: 'BUY',
+  analysisContext: 'WATCHLIST',
+  score: 65,
+  entryPrice: 75200,
+  stopLossRate: null,
+  aiSummary: '관심 종목 분석 결과입니다.',
   reasons: [],
   createdAt: _createdAt,
 );

@@ -11,6 +11,8 @@ abstract class RecommendationRepository {
   Future<InvestmentRecommendation> fetchDetail(int recommendationId);
 
   Future<InvestmentRecommendation> analyzeHolding(int holdingId);
+
+  Future<InvestmentRecommendation> analyzeWatchlist(int watchlistId);
 }
 
 class RecommendationRepositoryException implements Exception {

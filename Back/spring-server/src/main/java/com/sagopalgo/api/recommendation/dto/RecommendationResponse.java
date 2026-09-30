@@ -21,6 +21,7 @@ public record RecommendationResponse(
     BigDecimal takeProfitRate,
     String aiSummary,
     LocalDateTime createdAt,
-    List<RecommendationReasonResponse> reasons
+    List<RecommendationReasonResponse> reasons,
+    String analysisContext
 ) {
 }

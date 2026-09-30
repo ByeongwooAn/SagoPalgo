@@ -494,7 +494,7 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ## 11. 추천 API
 
-추천 분석은 로컬 사용자의 보유 종목을 기준으로 최근 일봉, 저장 뉴스, 저장 공시, 손익·손절·익절 기준을 Python 분석 서버에 전달합니다. 분석 결과는 추천 본문, 점수 근거, 요청·응답 원문 스냅샷으로 나누어 저장합니다. Python 서버가 비활성 또는 일시 실패 상태이면 기존 규칙 엔진 결과를 같은 형식으로 저장합니다.
+보유 종목 분석은 최근 일봉, 저장 뉴스·공시와 보유 손익·손절·익절 기준을 Python 분석 서버에 전달합니다. 관심 종목 분석은 보유 가격·손익률을 만들어 넣지 않고 실제 현재가와 가격·뉴스·공시만 전달합니다. 분석 결과는 추천 본문, 점수 근거, 요청·응답 원문 스냅샷으로 나누어 저장합니다. Python 서버가 비활성 또는 일시 실패 상태이면 보유 종목은 기존 규칙 엔진, 관심 종목은 판단 보류의 중립 결과를 저장합니다.
 
 ### 11.1 보유 종목 분석 및 추천 저장
 
@@ -513,6 +513,14 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 `GET /api/v1/recommendations/{recommendationId}`
 
 상세 응답에는 추천 점수에 반영된 `reasons`가 포함됩니다.
+
+### 11.4 관심 종목 직접 분석
+
+`POST /api/v1/recommendations/analyze/watchlist/{watchlistId}`
+
+서버는 요청 사용자의 관심 종목 ID를 확인하고, KB/KIS/Toss 우선순위로 실제 현재가를 조회합니다. `FALLBACK` 또는 0원 시세에서는 분석을 거절합니다. Python 요청의 `analysisType=WATCHLIST`에서는 `buyPrice`, `profitRate`, `stopLossRate`, `takeProfitRate`가 `null`이며, 비보유 종목에 손절·익절 판정을 적용하지 않습니다. 응답과 추천 이력의 `analysisContext=WATCHLIST`는 보유 종목의 `HOLDING`과 구분됩니다. 관심 종목의 `RISK`는 매도가 아니라 신규 진입 보류(`recommendationType=HOLD`)입니다. AI 서버가 비보유 종목에 `SELL` 또는 손절·익절 상태를 돌려주면 해당 결과를 사용하지 않고 중립 fallback으로 저장합니다. 관심 종목 수동 분석은 보유 종목 추천 알림을 만들지 않고, 대시보드 대표 추천에도 포함되지 않습니다. 실제 주문은 전송하지 않습니다.
+
+기존 MySQL에는 AI 서버를 함께 배포한 뒤 `Back/database/migrations/013_watchlist_recommendation_context.sql`을 적용합니다. 기존 추천은 `HOLDING`으로 보존됩니다. 새 볼륨은 `schema.sql`에 포함됩니다.
 
 ## 12. 알림 API
 
@@ -734,7 +742,7 @@ KB `SSQM2341`을 호출합니다. `orderDate`를 생략하면 한국 시간의 �
 
 ## 16. 다음 구현 순서
 
-Flutter 추천 이력 목록·상세 화면과 보유 종목 수동 재분석 액션까지 연결되었습니다.
+Flutter 추천 이력 목록·상세 화면, 보유 종목 수동 재분석과 관심 종목 직접 분석 액션까지 연결되었습니다.
 
 Windows 앱 잠금 PIN의 Credential Manager 저장과 기존 `.env` 값 자동 이전까지 연결되었습니다.
 

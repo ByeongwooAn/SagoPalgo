@@ -15,7 +15,9 @@ import com.sagopalgo.api.holding.service.HoldingService;
 import com.sagopalgo.api.market.dto.MarketCandleResponse;
 import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.model.StockCandle;
+import com.sagopalgo.api.market.model.StockQuote;
 import com.sagopalgo.api.market.service.MarketCandleService;
+import com.sagopalgo.api.market.service.MarketPriceService;
 import com.sagopalgo.api.recommendation.client.AiAnalysisGateway;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisRequest;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisResponse;
@@ -28,6 +30,8 @@ import com.sagopalgo.api.research.model.Disclosure;
 import com.sagopalgo.api.research.model.NewsArticle;
 import com.sagopalgo.api.research.model.StoredResearchFeed;
 import com.sagopalgo.api.research.service.ResearchFeedStore;
+import com.sagopalgo.api.watchlist.mapper.WatchlistMapper;
+import com.sagopalgo.api.watchlist.model.WatchlistItem;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -46,6 +50,12 @@ class RecommendationServiceTest {
 
     @Mock
     private HoldingService holdingService;
+
+    @Mock
+    private WatchlistMapper watchlistMapper;
+
+    @Mock
+    private MarketPriceService marketPriceService;
 
     @Mock
     private MarketCandleService marketCandleService;
@@ -69,6 +79,8 @@ class RecommendationServiceTest {
         AiAnalysisProperties properties = new AiAnalysisProperties();
         service = new RecommendationService(
             holdingService,
+            watchlistMapper,
+            marketPriceService,
             marketCandleService,
             researchFeedStore,
             aiAnalysisGateway,
@@ -138,6 +150,7 @@ class RecommendationServiceTest {
         assertThat(requestCaptor.getValue().candles()).hasSize(1);
         assertThat(requestCaptor.getValue().news()).hasSize(1);
         assertThat(requestCaptor.getValue().disclosures()).hasSize(1);
+        assertThat(requestCaptor.getValue().analysisType()).isEqualTo("HOLDING");
     }
 
     @Test
@@ -155,6 +168,85 @@ class RecommendationServiceTest {
         assertThat(response.status()).isEqualTo("TAKE_PROFIT");
         assertThat(response.statusLabel()).isEqualTo("부분 익절 검토");
         assertThat(response.aiSummary()).contains("익절 기준");
+    }
+
+    @Test
+    void analyzeWatchlistWithoutInventingHoldingProfit() {
+        WatchlistItem item = watchlistItem();
+        when(watchlistMapper.findByIdAndUserId(12L, 1L)).thenReturn(Optional.of(item));
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("KB", "75200"));
+        when(researchFeedStore.find(any())).thenReturn(new StoredResearchFeed(List.of(), List.of()));
+        when(marketCandleService.getCandles(any(), any(), any(), any(Integer.class)))
+            .thenReturn(candles());
+        when(aiAnalysisGateway.analyze(any())).thenReturn(Optional.of(new AiInvestmentAnalysisResponse(
+            "WEIGHTED_SIGNAL_V1", "BUY", "BUY_WATCH", 65, "관심 종목 분석", List.of()
+        )));
+        stubStore();
+
+        RecommendationResponse response = service.analyzeWatchlist(1L, 12L);
+
+        assertThat(response.analysisContext()).isEqualTo("WATCHLIST");
+        assertThat(response.stopLossRate()).isNull();
+        ArgumentCaptor<AiInvestmentAnalysisRequest> requestCaptor = ArgumentCaptor.forClass(
+            AiInvestmentAnalysisRequest.class
+        );
+        verify(aiAnalysisGateway).analyze(requestCaptor.capture());
+        assertThat(requestCaptor.getValue().analysisType()).isEqualTo("WATCHLIST");
+        assertThat(requestCaptor.getValue().buyPrice()).isNull();
+        assertThat(requestCaptor.getValue().profitRate()).isNull();
+        org.mockito.Mockito.verifyNoInteractions(alertService);
+    }
+
+    @Test
+    void rejectsFallbackQuoteBeforeSavingWatchlistAnalysis() {
+        when(watchlistMapper.findByIdAndUserId(12L, 1L)).thenReturn(Optional.of(watchlistItem()));
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("FALLBACK", "0"));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.analyzeWatchlist(1L, 12L))
+            .isInstanceOf(com.sagopalgo.api.common.exception.ApiException.class);
+        org.mockito.Mockito.verifyNoInteractions(aiAnalysisGateway, recommendationStore);
+    }
+
+    @Test
+    void rejectsAnotherUsersWatchlistItem() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.analyzeWatchlist(2L, 12L))
+            .isInstanceOf(com.sagopalgo.api.common.exception.ApiException.class);
+        org.mockito.Mockito.verifyNoInteractions(marketPriceService, aiAnalysisGateway, recommendationStore);
+    }
+
+    @Test
+    void watchlistAnalysisFallsBackToNeutralWhenAiIsOffline() {
+        when(watchlistMapper.findByIdAndUserId(12L, 1L)).thenReturn(Optional.of(watchlistItem()));
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("KB", "75200"));
+        when(researchFeedStore.find(any())).thenReturn(new StoredResearchFeed(List.of(), List.of()));
+        when(marketCandleService.getCandles(any(), any(), any(), any(Integer.class)))
+            .thenReturn(candles());
+        when(aiAnalysisGateway.analyze(any())).thenReturn(Optional.empty());
+        stubStore();
+
+        RecommendationResponse response = service.analyzeWatchlist(1L, 12L);
+
+        assertThat(response.recommendationType()).isEqualTo("HOLD");
+        assertThat(response.aiSummary()).contains("판단을 보류");
+    }
+
+    @Test
+    void ignoresSellSignalForAnUnownedWatchlistStock() {
+        when(watchlistMapper.findByIdAndUserId(12L, 1L)).thenReturn(Optional.of(watchlistItem()));
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("KB", "75200"));
+        when(researchFeedStore.find(any())).thenReturn(new StoredResearchFeed(List.of(), List.of()));
+        when(marketCandleService.getCandles(any(), any(), any(), any(Integer.class)))
+            .thenReturn(candles());
+        when(aiAnalysisGateway.analyze(any())).thenReturn(Optional.of(new AiInvestmentAnalysisResponse(
+            "OLD_MODEL", "SELL", "STOP_LOSS_WATCH", 20, "보유 손절", List.of()
+        )));
+        stubStore();
+
+        RecommendationResponse response = service.analyzeWatchlist(1L, 12L);
+
+        assertThat(response.recommendationType()).isEqualTo("HOLD");
+        assertThat(response.status()).isEqualTo("HOLD");
+        assertThat(response.aiSummary()).doesNotContain("손절");
     }
 
     private void stubStore() {
@@ -208,6 +300,24 @@ class RecommendationServiceTest {
             CandleInterval.DAILY,
             1,
             List.of(candle)
+        );
+    }
+
+    private WatchlistItem watchlistItem() {
+        WatchlistItem item = new WatchlistItem();
+        item.setWatchlistId(12L);
+        item.setUserId(1L);
+        item.setStockCode("005930");
+        item.setStockName("삼성전자");
+        item.setMarket("KOSPI");
+        return item;
+    }
+
+    private StockQuote quote(String provider, String price) {
+        return new StockQuote(
+            provider, "005930", "삼성전자", "KOSPI", new BigDecimal(price),
+            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, Instant.now()
         );
     }
 }

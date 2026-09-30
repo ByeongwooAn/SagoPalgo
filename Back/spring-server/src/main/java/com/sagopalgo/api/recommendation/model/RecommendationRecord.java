@@ -13,6 +13,7 @@ public class RecommendationRecord {
     private String stockCode;
     private String stockName;
     private String market;
+    private String analysisContext;
     private String recommendationType;
     private String status;
     private int score;
@@ -61,6 +62,14 @@ public class RecommendationRecord {
 
     public void setMarket(String market) {
         this.market = market;
+    }
+
+    public String getAnalysisContext() {
+        return analysisContext;
+    }
+
+    public void setAnalysisContext(String analysisContext) {
+        this.analysisContext = analysisContext;
     }
 
     public String getRecommendationType() {

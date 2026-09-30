@@ -13,7 +13,10 @@ import com.sagopalgo.api.holding.dto.HoldingResponse;
 import com.sagopalgo.api.holding.service.HoldingService;
 import com.sagopalgo.api.market.dto.MarketCandleResponse;
 import com.sagopalgo.api.market.model.CandleInterval;
+import com.sagopalgo.api.market.model.MarketDataRequest;
+import com.sagopalgo.api.market.model.StockQuote;
 import com.sagopalgo.api.market.service.MarketCandleService;
+import com.sagopalgo.api.market.service.MarketPriceService;
 import com.sagopalgo.api.recommendation.client.AiAnalysisGateway;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisRequest;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisResponse;
@@ -27,6 +30,9 @@ import com.sagopalgo.api.recommendation.model.StoredRecommendation;
 import com.sagopalgo.api.research.model.ResearchRequest;
 import com.sagopalgo.api.research.model.StoredResearchFeed;
 import com.sagopalgo.api.research.service.ResearchFeedStore;
+import com.sagopalgo.api.watchlist.mapper.WatchlistMapper;
+import com.sagopalgo.api.watchlist.model.WatchlistItem;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
@@ -47,6 +53,8 @@ public class RecommendationService {
     private static final int MAX_PAGE_SIZE = 100;
 
     private final HoldingService holdingService;
+    private final WatchlistMapper watchlistMapper;
+    private final MarketPriceService marketPriceService;
     private final MarketCandleService marketCandleService;
     private final ResearchFeedStore researchFeedStore;
     private final AiAnalysisGateway aiAnalysisGateway;
@@ -58,6 +66,8 @@ public class RecommendationService {
 
     public RecommendationService(
         HoldingService holdingService,
+        WatchlistMapper watchlistMapper,
+        MarketPriceService marketPriceService,
         MarketCandleService marketCandleService,
         ResearchFeedStore researchFeedStore,
         AiAnalysisGateway aiAnalysisGateway,
@@ -68,6 +78,8 @@ public class RecommendationService {
         ObjectMapper objectMapper
     ) {
         this.holdingService = holdingService;
+        this.watchlistMapper = watchlistMapper;
+        this.marketPriceService = marketPriceService;
         this.marketCandleService = marketCandleService;
         this.researchFeedStore = researchFeedStore;
         this.aiAnalysisGateway = aiAnalysisGateway;
@@ -85,11 +97,37 @@ public class RecommendationService {
         AiInvestmentAnalysisResponse analysis = aiAnalysisGateway.analyze(request)
             .orElseGet(() -> fallbackAnalysis(holding));
         StoredRecommendation stored = recommendationStore.save(
-            recommendationRecord(userId, holding, analysis),
+            recommendationRecord(userId, request, analysis),
             reasonRecords(analysis),
-            snapshotRecord(userId, holding, analysis, request)
+            snapshotRecord(userId, analysis, request)
         );
         alertService.createFromRecommendation(stored);
+        return response(stored);
+    }
+
+    @Transactional
+    public RecommendationResponse analyzeWatchlist(Long userId, Long watchlistId) {
+        WatchlistItem item = watchlistMapper.findByIdAndUserId(watchlistId, userId)
+            .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "관심 종목을 찾을 수 없습니다."));
+        StockQuote quote = marketPriceService.quoteMarket(
+            new MarketDataRequest(item.getStockCode(), item.getMarket())
+        );
+        if (quote.currentPrice() == null || quote.currentPrice().signum() <= 0
+            || "FALLBACK".equalsIgnoreCase(quote.provider())) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "실제 현재가가 없어 관심 종목을 분석할 수 없습니다.");
+        }
+        AiInvestmentAnalysisRequest request = analysisRequest(
+            item.getStockCode(), item.getStockName(), item.getMarket(), quote.currentPrice(),
+            null, null, null, null, "WATCHLIST"
+        );
+        AiInvestmentAnalysisResponse analysis = aiAnalysisGateway.analyze(request)
+            .filter(this::isWatchlistSafe)
+            .orElseGet(this::watchlistFallbackAnalysis);
+        StoredRecommendation stored = recommendationStore.save(
+            recommendationRecord(userId, request, analysis),
+            reasonRecords(analysis),
+            snapshotRecord(userId, analysis, request)
+        );
         return response(stored);
     }
 
@@ -131,39 +169,58 @@ public class RecommendationService {
     }
 
     private AiInvestmentAnalysisRequest analysisRequest(HoldingResponse holding) {
+        return analysisRequest(
+            holding.stockCode(), holding.stockName(), holding.market(), holding.currentPrice(),
+            holding.buyPrice(), holding.profitRate(), holding.stopLossRate(), holding.takeProfitRate(),
+            "HOLDING"
+        );
+    }
+
+    private AiInvestmentAnalysisRequest analysisRequest(
+        String stockCode,
+        String stockName,
+        String market,
+        BigDecimal currentPrice,
+        BigDecimal buyPrice,
+        BigDecimal profitRate,
+        BigDecimal stopLossRate,
+        BigDecimal takeProfitRate,
+        String analysisType
+    ) {
         LocalDate toDate = LocalDate.now();
         LocalDate fromDate = toDate.minusDays(Math.max(1, properties.getLookbackDays()));
         StoredResearchFeed research = researchFeedStore.find(new ResearchRequest(
-            holding.stockCode(),
-            holding.stockName(),
+            stockCode,
+            stockName,
             fromDate,
             toDate
         ));
-        List<AiInvestmentAnalysisRequest.CandleInput> candles = candles(holding);
+        List<AiInvestmentAnalysisRequest.CandleInput> candles = candles(stockCode, market);
         return new AiInvestmentAnalysisRequest(
-            holding.stockCode(),
-            holding.stockName(),
-            holding.market(),
-            holding.currentPrice(),
-            holding.buyPrice(),
-            holding.profitRate(),
-            holding.stopLossRate(),
-            holding.takeProfitRate(),
+            stockCode,
+            stockName,
+            market,
+            currentPrice,
+            buyPrice,
+            profitRate,
+            stopLossRate,
+            takeProfitRate,
             candles,
             research.news().stream()
                 .map(item -> new AiInvestmentAnalysisRequest.NewsInput(item.title(), item.summary()))
                 .toList(),
             research.disclosures().stream()
                 .map(item -> new AiInvestmentAnalysisRequest.DisclosureInput(item.reportName()))
-                .toList()
+                .toList(),
+            analysisType
         );
     }
 
-    private List<AiInvestmentAnalysisRequest.CandleInput> candles(HoldingResponse holding) {
+    private List<AiInvestmentAnalysisRequest.CandleInput> candles(String stockCode, String market) {
         try {
             MarketCandleResponse response = marketCandleService.getCandles(
-                holding.stockCode(),
-                holding.market(),
+                stockCode,
+                market,
                 CandleInterval.DAILY,
                 Math.max(2, Math.min(100, properties.getCandleCount()))
             );
@@ -177,7 +234,7 @@ public class RecommendationService {
         } catch (ApiException exception) {
             log.warn(
                 "추천 분석용 캔들 조회 실패. stockCode={} message={}",
-                holding.stockCode(),
+                stockCode,
                 exception.getMessage()
             );
             return List.of();
@@ -207,22 +264,44 @@ public class RecommendationService {
         );
     }
 
+    private AiInvestmentAnalysisResponse watchlistFallbackAnalysis() {
+        return new AiInvestmentAnalysisResponse(
+            "RULE_FALLBACK_V1", "HOLD", "HOLD", 50,
+            "AI 분석 서버에 연결할 수 없어 관심 종목의 매수·매도 판단을 보류합니다.",
+            List.of(new AiInvestmentAnalysisResponse.Reason(
+                "분석 대기", "가격·뉴스·공시의 종합 판단은 AI 서버 연결 후 다시 확인해 주세요.", "RISK", 0
+            ))
+        );
+    }
+
+    private boolean isWatchlistSafe(AiInvestmentAnalysisResponse analysis) {
+        if (analysis == null || analysis.status() == null || analysis.recommendationType() == null) {
+            return false;
+        }
+        return switch (analysis.status()) {
+            case "BUY_STRONG", "BUY_WATCH" -> "BUY".equals(analysis.recommendationType());
+            case "HOLD", "RISK" -> "HOLD".equals(analysis.recommendationType());
+            default -> false;
+        };
+    }
+
     private RecommendationRecord recommendationRecord(
         Long userId,
-        HoldingResponse holding,
+        AiInvestmentAnalysisRequest request,
         AiInvestmentAnalysisResponse analysis
     ) {
         RecommendationRecord record = new RecommendationRecord();
         record.setUserId(userId);
-        record.setStockCode(holding.stockCode());
-        record.setStockName(holding.stockName());
-        record.setMarket(holding.market());
+        record.setStockCode(request.stockCode());
+        record.setStockName(request.stockName());
+        record.setMarket(request.market());
+        record.setAnalysisContext(request.analysisType());
         record.setRecommendationType(analysis.recommendationType());
         record.setStatus(analysis.status());
         record.setScore(Math.max(0, Math.min(100, analysis.score())));
-        record.setEntryPrice(holding.currentPrice());
-        record.setStopLossRate(holding.stopLossRate());
-        record.setTakeProfitRate(holding.takeProfitRate());
+        record.setEntryPrice(request.currentPrice());
+        record.setStopLossRate(request.stopLossRate());
+        record.setTakeProfitRate(request.takeProfitRate());
         record.setAiSummary(analysis.summary());
         return record;
     }
@@ -243,15 +322,14 @@ public class RecommendationService {
 
     private AnalysisSnapshotRecord snapshotRecord(
         Long userId,
-        HoldingResponse holding,
         AiInvestmentAnalysisResponse analysis,
         AiInvestmentAnalysisRequest request
     ) {
         AnalysisSnapshotRecord record = new AnalysisSnapshotRecord();
         record.setUserId(userId);
-        record.setStockCode(holding.stockCode());
-        record.setMarket(holding.market());
-        record.setAnalysisType("TOTAL");
+        record.setStockCode(request.stockCode());
+        record.setMarket(request.market());
+        record.setAnalysisType("WATCHLIST".equals(request.analysisType()) ? "WATCHLIST" : "TOTAL");
         record.setScore(analysis.score());
         record.setRawPayload(rawPayload(request, analysis));
         return record;
@@ -280,7 +358,7 @@ public class RecommendationService {
             item.getMarket(),
             item.getRecommendationType(),
             item.getStatus(),
-            statusLabel(item.getStatus()),
+            statusLabel(item.getStatus(), item.getAnalysisContext()),
             item.getScore(),
             item.getEntryPrice(),
             item.getStopLossRate(),
@@ -294,7 +372,8 @@ public class RecommendationService {
                     reason.getDescription(),
                     reason.getScore()
                 ))
-                .toList()
+                .toList(),
+            item.getAnalysisContext()
         );
     }
 
@@ -305,7 +384,7 @@ public class RecommendationService {
             item.getStockName(),
             item.getStockCode(),
             item.getMarket(),
-            statusLabel(item.getStatus()),
+            statusLabel(item.getStatus(), item.getAnalysisContext()),
             item.getScore(),
             item.getEntryPrice(),
             item.getStopLossRate(),
@@ -337,7 +416,10 @@ public class RecommendationService {
         return "HOLD";
     }
 
-    private String statusLabel(String status) {
+    private String statusLabel(String status, String analysisContext) {
+        if ("WATCHLIST".equals(analysisContext) && "RISK".equals(status)) {
+            return "진입 보류";
+        }
         return switch (status) {
             case "BUY_STRONG" -> "강한 매수";
             case "BUY_WATCH" -> "매수 관찰";

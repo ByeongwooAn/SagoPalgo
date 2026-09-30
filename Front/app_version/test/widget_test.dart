@@ -227,6 +227,11 @@ class FakeRecommendationRepository implements RecommendationRepository {
   }
 
   @override
+  Future<InvestmentRecommendation> analyzeWatchlist(int watchlistId) async {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<InvestmentRecommendation> fetchDetail(int recommendationId) async {
     return _testSnapshot.recommendation!;
   }

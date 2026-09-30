@@ -322,9 +322,12 @@ Invoke-RestMethod `
 1. 분석 응답에 `status`, `statusLabel`, `score`, `reasons`가 표시되는지 확인합니다.
 2. 같은 추천 ID로 `recommendations`, `recommendation_reasons`, `analysis_snapshots`가 저장되는지 확인합니다.
 3. AI 서버를 중지하거나 `SAGOPALGO_AI_ENABLED=false`로 바꾼 뒤에도 규칙 fallback 추천이 저장되는지 확인합니다.
-4. 대시보드 새로고침 시 가장 최근에 저장한 추천이 대표 추천으로 표시되는지 확인합니다.
+4. 대시보드 새로고침 시 가장 최근에 저장한 **보유 종목** 추천이 대표 추천으로 표시되는지 확인합니다.
 5. Flutter 추천 탭에서 목록을 추가 조회할 수 있고, 항목 선택 시 같은 추천 ID의 상세가 표시되는지 확인합니다.
 6. 보유 종목 수동 재분석 후 새 추천이 이력 최상단에 나타나는지 확인합니다.
+7. AI 서버 업데이트와 `013_watchlist_recommendation_context.sql` 적용 후 관심 종목을 등록하고 추천 탭의 `관심 종목 분석`에서 선택합니다. 결과가 `analysisContext=WATCHLIST`이고 손절·익절 기준은 비어 있으며, 상세 화면에도 해당 기준이 보이지 않는지 확인합니다.
+8. 실제 시세 Provider를 모두 끈 상태에서는 관심 종목 분석이 거절되는지 확인합니다. AI 서버를 끈 상태에서는 `HOLD` 중립 결과로 저장되어야 합니다.
+9. 관심 종목 분석 뒤에도 대시보드 대표 추천은 최신 보유 종목 결과를 유지하고, KB 실주문은 전송되지 않는지 확인합니다.
 
 모의매매 API 확인:
 
