@@ -1,7 +1,10 @@
 from datetime import datetime
 
+import pytest
+from pydantic import ValidationError
+
 from app.analysis import analyze
-from app.models import CandleInput, InvestmentAnalysisRequest, NewsInput
+from app.models import CandleInput, DisclosureInput, InvestmentAnalysisRequest, NewsInput
 
 
 def request(**changes: object) -> InvestmentAnalysisRequest:
@@ -45,3 +48,40 @@ def test_stop_loss_has_priority_over_other_signals() -> None:
     assert result.recommendation_type == "SELL"
     assert result.status == "STOP_LOSS_WATCH"
     assert "손절 기준" in result.summary
+
+
+def test_watchlist_analysis_uses_no_holding_profit_or_sell_signal() -> None:
+    result = analyze(request(
+        analysis_type="WATCHLIST",
+        buy_price=None,
+        profit_rate=None,
+        stop_loss_rate=None,
+        take_profit_rate=None,
+    ))
+
+    assert result.status in {"BUY_STRONG", "BUY_WATCH", "RISK", "HOLD"}
+    assert result.status not in {"TAKE_PROFIT", "STOP_LOSS_WATCH"}
+    assert "관심 종목 점수" in result.summary
+    assert all("현재 수익률" not in reason.description for reason in result.reasons)
+
+
+def test_watchlist_negative_signals_mean_avoid_entry_not_sell() -> None:
+    result = analyze(request(
+        analysis_type="WATCHLIST",
+        buy_price=None,
+        profit_rate=None,
+        stop_loss_rate=None,
+        take_profit_rate=None,
+        candles=[],
+        news=[NewsInput(title="적자 감소 위험 소송 제재 리콜", summary="하락 손실")],
+        disclosures=[DisclosureInput(report_name="소송 횡령 부도 상장폐지")],
+    ))
+
+    assert result.status == "RISK"
+    assert result.recommendation_type == "HOLD"
+    assert "신규 진입을 보류" in result.summary
+
+
+def test_holding_analysis_still_requires_risk_fields() -> None:
+    with pytest.raises(ValidationError):
+        request(profit_rate=None)

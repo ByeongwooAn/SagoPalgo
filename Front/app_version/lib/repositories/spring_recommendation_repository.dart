@@ -56,6 +56,17 @@ class SpringRecommendationRepository implements RecommendationRepository {
     return _recommendation(response);
   }
 
+  @override
+  Future<InvestmentRecommendation> analyzeWatchlist(int watchlistId) async {
+    final response = await client.post(
+      Uri.parse(
+        '${config.recommendationsBaseUrl}/analyze/watchlist/$watchlistId',
+      ),
+      headers: _headers,
+    );
+    return _recommendation(response);
+  }
+
   InvestmentRecommendation _recommendation(http.Response response) {
     final data = _decode(response)['data'] as Map<String, dynamic>;
     return InvestmentRecommendation.fromJson(data);

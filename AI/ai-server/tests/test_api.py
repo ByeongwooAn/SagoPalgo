@@ -30,3 +30,24 @@ def test_health_and_analysis_contract_use_camel_case() -> None:
     assert body["modelVersion"] == "WEIGHTED_SIGNAL_V1"
     assert body["recommendationType"] == "HOLD"
     assert "reasons" in body
+
+
+def test_watchlist_contract_accepts_no_holding_cost_basis() -> None:
+    response = client.post(
+        "/internal/ai/analyze-investment",
+        json={
+            "stockCode": "005930",
+            "stockName": "삼성전자",
+            "market": "KOSPI",
+            "currentPrice": 75200,
+            "analysisType": "WATCHLIST",
+            "candles": [],
+            "news": [],
+            "disclosures": [],
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "HOLD"
+    assert "관심 종목 점수" in body["summary"]

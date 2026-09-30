@@ -120,6 +120,11 @@ class _NoopRecommendationRepository implements RecommendationRepository {
   }
 
   @override
+  Future<InvestmentRecommendation> analyzeWatchlist(int watchlistId) async {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<InvestmentRecommendation> fetchDetail(int recommendationId) async {
     throw UnimplementedError();
   }

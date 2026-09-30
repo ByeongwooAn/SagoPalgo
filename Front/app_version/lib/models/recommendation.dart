@@ -13,6 +13,7 @@ class InvestmentRecommendation {
     required this.status,
     this.machineStatus,
     this.recommendationType = 'HOLD',
+    this.analysisContext = 'HOLDING',
     required this.score,
     required this.entryPrice,
     required this.stopLossRate,
@@ -43,6 +44,9 @@ class InvestmentRecommendation {
   /// BUY, SELL, HOLD 중 서버가 판단한 행동 분류입니다.
   final String recommendationType;
 
+  /// HOLDING 또는 WATCHLIST입니다.
+  final String analysisContext;
+
   /// 기획서의 점수 시스템에 따른 0~100 추천 점수입니다.
   final int score;
 
@@ -50,7 +54,7 @@ class InvestmentRecommendation {
   final int entryPrice;
 
   /// 리스크 관리를 위해 추천 상세에서 항상 노출할 손절 기준입니다.
-  final double stopLossRate;
+  final double? stopLossRate;
 
   /// 수익 실현을 검토할 목표 수익률입니다.
   final double takeProfitRate;
@@ -74,9 +78,10 @@ class InvestmentRecommendation {
       status: json['statusLabel'] as String? ?? json['status'] as String,
       machineStatus: json['status'] as String?,
       recommendationType: json['recommendationType'] as String? ?? 'HOLD',
+      analysisContext: json['analysisContext'] as String? ?? 'HOLDING',
       score: _readInt(json['score']),
       entryPrice: _readInt(json['entryPrice']),
-      stopLossRate: _readDouble(json['stopLossRate']),
+      stopLossRate: _readOptionalDouble(json['stopLossRate']),
       takeProfitRate: _readOptionalDouble(json['takeProfitRate']) ?? 0,
       aiSummary: json['aiSummary'] as String,
       reasons: (json['reasons'] as List<dynamic>? ?? const [])

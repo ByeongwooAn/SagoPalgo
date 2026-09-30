@@ -69,6 +69,11 @@ def analyze(request: InvestmentAnalysisRequest) -> InvestmentAnalysisResponse:
 
 
 def _risk_signal(request: InvestmentAnalysisRequest) -> Signal:
+    if request.analysis_type == "WATCHLIST":
+        return Signal("비보유 종목", "보유 손익이나 손절·익절 기준 없이 관심 종목의 흐름만 분석했습니다.", "RISK", 0)
+    assert request.profit_rate is not None
+    assert request.take_profit_rate is not None
+    assert request.stop_loss_rate is not None
     if request.profit_rate >= request.take_profit_rate - 1:
         return Signal(
             "익절 기준",
@@ -146,20 +151,32 @@ def _keyword_score(text: str) -> int:
 
 
 def _decision(request: InvestmentAnalysisRequest, score: int) -> tuple[str, str]:
-    if request.profit_rate <= request.stop_loss_rate + 1:
-        return "SELL", "STOP_LOSS_WATCH"
-    if request.profit_rate >= request.take_profit_rate - 1:
-        return "SELL", "TAKE_PROFIT"
+    if request.analysis_type == "HOLDING":
+        assert request.profit_rate is not None
+        assert request.stop_loss_rate is not None
+        assert request.take_profit_rate is not None
+        if request.profit_rate <= request.stop_loss_rate + 1:
+            return "SELL", "STOP_LOSS_WATCH"
+        if request.profit_rate >= request.take_profit_rate - 1:
+            return "SELL", "TAKE_PROFIT"
     if score >= 75:
         return "BUY", "BUY_STRONG"
     if score >= 62:
         return "BUY", "BUY_WATCH"
     if score <= 35:
-        return "SELL", "RISK"
+        return ("HOLD" if request.analysis_type == "WATCHLIST" else "SELL"), "RISK"
     return "HOLD", "HOLD"
 
 
 def _summary(request: InvestmentAnalysisRequest, status: str, score: int) -> str:
+    if request.analysis_type == "WATCHLIST":
+        messages = {
+            "BUY_STRONG": "가격·뉴스·공시 신호가 긍정적이지만 진입 전 위험을 별도로 확인하세요.",
+            "BUY_WATCH": "긍정 신호가 있으나 진입 전 추가 확인이 필요합니다.",
+            "RISK": "부정 신호가 우세해 신규 진입을 보류하는 편이 안전합니다.",
+            "HOLD": "신호가 중립이므로 관심 종목으로 관찰하며 다음 변화를 확인하세요.",
+        }
+        return f"{request.stock_name} 관심 종목 점수는 {score}점입니다. {messages[status]}"
     messages = {
         "STOP_LOSS_WATCH": "손절 기준 접근 신호가 우선입니다. 추가 매수보다 손실 제한 계획을 확인하세요.",
         "TAKE_PROFIT": "익절 기준 접근 신호가 우선입니다. 일부 수익 실현과 잔여 물량 관리를 검토하세요.",

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/holding.dart';
 import '../models/recommendation.dart';
+import '../models/watchlist_item.dart';
 import '../repositories/recommendation_repository.dart';
 import '../repositories/watchlist_repository.dart';
 import '../theme/app_theme.dart';
@@ -61,6 +62,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   bool _loadingHistory = true;
   bool _loadingMore = false;
   int? _analyzingHoldingId;
+  int? _analyzingWatchlistId;
+  bool _loadingWatchlist = false;
   int _nextPage = 0;
   int _total = 0;
   Object? _historyError;
@@ -84,6 +87,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       return _EmptyRecommendationState(
         onCapitalTap: widget.onCapitalSetupOpen,
         onHoldingTap: widget.onHoldingSetupOpen,
+        onWatchlistTap: _openWatchlistPicker,
       );
     }
 
@@ -107,6 +111,11 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             holdings: widget.holdings,
             analyzingHoldingId: _analyzingHoldingId,
             onAnalyzeTap: _openHoldingPicker,
+          ),
+          const SizedBox(height: 12),
+          _WatchlistAnalysisActionCard(
+            busy: _loadingWatchlist || _analyzingWatchlistId != null,
+            onAnalyzeTap: _openWatchlistPicker,
           ),
           if (recommendation != null) ...[
             const SizedBox(height: 12),
@@ -199,10 +208,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         if (_historyError != null && _history.isEmpty)
           _InlineError(onRetry: () => _loadHistory(reset: true))
         else if (_history.isEmpty)
-          AppCard(
-            soft: true,
-            child: TextBody('저장된 추천 이력이 없습니다. 보유 종목을 분석하면 여기에 기록됩니다.'),
-          )
+          AppCard(soft: true, child: TextBody('저장된 추천 이력이 없습니다.'))
         else
           for (final item in _history) ...[
             _RecommendationHistoryTile(
@@ -317,9 +323,64 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     }
   }
 
+  Future<void> _openWatchlistPicker() async {
+    if (_loadingWatchlist || _analyzingWatchlistId != null) return;
+    setState(() => _loadingWatchlist = true);
+    List<WatchlistItem> items;
+    try {
+      items = await widget.watchlistRepository.fetchWatchlist();
+    } catch (error) {
+      if (mounted) _showMessage(error.toString());
+      return;
+    } finally {
+      if (mounted) setState(() => _loadingWatchlist = false);
+    }
+    if (!mounted) return;
+    if (items.isEmpty) {
+      _showMessage('등록된 관심 종목이 없습니다.');
+      return;
+    }
+    final selected = await showModalBottomSheet<WatchlistItem>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          children: [
+            const ListTile(title: Text('분석할 관심 종목 선택')),
+            for (final item in items)
+              ListTile(
+                leading: const Icon(Icons.star_outline_rounded),
+                title: Text(item.stockName),
+                subtitle: Text('${item.stockCode} · ${item.market}'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.pop(context, item),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    setState(() => _analyzingWatchlistId = selected.watchlistId);
+    try {
+      await widget.recommendationRepository.analyzeWatchlist(
+        selected.watchlistId,
+      );
+      await _loadHistory(reset: true);
+      widget.onRecommendationChanged();
+      if (mounted) _showMessage('${selected.stockName} 분석이 완료되었습니다.');
+    } catch (error) {
+      if (mounted) _showMessage(error.toString());
+    } finally {
+      if (mounted) setState(() => _analyzingWatchlistId = null);
+    }
+  }
+
   Future<void> _openDetail(InvestmentRecommendation recommendation) async {
     Holding? holding;
     for (final item in widget.holdings) {
+      if (recommendation.analysisContext == 'WATCHLIST') break;
       if (item.stockCode == recommendation.stockCode) {
         holding = item;
         break;
@@ -448,6 +509,43 @@ class _AnalysisActionCard extends StatelessWidget {
   }
 }
 
+class _WatchlistAnalysisActionCard extends StatelessWidget {
+  const _WatchlistAnalysisActionCard({
+    required this.busy,
+    required this.onAnalyzeTap,
+  });
+
+  final bool busy;
+  final VoidCallback onAnalyzeTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      soft: true,
+      child: Row(
+        children: [
+          const Icon(Icons.star_outline_rounded, color: AppTheme.main),
+          const SizedBox(width: 12),
+          const Expanded(child: CardTitle('관심 종목 분석', fontSize: 17)),
+          FilledButton.icon(
+            onPressed: busy ? null : onAnalyzeTap,
+            icon: busy
+                ? const SizedBox.square(
+                    dimension: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.play_arrow_rounded),
+            label: Text(busy ? '분석 중' : '분석'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _RecommendationHistoryTile extends StatelessWidget {
   const _RecommendationHistoryTile({
     required this.recommendation,
@@ -490,6 +588,7 @@ class _RecommendationHistoryTile extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       '${recommendation.stockCode} · ${recommendation.market}'
+                      '${recommendation.analysisContext == 'WATCHLIST' ? ' · 관심 종목' : ''}'
                       '${recommendation.createdAt == null ? '' : ' · ${_formatDateTime(recommendation.createdAt!)}'}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -609,7 +708,8 @@ class _RecommendationDetailScreenState
                 children: [
                   SectionHeader(
                     eyebrow:
-                        '${recommendation.stockCode} · ${recommendation.market}',
+                        '${recommendation.stockCode} · ${recommendation.market}'
+                        '${recommendation.analysisContext == 'WATCHLIST' ? ' · 관심 종목' : ''}',
                     title: recommendation.stockName,
                     action: StatusChip(
                       label: recommendation.status,
@@ -707,10 +807,12 @@ class _EmptyRecommendationState extends StatelessWidget {
   const _EmptyRecommendationState({
     required this.onCapitalTap,
     required this.onHoldingTap,
+    required this.onWatchlistTap,
   });
 
   final VoidCallback onCapitalTap;
   final VoidCallback onHoldingTap;
+  final VoidCallback onWatchlistTap;
 
   @override
   Widget build(BuildContext context) {
@@ -740,7 +842,7 @@ class _EmptyRecommendationState extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        '아직 서버에 추천할 실제 데이터가 없습니다. 자본금과 보유 종목을 등록하면 실제 계정 데이터 기준으로 추천 판단이 표시됩니다.',
+                        '저장된 추천 결과가 없습니다.',
                         style: TextStyle(
                           color: palette.text,
                           fontSize: 14,
@@ -768,6 +870,15 @@ class _EmptyRecommendationState extends StatelessWidget {
                     onPressed: onHoldingTap,
                     icon: const Icon(Icons.add_rounded),
                     label: const Text('보유 종목 추가하기'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: onWatchlistTap,
+                    icon: const Icon(Icons.star_outline_rounded),
+                    label: const Text('관심 종목 분석'),
                   ),
                 ),
               ],
@@ -798,7 +909,7 @@ class ScoreDetailCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const LabelText('AI 확률 점수'),
+                    const LabelText('분석 점수'),
                     const SizedBox(height: 8),
                     Text(
                       '${recommendation.score}점',
@@ -820,26 +931,31 @@ class ScoreDetailCard extends StatelessWidget {
             children: [
               Expanded(
                 child: DetailMetric(
-                  label: '진입 가격대',
+                  label: recommendation.analysisContext == 'WATCHLIST'
+                      ? '현재가'
+                      : '진입 가격대',
                   value: '${formatCurrency(recommendation.entryPrice)}원',
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: DetailMetric(
-                  label: '손절 기준',
-                  value: formatSignedPercent(recommendation.stopLossRate),
-                  color: AppTheme.sub,
+              if (recommendation.analysisContext != 'WATCHLIST' &&
+                  recommendation.stopLossRate != null) ...[
+                const SizedBox(width: 16),
+                Expanded(
+                  child: DetailMetric(
+                    label: '손절 기준',
+                    value: formatSignedPercent(recommendation.stopLossRate!),
+                    color: AppTheme.sub,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: DetailMetric(
-                  label: '익절 기준',
-                  value: formatSignedPercent(recommendation.takeProfitRate),
-                  color: AppTheme.point,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: DetailMetric(
+                    label: '익절 기준',
+                    value: formatSignedPercent(recommendation.takeProfitRate),
+                    color: AppTheme.point,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ],

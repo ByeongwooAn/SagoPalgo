@@ -191,7 +191,8 @@ class PaperTradingServiceTest {
             new BigDecimal("10"),
             "테스트 추천",
             LocalDateTime.now(),
-            List.of()
+            List.of(),
+            "HOLDING"
         );
     }
 

@@ -17,10 +17,10 @@ public interface RecommendationMapper {
 
     @Insert("""
         INSERT INTO recommendations (
-          user_id, stock_code, stock_name, market, recommendation_type, status,
+          user_id, stock_code, stock_name, market, analysis_context, recommendation_type, status,
           score, entry_price, stop_loss_rate, take_profit_rate, ai_summary
         ) VALUES (
-          #{userId}, #{stockCode}, #{stockName}, #{market}, #{recommendationType}, #{status},
+          #{userId}, #{stockCode}, #{stockName}, #{market}, #{analysisContext}, #{recommendationType}, #{status},
           #{score}, #{entryPrice}, #{stopLossRate}, #{takeProfitRate}, #{aiSummary}
         )
         """)
@@ -28,7 +28,7 @@ public interface RecommendationMapper {
     int insert(RecommendationRecord record);
 
     @Select("""
-        SELECT recommendation_id, user_id, stock_code, stock_name, market,
+        SELECT recommendation_id, user_id, stock_code, stock_name, market, analysis_context,
                recommendation_type, status, score, entry_price, stop_loss_rate,
                take_profit_rate, ai_summary, created_at, updated_at
         FROM recommendations
@@ -41,11 +41,12 @@ public interface RecommendationMapper {
     );
 
     @Select("""
-        SELECT recommendation_id, user_id, stock_code, stock_name, market,
+        SELECT recommendation_id, user_id, stock_code, stock_name, market, analysis_context,
                recommendation_type, status, score, entry_price, stop_loss_rate,
                take_profit_rate, ai_summary, created_at, updated_at
         FROM recommendations
         WHERE user_id = #{userId}
+          AND analysis_context = 'HOLDING'
         ORDER BY created_at DESC, recommendation_id DESC
         LIMIT 1
         """)
@@ -53,7 +54,7 @@ public interface RecommendationMapper {
 
     @Select("""
         <script>
-        SELECT recommendation_id, user_id, stock_code, stock_name, market,
+        SELECT recommendation_id, user_id, stock_code, stock_name, market, analysis_context,
                recommendation_type, status, score, entry_price, stop_loss_rate,
                take_profit_rate, ai_summary, created_at, updated_at
         FROM recommendations

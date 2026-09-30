@@ -18,7 +18,8 @@ public record AiInvestmentAnalysisRequest(
     BigDecimal takeProfitRate,
     List<CandleInput> candles,
     List<NewsInput> news,
-    List<DisclosureInput> disclosures
+    List<DisclosureInput> disclosures,
+    String analysisType
 ) {
     public record CandleInput(
         LocalDateTime dateTime,

@@ -87,7 +87,8 @@ class HttpAiAnalysisClientTest {
             new BigDecimal("12"),
             List.of(),
             List.of(),
-            List.of()
+            List.of(),
+            "HOLDING"
         );
     }
 }
