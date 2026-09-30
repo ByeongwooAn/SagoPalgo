@@ -4,7 +4,7 @@ import '../models/app_alert.dart';
 abstract class AlertRepository {
   Future<List<AppAlert>> fetchAlerts({bool unreadOnly = false});
 
-  Future<List<AppAlert>> fetchPending();
+  Future<List<AppAlert>> fetchPending({int? afterAlertId});
 
   Future<void> markSent(int alertId);
 

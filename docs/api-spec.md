@@ -542,9 +542,9 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ### 12.3 Windows 전달 대기 알림 조회
 
-`GET /api/v1/alerts/pending?limit=20`
+`GET /api/v1/alerts/pending?limit=20&afterAlertId=123`
 
-`sentAt`이 아직 없는 알림을 오래된 순서로 반환합니다. Flutter Windows 앱은 기본 30초 간격으로 이 API를 조회하고 Windows Runner 네이티브 알림 표시가 성공한 항목만 전달 완료 처리합니다.
+`sentAt`이 아직 없는 알림을 `alertId` 오름차순으로 반환합니다. `afterAlertId`는 선택적인 배타적 커서이며 생략하면 처음부터 조회합니다. `limit`는 1~50으로 제한되고 음수 커서는 거절합니다. Flutter Windows 앱은 기본 30초 간격으로 최대 5페이지씩 조회하고, 한 건이 실패해도 다음 건을 시도합니다. 5페이지를 모두 사용하면 다음 주기에서 이어받고, 끝에 도달하면 처음으로 돌아가 실패 건을 재시도합니다. Windows 표시 성공 후 서버 완료 기록만 실패하면 앱 실행 중에는 다시 표시하지 않고 기록만 재시도합니다. 앱 종료·재시작 사이에 표시 성공과 기록 실패가 겹치면 중복 표시될 수 있으므로 정확히 한 번 전달을 보장하지 않습니다.
 
 ### 12.4 Windows 전달 완료 처리
 

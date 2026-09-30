@@ -64,4 +64,18 @@ void main() {
 
     await repository.markSent(7);
   });
+
+  test('fetchPending sends the optional alert cursor', () async {
+    final repository = SpringAlertRepository(
+      accessToken: '',
+      config: ApiConfig(baseUrl: 'http://ubuntu-server:8081'),
+      client: MockClient((request) async {
+        expect(request.url.queryParameters['limit'], '20');
+        expect(request.url.queryParameters['afterAlertId'], '20');
+        return http.Response(jsonEncode({'success': true, 'data': []}), 200);
+      }),
+    );
+
+    expect(await repository.fetchPending(afterAlertId: 20), isEmpty);
+  });
 }

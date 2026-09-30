@@ -161,9 +161,12 @@ Invoke-RestMethod `
 ```powershell
 Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts?page=0&size=20'
 Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts/pending?limit=20'
+Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts/pending?limit=20&afterAlertId=20'
 Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/sent'
 Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read'
 ```
+
+`afterAlertId`는 선택적인 배타적 커서입니다. 대기 알림은 `alertId` 오름차순으로 반환되며 Windows 앱은 건별 실패를 격리해 다음 알림을 계속 처리합니다. 표시 성공 뒤 완료 기록이 실패하면 앱 실행 중에는 표시를 반복하지 않고 완료 기록만 다시 시도합니다. 앱 종료 직후의 표시 성공·기록 실패는 중복 표시될 수 있습니다.
 
 ## 다음 구현 후보
 

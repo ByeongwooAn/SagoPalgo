@@ -1,7 +1,9 @@
 package com.sagopalgo.api.alert.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -101,6 +103,22 @@ class AlertServiceTest {
     void skipsHoldRecommendation() {
         assertThat(service.createFromRecommendation(stored("HOLD"))).isEmpty();
         verify(alertMapper, never()).insert(any());
+    }
+
+    @Test
+    void pendingAlertsUseUserScopedCursorAndBoundedLimit() {
+        when(alertMapper.findPending(1L, 50, 12L)).thenReturn(List.of());
+
+        assertThat(service.findPending(1L, 100, 12L)).isEmpty();
+
+        verify(alertMapper).findPending(1L, 50, 12L);
+    }
+
+    @Test
+    void pendingAlertsRejectNegativeCursor() {
+        assertThatThrownBy(() -> service.findPending(1L, 20, -1L))
+            .isInstanceOf(com.sagopalgo.api.common.exception.ApiException.class);
+        verify(alertMapper, never()).findPending(any(), anyInt(), any());
     }
 
     private StoredRecommendation stored(String status) {

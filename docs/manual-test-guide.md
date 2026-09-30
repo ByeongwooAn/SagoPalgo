@@ -466,6 +466,7 @@ Windows 알림 흐름 확인:
 ```powershell
 Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts?page=0&size=20'
 Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts/pending?limit=20'
+Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts/pending?limit=20&afterAlertId=20'
 ```
 
 1. `BUY_WATCH`, `BUY_STRONG`, `TAKE_PROFIT`, `STOP_LOSS_WATCH`, `RISK` 추천을 생성하면 알림이 저장되는지 확인합니다.
@@ -483,6 +484,9 @@ Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/alerts/pending?limit=20'
 13. 포트폴리오 화면의 `현재 손실 위험 한도`가 `총 미실현 손실 / 최대 허용 손실` 비율로 표시되고, 손실이 없으면 0%인지 확인합니다.
 14. `FALLBACK` 시세는 매수가 기준 과다 비중 검사에는 사용되지만 총 손실 한도 계산에서는 제외되는지 확인합니다.
 15. 같은 포트폴리오 이벤트가 쿨다운 동안 중복 생성되지 않고 Flutter 알림 탭에서 포트폴리오 아이콘으로 표시되는지 확인합니다.
+16. 전달 대기가 20건을 넘을 때 `afterAlertId`에 첫 페이지 마지막 ID를 넣으면 다음 ID부터 반환되고, 다른 사용자의 알림은 섞이지 않는지 확인합니다.
+17. 한 건의 Windows 표시나 `/sent` 기록이 실패해도 그 뒤의 알림은 표시되는지 확인합니다. 표시만 성공한 건은 앱을 종료하지 않은 상태에서 다음 주기에 `/sent`만 재시도하며 토스트가 다시 뜨지 않아야 합니다.
+18. 앱 종료·재시작 사이에 표시 성공과 `/sent` 실패가 겹치면 재표시될 수 있습니다. 정확히 한 번 전달 보장은 아직 없으며 장기 운영 검증 항목으로 남깁니다.
 
 새 앱 잠금 PIN은 설정 탭에서 등록합니다. 기존 설치에 `SAGOPALGO_APP_LOCK_PIN=1234`가 있으면 첫 실행 때 `SagoPalgo/AppLockPin` 대상으로 Windows Credential Manager에 자동 이전됩니다. 이전 확인 후 Flutter `.env`의 PIN은 비웁니다. PIN 원문은 화면, 로그, 백엔드 API에 표시되면 안 됩니다.
 

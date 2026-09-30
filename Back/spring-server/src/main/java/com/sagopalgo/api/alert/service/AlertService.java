@@ -86,9 +86,12 @@ public class AlertService {
     }
 
     @Transactional(readOnly = true)
-    public List<AlertResponse> findPending(Long userId, int limit) {
+    public List<AlertResponse> findPending(Long userId, int limit, Long afterAlertId) {
+        if (afterAlertId != null && afterAlertId < 0) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "알림 이어받기 ID는 0 이상이어야 합니다.");
+        }
         int normalizedLimit = Math.min(Math.max(limit, 1), MAX_PENDING_SIZE);
-        return alertMapper.findPending(userId, normalizedLimit)
+        return alertMapper.findPending(userId, normalizedLimit, afterAlertId == null ? 0L : afterAlertId)
             .stream()
             .map(AlertResponse::from)
             .toList();
