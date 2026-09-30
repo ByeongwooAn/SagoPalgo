@@ -76,6 +76,11 @@ class _KbHoldingsDetailDialogState extends State<KbHoldingsDetailDialog> {
       (total, item) => total + item.valuationAmount,
     );
     final hasValuation = isSettlement || totalValuation > 0;
+    final reportedCount =
+        widget.snapshot.settlementBalance.summary.reportedItemCount;
+    final countMismatch =
+        reportedCount != null &&
+        reportedCount != widget.snapshot.settlementBalance.items.length;
 
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
@@ -149,6 +154,23 @@ class _KbHoldingsDetailDialogState extends State<KbHoldingsDetailDialog> {
                 ),
               ),
             ),
+            if (isSettlement)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: Text(
+                  reportedCount == null
+                      ? 'KB 보고 건수 미제공 · 현재 응답 ${positions.length}건'
+                      : 'KB 보고 $reportedCount건 · 현재 응답 ${positions.length}건'
+                            '${countMismatch ? ' · 건수 확인 필요' : ' · 건수 일치'}',
+                  style: TextStyle(
+                    color: countMismatch ? palette.text : palette.muted,
+                    fontSize: 11,
+                    fontWeight: countMismatch
+                        ? FontWeight.w800
+                        : FontWeight.w600,
+                  ),
+                ),
+              ),
             const Divider(height: 1),
             Expanded(
               child: positions.isEmpty

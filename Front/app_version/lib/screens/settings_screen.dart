@@ -990,6 +990,7 @@ class _KbAccountLoadedCard extends StatelessWidget {
     final holdings = snapshot.holdings.items;
     final settlementItems = snapshot.settlementBalance.items;
     final settlement = snapshot.settlementBalance.summary;
+    final reportedSettlementCount = settlement.reportedItemCount;
     final execution = snapshot.executionBalance.summary;
 
     return AppCard(
@@ -1038,6 +1039,27 @@ class _KbAccountLoadedCard extends StatelessWidget {
                 '${formatCurrency(execution.totalProfitAmount)}원 '
                 '(${formatSignedPercent(execution.totalYieldRate)})',
           ),
+          if (reportedSettlementCount != null &&
+              reportedSettlementCount != settlementItems.length) ...[
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.warning_amber_rounded, size: 16),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'KB 결제 잔고 보고 $reportedSettlementCount건 · 현재 응답 ${settlementItems.length}건: 건수 확인 필요',
+                    style: TextStyle(
+                      color: AppPalette.of(context).text,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (holdings.isNotEmpty) ...[
             const SizedBox(height: 14),
             Text(

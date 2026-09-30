@@ -150,6 +150,7 @@ class KbBalanceSummary {
     required this.totalValuationAmount,
     required this.totalProfitAmount,
     required this.totalYieldRate,
+    this.totalDataCount,
   });
 
   final String basis;
@@ -162,6 +163,14 @@ class KbBalanceSummary {
   final int totalValuationAmount;
   final int totalProfitAmount;
   final double totalYieldRate;
+  final String? totalDataCount;
+
+  int? get reportedItemCount {
+    final parsed = int.tryParse(
+      totalDataCount?.replaceAll(',', '').trim() ?? '',
+    );
+    return parsed != null && parsed >= 0 ? parsed : null;
+  }
 
   /// API JSON을 화면 모델로 변환합니다.
   factory KbBalanceSummary.fromJson(Map<String, dynamic> json) {
@@ -178,6 +187,7 @@ class KbBalanceSummary {
       totalValuationAmount: _readInt(json['totalValuationAmount']),
       totalProfitAmount: _readInt(json['totalProfitAmount']),
       totalYieldRate: _readDouble(json['totalYieldRate']),
+      totalDataCount: json['totalDataCount']?.toString(),
     );
   }
 }

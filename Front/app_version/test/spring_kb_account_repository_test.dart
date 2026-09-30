@@ -52,6 +52,7 @@ void main() {
               'totalValuationAmount': 5200000,
               'totalProfitAmount': 400000,
               'totalYieldRate': 8.3,
+              'totalDataCount': '2',
             },
             'items': [
               {
@@ -91,6 +92,7 @@ void main() {
     expect(snapshot.holdings.items.single.weightRate, 14.62);
     expect(snapshot.settlementBalance.items.single.valuationWeightRate, 68.14);
     expect(snapshot.settlementBalance.summary.cashDeposit, 1200000);
+    expect(snapshot.settlementBalance.summary.reportedItemCount, 2);
     expect(snapshot.executionBalance.summary.netAssetValuationAmount, 5200000);
   });
 
