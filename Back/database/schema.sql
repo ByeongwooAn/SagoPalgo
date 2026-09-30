@@ -152,6 +152,7 @@ CREATE TABLE IF NOT EXISTS order_approvals (
   user_id BIGINT NOT NULL,
   order_precheck_id BIGINT NOT NULL,
   token_hash CHAR(64) NOT NULL,
+  account_fingerprint CHAR(64) NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'PREPARED',
   expires_at DATETIME NOT NULL,
   acknowledged_at DATETIME NULL,

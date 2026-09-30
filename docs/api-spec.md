@@ -672,9 +672,9 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ### 15.3 수동 승인 준비 및 기록 (실주문 미전송)
 
-`POST /api/v1/orders/approvals/prepare`는 15.1과 같은 지정가 주문안을 받아 안전 조건을 **다시** 검사합니다. KOSPI/KOSDAQ 6자리 종목코드, 9자리 이하 정수 원화 지정가, 10자리 이하 정수 주식 수량만 허용합니다. 모든 검사가 통과하면 새 사전검증 ID와 90초짜리 일회용 토큰을 반환합니다. 토큰 원문은 서버 DB에 저장하지 않고 SHA-256 해시만 `order_approvals`에 보존합니다.
+`POST /api/v1/orders/approvals/prepare`는 15.1과 같은 지정가 주문안을 받아 안전 조건을 **다시** 검사합니다. KOSPI/KOSDAQ 6자리 종목코드, 9자리 이하 정수 원화 지정가, 10자리 이하 정수 주식 수량만 허용합니다. 모든 검사가 통과하면 새 사전검증 ID와 90초짜리 일회용 토큰을 반환합니다. 토큰 원문은 서버 DB에 저장하지 않고 SHA-256 해시만 `order_approvals`에 보존합니다. KB 계좌번호·상품코드·App Key·엔드포인트를 App Secret으로 HMAC 처리한 계좌 지문도 함께 저장하며, 계좌번호와 인증값 원문은 기록하지 않습니다.
 
-사용자가 새 검증 결과와 “실제 주문 미전송” 안내를 확인한 뒤 `POST /api/v1/orders/approvals/confirm`에 `approvalId`, `token`, `acknowledged: true`를 보냅니다. 서버는 사용자·토큰·만료·미사용 상태를 원자적으로 검사하고 `ACKNOWLEDGED`로 기록합니다. 재사용하거나 만료된 토큰은 거절합니다. 응답의 `orderSubmitted`는 항상 `false`이며 KB 주문 API를 호출하지 않습니다.
+사용자가 새 검증 결과와 “실제 주문 미전송” 안내를 확인한 뒤 `POST /api/v1/orders/approvals/confirm`에 `approvalId`, `token`, `acknowledged: true`를 보냅니다. 서버는 사용자·토큰·만료·미사용 상태와 준비 당시 계좌 지문을 원자적으로 검사하고 `ACKNOWLEDGED`로 기록합니다. 재사용하거나 만료된 토큰, 그사이 계좌 설정이 변경된 토큰은 거절합니다. 응답의 `orderSubmitted`는 항상 `false`이며 KB 주문 API를 호출하지 않습니다.
 
 이 단계는 실제 거래 승인/체결이 아닙니다. 기존 DB에는 `Back/database/migrations/007_order_approvals.sql`을 적용해야 합니다.
 
@@ -702,9 +702,11 @@ KB `SSQM2341`을 호출합니다. `orderDate`를 생략하면 한국 시간의 �
 
 `POST /api/v1/orders/approvals/confirm`은 일회용 승인 토큰을 소비할 때 같은 DB 트랜잭션으로 `order_submission_guards`에 승인 ID당 하나의 `READY` 행을 생성합니다. 가드 생성에 실패하면 승인 확인도 롤백합니다. 기존 DB에는 `008_order_submission_guards.sql`을 적용해야 합니다.
 
-`GET /api/v1/orders/approvals/{approvalId}/submission`은 개인 사용자의 승인 건에 대한 가드 상태(`READY`, `EXPIRED`, `RESERVED`, `UNCERTAIN`, `LEGACY_REVIEW`)와 만료·예약·불명확 시각을 반환합니다. 기존 DB의 이미 확인된 승인은 마이그레이션에서 예약할 수 없는 `LEGACY_REVIEW`로 이관합니다. 내부 서비스의 원자적 `READY -> RESERVED` 전환은 성공을 한 번만 허용합니다. 응답이 불명확하면 `RESERVED -> UNCERTAIN`으로 기록할 수 있지만 어느 상태에서도 자동 재전송하지 않습니다. 현재는 주문 전송 어댑터가 연결되지 않았으므로 승인 확인만으로 `RESERVED`가 되거나 KB 주문이 전송되지 않습니다. `UNCERTAIN`은 실주문 성공/실패를 뜻하지 않으며 별도 수동 대조가 필요합니다.
+`GET /api/v1/orders/approvals/{approvalId}/submission`은 개인 사용자의 승인 건에 대한 가드 상태(`READY`, `EXPIRED`, `ACCOUNT_CHANGED`, `RESERVED`, `UNCERTAIN`, `LEGACY_REVIEW`)와 만료·예약·불명확 시각을 반환합니다. 기존 DB의 이미 확인된 승인은 마이그레이션에서 예약할 수 없는 `LEGACY_REVIEW`로 이관합니다. 내부 서비스의 원자적 `READY -> RESERVED` 전환은 성공을 한 번만 허용합니다. 응답이 불명확하면 `RESERVED -> UNCERTAIN`으로 기록할 수 있지만 어느 상태에서도 자동 재전송하지 않습니다. 현재는 주문 전송 어댑터가 연결되지 않았으므로 승인 확인만으로 `RESERVED`가 되거나 KB 주문이 전송되지 않습니다. `UNCERTAIN`은 실주문 성공/실패를 뜻하지 않으며 별도 수동 대조가 필요합니다.
 
 `011_order_submission_expiry.sql`부터 새 가드의 `expiresAt`은 승인 확인 시각 + 90초로 저장됩니다. `READY -> RESERVED` DB 갱신은 `expires_at > now` 조건에서만 성공합니다. 기존 DB의 기한 없는 `READY`는 백엔드를 중지하고 `011`을 적용할 때 `LEGACY_REVIEW`로 전환합니다. 기한이 지난 DB `READY` 행은 상태 조회에서 `EXPIRED`로 표시되지만, 가드 행이나 승인 기록을 삭제하지 않습니다. `EXPIRED`와 `LEGACY_REVIEW`는 재사용할 수 없으며 새 사전검증과 승인 준비가 필요합니다.
+
+`012_order_approval_account_binding.sql`부터 계좌 지문이 승인 준비 시 저장되고, 확인 및 내부 예약의 DB 갱신 조건에서 현재 지문과 대조됩니다. 기존 승인에는 지문을 소급 생성하지 않으며, 지문 없는 `READY`는 `LEGACY_REVIEW`로 이관합니다. 유효 기한 안에 계좌·상품코드·인증값·엔드포인트가 달라지면 조회 상태는 `ACCOUNT_CHANGED`이고 예약은 실패합니다. 새 사전검증과 승인을 진행해야 합니다. 이 상태도 주문 전송 여부를 뜻하지 않습니다.
 
 ### 15.7 불명확한 주문의 수동 대조 기록
 
