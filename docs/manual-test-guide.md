@@ -167,6 +167,8 @@ Invoke-WebRequest -Uri http://localhost:8081/api/v1/kb/accounts/primary/balances
 
 실제 KB 국내주식 조회를 확인하려면 KB증권 Open API 포털에서 App Key/App Secret을 발급받은 뒤 `SAGOPALGO_KB_ACCOUNT_ENABLED=true`로 바꿉니다. KB 공식 API 문서 파일 기준 보유주식 조회는 `SSQM1801_보유주식 조회`, 결제기준 잔고 현황은 `SSQM2932_잔고현황조회(결제기준)`, 체결기준 잔고 현황은 `SSQM2952_잔고현황조회(체결기준)`입니다. 공개 path와 기본 요청값은 백엔드 기본 설정으로 관리하므로 `.env.dev`에 넣지 않아도 됩니다.
 
+설정 탭의 `KB 계좌 조회`에서 상세 버튼을 눌러 모든 잔고 항목을 확인합니다. `결제 잔고` 모드는 KB `SSQM2932`의 `valuationWeightRate`를 표시하고, `보유 주식` 모드는 `SSQM1801` 평가금액이 있을 때만 해당 조회 목록 안의 계산 비중을 표시합니다. 두 값은 분모와 출처가 다릅니다. 실제 KB 앱의 종목별 금액·평가비중과 대조하고, 응답 필드가 없거나 평가합계가 0이면 `산정 불가`인지 확인합니다. 이 확인은 읽기 전용이며 AI 매수 신호나 주문 전송 조건을 바꾸지 않습니다.
+
 KB access token 발급 실패를 확인할 때는 Compose 파일과 서비스명을 정확히 지정합니다. 개발용 컨테이너의 서비스명은 `spring-api`입니다.
 
 ```bash

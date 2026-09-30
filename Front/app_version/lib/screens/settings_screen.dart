@@ -10,6 +10,7 @@ import '../widgets/app_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
 import 'dashboard_screen.dart';
+import 'kb_holdings_detail_dialog.dart';
 
 /// 개인용 프로그램 설정 화면입니다.
 class SettingsScreen extends StatelessWidget {
@@ -987,6 +988,7 @@ class _KbAccountLoadedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final holdings = snapshot.holdings.items;
+    final settlementItems = snapshot.settlementBalance.items;
     final settlement = snapshot.settlementBalance.summary;
     final execution = snapshot.executionBalance.summary;
 
@@ -1038,10 +1040,40 @@ class _KbAccountLoadedCard extends StatelessWidget {
           ),
           if (holdings.isNotEmpty) ...[
             const SizedBox(height: 14),
+            Text(
+              '보유 주식 평가금액 중 비중',
+              style: TextStyle(
+                color: AppPalette.of(context).muted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
             for (final holding in holdings.take(3)) ...[
-              _KbHoldingLine(holding: holding),
+              _KbHoldingLine(
+                holding: holding,
+                hasValuation:
+                    snapshot.holdings.summary.totalValuationAmount > 0,
+              ),
               const SizedBox(height: 8),
             ],
+          ],
+          if (holdings.isNotEmpty || settlementItems.isNotEmpty) ...[
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => KbHoldingsDetailDialog(snapshot: snapshot),
+                ),
+                icon: const Icon(Icons.list_alt_rounded),
+                label: Text(
+                  settlementItems.isNotEmpty
+                      ? '계좌 잔고 상세 (${settlementItems.length})'
+                      : '전체 보유 종목 (${holdings.length})',
+                ),
+              ),
+            ),
           ],
         ],
       ),
@@ -1167,21 +1199,17 @@ class _KbBalanceLine extends StatelessWidget {
 }
 
 class _KbHoldingLine extends StatelessWidget {
-  const _KbHoldingLine({required this.holding});
+  const _KbHoldingLine({required this.holding, required this.hasValuation});
 
   final KbHoldingItem holding;
+  final bool hasValuation;
 
   @override
   Widget build(BuildContext context) {
     final palette = AppPalette.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: palette.softSurface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: palette.border),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
           Expanded(
@@ -1212,14 +1240,29 @@ class _KbHoldingLine extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            '${formatCurrency(holding.valuationAmount)}원',
-            style: TextStyle(
-              color: palette.text,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${formatCurrency(holding.valuationAmount)}원',
+                style: TextStyle(
+                  color: palette.text,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0,
+                ),
+              ),
+              Text(
+                hasValuation && holding.weightRate != null
+                    ? '${holding.weightRate!.toStringAsFixed(1)}%'
+                    : '비중 산정 불가',
+                style: TextStyle(
+                  color: palette.muted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
         ],
       ),

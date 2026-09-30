@@ -80,6 +80,7 @@ class KbHoldingItem {
     required this.valuationAmount,
     required this.profitAmount,
     required this.profitRate,
+    this.weightRate,
   });
 
   final String stockCode;
@@ -90,6 +91,7 @@ class KbHoldingItem {
   final int valuationAmount;
   final int profitAmount;
   final double profitRate;
+  final double? weightRate;
 
   /// API JSON을 화면 모델로 변환합니다.
   factory KbHoldingItem.fromJson(Map<String, dynamic> json) {
@@ -102,6 +104,9 @@ class KbHoldingItem {
       valuationAmount: _readInt(json['valuationAmount']),
       profitAmount: _readInt(json['profitAmount']),
       profitRate: _readDouble(json['profitRate']),
+      weightRate: json['weightRate'] == null
+          ? null
+          : _readDouble(json['weightRate']),
     );
   }
 }
@@ -190,6 +195,7 @@ class KbBalanceItem {
     required this.valuationAmount,
     required this.profitAmount,
     required this.profitRate,
+    this.valuationWeightRate,
   });
 
   final String stockCode;
@@ -201,6 +207,7 @@ class KbBalanceItem {
   final int valuationAmount;
   final int profitAmount;
   final double profitRate;
+  final double? valuationWeightRate;
 
   /// API JSON을 화면 모델로 변환합니다.
   factory KbBalanceItem.fromJson(Map<String, dynamic> json) {
@@ -214,6 +221,9 @@ class KbBalanceItem {
       valuationAmount: _readInt(json['valuationAmount']),
       profitAmount: _readInt(json['profitAmount']),
       profitRate: _readDouble(json['profitRate']),
+      valuationWeightRate: json['valuationWeightRate'] == null
+          ? null
+          : _readDouble(json['valuationWeightRate']),
     );
   }
 }

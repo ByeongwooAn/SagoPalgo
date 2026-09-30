@@ -129,6 +129,13 @@ void main() {
     expect(find.text('KB 계좌 조회'), findsOneWidget);
     expect(find.text('1종목'), findsOneWidget);
     expect(find.text('5,200,000원'), findsAtLeastNWidgets(1));
+    await tester.ensureVisible(find.text('전체 보유 종목 (1)'));
+    await tester.tap(find.text('전체 보유 종목 (1)'));
+    await tester.pumpAndSettle();
+    expect(find.text('KB 계좌 상세'), findsOneWidget);
+    expect(find.text('14.6%'), findsAtLeastNWidgets(1));
+    await tester.tap(find.byTooltip('닫기'));
+    await tester.pumpAndSettle();
     expect(find.text('Windows 앱 잠금'), findsOneWidget);
     expect(find.text('설정 안 됨'), findsOneWidget);
 
@@ -580,6 +587,7 @@ const _testKbAccountSnapshot = KbAccountSnapshot(
         valuationAmount: 760000,
         profitAmount: 69000,
         profitRate: 10,
+        weightRate: 14.62,
       ),
     ],
   ),
