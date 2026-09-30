@@ -244,6 +244,8 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       onAlertsRefresh: _refreshAlerts,
                       onAlertRead: _markAlertRead,
                       providerSettingsFuture: _providerSettingsFuture,
+                      providerSettingsRepository:
+                          widget.providerSettingsRepository,
                       portfolioFuture: _portfolioFuture,
                       onPortfolioRetry: _reloadPortfolio,
                       onProviderSettingsRetry: _reloadProviderSettings,
@@ -620,6 +622,7 @@ class _TabContent extends StatelessWidget {
     required this.onAlertsRefresh,
     required this.onAlertRead,
     required this.providerSettingsFuture,
+    required this.providerSettingsRepository,
     required this.portfolioFuture,
     required this.onPortfolioRetry,
     required this.onProviderSettingsRetry,
@@ -674,6 +677,8 @@ class _TabContent extends StatelessWidget {
 
   /// 설정 화면에서 사용할 증권사 연동 상태 Future입니다.
   final Future<ProviderSettingsSnapshot> providerSettingsFuture;
+
+  final ProviderSettingsRepository providerSettingsRepository;
 
   /// 포트폴리오 탭에서 사용할 최신 자본금/보유 종목 Future입니다.
   final Future<PortfolioSnapshot> portfolioFuture;
@@ -754,6 +759,7 @@ class _TabContent extends StatelessWidget {
         ),
         SettingsScreen(
           providerSettingsFuture: providerSettingsFuture,
+          providerSettingsRepository: providerSettingsRepository,
           kbAccountRepository: kbAccountRepository,
           appSecurityService: appSecurityService,
           appLockPinConfigured: appLockPinConfigured,

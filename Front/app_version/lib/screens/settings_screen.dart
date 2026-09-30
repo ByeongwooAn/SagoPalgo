@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/kb_account_snapshot.dart';
 import '../models/provider_setting.dart';
 import '../repositories/kb_account_repository.dart';
+import '../repositories/provider_settings_repository.dart';
 import '../services/app_security_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
@@ -16,6 +17,7 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({
     super.key,
     required this.providerSettingsFuture,
+    required this.providerSettingsRepository,
     required this.kbAccountRepository,
     required this.appSecurityService,
     required this.appLockPinConfigured,
@@ -25,6 +27,8 @@ class SettingsScreen extends StatelessWidget {
 
   /// 백엔드에서 조회하는 증권사 설정 Future입니다.
   final Future<ProviderSettingsSnapshot> providerSettingsFuture;
+
+  final ProviderSettingsRepository providerSettingsRepository;
 
   /// KB증권 계좌 조회 Repository입니다.
   final KbAccountRepository kbAccountRepository;
@@ -141,7 +145,10 @@ class SettingsScreen extends StatelessWidget {
               _MarketFallbackCard(settings: settings),
               const SizedBox(height: 12),
               if (settings.orderReadiness != null) ...[
-                _OrderReadinessCard(readiness: settings.orderReadiness!),
+                _OrderReadinessCard(
+                  readiness: settings.orderReadiness!,
+                  repository: providerSettingsRepository,
+                ),
                 const SizedBox(height: 12),
               ],
               ...providers.map(
@@ -419,15 +426,50 @@ ProviderSetting? _findProvider(List<ProviderSetting> providers, String code) {
   return null;
 }
 
-class _OrderReadinessCard extends StatelessWidget {
-  const _OrderReadinessCard({required this.readiness});
+class _OrderReadinessCard extends StatefulWidget {
+  const _OrderReadinessCard({
+    required this.readiness,
+    required this.repository,
+  });
 
   final OrderReadiness readiness;
+  final ProviderSettingsRepository repository;
+
+  @override
+  State<_OrderReadinessCard> createState() => _OrderReadinessCardState();
+}
+
+class _OrderReadinessCardState extends State<_OrderReadinessCard> {
+  bool _checking = false;
+  OrderReadOnlyProbe? _probe;
+  String? _probeError;
+
+  Future<void> _checkReadOnlyAccess() async {
+    setState(() {
+      _checking = true;
+      _probe = null;
+      _probeError = null;
+    });
+    try {
+      final result = await widget.repository.probeReadOnlyOrderHistory();
+      if (!mounted) return;
+      setState(() => _probe = result);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _probeError = '조회 권한 점검에 실패했습니다. 서버 연결을 확인해 주세요.';
+      });
+    } finally {
+      if (mounted) setState(() => _checking = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final palette = AppPalette.of(context);
-    final passed = readiness.checks.where((check) => check.passed).length;
+    final passed = widget.readiness.checks
+        .where((check) => check.passed)
+        .length;
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,16 +488,16 @@ class _OrderReadinessCard extends StatelessWidget {
                   ),
                 ),
               ),
-              StatusChip(label: readiness.canSubmit ? '가능' : '잠금'),
+              StatusChip(label: widget.readiness.canSubmit ? '가능' : '잠금'),
             ],
           ),
           const SizedBox(height: 6),
           Text(
-            '$passed/${readiness.checks.length} 조건 확인',
+            '$passed/${widget.readiness.checks.length} 조건 확인',
             style: TextStyle(color: palette.muted, fontSize: 12),
           ),
           const SizedBox(height: 10),
-          ...readiness.checks.map(
+          ...widget.readiness.checks.map(
             (check) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),
               child: Row(
@@ -499,6 +541,31 @@ class _OrderReadinessCard extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _checking ? null : _checkReadOnlyAccess,
+            icon: _checking
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.fact_check_outlined, size: 18),
+            label: const Text('조회 권한 점검'),
+          ),
+          if (_probe != null || _probeError != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _probeError ?? _probe!.message,
+              style: TextStyle(
+                color: _probe?.status == 'VERIFIED'
+                    ? const Color(0xff17834a)
+                    : const Color(0xffba5038),
+                fontSize: 12,
+                height: 1.35,
+              ),
+            ),
+          ],
         ],
       ),
     );

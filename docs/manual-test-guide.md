@@ -389,6 +389,17 @@ Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/orders/readiness'
 3. 응답·로그·Flutter 설정 화면에 App Key, App Secret, 계좌번호, IP/MAC 원문이 표시되지 않는지 확인합니다. 설정 화면에는 차단 사유만 표시합니다.
 4. 주소 형식 통과는 KB 운영 승인이나 실제 발신지 확인이 아닙니다. 운영 주소와 계좌 권한은 증권사와 별도로 확인합니다.
 
+KB 주문 이력 조회 권한 수동 점검:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri 'http://localhost:8080/api/v1/orders/readiness/probe'
+```
+
+1. 계좌 조회 설정이 부족하면 `CONFIGURATION_BLOCKED`이고 KB 호출이 없어야 합니다. Flutter 설정 화면의 `조회 권한 점검` 버튼에서도 같은 결과를 확인합니다.
+2. 설정이 충족되면 한국 시간 오늘의 `SSQM2341` 첫 페이지만 조회합니다. 정상 형식의 응답을 받으면 `VERIFIED`, 권한·네트워크·응답 형식을 확인할 수 없으면 `UNVERIFIED`인지 확인합니다.
+3. 결과에 계좌번호·주문 내역·인증값·KB 원본 오류가 없고 `readOnly=true`인지 확인합니다. `VERIFIED`여도 기존 실주문 상태의 `canSubmit=false`와 화면의 `잠금` 표시는 유지되어야 합니다.
+4. 운영 계좌에서 실제 점검한 결과와 시각은 별도로 기록합니다. 조회 응답 확인은 주문 권한 또는 운영 IP/MAC 승인 확인을 대신하지 않습니다.
+
 KB 주문 이력 읽기 전용 API 확인:
 
 ```powershell
