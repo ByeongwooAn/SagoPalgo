@@ -37,7 +37,7 @@ docker-compose.prod.yml
 └─ reverse-proxy  Ubuntu의 8081 포트만 Windows PC에 공개
 ```
 
-`mysql`은 `Back/database/schema.sql`을 컨테이너 최초 생성 시 자동 실행합니다. 테이블은 `.env.dev` 또는 `.env.prod`의 `SAGOPALGO_MYSQL_DATABASE` 값으로 만들어진 DB 안에 생성됩니다. 이미 MySQL volume이 만들어진 뒤에는 init SQL이 다시 실행되지 않으므로, 스키마를 다시 만들려면 volume을 삭제하고 다시 생성해야 합니다.
+`mysql`은 `Back/database/schema.sql`을 데이터 볼륨이 처음 생성될 때만 실행합니다. 테이블은 `.env.dev` 또는 `.env.prod`의 `SAGOPALGO_MYSQL_DATABASE` 값으로 만들어진 DB 안에 생성됩니다. 기존 데이터 볼륨에서는 init SQL이 다시 실행되지 않으므로 필요한 `Back/database/migrations/` 파일을 확인해 적용합니다. **스키마 갱신을 위해 운영 볼륨을 삭제하지 않습니다.**
 
 `ai-server`는 `/internal/ai/analyze-investment`에서 설명 가능한 가중 점수 분석을 수행합니다. 외부 유료 모델이나 계좌 API를 직접 호출하지 않으며 Spring이 정규화한 입력만 받습니다.
 
@@ -73,6 +73,28 @@ sudo ufw enable
 ```
 
 `192.168.0.10`은 실제 Windows PC의 고정 사설 IP로 바꿉니다. 외부 인터넷에서 접속해야 한다면 포트포워딩 대신 VPN과 HTTPS를 먼저 구성합니다.
+
+### 기존 Ubuntu DB의 KB 점검 이력 테이블
+
+기존 MySQL 볼륨에 `014_order_read_only_probe_checks.sql`이 적용됐는지 확인할 때는 Ubuntu 서버의 저장소 루트에서 아래 읽기 전용 명령을 실행합니다. 결과 `1`은 테이블 존재, `0`은 부재를 뜻합니다. 명령과 결과에 비밀번호·계좌번호가 나타나지 않도록 환경 파일이나 전체 컨테이너 환경을 출력하지 않습니다.
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod exec -T mysql \
+  sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -N' <<'SQL'
+SELECT COUNT(*) FROM information_schema.tables
+WHERE table_schema = DATABASE() AND table_name = 'order_read_only_probe_checks';
+SQL
+```
+
+테이블이 없다면 **운영 DB 백업을 확인하고**, 배포할 코드와 마이그레이션 파일의 버전을 맞춘 뒤 다음 명령으로 기존 볼륨에 `014`만 적용합니다. 이 SQL은 `CREATE TABLE IF NOT EXISTS`이며 기존 데이터를 삭제하지 않습니다. 테이블이 이미 있다면 적용을 건너뛰고 DB 연결과 서버 로그를 조사합니다.
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod exec -T mysql \
+  sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"' \
+  < Back/database/migrations/014_order_read_only_probe_checks.sql
+```
+
+적용 후 첫 번째 읽기 전용 명령을 다시 실행하고, Windows에서 `scripts/check-kb-probe.ps1 -ApiBaseUrl 'http://<Ubuntu-IP>:8081'`을 실행합니다. `/probe/latest`·`/probe/history`가 계속 500/503이면 오류 코드만 확인하고 Ubuntu의 `spring-api` 로그를 조사합니다. 테이블 유무만으로 500의 원인을 단정하거나 실제 KB 점검 POST·주문 요청을 보내지 않습니다. `ACCOUNT_NUMBER: false`이면 서버의 계좌번호 설정 여부를 서버 안에서만 확인합니다.
 
 ## 4. 네트워크 기준
 
