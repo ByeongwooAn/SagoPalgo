@@ -10,8 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sagopalgo.api.alert.service.AlertService;
 import com.sagopalgo.api.config.AiAnalysisProperties;
 import com.sagopalgo.api.dashboard.service.DashboardRecommendationEngine;
-import com.sagopalgo.api.holding.dto.HoldingResponse;
 import com.sagopalgo.api.holding.dto.PortfolioCostExposure;
+import com.sagopalgo.api.holding.model.Holding;
 import com.sagopalgo.api.holding.service.HoldingService;
 import com.sagopalgo.api.market.dto.MarketCandleResponse;
 import com.sagopalgo.api.market.model.CandleInterval;
@@ -96,8 +96,8 @@ class RecommendationServiceTest {
     @Test
     @DisplayName("가격·뉴스·공시를 AI 서버에 전달하고 추천 결과를 저장한다")
     void analyzeHoldingCombinesSignalsAndStoresResult() {
-        HoldingResponse holding = holding("4.2", "9");
-        when(holdingService.findOne(1L, 21L)).thenReturn(holding);
+        when(holdingService.findRecord(1L, 21L)).thenReturn(holding("9"));
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("KB", "75200"));
         when(holdingService.costExposure(1L, "005930", "KOSPI")).thenReturn(Optional.of(
             new PortfolioCostExposure(new BigDecimal("40"), new BigDecimal("22"), new BigDecimal("20"))
         ));
@@ -155,6 +155,8 @@ class RecommendationServiceTest {
         assertThat(requestCaptor.getValue().news()).hasSize(1);
         assertThat(requestCaptor.getValue().disclosures()).hasSize(1);
         assertThat(requestCaptor.getValue().analysisType()).isEqualTo("HOLDING");
+        assertThat(requestCaptor.getValue().currentPrice()).isEqualByComparingTo("75200");
+        assertThat(requestCaptor.getValue().profitRate()).isEqualByComparingTo("7.43");
         assertThat(requestCaptor.getValue().portfolioWeightRate()).isEqualByComparingTo("40");
         assertThat(requestCaptor.getValue().capitalWeightRate()).isEqualByComparingTo("22");
         assertThat(requestCaptor.getValue().maxCapitalWeightRate()).isEqualByComparingTo("20");
@@ -163,7 +165,8 @@ class RecommendationServiceTest {
     @Test
     @DisplayName("AI 서버 결과가 없으면 기존 규칙 추천을 같은 저장 계약으로 대체한다")
     void analyzeHoldingFallsBackToRuleEngine() {
-        when(holdingService.findOne(1L, 21L)).thenReturn(holding("8.4", "9"));
+        when(holdingService.findRecord(1L, 21L)).thenReturn(holding("9"));
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("KB", "77000"));
         when(researchFeedStore.find(any())).thenReturn(new StoredResearchFeed(List.of(), List.of()));
         when(marketCandleService.getCandles(any(), any(), any(), any(Integer.class)))
             .thenReturn(candles());
@@ -175,6 +178,27 @@ class RecommendationServiceTest {
         assertThat(response.status()).isEqualTo("TAKE_PROFIT");
         assertThat(response.statusLabel()).isEqualTo("부분 익절 검토");
         assertThat(response.aiSummary()).contains("익절 기준");
+    }
+
+    @Test
+    void rejectsFallbackBuyPriceBeforeHoldingAnalysis() {
+        when(holdingService.findRecord(1L, 21L)).thenReturn(holding("9"));
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("FALLBACK", "70000"));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.analyzeHolding(1L, 21L))
+            .isInstanceOf(com.sagopalgo.api.common.exception.ApiException.class)
+            .hasMessageContaining("실제 현재가");
+        org.mockito.Mockito.verifyNoInteractions(aiAnalysisGateway, recommendationStore, alertService);
+    }
+
+    @Test
+    void rejectsMissingHoldingPriceBeforeAnalysis() {
+        when(holdingService.findRecord(1L, 21L)).thenReturn(holding("9"));
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("KB", "0"));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.analyzeHolding(1L, 21L))
+            .isInstanceOf(com.sagopalgo.api.common.exception.ApiException.class);
+        org.mockito.Mockito.verifyNoInteractions(aiAnalysisGateway, recommendationStore, alertService);
     }
 
     @Test
@@ -270,22 +294,20 @@ class RecommendationServiceTest {
         });
     }
 
-    private HoldingResponse holding(String profitRate, String takeProfitRate) {
-        return new HoldingResponse(
-            21L,
-            "005930",
-            "삼성전자",
-            "KOSPI",
-            new BigDecimal("70000"),
-            new BigDecimal("10"),
-            LocalDate.of(2026, 9, 1),
-            new BigDecimal("75200"),
-            new BigDecimal(profitRate),
-            new BigDecimal("-5"),
-            new BigDecimal(takeProfitRate),
-            "HOLDING",
-            "보유"
-        );
+    private Holding holding(String takeProfitRate) {
+        Holding holding = new Holding();
+        holding.setHoldingId(21L);
+        holding.setUserId(1L);
+        holding.setStockCode("005930");
+        holding.setStockName("삼성전자");
+        holding.setMarket("KOSPI");
+        holding.setBuyPrice(new BigDecimal("70000"));
+        holding.setQuantity(new BigDecimal("10"));
+        holding.setBuyDate(LocalDate.of(2026, 9, 1));
+        holding.setStopLossRate(new BigDecimal("-5"));
+        holding.setTakeProfitRate(new BigDecimal(takeProfitRate));
+        holding.setStatus("HOLDING");
+        return holding;
     }
 
     private MarketCandleResponse candles() {

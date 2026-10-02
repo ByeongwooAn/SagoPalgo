@@ -11,6 +11,7 @@ import com.sagopalgo.api.dashboard.dto.DashboardRecommendationResponse;
 import com.sagopalgo.api.dashboard.service.DashboardRecommendationEngine;
 import com.sagopalgo.api.holding.dto.HoldingResponse;
 import com.sagopalgo.api.holding.dto.PortfolioCostExposure;
+import com.sagopalgo.api.holding.model.Holding;
 import com.sagopalgo.api.holding.service.HoldingService;
 import com.sagopalgo.api.market.dto.MarketCandleResponse;
 import com.sagopalgo.api.market.model.CandleInterval;
@@ -34,6 +35,7 @@ import com.sagopalgo.api.research.service.ResearchFeedStore;
 import com.sagopalgo.api.watchlist.mapper.WatchlistMapper;
 import com.sagopalgo.api.watchlist.model.WatchlistItem;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
@@ -93,7 +95,16 @@ public class RecommendationService {
 
     @Transactional
     public RecommendationResponse analyzeHolding(Long userId, Long holdingId) {
-        HoldingResponse holding = holdingService.findOne(userId, holdingId);
+        Holding record = holdingService.findRecord(userId, holdingId);
+        StockQuote quote = marketPriceService.quoteMarket(MarketDataRequest.from(record));
+        if (!hasRealPrice(quote)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "실제 현재가가 없어 보유 종목을 분석할 수 없습니다.");
+        }
+        BigDecimal profitRate = quote.currentPrice().subtract(record.getBuyPrice())
+            .divide(record.getBuyPrice(), 6, RoundingMode.HALF_UP)
+            .multiply(new BigDecimal("100"))
+            .setScale(2, RoundingMode.HALF_UP);
+        HoldingResponse holding = HoldingResponse.from(record, quote.currentPrice(), profitRate);
         PortfolioCostExposure exposure = holdingService.costExposure(
             userId, holding.stockCode(), holding.market()
         ).orElse(null);
@@ -116,8 +127,7 @@ public class RecommendationService {
         StockQuote quote = marketPriceService.quoteMarket(
             new MarketDataRequest(item.getStockCode(), item.getMarket())
         );
-        if (quote.currentPrice() == null || quote.currentPrice().signum() <= 0
-            || "FALLBACK".equalsIgnoreCase(quote.provider())) {
+        if (!hasRealPrice(quote)) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "실제 현재가가 없어 관심 종목을 분석할 수 없습니다.");
         }
         AiInvestmentAnalysisRequest request = analysisRequest(
@@ -133,6 +143,12 @@ public class RecommendationService {
             snapshotRecord(userId, analysis, request)
         );
         return response(stored);
+    }
+
+    private boolean hasRealPrice(StockQuote quote) {
+        return quote != null && quote.currentPrice() != null && quote.currentPrice().signum() > 0
+            && quote.provider() != null && !quote.provider().isBlank()
+            && !"FALLBACK".equalsIgnoreCase(quote.provider());
     }
 
     public RecommendationListResponse findAll(
