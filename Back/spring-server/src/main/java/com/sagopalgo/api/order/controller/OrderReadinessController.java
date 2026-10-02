@@ -6,6 +6,7 @@ import com.sagopalgo.api.order.dto.OrderReadOnlyProbeResponse;
 import com.sagopalgo.api.order.service.OrderReadOnlyProbeService;
 import com.sagopalgo.api.order.service.OrderReadinessService;
 import com.sagopalgo.api.user.service.LocalUserContext;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,6 +49,14 @@ public class OrderReadinessController {
         return ResponseEntity.ok(ApiResponse.success(
             probeService.latest(localUserContext.userId()).orElse(null),
             "마지막 KB 주문 이력 읽기 전용 점검 결과를 조회했습니다."
+        ));
+    }
+
+    @GetMapping("/probe/history")
+    public ResponseEntity<ApiResponse<List<OrderReadOnlyProbeResponse>>> probeHistory() {
+        return ResponseEntity.ok(ApiResponse.success(
+            probeService.history(localUserContext.userId()),
+            "최근 KB 주문 이력 읽기 전용 점검 결과를 조회했습니다."
         ));
     }
 }

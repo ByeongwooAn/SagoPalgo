@@ -446,6 +446,11 @@ class _OrderReadinessCardState extends State<_OrderReadinessCard> {
   int _probeVersion = 0;
   OrderReadOnlyProbe? _probe;
   String? _probeError;
+  List<OrderReadOnlyProbe>? _probeHistory;
+  bool _historyExpanded = false;
+  bool _historyLoading = false;
+  String? _historyError;
+  int _historyRequestVersion = 0;
 
   @override
   void initState() {
@@ -477,7 +482,11 @@ class _OrderReadinessCardState extends State<_OrderReadinessCard> {
     try {
       final result = await widget.repository.probeReadOnlyOrderHistory();
       if (!mounted) return;
-      setState(() => _probe = result);
+      setState(() {
+        _probe = result;
+        _probeHistory = null;
+      });
+      if (_historyExpanded) await _loadProbeHistory();
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -485,6 +494,33 @@ class _OrderReadinessCardState extends State<_OrderReadinessCard> {
       });
     } finally {
       if (mounted) setState(() => _checking = false);
+    }
+  }
+
+  Future<void> _toggleProbeHistory() async {
+    setState(() => _historyExpanded = !_historyExpanded);
+    if (_historyExpanded && _probeHistory == null) await _loadProbeHistory();
+  }
+
+  Future<void> _loadProbeHistory() async {
+    final requestVersion = ++_historyRequestVersion;
+    setState(() {
+      _historyLoading = true;
+      _historyError = null;
+    });
+    try {
+      final history = await widget.repository.fetchReadOnlyOrderProbeHistory();
+      if (mounted && requestVersion == _historyRequestVersion) {
+        setState(() => _probeHistory = history);
+      }
+    } catch (_) {
+      if (mounted && requestVersion == _historyRequestVersion) {
+        setState(() => _historyError = '점검 이력을 불러오지 못했습니다.');
+      }
+    } finally {
+      if (mounted && requestVersion == _historyRequestVersion) {
+        setState(() => _historyLoading = false);
+      }
     }
   }
 
@@ -605,6 +641,69 @@ class _OrderReadinessCardState extends State<_OrderReadinessCard> {
               '과거 조회 결과이며 현재 주문 가능 여부를 뜻하지 않습니다.',
               style: TextStyle(color: palette.muted, fontSize: 11),
             ),
+            const SizedBox(height: 4),
+            TextButton.icon(
+              onPressed: _toggleProbeHistory,
+              icon: Icon(
+                _historyExpanded ? Icons.expand_less : Icons.expand_more,
+                size: 18,
+              ),
+              label: const Text('최근 점검 이력'),
+            ),
+            if (_historyExpanded) ...[
+              if (_historyLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: LinearProgressIndicator(),
+                )
+              else if (_historyError != null) ...[
+                Text(
+                  _historyError!,
+                  style: const TextStyle(
+                    color: Color(0xffba5038),
+                    fontSize: 12,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: _loadProbeHistory,
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('다시 시도'),
+                ),
+              ] else if (_probeHistory?.isEmpty ?? false)
+                Text(
+                  '점검 이력 없음',
+                  style: TextStyle(color: palette.muted, fontSize: 11),
+                )
+              else
+                ...?_probeHistory?.map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _formatProbeTime(item.checkedAt),
+                            style: TextStyle(
+                              color: palette.muted,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          _probeStatusLabel(item.status),
+                          style: TextStyle(
+                            color: item.status == 'VERIFIED'
+                                ? const Color(0xff17834a)
+                                : const Color(0xffba5038),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ] else if (!_loadingLatest && _probeError == null) ...[
             const SizedBox(height: 8),
             Text(
@@ -623,6 +722,12 @@ String _formatProbeTime(DateTime value) {
   return '${value.year}.${two(value.month)}.${two(value.day)} '
       '${two(value.hour)}:${two(value.minute)}';
 }
+
+String _probeStatusLabel(String status) => switch (status) {
+  'VERIFIED' => '조회 확인',
+  'CONFIGURATION_BLOCKED' => '설정 미완료',
+  _ => '미확인',
+};
 
 String _orderCheckLabel(String code) => switch (code) {
   'ACCOUNT_SWITCH' => 'KB 계좌 조회',

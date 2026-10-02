@@ -750,6 +750,8 @@ KB `SSQM2341`을 호출합니다. `orderDate`를 생략하면 한국 시간의 �
 
 수동 점검 결과는 로컬 사용자별 `order_read_only_probe_checks`에 `status`, `orderDate`, `checkedAt`만 저장합니다. 기존 DB에는 `Back/database/migrations/014_order_read_only_probe_checks.sql` 적용이 필요합니다. `GET /api/v1/orders/readiness/probe/latest`는 새 KB 호출 없이 해당 사용자의 마지막 결과를 같은 안전한 형식으로 반환하며, 기록이 없으면 `data=null`입니다. Flutter 설정 화면의 마지막 점검 표시는 과거 이력일 뿐 현재 조회 권한이나 주문 가능 상태를 보증하지 않습니다.
 
+`GET /api/v1/orders/readiness/probe/history`는 요청자의 최근 수동 점검 결과를 `checkedAt` 최신순(동시각에는 생성 순서 역순)으로 최대 10건 반환합니다. 기록이 없으면 `data=[]`입니다. 요청 파라미터로 사용자나 건수를 바꿀 수 없으며, 이 조회는 KB API를 호출하거나 주문 준비 상태를 변경하지 않습니다. Flutter에서는 사용자가 `최근 점검 이력`을 펼칠 때만 요청합니다.
+
 ## 16. 다음 구현 순서
 
 Flutter 추천 이력 목록·상세 화면, 보유 종목 수동 재분석과 관심 종목 직접 분석 액션까지 연결되었습니다.

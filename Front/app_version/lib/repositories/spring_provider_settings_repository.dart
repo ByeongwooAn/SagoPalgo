@@ -60,6 +60,20 @@ class SpringProviderSettingsRepository implements ProviderSettingsRepository {
         : OrderReadOnlyProbe.fromJson(data as Map<String, dynamic>);
   }
 
+  @override
+  Future<List<OrderReadOnlyProbe>> fetchReadOnlyOrderProbeHistory() async {
+    final response = await client.get(
+      Uri.parse('${config.orderBaseUrl}/readiness/probe/history'),
+      headers: _headers,
+    );
+    final data = _decodeResponse(response)['data'] as List<dynamic>;
+    return data
+        .map(
+          (item) => OrderReadOnlyProbe.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
   Map<String, dynamic> _decodeResponse(http.Response response) {
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
     final success = decoded['success'] as bool? ?? false;

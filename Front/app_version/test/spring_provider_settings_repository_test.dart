@@ -189,4 +189,57 @@ void main() {
 
     expect(await repository.fetchLatestReadOnlyOrderHistoryProbe(), isNull);
   });
+
+  test('fetchReadOnlyOrderProbeHistory maps recent saved results', () async {
+    final repository = SpringProviderSettingsRepository(
+      accessToken: '',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/api/v1/orders/readiness/probe/history');
+        expect(request.url.query, isEmpty);
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'data': [
+              {
+                'status': 'UNVERIFIED',
+                'orderDate': '20261002',
+                'checkedAt': '2026-10-02T11:00:00',
+                'readOnly': true,
+                'message': '조회 미확인',
+              },
+              {
+                'status': 'VERIFIED',
+                'orderDate': '20261002',
+                'checkedAt': '2026-10-02T10:00:00',
+                'readOnly': true,
+                'message': '조회 확인',
+              },
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      }),
+    );
+
+    final history = await repository.fetchReadOnlyOrderProbeHistory();
+
+    expect(history.map((item) => item.status), ['UNVERIFIED', 'VERIFIED']);
+    expect(history.every((item) => item.readOnly), isTrue);
+  });
+
+  test('fetchReadOnlyOrderProbeHistory accepts an empty list', () async {
+    final repository = SpringProviderSettingsRepository(
+      accessToken: '',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient(
+        (request) async =>
+            http.Response(jsonEncode({'success': true, 'data': []}), 200),
+      ),
+    );
+
+    expect(await repository.fetchReadOnlyOrderProbeHistory(), isEmpty);
+  });
 }

@@ -372,6 +372,10 @@ class FakeProviderSettingsRepository implements ProviderSettingsRepository {
       null;
 
   @override
+  Future<List<OrderReadOnlyProbe>> fetchReadOnlyOrderProbeHistory() async =>
+      const [];
+
+  @override
   Future<OrderReadOnlyProbe> probeReadOnlyOrderHistory() =>
       throw UnsupportedError('테스트에서 조회 권한 점검을 사용하지 않습니다.');
 

@@ -176,6 +176,94 @@ void main() {
     expect(find.text('잠금'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('recent probe history loads only when expanded', (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final snapshot = ProviderSettingsSnapshot.fromJson({
+      'orderReadiness': {
+        'canSubmit': false,
+        'checks': [
+          {
+            'code': 'SUBMISSION_TRANSPORT',
+            'passed': false,
+            'message': '전송 미연결',
+          },
+        ],
+      },
+      'providers': [],
+    });
+    final repository = _ProbeProviderSettingsRepository(snapshot)
+      ..savedProbe = OrderReadOnlyProbe.fromJson({
+        'status': 'UNVERIFIED',
+        'orderDate': '20261002',
+        'checkedAt': '2026-10-02T11:00:00',
+        'readOnly': true,
+        'message': '마지막 조회 미확인',
+      })
+      ..savedHistory = [
+        OrderReadOnlyProbe.fromJson({
+          'status': 'UNVERIFIED',
+          'orderDate': '20261002',
+          'checkedAt': '2026-10-02T11:00:00',
+          'readOnly': true,
+          'message': '마지막 조회 미확인',
+        }),
+        OrderReadOnlyProbe.fromJson({
+          'status': 'VERIFIED',
+          'orderDate': '20261002',
+          'checkedAt': '2026-10-02T10:00:00',
+          'readOnly': true,
+          'message': '이전 조회 확인',
+        }),
+      ]
+      ..nextProbeResult = OrderReadOnlyProbe.fromJson({
+        'status': 'VERIFIED',
+        'orderDate': '20261002',
+        'checkedAt': '2026-10-02T12:00:00',
+        'readOnly': true,
+        'message': '새 조회 확인',
+      });
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SettingsScreen(
+            providerSettingsFuture: Future.value(snapshot),
+            providerSettingsRepository: repository,
+            kbAccountRepository: _UnusedKbAccountRepository(),
+            appSecurityService: const AppSecurityService(NoopCredentialStore()),
+            appLockPinConfigured: false,
+            onAppLockPinChanged: (_) {},
+            onRetry: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(repository.historyCalls, 0);
+    await tester.ensureVisible(find.text('최근 점검 이력'));
+    await tester.tap(find.text('최근 점검 이력'));
+    await tester.pumpAndSettle();
+
+    expect(repository.historyCalls, 1);
+    expect(repository.calls, 0);
+    expect(find.text('2026.10.02 10:00'), findsOneWidget);
+    expect(find.text('조회 확인'), findsOneWidget);
+    expect(find.text('미확인'), findsOneWidget);
+    expect(find.text('잠금'), findsOneWidget);
+    await tester.ensureVisible(find.text('조회 권한 점검'));
+    await tester.tap(find.text('조회 권한 점검'));
+    await tester.pumpAndSettle();
+
+    expect(repository.calls, 1);
+    expect(repository.historyCalls, 2);
+    expect(find.text('2026.10.02 12:00'), findsOneWidget);
+    expect(find.text('잠금'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _UnusedKbAccountRepository implements KbAccountRepository {
@@ -189,7 +277,10 @@ class _ProbeProviderSettingsRepository extends ProviderSettingsRepository {
   final ProviderSettingsSnapshot snapshot;
   int calls = 0;
   int latestCalls = 0;
+  int historyCalls = 0;
   OrderReadOnlyProbe? savedProbe;
+  OrderReadOnlyProbe? nextProbeResult;
+  List<OrderReadOnlyProbe> savedHistory = [];
 
   @override
   Future<ProviderSettingsSnapshot> fetchProviderSettings() async => snapshot;
@@ -201,14 +292,25 @@ class _ProbeProviderSettingsRepository extends ProviderSettingsRepository {
   }
 
   @override
+  Future<List<OrderReadOnlyProbe>> fetchReadOnlyOrderProbeHistory() async {
+    historyCalls++;
+    return savedHistory;
+  }
+
+  @override
   Future<OrderReadOnlyProbe> probeReadOnlyOrderHistory() async {
     calls++;
-    return OrderReadOnlyProbe.fromJson({
-      'status': 'VERIFIED',
-      'orderDate': '20260930',
-      'checkedAt': '2026-09-30T10:00:00',
-      'readOnly': true,
-      'message': '읽기 전용 조회를 확인했습니다. 주문 권한은 별도 확인이 필요합니다.',
-    });
+    final result =
+        nextProbeResult ??
+        OrderReadOnlyProbe.fromJson({
+          'status': 'VERIFIED',
+          'orderDate': '20260930',
+          'checkedAt': '2026-09-30T10:00:00',
+          'readOnly': true,
+          'message': '읽기 전용 조회를 확인했습니다. 주문 권한은 별도 확인이 필요합니다.',
+        });
+    savedProbe = result;
+    savedHistory = [result, ...savedHistory];
+    return result;
   }
 }
