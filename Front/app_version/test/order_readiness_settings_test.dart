@@ -123,6 +123,59 @@ void main() {
     expect(find.text('잠금'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('saved probe appears on reopen without sending a new probe', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final snapshot = ProviderSettingsSnapshot.fromJson({
+      'orderReadiness': {
+        'canSubmit': false,
+        'checks': [
+          {
+            'code': 'SUBMISSION_TRANSPORT',
+            'passed': false,
+            'message': '전송 미연결',
+          },
+        ],
+      },
+      'providers': [],
+    });
+    final repository = _ProbeProviderSettingsRepository(snapshot)
+      ..savedProbe = OrderReadOnlyProbe.fromJson({
+        'status': 'VERIFIED',
+        'orderDate': '20260930',
+        'checkedAt': '2026-09-30T10:00:00',
+        'readOnly': true,
+        'message': '저장된 읽기 전용 조회 결과',
+      });
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SettingsScreen(
+            providerSettingsFuture: Future.value(snapshot),
+            providerSettingsRepository: repository,
+            kbAccountRepository: _UnusedKbAccountRepository(),
+            appSecurityService: const AppSecurityService(NoopCredentialStore()),
+            appLockPinConfigured: false,
+            onAppLockPinChanged: (_) {},
+            onRetry: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(repository.calls, 0);
+    expect(repository.latestCalls, 1);
+    expect(find.text('마지막 점검 · 2026.09.30 10:00'), findsOneWidget);
+    expect(find.text('저장된 읽기 전용 조회 결과'), findsOneWidget);
+    expect(find.text('잠금'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _UnusedKbAccountRepository implements KbAccountRepository {
@@ -135,9 +188,17 @@ class _ProbeProviderSettingsRepository extends ProviderSettingsRepository {
 
   final ProviderSettingsSnapshot snapshot;
   int calls = 0;
+  int latestCalls = 0;
+  OrderReadOnlyProbe? savedProbe;
 
   @override
   Future<ProviderSettingsSnapshot> fetchProviderSettings() async => snapshot;
+
+  @override
+  Future<OrderReadOnlyProbe?> fetchLatestReadOnlyOrderHistoryProbe() async {
+    latestCalls++;
+    return savedProbe;
+  }
 
   @override
   Future<OrderReadOnlyProbe> probeReadOnlyOrderHistory() async {

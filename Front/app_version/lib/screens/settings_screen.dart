@@ -442,13 +442,36 @@ class _OrderReadinessCard extends StatefulWidget {
 
 class _OrderReadinessCardState extends State<_OrderReadinessCard> {
   bool _checking = false;
+  bool _loadingLatest = true;
+  int _probeVersion = 0;
   OrderReadOnlyProbe? _probe;
   String? _probeError;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadLatestProbe();
+  }
+
+  Future<void> _loadLatestProbe() async {
+    final version = _probeVersion;
+    try {
+      final result = await widget.repository
+          .fetchLatestReadOnlyOrderHistoryProbe();
+      if (mounted && version == _probeVersion) setState(() => _probe = result);
+    } catch (_) {
+      if (mounted && version == _probeVersion) {
+        setState(() => _probeError = '마지막 점검 기록을 불러오지 못했습니다.');
+      }
+    } finally {
+      if (mounted) setState(() => _loadingLatest = false);
+    }
+  }
+
   Future<void> _checkReadOnlyAccess() async {
     setState(() {
+      _probeVersion++;
       _checking = true;
-      _probe = null;
       _probeError = null;
     });
     try {
@@ -554,23 +577,51 @@ class _OrderReadinessCardState extends State<_OrderReadinessCard> {
                 : const Icon(Icons.fact_check_outlined, size: 18),
             label: const Text('조회 권한 점검'),
           ),
-          if (_probe != null || _probeError != null) ...[
+          if (_probeError != null) ...[
             const SizedBox(height: 8),
             Text(
-              _probeError ?? _probe!.message,
+              _probeError!,
+              style: const TextStyle(color: Color(0xffba5038), fontSize: 12),
+            ),
+          ],
+          if (_probe != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              '마지막 점검 · ${_formatProbeTime(_probe!.checkedAt)}',
+              style: TextStyle(color: palette.muted, fontSize: 11),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              _probe!.message,
               style: TextStyle(
-                color: _probe?.status == 'VERIFIED'
+                color: _probe!.status == 'VERIFIED'
                     ? const Color(0xff17834a)
                     : const Color(0xffba5038),
                 fontSize: 12,
                 height: 1.35,
               ),
             ),
+            Text(
+              '과거 조회 결과이며 현재 주문 가능 여부를 뜻하지 않습니다.',
+              style: TextStyle(color: palette.muted, fontSize: 11),
+            ),
+          ] else if (!_loadingLatest && _probeError == null) ...[
+            const SizedBox(height: 8),
+            Text(
+              '마지막 점검 기록 없음',
+              style: TextStyle(color: palette.muted, fontSize: 11),
+            ),
           ],
         ],
       ),
     );
   }
+}
+
+String _formatProbeTime(DateTime value) {
+  String two(int part) => part.toString().padLeft(2, '0');
+  return '${value.year}.${two(value.month)}.${two(value.day)} '
+      '${two(value.hour)}:${two(value.minute)}';
 }
 
 String _orderCheckLabel(String code) => switch (code) {

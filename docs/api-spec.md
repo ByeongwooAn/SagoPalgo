@@ -748,6 +748,8 @@ KB `SSQM2341`을 호출합니다. `orderDate`를 생략하면 한국 시간의 �
 
 `POST /api/v1/orders/readiness/probe`는 사용자가 Flutter 설정 화면의 "조회 권한 점검"을 누를 때만 실행합니다. 서버는 오늘(한국 시간)의 KB `SSQM2341` 전체 구분 첫 페이지를 **읽기 전용으로 한 번** 조회합니다. 계좌 조회 스위치·인증값·계좌번호·HTTPS 설정이 빠졌다면 KB를 호출하지 않고 `CONFIGURATION_BLOCKED`를 반환합니다. 조회 응답 형식까지 확인되면 `VERIFIED`, 권한·네트워크·응답 오류가 있으면 `UNVERIFIED`입니다. 응답은 `status`, `orderDate`, `checkedAt`, `readOnly=true`, 일반 안내 문구만 포함하며 주문 행·계좌번호·인증값·원본 오류는 포함하지 않습니다. `VERIFIED`는 이 조회 API의 응답 확인일 뿐 주문 제출 권한, 운영 IP/MAC 승인, 실주문 가능 상태를 증명하지 않습니다. 이 진단은 가드나 승인 상태를 변경하지 않습니다.
 
+수동 점검 결과는 로컬 사용자별 `order_read_only_probe_checks`에 `status`, `orderDate`, `checkedAt`만 저장합니다. 기존 DB에는 `Back/database/migrations/014_order_read_only_probe_checks.sql` 적용이 필요합니다. `GET /api/v1/orders/readiness/probe/latest`는 새 KB 호출 없이 해당 사용자의 마지막 결과를 같은 안전한 형식으로 반환하며, 기록이 없으면 `data=null`입니다. Flutter 설정 화면의 마지막 점검 표시는 과거 이력일 뿐 현재 조회 권한이나 주문 가능 상태를 보증하지 않습니다.
+
 ## 16. 다음 구현 순서
 
 Flutter 추천 이력 목록·상세 화면, 보유 종목 수동 재분석과 관심 종목 직접 분석 액션까지 연결되었습니다.

@@ -403,6 +403,8 @@ Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/orders/readiness'
 
 KB 주문 이력 조회 권한 수동 점검:
 
+기존 MySQL에는 먼저 `Back/database/migrations/014_order_read_only_probe_checks.sql`을 적용하고 백엔드를 재시작합니다. 새 볼륨의 테이블은 `schema.sql`에 포함됩니다.
+
 ```powershell
 Invoke-RestMethod -Method Post -Uri 'http://localhost:8080/api/v1/orders/readiness/probe'
 ```
@@ -410,6 +412,8 @@ Invoke-RestMethod -Method Post -Uri 'http://localhost:8080/api/v1/orders/readine
 1. 계좌 조회 설정이 부족하면 `CONFIGURATION_BLOCKED`이고 KB 호출이 없어야 합니다. Flutter 설정 화면의 `조회 권한 점검` 버튼에서도 같은 결과를 확인합니다.
 2. 설정이 충족되면 한국 시간 오늘의 `SSQM2341` 첫 페이지만 조회합니다. 정상 형식의 응답을 받으면 `VERIFIED`, 권한·네트워크·응답 형식을 확인할 수 없으면 `UNVERIFIED`인지 확인합니다.
 3. 결과에 계좌번호·주문 내역·인증값·KB 원본 오류가 없고 `readOnly=true`인지 확인합니다. `VERIFIED`여도 기존 실주문 상태의 `canSubmit=false`와 화면의 `잠금` 표시는 유지되어야 합니다.
+4. `GET /api/v1/orders/readiness/probe/latest`로 마지막 상태·조회일·점검시각을 확인합니다. 앱 설정 화면을 닫았다 다시 열어 같은 결과와 시각이 보이는지 확인하고, 이 조회만으로 KB `SSQM2341` 호출이 늘지 않는지 확인합니다.
+5. 수동 점검 전에 GET을 요청하면 `data=null`이어야 합니다. 서버 접속이 끊긴 상태에서 수동 점검에 실패해도 이전 점검 기록은 화면에 남아야 합니다. 이 기록은 과거 조회 결과이며 현재 주문 권한의 증거가 아닙니다.
 4. 운영 계좌에서 실제 점검한 결과와 시각은 별도로 기록합니다. 조회 응답 확인은 주문 권한 또는 운영 IP/MAC 승인 확인을 대신하지 않습니다.
 
 KB 주문 이력 읽기 전용 API 확인:
