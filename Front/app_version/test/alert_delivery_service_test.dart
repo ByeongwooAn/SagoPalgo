@@ -1,10 +1,89 @@
+import 'dart:io';
+
 import 'package:app_version/models/app_alert.dart';
 import 'package:app_version/repositories/alert_repository.dart';
 import 'package:app_version/services/alert_delivery_service.dart';
+import 'package:app_version/services/alert_display_journal.dart';
 import 'package:app_version/services/local_notification_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test(
+    'restart retries acknowledgement without showing the alert again',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('alert-journal-');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File('${directory.path}${Platform.pathSeparator}alerts.log');
+      final repository = _FakeAlertRepository([_alert(7)])..failAckIds.add(7);
+      final notifications = _FakeNotificationService();
+
+      await AlertDeliveryService(
+        repository: repository,
+        notificationService: notifications,
+        displayJournal: FileAlertDisplayJournal(file),
+      ).deliverPending();
+      expect(notifications.shownIds, [7]);
+      expect(await FileAlertDisplayJournal(file).load(), {7});
+
+      repository.failAckIds.clear();
+      await AlertDeliveryService(
+        repository: repository,
+        notificationService: notifications,
+        displayJournal: FileAlertDisplayJournal(file),
+      ).deliverPending();
+
+      expect(notifications.shownIds, [7]);
+      expect(repository.sentIds, [7]);
+      expect(await FileAlertDisplayJournal(file).load(), isEmpty);
+    },
+  );
+
+  test('failed display is not remembered across restart', () async {
+    final directory = await Directory.systemTemp.createTemp('alert-journal-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}${Platform.pathSeparator}alerts.log');
+    final repository = _FakeAlertRepository([_alert(7)]);
+    final notifications = _FakeNotificationService()..failIds.add(7);
+
+    await AlertDeliveryService(
+      repository: repository,
+      notificationService: notifications,
+      displayJournal: FileAlertDisplayJournal(file),
+    ).deliverPending();
+    notifications.failIds.clear();
+    await AlertDeliveryService(
+      repository: repository,
+      notificationService: notifications,
+      displayJournal: FileAlertDisplayJournal(file),
+    ).deliverPending();
+
+    expect(notifications.shownIds, [7]);
+    expect(repository.sentIds, [7]);
+  });
+
+  test(
+    'journal write failure does not redisplay during the same session',
+    () async {
+      final repository = _FakeAlertRepository([_alert(7), _alert(8)]);
+      final notifications = _FakeNotificationService();
+      final journal = _FailingDisplayJournal();
+      final delivery = AlertDeliveryService(
+        repository: repository,
+        notificationService: notifications,
+        displayJournal: journal,
+      );
+
+      await delivery.deliverPending();
+      expect(notifications.shownIds, [7, 8]);
+      expect(repository.sentIds, [8]);
+
+      journal.failId = null;
+      await delivery.deliverPending();
+      expect(notifications.shownIds, [7, 8]);
+      expect(repository.sentIds, [8, 7]);
+    },
+  );
+
   test('one display failure does not block later alerts', () async {
     final repository = _FakeAlertRepository([_alert(7), _alert(8)]);
     final notifications = _FakeNotificationService()..failIds.add(7);
@@ -136,4 +215,19 @@ class _FakeNotificationService implements LocalNotificationService {
     }
     shownIds.add(alert.alertId!);
   }
+}
+
+class _FailingDisplayJournal implements AlertDisplayJournal {
+  int? failId = 7;
+
+  @override
+  Future<Set<int>> load() async => {};
+
+  @override
+  Future<void> recordDisplayed(int alertId) async {
+    if (alertId == failId) throw const FileSystemException('write failed');
+  }
+
+  @override
+  Future<void> recordAcknowledged(int alertId) async {}
 }

@@ -22,6 +22,7 @@ import '../repositories/research_feed_repository.dart';
 import '../repositories/watchlist_repository.dart';
 import '../services/app_security_service.dart';
 import '../services/alert_delivery_service.dart';
+import '../services/alert_display_journal.dart';
 import '../services/desktop_window_service.dart';
 import '../services/local_notification_service.dart';
 import '../theme/app_theme.dart';
@@ -57,6 +58,7 @@ class SagoPalgoHome extends StatefulWidget {
     required this.paperTradingRepository,
     required this.alertRepository,
     required this.localNotificationService,
+    this.alertDisplayJournal = const NoopAlertDisplayJournal(),
     this.desktopWindowService = const NoopDesktopWindowService(),
     required this.appSecurityService,
     required this.appLockPinConfigured,
@@ -102,6 +104,9 @@ class SagoPalgoHome extends StatefulWidget {
 
   /// Windows 알림 센터에 새 신호를 표시합니다.
   final LocalNotificationService localNotificationService;
+
+  /// 표시 후 서버 확인을 기다리는 알림을 저장합니다.
+  final AlertDisplayJournal alertDisplayJournal;
 
   /// Windows 미니 위젯과 시스템 트레이 창 동작을 처리합니다.
   final DesktopWindowService desktopWindowService;
@@ -172,6 +177,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
       _alertDeliveryService = AlertDeliveryService(
         repository: widget.alertRepository!,
         notificationService: widget.localNotificationService,
+        displayJournal: widget.alertDisplayJournal,
       );
       unawaited(_refreshAlerts());
       unawaited(_pollPendingAlerts());

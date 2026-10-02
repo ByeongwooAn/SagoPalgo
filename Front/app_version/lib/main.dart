@@ -27,6 +27,7 @@ import 'repositories/watchlist_repository.dart';
 import 'screens/app_lock_screen.dart';
 import 'screens/sago_palgo_home.dart';
 import 'services/app_security_service.dart';
+import 'services/alert_display_journal.dart';
 import 'services/desktop_window_service.dart';
 import 'services/local_notification_service.dart';
 import 'theme/app_theme.dart';
@@ -77,6 +78,7 @@ class SagoPalgoApp extends StatefulWidget {
     this.paperTradingRepositoryBuilder,
     this.alertRepositoryBuilder,
     this.localNotificationService = const NoopLocalNotificationService(),
+    this.alertDisplayJournal = const NoopAlertDisplayJournal(),
     this.desktopWindowService = const NoopDesktopWindowService(),
     this.appSecurityService = const AppSecurityService(NoopCredentialStore()),
     this.session = AuthSession.personal,
@@ -96,6 +98,7 @@ class SagoPalgoApp extends StatefulWidget {
       alertRepositoryBuilder: (session) =>
           SpringAlertRepository(accessToken: session.accessToken),
       localNotificationService: WindowsLocalNotificationService(),
+      alertDisplayJournal: createDefaultAlertDisplayJournal(),
       desktopWindowService: WindowsDesktopWindowService(),
     );
   }
@@ -145,6 +148,9 @@ class SagoPalgoApp extends StatefulWidget {
 
   /// Windows 네이티브 알림 표시 구현입니다.
   final LocalNotificationService localNotificationService;
+
+  /// 서버 확인을 기다리는 Windows 알림의 로컬 복구 기록입니다.
+  final AlertDisplayJournal alertDisplayJournal;
 
   /// Windows 창 크기와 시스템 트레이 메뉴를 제어합니다.
   final DesktopWindowService desktopWindowService;
@@ -250,6 +256,7 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
                   ),
               alertRepository: widget.alertRepositoryBuilder?.call(session),
               localNotificationService: widget.localNotificationService,
+              alertDisplayJournal: widget.alertDisplayJournal,
               desktopWindowService: widget.desktopWindowService,
               appSecurityService: widget.appSecurityService,
               appLockPinConfigured: appLockPin != null,
