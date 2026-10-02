@@ -143,4 +143,50 @@ void main() {
       expect(result.orderDate, '20260930');
     },
   );
+
+  test(
+    'fetchLatestReadOnlyOrderHistoryProbe reads saved result only',
+    () async {
+      final repository = SpringProviderSettingsRepository(
+        accessToken: '',
+        config: ApiConfig(baseUrl: 'http://localhost:8080'),
+        client: MockClient((request) async {
+          expect(request.method, 'GET');
+          expect(request.url.path, '/api/v1/orders/readiness/probe/latest');
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'data': {
+                'status': 'UNVERIFIED',
+                'orderDate': '20260930',
+                'checkedAt': '2026-09-30T10:00:00',
+                'readOnly': true,
+                'message': '읽기 전용 조회를 확인하지 못했습니다.',
+              },
+            }),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }),
+      );
+
+      final result = await repository.fetchLatestReadOnlyOrderHistoryProbe();
+
+      expect(result?.status, 'UNVERIFIED');
+      expect(result?.checkedAt, DateTime(2026, 9, 30, 10));
+    },
+  );
+
+  test('fetchLatestReadOnlyOrderHistoryProbe accepts empty history', () async {
+    final repository = SpringProviderSettingsRepository(
+      accessToken: '',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient(
+        (request) async =>
+            http.Response(jsonEncode({'success': true, 'data': null}), 200),
+      ),
+    );
+
+    expect(await repository.fetchLatestReadOnlyOrderHistoryProbe(), isNull);
+  });
 }
