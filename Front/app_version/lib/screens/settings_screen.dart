@@ -1095,7 +1095,7 @@ class _KbAccountDisabledCard extends StatelessWidget {
           const _KbAccountHeader(statusLabel: '대기'),
           const SizedBox(height: 10),
           Text(
-            'KB 계좌 조회를 보려면 백엔드 .env.dev에서 KB 계좌 연동을 켜고 App Key/App Secret을 설정해 주세요.',
+            'KB 계좌 조회를 보려면 서버 .env에서 KB 계좌 연동을 켜고 App Key/App Secret을 설정해 주세요.',
             style: TextStyle(
               color: palette.muted,
               fontSize: 12,

@@ -184,7 +184,7 @@ AI 분석은 직접적인 투자 권유보다 개인 판단을 돕는 참고 신
 - 증권사 연동 상태 조회 API 추가
 - Flutter Windows 설정 탭 추가
 - 주문 권한 기본 OFF
-- Windows 로컬 PIN은 Credential Manager, Ubuntu Provider 비밀값은 서버 `.env.prod`로 분리
+- Windows 로컬 PIN은 Credential Manager, Ubuntu Provider 비밀값은 서버 루트 `.env`로 분리
 
 ### 3단계: KB 계좌 연동
 
