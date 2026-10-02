@@ -43,21 +43,26 @@ Flutter 앱은 Windows PC에서 실행하고 Spring Boot, Python AI, MySQL, Ngin
 
 ![Ubuntu 백엔드와 Windows 앱 시스템 구조](docs/images/system-architecture-ubuntu.png)
 
-## 개발 환경 실행
+## 백엔드 실행
 
-백엔드 개발 환경:
+루트 `.env.example`을 `.env`로 복사한 뒤 비밀번호와 Provider 설정을 입력합니다. 새 설치라면 이름이 같은 DB 볼륨을 한 번 생성합니다. 기존 설치는 새 볼륨을 만들지 말고 [기존 설치 전환 절차](docs/docker-architecture.md#3-실행과-기존-설치-전환)를 먼저 확인하세요.
 
 ```powershell
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d --build
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+docker volume create sagopalgo-mysql-data
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build
 ```
 
 백엔드 상태 확인:
 
 ```powershell
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev ps
+docker compose --env-file .env ps
 Invoke-WebRequest -Uri http://localhost:8081/health -UseBasicParsing
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev logs --tail=100 spring-api
+docker compose --env-file .env logs --tail=100 spring-api
 ```
+
+Docker 호스트에서 Flutter 앱까지 함께 테스트할 때는 앱의 `SAGOPALGO_API_BASE_URL`을 `http://localhost:8080`으로 지정합니다. 다른 Windows PC에서 Ubuntu 서버에 접속할 때만 IP 허용 목록을 설정한 Nginx `:8081` 주소를 사용합니다. 서버의 루트 `.env`를 Flutter asset으로 복사하지 마세요.
 
 Flutter Windows 실행:
 
@@ -77,26 +82,29 @@ cd Front/app_version
 flutter build windows --release
 ```
 
-Ubuntu 백엔드 실행:
+Ubuntu에서 Windows 앱이 접속할 때는 `.env`의 `SAGOPALGO_PROXY_BIND_ADDRESS=0.0.0.0`과 `SAGOPALGO_ALLOWED_CLIENT_IP=<Windows PC 사설 IP>`를 설정하고 방화벽도 같은 PC로 제한합니다. 백엔드 실행 명령은 Windows와 동일합니다.
 
 ```bash
-cp .env.prod.example .env.prod
-# .env.prod의 Ubuntu 호스트명, DB 비밀번호, Provider 키를 수정합니다.
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d --build
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod ps
+cp -n .env.example .env
+# .env의 비밀번호, Provider 키, 프록시 설정을 수정합니다.
+docker volume create sagopalgo-mysql-data
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build
+docker compose --env-file .env ps
 curl http://localhost:8081/health
 ```
 
+**위 복사·볼륨 생성 명령은 새 설치에서만 사용합니다.** 기존 Ubuntu 배포는 먼저 실제 볼륨 이름을 확인하고 DB 백업을 확보한 뒤 기존 설정값을 루트 `.env`로 옮겨야 합니다. KB 점검 이력의 `014` 마이그레이션 절차도 [Docker 구조 문서](docs/docker-architecture.md#기존-ubuntu-db의-kb-점검-이력-테이블)에 있습니다. `down -v`로 기존 DB를 지우지 마세요.
+
 ## 환경 변수
 
-- `.env.dev`: Docker 개발 환경이 읽는 값입니다.
-- `.env.prod`: Ubuntu 컴퓨터에서 백엔드 컨테이너를 실행할 때 쓰는 값입니다.
-- `.env.dev.example`, `.env.prod.example`: Git에 올리는 예시 파일입니다.
+- 루트 `.env`: 단일 Docker Compose 구성이 읽는 비밀값과 접속 설정입니다.
+- 루트 `.env.example`: Git에 올리는 단일 서버 설정 예시입니다.
 - `Back/spring-server/.env`: Docker 없이 Spring Boot를 직접 실행할 때 쓰는 값입니다.
 - `Front/app_version/.env`: Flutter 앱의 공개 설정값입니다.
-- 실제 `.env*` 파일은 Git에 올리지 않고, `.env*.example`만 추적합니다.
+- 실제 `.env` 파일은 Git에 올리지 않고 예시 파일만 추적합니다.
 
-Windows 앱 잠금 PIN은 Credential Manager에 저장합니다. Ubuntu 백엔드가 사용하는 API Key, access token, 계좌번호는 서버 `.env.prod`로 관리하며 저장소에 커밋하지 않습니다. 인증서와 로컬 DB 백업 역시 저장소 밖에서 별도로 보호합니다.
+Windows 앱 잠금 PIN은 Credential Manager에 저장합니다. Ubuntu 백엔드가 사용하는 API Key, access token, 계좌번호는 서버의 루트 `.env`로 관리하며 저장소에 커밋하지 않습니다. 인증서와 로컬 DB 백업 역시 저장소 밖에서 별도로 보호합니다.
 
 ## 참고 문서
 

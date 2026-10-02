@@ -15,86 +15,92 @@
 | Python AI 서버 | 관리 | 가격·뉴스·공시·보유 손익을 독립 프로세스에서 분석 |
 | Redis | 추후 관리 | 알림 큐, 캐시, 스케줄링이 필요할 때 추가 |
 
-## 2. 현재 Compose 서비스
+## 2. 단일 Compose 구성
 
 ```text
 docker-compose.yml
-├─ mysql          공통 DB 서비스 정의
-├─ ai-server      로컬 Python 통합 분석 서비스
-├─ spring-api     공통 API 서비스 정의
-└─ reverse-proxy  공통 Nginx 서비스 정의
-
-docker-compose.dev.yml
-├─ mysql          개발용 DB 포트 공개
-├─ ai-server      개발용 AI API 포트 공개
-├─ spring-api     개발용 API 포트 공개
-└─ reverse-proxy  개발용 HTTP 프록시 공개
-
-docker-compose.prod.yml
-├─ mysql          DB 포트 비공개
-├─ ai-server      AI API 포트 비공개
-├─ spring-api     API 포트 비공개
-└─ reverse-proxy  Ubuntu의 8081 포트만 Windows PC에 공개
+├─ mysql          데이터는 지정한 기존 Docker 볼륨에 보관
+├─ ai-server      Python 통합 분석 서비스
+├─ spring-api     Spring API 서비스
+└─ reverse-proxy  Windows 앱용 Nginx 프록시
 ```
 
-`mysql`은 `Back/database/schema.sql`을 데이터 볼륨이 처음 생성될 때만 실행합니다. 테이블은 `.env.dev` 또는 `.env.prod`의 `SAGOPALGO_MYSQL_DATABASE` 값으로 만들어진 DB 안에 생성됩니다. 기존 데이터 볼륨에서는 init SQL이 다시 실행되지 않으므로 필요한 `Back/database/migrations/` 파일을 확인해 적용합니다. **스키마 갱신을 위해 운영 볼륨을 삭제하지 않습니다.**
+`mysql`은 `Back/database/schema.sql`을 빈 데이터 볼륨에서 처음 시작할 때만 실행합니다. 기존 볼륨에서는 init SQL이 다시 실행되지 않으므로 필요한 `Back/database/migrations/` 파일을 백업 후 적용합니다. Compose는 `.env`의 `SAGOPALGO_MYSQL_VOLUME_NAME`이 가리키는 **이미 존재하는** 볼륨만 사용합니다. 이름이 틀리거나 볼륨이 없으면 시작에 실패해 빈 DB로 조용히 전환되지 않습니다. **스키마 갱신을 위해 볼륨을 삭제하지 않습니다.**
 
 `ai-server`는 `/internal/ai/analyze-investment`에서 설명 가능한 가중 점수 분석을 수행합니다. 외부 유료 모델이나 계좌 API를 직접 호출하지 않으며 Spring이 정규화한 입력만 받습니다.
 
-`spring-api`는 Compose가 `--env-file`로 받은 `.env.dev` 또는 `.env.prod` 값을 컨테이너 환경 변수로 주입합니다. 컨테이너 내부에서는 DB 주소가 `mysql:3306`, AI 서버 주소가 `http://ai-server:8000`입니다.
+`spring-api`는 Compose가 `--env-file .env`로 받은 값을 컨테이너 환경 변수로 주입합니다. 컨테이너 내부에서는 DB 주소가 `mysql:3306`, AI 서버 주소가 `http://ai-server:8000`입니다.
 
 `reverse-proxy`는 Nginx가 `spring-api:8080`으로 요청을 넘깁니다.
 
-## 3. 실행 명령어
+## 3. 실행과 기존 설치 전환
 
-개발 중에는 MySQL, Spring API, Nginx HTTP 포트를 모두 호스트에 공개합니다.
-
-```powershell
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d --build
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev ps
-Invoke-WebRequest -Uri http://localhost:8081/health -UseBasicParsing
-```
-
-Ubuntu 컴퓨터에서는 `.env.prod.example`을 `.env.prod`로 복사하고 DB 비밀번호, Provider 키, Ubuntu 호스트명, Windows PC의 고정 IP를 입력합니다.
+처음 설치할 때는 루트 `.env.example`을 `.env`로 복사해 비밀번호와 Provider 설정을 입력합니다. 같은 PC에서만 접근한다면 기본 프록시 바인딩 `127.0.0.1`을 유지합니다. Windows 앱이 Ubuntu 서버에 접근해야 한다면 `SAGOPALGO_PROXY_BIND_ADDRESS=0.0.0.0`, `SAGOPALGO_ALLOWED_CLIENT_IP=<Windows PC의 사설 IP>`로 설정하고 Ubuntu 방화벽에서도 해당 PC만 8081 포트에 접근하도록 제한합니다. `.env`는 저장소에 커밋하지 않습니다.
 
 ```bash
-cp .env.prod.example .env.prod
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d --build
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod ps
+cp .env.example .env
+# .env의 비밀번호, Provider 키, 프록시 바인딩/허용 IP를 설정합니다.
+docker volume create sagopalgo-mysql-data
+docker compose --env-file .env config --quiet
+docker compose --env-file .env up -d --build
+docker compose --env-file .env ps
 curl http://localhost:8081/health
 ```
 
-Ubuntu 방화벽에서도 Windows PC만 접근할 수 있게 제한합니다.
+기존 Ubuntu 설치에서는 **새 볼륨을 만들기 전에** 실제 MySQL 볼륨 이름을 확인하고 DB 백업을 확보합니다. 예전 `-dev` 컨테이너의 볼륨 이름은 아래처럼 읽기 전용으로 확인합니다. `-ubuntu` 컨테이너였다면 이름을 `sagopalgo-mysql-ubuntu`로 바꿉니다. 결과가 비어 있으면 전환을 멈춥니다.
 
 ```bash
-sudo ufw allow from 192.168.0.10 to any port 8081 proto tcp
-sudo ufw deny 8081/tcp
-sudo ufw enable
+docker inspect sagopalgo-mysql-dev \
+  --format '{{range .Mounts}}{{if eq .Destination "/var/lib/mysql"}}{{.Name}}{{end}}{{end}}'
 ```
 
-`192.168.0.10`은 실제 Windows PC의 고정 사설 IP로 바꿉니다. 외부 인터넷에서 접속해야 한다면 포트포워딩 대신 VPN과 HTTPS를 먼저 구성합니다.
+기존 `.env.dev` 또는 `.env.prod`를 **내용을 공개하지 않고** 루트 `.env`로 복사합니다. `.env`가 이미 있으면 덮어쓰지 말고 설정을 확인합니다. `SAGOPALGO_MYSQL_VOLUME_NAME`에는 위에서 확인한 이름을 입력하고, Ubuntu에서 Windows 앱이 접속한다면 프록시 바인딩과 허용 IP도 설정합니다. DB 이름·비밀번호·Provider 키는 기존 값을 유지합니다. 백업·마이그레이션 순서는 아래 절을 따릅니다. 컨테이너 중지 **전에** `docker compose --env-file .env config --quiet`와 `docker volume inspect <확인한-볼륨-이름>`이 모두 성공하는지 확인합니다.
+
+기존 컨테이너와 새 컨테이너는 이름이 다르므로 백업과 `.env` 설정이 끝난 후 기존 컨테이너만 중지해야 포트 충돌을 피할 수 있습니다. 예전 `-dev` 설치라면 다음 명령을 사용합니다. **`down -v`는 실행하지 않습니다.**
+
+```bash
+docker stop sagopalgo-reverse-proxy-dev sagopalgo-spring-api-dev sagopalgo-ai-server-dev sagopalgo-mysql-dev
+docker compose --env-file .env up -d --build
+docker compose --env-file .env ps
+```
+
+Ubuntu 방화벽에서는 Windows PC만 프록시 포트에 접근하도록 제한합니다. 외부 인터넷 접속에는 포트포워딩 대신 VPN과 HTTPS를 먼저 구성합니다.
 
 ### 기존 Ubuntu DB의 KB 점검 이력 테이블
 
-기존 MySQL 볼륨에 `014_order_read_only_probe_checks.sql`이 적용됐는지 확인할 때는 Ubuntu 서버의 저장소 루트에서 아래 읽기 전용 명령을 실행합니다. 결과 `1`은 테이블 존재, `0`은 부재를 뜻합니다. 명령과 결과에 비밀번호·계좌번호가 나타나지 않도록 환경 파일이나 전체 컨테이너 환경을 출력하지 않습니다.
+Ubuntu 서버의 저장소 루트에서 `docker ps --format '{{.Names}}'`로 실제 DB 컨테이너 이름을 확인합니다. 새 단일 구성은 `sagopalgo-mysql`입니다. 이전 구성에서 아직 전환하지 않았다면 `sagopalgo-mysql-dev` 또는 `sagopalgo-mysql-ubuntu`일 수 있으며, 아래 명령의 컨테이너 이름만 실제 값으로 바꿉니다. 예시 환경 파일로 기존 비밀값을 덮어쓰지 않습니다.
+
+기존 MySQL 볼륨에 `014_order_read_only_probe_checks.sql`이 적용됐는지 아래 읽기 전용 명령으로 확인합니다. 결과 `1`은 테이블 존재, `0`은 부재를 뜻합니다. 비밀번호·계좌번호·환경 파일 내용은 출력하거나 공유하지 않습니다.
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod exec -T mysql \
+docker exec -i sagopalgo-mysql \
   sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -N' <<'SQL'
 SELECT COUNT(*) FROM information_schema.tables
 WHERE table_schema = DATABASE() AND table_name = 'order_read_only_probe_checks';
 SQL
 ```
 
-테이블이 없다면 **운영 DB 백업을 확인하고**, 배포할 코드와 마이그레이션 파일의 버전을 맞춘 뒤 다음 명령으로 기존 볼륨에 `014`만 적용합니다. 이 SQL은 `CREATE TABLE IF NOT EXISTS`이며 기존 데이터를 삭제하지 않습니다. 테이블이 이미 있다면 적용을 건너뛰고 DB 연결과 서버 로그를 조사합니다.
+테이블이 없다면 먼저 현재 DB의 백업을 확보하고, 배포할 코드와 마이그레이션 파일의 버전을 맞춥니다. 아래 예시는 DB 전체를 홈 디렉터리의 접근 제한된 파일로 덤프합니다. 기존 구성에서 전환 중이라면 **기존 컨테이너를 중지하기 전에** 그 이름으로 바꿔 실행합니다. 명령이 성공하고 파일이 비어 있지 않은지 확인한 뒤 백업을 저장소 밖에서 안전하게 보관합니다. 백업 SQL에는 계좌 등 민감 데이터가 포함될 수 있으므로 내용을 출력하거나 공유하지 않습니다.
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod exec -T mysql \
+umask 077
+backup="$HOME/sagopalgo-$(date +%Y%m%d-%H%M%S).sql"
+docker exec sagopalgo-mysql \
+  sh -lc 'mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --routines --triggers "$MYSQL_DATABASE"' \
+  > "$backup" && test -s "$backup" && echo 'DB backup created'
+```
+
+백업이 확인된 뒤에만 아래 명령으로 `014`를 적용합니다. SQL은 `CREATE TABLE IF NOT EXISTS`이며 기존 데이터를 삭제하지 않습니다. 테이블이 이미 있다면 적용을 건너뛰고 DB 연결과 서버 로그를 조사합니다. **`docker compose down -v` 또는 볼륨 삭제로 스키마를 갱신하지 않습니다.**
+
+```bash
+docker exec -i sagopalgo-mysql \
   sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"' \
   < Back/database/migrations/014_order_read_only_probe_checks.sql
 ```
 
-적용 후 첫 번째 읽기 전용 명령을 다시 실행하고, Windows에서 `scripts/check-kb-probe.ps1 -ApiBaseUrl 'http://<Ubuntu-IP>:8081'`을 실행합니다. `/probe/latest`·`/probe/history`가 계속 500/503이면 오류 코드만 확인하고 Ubuntu의 `spring-api` 로그를 조사합니다. 테이블 유무만으로 500의 원인을 단정하거나 실제 KB 점검 POST·주문 요청을 보내지 않습니다. `ACCOUNT_NUMBER: false`이면 서버의 계좌번호 설정 여부를 서버 안에서만 확인합니다.
+적용 후 첫 번째 읽기 전용 명령을 다시 실행합니다. 이전 백엔드 이미지가 실행 중이라면 `docker compose --env-file .env up -d --build spring-api`로 다시 배포합니다. DB 볼륨을 재생성할 필요는 없습니다.
+
+Windows에서 `scripts/check-kb-probe.ps1 -ApiBaseUrl 'http://<Ubuntu-IP>:8081'`을 실행합니다. `/probe/latest`·`/probe/history`가 계속 500/503이면 오류 코드만 확인하고 `spring-api` 로그를 조사합니다. 테이블 유무만으로 500의 원인을 단정하거나 실제 KB 점검 POST·주문 요청을 보내지 않습니다. `ACCOUNT_NUMBER: false`이면 서버의 계좌번호 설정 여부를 서버 안에서만 확인합니다.
 
 ## 4. 네트워크 기준
 
@@ -102,19 +108,19 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
 
 | 용도 | URL | 설명 |
 | --- | --- | --- |
-| 직접 API 접근 | `http://localhost:8080` | 빠른 로컬 개발용 |
-| AI 상태·계약 확인 | `http://localhost:8000` | 개발 환경에서만 공개하는 Python 분석 API |
-| Ubuntu HTTP 프록시 | `http://ubuntu-server.local:8081` | Windows 앱에 공개하는 유일한 백엔드 포트 |
+| 직접 API 접근 | `http://localhost:8080` | Docker 호스트에서만 접근 |
+| AI 상태·계약 확인 | `http://localhost:8000` | Docker 호스트에서만 접근 |
+| Ubuntu HTTP 프록시 | `http://ubuntu-server.local:8081` | 바인딩과 허용 IP를 설정했을 때 Windows PC에서 접근 |
 | Flutter Windows API | `http://ubuntu-server.local:8081` | `Front/app_version/.env`에 설정 |
 
-MySQL `3306`, Spring `8080`, Python AI `8000`은 Docker 내부 네트워크에서만 사용합니다. Nginx는 `SAGOPALGO_ALLOWED_CLIENT_IP`에 지정한 Windows PC만 API 경로에 접근하도록 제한합니다.
+MySQL `3306`, Spring `8080`, Python AI `8000`은 Docker 호스트의 `127.0.0.1`에만 바인딩하며 외부에서는 접근할 수 없습니다. Nginx는 `SAGOPALGO_ALLOWED_CLIENT_IP`에 지정한 Windows PC만 API 경로에 접근하도록 제한합니다. 개인용이라도 인증 계층이 없으므로 프록시 공개 범위를 넓히지 않습니다.
 
 ## 5. 민감정보 기준
 
-- `.env`, `.env.dev`, `.env.prod`, `Back/spring-server/.env`는 저장소에 커밋하지 않는다.
+- 루트 `.env`와 `Back/spring-server/.env`는 저장소에 커밋하지 않는다. 이전 `.env.dev`·`.env.prod`도 전환 완료 전까지 보호한다.
 - KB/KIS/Toss API Key, App Secret, 계좌번호는 예시 파일에는 빈 값 또는 placeholder만 둔다.
 - Windows 앱 잠금 PIN은 Windows Credential Manager에 저장하고 Flutter `.env`에는 남기지 않는다.
-- Ubuntu 백엔드가 직접 사용하는 Provider 키와 계좌번호는 서버의 `.env.prod`에 유지한다.
+- Ubuntu 백엔드가 직접 사용하는 Provider 키와 계좌번호는 서버의 루트 `.env`에 유지한다.
 - 현재 백엔드는 로그인/JWT/OAuth를 사용하지 않으므로 Ubuntu 방화벽과 Nginx IP 허용 목록을 반드시 함께 적용한다.
 - Spring API는 개인용 로컬 사용자 ID를 기준으로 보유 종목, 관심 종목, 자본금 데이터를 묶는다.
 

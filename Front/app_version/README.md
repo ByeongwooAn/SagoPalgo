@@ -22,7 +22,7 @@
 
 ## 백엔드 API 기준
 
-기본 API 주소는 `Front/app_version/.env`의 `SAGOPALGO_API_BASE_URL`에서 읽습니다. 이 값이 없으면 루트 `.env.dev`와 같은 Docker 개발 키를 사용해 `http://{SAGOPALGO_NGINX_SERVER_NAME}:{SAGOPALGO_PROXY_HTTP_PORT}`를 자동으로 만듭니다.
+기본 API 주소는 `Front/app_version/.env`의 `SAGOPALGO_API_BASE_URL`에서 읽습니다. 이 값이 없으면 앱 `.env`에 적힌 `SAGOPALGO_NGINX_SERVER_NAME`과 `SAGOPALGO_PROXY_HTTP_PORT`로 주소를 만듭니다. 서버의 루트 `.env`는 비밀값이 있으므로 앱 asset으로 복사하지 않습니다.
 
 ```dotenv
 SAGOPALGO_API_BASE_URL=http://ubuntu-server.local:8081
@@ -31,7 +31,7 @@ SAGOPALGO_PROXY_HTTP_PORT=8081
 SAGOPALGO_NGINX_SERVER_NAME=ubuntu-server.local
 ```
 
-API Key, 계좌번호, access token 같은 백엔드 민감정보는 Flutter asset `.env`에 넣지 않습니다. 앱 잠금 PIN만 Windows Credential Manager에 보관하고, Ubuntu 백엔드가 사용하는 Provider 키와 계좌번호는 서버의 `.env.prod`에서 관리합니다.
+API Key, 계좌번호, access token 같은 백엔드 민감정보는 Flutter asset `.env`에 넣지 않습니다. 앱 잠금 PIN만 Windows Credential Manager에 보관하고, Ubuntu 백엔드가 사용하는 Provider 키와 계좌번호는 서버 루트 `.env`에서 관리합니다.
 
 기존 설치의 `.env`에 `SAGOPALGO_APP_LOCK_PIN`이 있으면 첫 실행 때 자동 이전됩니다. 정상 실행을 확인한 뒤 해당 줄을 삭제하거나 값을 비웁니다.
 

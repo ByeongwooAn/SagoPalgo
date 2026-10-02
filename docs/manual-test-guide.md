@@ -21,7 +21,7 @@ flutter test --no-pub
 
 ## 2. 개발 서버 실행
 
-루트 `.env.dev.example`을 `.env.dev`로 복사한 뒤 DB 비밀번호와 개인용 모드 값을 확인합니다. 실제 현재가를 함께 확인하려면 한국투자증권 Open API App Key/Secret도 입력하고 `SAGOPALGO_KIS_ENABLED=true`로 바꿉니다.
+새 설치에서는 루트 `.env.example`을 `.env`로 복사하고 `docker volume create sagopalgo-mysql-data`를 한 번 실행한 뒤 DB 비밀번호와 개인용 모드 값을 확인합니다. 기존 설치는 먼저 [볼륨 보존 전환 절차](docker-architecture.md#3-실행과-기존-설치-전환)를 따릅니다. 실제 현재가를 함께 확인하려면 한국투자증권 Open API App Key/Secret도 입력하고 `SAGOPALGO_KIS_ENABLED=true`로 바꿉니다.
 
 ```dotenv
 SAGOPALGO_PERSONAL_MODE_ENABLED=true
@@ -58,39 +58,39 @@ SAGOPALGO_OPEN_DART_API_KEY=
 ```
 
 ```powershell
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d --build
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev ps
+docker compose --env-file .env up -d --build
+docker compose --env-file .env ps
 ```
 
-DB volume을 새로 만들 때 `Back/database/schema.sql`은 `.env.dev`의 `SAGOPALGO_MYSQL_DATABASE` 값에 해당하는 DB 안에 테이블을 생성합니다. 예를 들어 `SAGOPALGO_MYSQL_DATABASE=sagopalgo_dev`이면 Spring API도 `sagopalgo_dev`에 접속하고, 테이블도 같은 DB에 생성되어야 합니다.
+DB 볼륨이 비어 있을 때 `Back/database/schema.sql`은 `.env`의 `SAGOPALGO_MYSQL_DATABASE` 값에 해당하는 DB 안에 테이블을 생성합니다. Spring API도 같은 DB에 접속해야 합니다. 기존 볼륨에서는 init SQL이 재실행되지 않습니다.
 
 기존 DB volume을 유지하는 환경에서는 뉴스·공시 저장 테이블을 한 번 추가합니다. 아래 SQL은 `CREATE TABLE IF NOT EXISTS`라 반복 실행해도 기존 테이블을 지우지 않습니다.
 
 ```powershell
 Get-Content -Raw Back/database/migrations/002_research_feed_storage.sql | `
-  docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
+  docker compose --env-file .env exec -T mysql `
   sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
 
 Get-Content -Raw Back/database/migrations/003_research_sync_status.sql | `
-  docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
+  docker compose --env-file .env exec -T mysql `
   sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
 
 Get-Content -Raw Back/database/migrations/004_event_alerts.sql | `
-  docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
+  docker compose --env-file .env exec -T mysql `
   sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
 
 Get-Content -Raw Back/database/migrations/005_paper_trading.sql | `
-  docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
+  docker compose --env-file .env exec -T mysql `
   sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
 
 Get-Content -Raw Back/database/migrations/006_order_prechecks.sql | `
-  docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec -T mysql `
+  docker compose --env-file .env exec -T mysql `
   sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
 ```
 
 `005_paper_trading.sql`은 기존 `trade_records`를 확장하는 `ALTER TABLE` 마이그레이션이므로 기존 볼륨에 정확히 한 번만 적용합니다.
 
-자동 수집을 확인할 때만 `.env.dev`에서 아래 값을 켭니다. 기본값은 외부 API 쿼터 보호를 위해 `false`입니다.
+자동 수집을 확인할 때만 루트 `.env`에서 아래 값을 켭니다. 기본값은 외부 API 쿼터 보호를 위해 `false`입니다.
 
 ```dotenv
 SAGOPALGO_RESEARCH_SYNC_ENABLED=true
@@ -98,11 +98,11 @@ SAGOPALGO_RESEARCH_SYNC_CRON=0 0/30 * * * *
 SAGOPALGO_RESEARCH_SYNC_ZONE=Asia/Seoul
 ```
 
-API 서버 상태:
+API 서버 상태: 로컬 Docker 호스트의 수동 API 호출은 `localhost:8080` 직접 포트를 사용합니다. Ubuntu 밖의 Windows 앱만 허용 IP를 설정한 `:8081` 프록시를 사용합니다.
 
 ```powershell
 Invoke-WebRequest -Uri http://localhost:8081/health -UseBasicParsing
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev logs --tail=100 spring-api
+docker compose --env-file .env logs --tail=100 spring-api
 ```
 
 ## 3. API 직접 테스트
@@ -114,7 +114,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.d
 ```powershell
 Invoke-RestMethod `
   -Method Get `
-  -Uri http://localhost:8081/api/v1/settings/providers
+  -Uri http://localhost:8080/api/v1/settings/providers
 ```
 
 응답에는 `secretStorageType=ENV_FILE`, `orderSafetyMode=주문 기능 OFF · 사전검증만 지원`, `marketDataFallbackOrder=[KB,KIS,TOSS]`, KB/KIS/Toss/Naver News/OpenDART의 역할과 누락 설정 이름만 표시되어야 합니다. API Key, App Secret, 계좌번호 원문은 응답에 포함되면 안 됩니다.
@@ -124,11 +124,11 @@ Toss 시세·종목 정보 확인:
 ```powershell
 Invoke-RestMethod `
   -Method Get `
-  -Uri 'http://localhost:8081/api/v1/market/stocks/005930?market=KOSPI'
+  -Uri 'http://localhost:8080/api/v1/market/stocks/005930?market=KOSPI'
 
 Invoke-RestMethod `
   -Method Get `
-  -Uri 'http://localhost:8081/api/v1/market/candles?stockCode=005930&market=KOSPI&interval=DAILY&count=20'
+  -Uri 'http://localhost:8080/api/v1/market/candles?stockCode=005930&market=KOSPI&interval=DAILY&count=20'
 ```
 
 1. 토스증권에서 발급한 Client ID와 Client Secret을 각각 `SAGOPALGO_TOSS_APP_KEY`, `SAGOPALGO_TOSS_APP_SECRET`에 넣고 `SAGOPALGO_TOSS_MARKET_DATA_ENABLED=true`로 바꿉니다.
@@ -143,15 +143,15 @@ Invoke-RestMethod `
 ```powershell
 Invoke-RestMethod `
   -Method Post `
-  -Uri 'http://localhost:8081/api/v1/research/feed/sync?stockCode=005930&stockName=삼성전자'
+  -Uri 'http://localhost:8080/api/v1/research/feed/sync?stockCode=005930&stockName=삼성전자'
 
 Invoke-RestMethod `
   -Method Get `
-  -Uri 'http://localhost:8081/api/v1/research/feed?stockCode=005930&stockName=삼성전자'
+  -Uri 'http://localhost:8080/api/v1/research/feed?stockCode=005930&stockName=삼성전자'
 
 Invoke-RestMethod `
   -Method Get `
-  -Uri 'http://localhost:8081/api/v1/research/sync/status?stockCode=005930'
+  -Uri 'http://localhost:8080/api/v1/research/sync/status?stockCode=005930'
 ```
 
 동기화 응답의 `data.providers`에서 각 Provider가 `SUCCESS`, `FAILED`, `DISABLED` 중 하나로 표시되는지 확인합니다. 한 Provider만 실패할 때도 HTTP 200 응답으로 다른 Provider 결과가 저장되어야 합니다. 같은 동기화를 두 번 실행한 뒤 GET 결과의 뉴스와 공시 건수가 중복 증가하지 않고, `provider=LOCAL_DB`, `dataType=CACHE`로 표시되는지 확인합니다. 상태 조회에서는 `triggerType`, `status`, `lastAttemptedAt`, 뉴스·공시 건수가 마지막 실행 결과와 일치해야 합니다.
@@ -159,34 +159,34 @@ Invoke-RestMethod `
 KB 계좌 연동 확인:
 
 ```powershell
-Invoke-WebRequest -Uri http://localhost:8081/api/v1/kb/accounts -UseBasicParsing
-Invoke-WebRequest -Uri http://localhost:8081/api/v1/kb/accounts/primary/holdings -UseBasicParsing
-Invoke-WebRequest -Uri http://localhost:8081/api/v1/kb/accounts/primary/balances/settlement -UseBasicParsing
-Invoke-WebRequest -Uri http://localhost:8081/api/v1/kb/accounts/primary/balances/execution -UseBasicParsing
+Invoke-WebRequest -Uri http://localhost:8080/api/v1/kb/accounts -UseBasicParsing
+Invoke-WebRequest -Uri http://localhost:8080/api/v1/kb/accounts/primary/holdings -UseBasicParsing
+Invoke-WebRequest -Uri http://localhost:8080/api/v1/kb/accounts/primary/balances/settlement -UseBasicParsing
+Invoke-WebRequest -Uri http://localhost:8080/api/v1/kb/accounts/primary/balances/execution -UseBasicParsing
 ```
 
-실제 KB 국내주식 조회를 확인하려면 KB증권 Open API 포털에서 App Key/App Secret을 발급받은 뒤 `SAGOPALGO_KB_ACCOUNT_ENABLED=true`로 바꿉니다. KB 공식 API 문서 파일 기준 보유주식 조회는 `SSQM1801_보유주식 조회`, 결제기준 잔고 현황은 `SSQM2932_잔고현황조회(결제기준)`, 체결기준 잔고 현황은 `SSQM2952_잔고현황조회(체결기준)`입니다. 공개 path와 기본 요청값은 백엔드 기본 설정으로 관리하므로 `.env.dev`에 넣지 않아도 됩니다.
+실제 KB 국내주식 조회를 확인하려면 KB증권 Open API 포털에서 App Key/App Secret을 발급받은 뒤 `SAGOPALGO_KB_ACCOUNT_ENABLED=true`로 바꿉니다. KB 공식 API 문서 파일 기준 보유주식 조회는 `SSQM1801_보유주식 조회`, 결제기준 잔고 현황은 `SSQM2932_잔고현황조회(결제기준)`, 체결기준 잔고 현황은 `SSQM2952_잔고현황조회(체결기준)`입니다. 공개 path와 기본 요청값은 백엔드 기본 설정으로 관리하므로 루트 `.env`에 넣지 않아도 됩니다.
 
 설정 탭의 `KB 계좌 조회`에서 상세 버튼을 눌러 현재 응답에 포함된 잔고 항목을 확인합니다. `결제 잔고` 모드는 KB `SSQM2932`의 `valuationWeightRate`를 표시하고, `보유 주식` 모드는 `SSQM1801` 평가금액이 있을 때만 해당 조회 목록 안의 계산 비중을 표시합니다. 두 값은 분모와 출처가 다릅니다. 실제 KB 앱의 종목별 금액·평가비중과 대조하고, 응답 필드가 없거나 평가합계가 0이면 `산정 불가`인지 확인합니다. 이 확인은 읽기 전용이며 AI 매수 신호나 주문 전송 조건을 바꾸지 않습니다.
 
 결제 잔고 응답의 `totalDataCount`와 현재 표시 항목 수가 다르면 설정 카드와 `결제 잔고` 상세에 `건수 확인 필요`가 표시되어야 합니다. `totalDataCount`가 없거나 숫자가 아니면 상세에 `KB 보고 건수 미제공`으로 표시됩니다. 건수가 같아도 완전한 조회로 확정하지 말고 KB 앱의 실제 잔고 항목과 대조합니다. 필터링된 항목이나 응답 형식 차이도 건수 차이의 원인일 수 있으므로 자동 주문 판단에는 사용하지 않습니다.
 
-KB access token 발급 실패를 확인할 때는 Compose 파일과 서비스명을 정확히 지정합니다. 개발용 컨테이너의 서비스명은 `spring-api`입니다.
+KB access token 발급 실패를 확인할 때는 단일 Compose 서비스명 `spring-api`를 사용합니다.
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev ps
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev exec spring-api sh -lc 'echo ACCOUNT=$SAGOPALGO_KB_ACCOUNT_ENABLED; echo APP_KEY_LEN=${#SAGOPALGO_KB_APP_KEY}; echo APP_SECRET_LEN=${#SAGOPALGO_KB_APP_SECRET}'
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev logs --tail=100 spring-api
+docker compose --env-file .env ps
+docker compose --env-file .env exec spring-api sh -lc 'echo ACCOUNT=$SAGOPALGO_KB_ACCOUNT_ENABLED; echo APP_KEY_LEN=${#SAGOPALGO_KB_APP_KEY}; echo APP_SECRET_LEN=${#SAGOPALGO_KB_APP_SECRET}'
+docker compose --env-file .env logs --tail=100 spring-api
 ```
 
-KB 응답에 `processCode=E021`, `processMessage=앱키로 앱정보 추출 중 오류가 발생했습니다.`가 나오면 서버 연결은 성공했지만 KB가 전달받은 App Key로 앱 정보를 찾지 못한 상태입니다. `.env.dev`의 App Key/App Secret이 KB Open API B2C 포털에서 발급받은 값인지, 앞뒤 공백이나 잘못된 앱의 키가 섞이지 않았는지, 앱 사용 승인 상태인지 확인합니다.
+KB 응답에 `processCode=E021`, `processMessage=앱키로 앱정보 추출 중 오류가 발생했습니다.`가 나오면 서버 연결은 성공했지만 KB가 전달받은 App Key로 앱 정보를 찾지 못한 상태입니다. 루트 `.env`의 App Key/App Secret이 KB Open API B2C 포털에서 발급받은 값인지, 앞뒤 공백이나 잘못된 앱의 키가 섞이지 않았는지, 앱 사용 승인 상태인지 확인합니다.
 
 자본금 수정:
 
 ```powershell
 Invoke-RestMethod `
   -Method Put `
-  -Uri http://localhost:8081/api/v1/capital `
+  -Uri http://localhost:8080/api/v1/capital `
   -ContentType "application/json" `
   -Body '{"availableCapital":3000000,"riskPerTradeRate":0.02}'
 ```
@@ -196,7 +196,7 @@ Invoke-RestMethod `
 ```powershell
 Invoke-RestMethod `
   -Method Post `
-  -Uri http://localhost:8081/api/v1/holdings `
+  -Uri http://localhost:8080/api/v1/holdings `
   -ContentType "application/json" `
   -Body '{"stockCode":"005930","stockName":"삼성전자","market":"KOSPI","buyPrice":69100,"quantity":12,"buyDate":"2026-09-12","stopLossRate":-5.0,"takeProfitRate":9.0}'
 ```
@@ -206,7 +206,7 @@ Invoke-RestMethod `
 ```powershell
 Invoke-RestMethod `
   -Method Get `
-  -Uri http://localhost:8081/api/v1/holdings
+  -Uri http://localhost:8080/api/v1/holdings
 ```
 
 응답의 `items[].currentPrice`가 등록한 `buyPrice`가 아니라 한국투자증권 현재가로 내려오는지 확인합니다. KIS 설정이 켜져 있는데 키가 비어 있거나 API 호출에 실패하면 서버는 `EXTERNAL_DATA_ERROR`를 반환합니다.
@@ -216,7 +216,7 @@ Invoke-RestMethod `
 ```powershell
 Invoke-RestMethod `
   -Method Get `
-  -Uri http://localhost:8081/api/v1/dashboard/snapshot
+  -Uri http://localhost:8080/api/v1/dashboard/snapshot
 ```
 
 관심 종목 조회:
@@ -224,7 +224,7 @@ Invoke-RestMethod `
 ```powershell
 Invoke-RestMethod `
   -Method Get `
-  -Uri http://localhost:8081/api/v1/watchlist
+  -Uri http://localhost:8080/api/v1/watchlist
 ```
 
 ## 4. Flutter 앱 실제 연결 테스트
@@ -234,7 +234,7 @@ Invoke-RestMethod `
 Windows 로컬 프로그램에서 Docker Nginx로 붙는 예:
 
 ```dotenv
-SAGOPALGO_API_BASE_URL=http://localhost:8081
+SAGOPALGO_API_BASE_URL=http://localhost:8080
 ```
 
 실행:
@@ -403,7 +403,7 @@ Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/orders/readiness'
 
 KB 주문 이력 조회 권한 수동 점검:
 
-기존 MySQL에는 먼저 `Back/database/migrations/014_order_read_only_probe_checks.sql` 적용 여부를 확인하고, 없으면 백업 후 적용한 뒤 새 백엔드를 배포합니다. 새 볼륨의 테이블은 `schema.sql`에 포함됩니다. 운영 볼륨은 삭제하지 않습니다. Ubuntu용 확인·적용 명령은 [Docker 구조의 KB 점검 이력 테이블 절](docker-architecture.md#기존-ubuntu-db의-kb-점검-이력-테이블)을 따릅니다.
+기존 MySQL에는 먼저 `Back/database/migrations/014_order_read_only_probe_checks.sql` 적용 여부를 확인하고, 없으면 백업 후 적용한 뒤 새 백엔드를 배포합니다. 새 볼륨의 테이블은 `schema.sql`에 포함됩니다. 볼륨은 삭제하지 않습니다. 단일 Compose로 전환하기 전이라면 실제 실행 중인 DB 컨테이너를 확인합니다. 확인·백업·적용 명령은 [Docker 구조의 KB 점검 이력 테이블 절](docker-architecture.md#기존-ubuntu-db의-kb-점검-이력-테이블)을 따릅니다.
 
 Windows에서는 `scripts/check-kb-probe.ps1 -ApiBaseUrl 'http://<Ubuntu-IP>:8081'`로 상태·준비 검사·마지막 점검/이력 조회를 한 번에 확인할 수 있습니다. 이 스크립트는 읽기 전용 GET만 사용하며 KB 점검 POST나 주문 요청은 보내지 않습니다. 종료 코드 1이면 출력된 실패 항목을 확인하고, 실제 설정값이나 계좌번호를 공유하지 않습니다.
 

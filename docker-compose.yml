@@ -1,3 +1,5 @@
+name: sagopalgo
+
 services:
   # 가격·뉴스·공시를 설명 가능한 가중 점수로 조합하는 로컬 Python 분석 서버입니다.
   ai-server:
@@ -6,6 +8,8 @@ services:
       dockerfile: Dockerfile
     container_name: sagopalgo-ai-server
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:${SAGOPALGO_AI_PORT:-8000}:8000"
     healthcheck:
       test:
         [
@@ -23,13 +27,15 @@ services:
 
   # 사고팔고의 메인 MySQL 데이터베이스입니다.
   # 컨테이너가 처음 생성될 때 Back/database/schema.sql을 자동 실행해 기본 스키마를 만듭니다.
-  # 호스트 PC로 포트를 열지 여부는 override 파일에서 실행 방식별로 결정합니다.
+  # 관리용 직접 포트는 호스트 자신에게만 엽니다.
   mysql:
     image: mysql:8.4
     container_name: sagopalgo-mysql
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:${SAGOPALGO_MYSQL_PORT:-3306}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${SAGOPALGO_MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${SAGOPALGO_MYSQL_ROOT_PASSWORD:?Set a non-empty MySQL password in .env}
       MYSQL_DATABASE: ${SAGOPALGO_MYSQL_DATABASE}
       TZ: ${SAGOPALGO_TIMEZONE}
     command:
@@ -52,14 +58,16 @@ services:
       - sagopalgo-network
 
   # Spring Boot API 서버입니다.
-  # 설정값은 코드나 이미지에 넣지 않고 Compose가 --env-file로 받은 값을 컨테이너 환경 변수로 주입합니다.
-  # API 포트를 외부로 직접 열지 여부는 override 파일에서 실행 방식별로 결정합니다.
+  # 설정값은 코드나 이미지에 넣지 않고 Compose가 .env에서 받은 값을 컨테이너 환경 변수로 주입합니다.
+  # 직접 API 포트는 호스트 자신에게만 엽니다.
   spring-api:
     build:
       context: ./Back/spring-server
       dockerfile: Dockerfile
     container_name: sagopalgo-spring-api
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:${SAGOPALGO_API_PORT:-8080}:8080"
     depends_on:
       mysql:
         condition: service_healthy
@@ -67,7 +75,7 @@ services:
       SAGOPALGO_SERVER_PORT: 8080
       SAGOPALGO_DB_URL: jdbc:mysql://mysql:3306/${SAGOPALGO_MYSQL_DATABASE}?serverTimezone=UTC&characterEncoding=UTF-8
       SAGOPALGO_DB_USERNAME: root
-      SAGOPALGO_DB_PASSWORD: ${SAGOPALGO_MYSQL_ROOT_PASSWORD}
+      SAGOPALGO_DB_PASSWORD: ${SAGOPALGO_MYSQL_ROOT_PASSWORD:?Set a non-empty MySQL password in .env}
       SAGOPALGO_PERSONAL_MODE_ENABLED: ${SAGOPALGO_PERSONAL_MODE_ENABLED}
       SAGOPALGO_PERSONAL_MODE_USER_ID: ${SAGOPALGO_PERSONAL_MODE_USER_ID}
       SAGOPALGO_PERSONAL_MODE_NICKNAME: ${SAGOPALGO_PERSONAL_MODE_NICKNAME}
@@ -90,6 +98,11 @@ services:
       SAGOPALGO_KB_MARKET_DATA_ENABLED: ${SAGOPALGO_KB_MARKET_DATA_ENABLED:-false}
       SAGOPALGO_KB_ACCOUNT_ENABLED: ${SAGOPALGO_KB_ACCOUNT_ENABLED}
       SAGOPALGO_KB_ORDER_ENABLED: ${SAGOPALGO_KB_ORDER_ENABLED}
+      SAGOPALGO_KB_LIVE_ORDER_ENABLED: ${SAGOPALGO_KB_LIVE_ORDER_ENABLED:-false}
+      SAGOPALGO_KB_ORDER_IP_ADDRESS: ${SAGOPALGO_KB_ORDER_IP_ADDRESS:-}
+      SAGOPALGO_KB_ORDER_MAC_ADDRESS: ${SAGOPALGO_KB_ORDER_MAC_ADDRESS:-}
+      SAGOPALGO_KB_MAX_ORDER_AMOUNT: ${SAGOPALGO_KB_MAX_ORDER_AMOUNT:-1000000}
+      SAGOPALGO_KB_MAX_PRICE_DEVIATION_RATE: ${SAGOPALGO_KB_MAX_PRICE_DEVIATION_RATE:-5.0}
       SAGOPALGO_KB_APP_KEY: ${SAGOPALGO_KB_APP_KEY}
       SAGOPALGO_KB_APP_SECRET: ${SAGOPALGO_KB_APP_SECRET}
       SAGOPALGO_KB_ACCOUNT_NUMBER: ${SAGOPALGO_KB_ACCOUNT_NUMBER}
@@ -129,11 +142,13 @@ services:
       - sagopalgo-network
 
   # API 앞단의 Nginx 리버스 프록시입니다.
-  # 공통 설정 파일만 여기에서 마운트하고, 실제 server block 템플릿은 개발/운영 override에서 선택합니다.
+  # Windows 앱이 접근하는 유일한 LAN 포트이며 허용 IP를 Nginx에서 제한합니다.
   reverse-proxy:
     image: nginx:1.27-alpine
     container_name: sagopalgo-reverse-proxy
     restart: unless-stopped
+    ports:
+      - "${SAGOPALGO_PROXY_BIND_ADDRESS:-127.0.0.1}:${SAGOPALGO_PROXY_HTTP_PORT:-8081}:80"
     depends_on:
       - spring-api
     environment:
@@ -141,6 +156,7 @@ services:
       SAGOPALGO_ALLOWED_CLIENT_IP: ${SAGOPALGO_ALLOWED_CLIENT_IP:-127.0.0.1}
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/templates:/etc/nginx/templates:ro
     networks:
       - sagopalgo-network
 
@@ -150,5 +166,7 @@ networks:
     driver: bridge
 
 volumes:
-  # MySQL 데이터가 컨테이너 삭제 후에도 유지되도록 named volume을 사용합니다.
+  # 기존 볼륨 이름을 명시해야 새 빈 DB로 조용히 시작하지 않습니다.
   sagopalgo-mysql-data:
+    external: true
+    name: ${SAGOPALGO_MYSQL_VOLUME_NAME:?Set SAGOPALGO_MYSQL_VOLUME_NAME to an existing Docker volume}
