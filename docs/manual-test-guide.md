@@ -403,7 +403,9 @@ Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/orders/readiness'
 
 KB 주문 이력 조회 권한 수동 점검:
 
-기존 MySQL에는 먼저 `Back/database/migrations/014_order_read_only_probe_checks.sql`을 적용하고 백엔드를 재시작합니다. 새 볼륨의 테이블은 `schema.sql`에 포함됩니다.
+기존 MySQL에는 먼저 `Back/database/migrations/014_order_read_only_probe_checks.sql` 적용 여부를 확인하고, 없으면 백업 후 적용한 뒤 새 백엔드를 배포합니다. 새 볼륨의 테이블은 `schema.sql`에 포함됩니다. 운영 볼륨은 삭제하지 않습니다. Ubuntu용 확인·적용 명령은 [Docker 구조의 KB 점검 이력 테이블 절](docker-architecture.md#기존-ubuntu-db의-kb-점검-이력-테이블)을 따릅니다.
+
+Windows에서는 `scripts/check-kb-probe.ps1 -ApiBaseUrl 'http://<Ubuntu-IP>:8081'`로 상태·준비 검사·마지막 점검/이력 조회를 한 번에 확인할 수 있습니다. 이 스크립트는 읽기 전용 GET만 사용하며 KB 점검 POST나 주문 요청은 보내지 않습니다. 종료 코드 1이면 출력된 실패 항목을 확인하고, 실제 설정값이나 계좌번호를 공유하지 않습니다.
 
 수동 POST 전에 `GET /api/v1/orders/readiness/probe/latest`가 정상 응답하는지 확인합니다. `PROBE_STORAGE_UNAVAILABLE`(503)이면 `014` 적용 여부와 MySQL 연결·서버 로그를 확인합니다. 이때 POST는 KB 호출 전에 중단되어야 하며, Flutter는 SQL 원문 없이 마이그레이션·연결 확인 안내를 보여야 합니다. `GET /api/v1/orders/readiness`의 `ACCOUNT_NUMBER`가 실패하면 서버 계좌번호 설정을 먼저 점검합니다. 설정값 원문을 로그나 문서에 복사하지 않습니다.
 
