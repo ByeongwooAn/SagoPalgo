@@ -242,4 +242,38 @@ void main() {
 
     expect(await repository.fetchReadOnlyOrderProbeHistory(), isEmpty);
   });
+
+  test(
+    'probe storage failure preserves only the safe API error code',
+    () async {
+      final repository = SpringProviderSettingsRepository(
+        accessToken: '',
+        config: ApiConfig(baseUrl: 'http://localhost:8080'),
+        client: MockClient(
+          (request) async => http.Response(
+            jsonEncode({
+              'success': false,
+              'error': {
+                'code': 'PROBE_STORAGE_UNAVAILABLE',
+                'message': '점검 기록 저장소를 사용할 수 없습니다.',
+              },
+            }),
+            503,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          ),
+        ),
+      );
+
+      await expectLater(
+        repository.probeReadOnlyOrderHistory(),
+        throwsA(
+          isA<ProviderSettingsRepositoryException>().having(
+            (exception) => exception.code,
+            'code',
+            'PROBE_STORAGE_UNAVAILABLE',
+          ),
+        ),
+      );
+    },
+  );
 }

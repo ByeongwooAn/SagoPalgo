@@ -83,7 +83,10 @@ class SpringProviderSettingsRepository implements ProviderSettingsRepository {
 
     final error = decoded['error'] as Map<String, dynamic>?;
     final message = error?['message'] as String? ?? '증권사 설정을 불러오지 못했습니다.';
-    throw ProviderSettingsRepositoryException(message);
+    throw ProviderSettingsRepositoryException(
+      message,
+      code: error?['code'] as String?,
+    );
   }
 
   Map<String, String> get _headers => {

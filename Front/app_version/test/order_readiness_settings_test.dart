@@ -264,6 +264,58 @@ void main() {
     expect(find.text('잠금'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('storage failure shows safe guidance without unlocking orders', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final snapshot = ProviderSettingsSnapshot.fromJson({
+      'orderReadiness': {
+        'canSubmit': false,
+        'checks': [
+          {'code': 'ACCOUNT_NUMBER', 'passed': false, 'message': '계좌번호 미설정'},
+        ],
+      },
+      'providers': [],
+    });
+    const storageError = ProviderSettingsRepositoryException(
+      'private SQL details',
+      code: 'PROBE_STORAGE_UNAVAILABLE',
+    );
+    final repository = _ProbeProviderSettingsRepository(snapshot)
+      ..latestFailure = storageError
+      ..probeFailure = storageError;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SettingsScreen(
+            providerSettingsFuture: Future.value(snapshot),
+            providerSettingsRepository: repository,
+            kbAccountRepository: _UnusedKbAccountRepository(),
+            appSecurityService: const AppSecurityService(NoopCredentialStore()),
+            appLockPinConfigured: false,
+            onAppLockPinChanged: (_) {},
+            onRetry: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('DB 마이그레이션 014'), findsOneWidget);
+    expect(find.textContaining('private SQL details'), findsNothing);
+    await tester.ensureVisible(find.text('조회 권한 점검'));
+    await tester.tap(find.text('조회 권한 점검'));
+    await tester.pumpAndSettle();
+
+    expect(repository.calls, 1);
+    expect(find.textContaining('DB 마이그레이션 014'), findsOneWidget);
+    expect(find.text('잠금'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _UnusedKbAccountRepository implements KbAccountRepository {
@@ -280,6 +332,8 @@ class _ProbeProviderSettingsRepository extends ProviderSettingsRepository {
   int historyCalls = 0;
   OrderReadOnlyProbe? savedProbe;
   OrderReadOnlyProbe? nextProbeResult;
+  Exception? latestFailure;
+  Exception? probeFailure;
   List<OrderReadOnlyProbe> savedHistory = [];
 
   @override
@@ -288,6 +342,7 @@ class _ProbeProviderSettingsRepository extends ProviderSettingsRepository {
   @override
   Future<OrderReadOnlyProbe?> fetchLatestReadOnlyOrderHistoryProbe() async {
     latestCalls++;
+    if (latestFailure != null) throw latestFailure!;
     return savedProbe;
   }
 
@@ -300,6 +355,7 @@ class _ProbeProviderSettingsRepository extends ProviderSettingsRepository {
   @override
   Future<OrderReadOnlyProbe> probeReadOnlyOrderHistory() async {
     calls++;
+    if (probeFailure != null) throw probeFailure!;
     final result =
         nextProbeResult ??
         OrderReadOnlyProbe.fromJson({

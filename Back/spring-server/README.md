@@ -117,6 +117,8 @@ Invoke-RestMethod `
 
 관심 종목 직접 분석을 배포할 때는 AI 서버의 `WATCHLIST` 입력 지원을 먼저 배포하고, 백엔드를 중지한 상태에서 [`Back/database/migrations/013_watchlist_recommendation_context.sql`](../database/migrations/013_watchlist_recommendation_context.sql)을 기존 MySQL에 한 번 적용합니다. 새 데이터 볼륨은 `schema.sql`에 포함됩니다. 마이그레이션 전에는 새 백엔드를 시작하지 않습니다.
 
+KB 주문 이력 읽기 전용 점검 결과를 저장하는 버전부터는 기존 MySQL에 [`Back/database/migrations/014_order_read_only_probe_checks.sql`](../database/migrations/014_order_read_only_probe_checks.sql)을 적용한 뒤 백엔드를 배포합니다. 새 데이터 볼륨은 `schema.sql`에 포함됩니다. 적용하지 않았거나 DB 연결이 끊기면 점검 이력 API와 수동 점검은 `PROBE_STORAGE_UNAVAILABLE`(503)을 반환하고, 수동 점검은 KB 조회 전에 중단됩니다. 응답에 SQL 원문이나 계좌 정보는 포함하지 않습니다.
+
 ## 주문 사전검증
 
 - `POST /api/v1/orders/precheck`: 지정가·수량을 현재가, 주문가능현금·수량, 안전 한도와 대조

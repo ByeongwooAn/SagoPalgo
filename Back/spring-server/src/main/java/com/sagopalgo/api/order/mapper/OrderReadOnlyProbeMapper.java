@@ -12,6 +12,9 @@ import org.apache.ibatis.annotations.Select;
 
 @Mapper
 public interface OrderReadOnlyProbeMapper {
+    @Select("SELECT COUNT(*) FROM order_read_only_probe_checks WHERE 1 = 0")
+    int verifyStorage();
+
     @Insert("""
         INSERT INTO order_read_only_probe_checks (user_id, status, order_date, checked_at)
         VALUES (#{userId}, #{status}, #{orderDate}, #{checkedAt})

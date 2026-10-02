@@ -1,6 +1,7 @@
 package com.sagopalgo.api.order.service;
 
 import com.sagopalgo.api.common.exception.ApiException;
+import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.order.dto.OrderReadOnlyProbeResponse;
 import com.sagopalgo.api.order.mapper.OrderReadOnlyProbeMapper;
 import com.sagopalgo.api.order.model.OrderReadOnlyProbeRecord;
@@ -11,6 +12,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 /** 수동 요청 시 KB 주문 이력 조회 권한만 점검하며 주문은 전송하지 않습니다. */
@@ -36,6 +39,7 @@ public class OrderReadOnlyProbeService {
     }
 
     public OrderReadOnlyProbeResponse probe(Long userId) {
+        storageCall(probeMapper::verifyStorage);
         String date = LocalDate.now(KOREA_TIME).format(DateTimeFormatter.BASIC_ISO_DATE);
         if (readinessService.status().checks().stream()
             .filter(check -> REQUIRED_CHECKS.contains(check.code()))
@@ -51,17 +55,25 @@ public class OrderReadOnlyProbeService {
     }
 
     public Optional<OrderReadOnlyProbeResponse> latest(Long userId) {
-        return probeMapper.findLatest(userId).map(this::toResponse);
+        return storageCall(() -> probeMapper.findLatest(userId)).map(this::toResponse);
     }
 
     public List<OrderReadOnlyProbeResponse> history(Long userId) {
-        return probeMapper.findRecent(userId).stream().map(this::toResponse).toList();
+        return storageCall(() -> probeMapper.findRecent(userId)).stream().map(this::toResponse).toList();
     }
 
     private OrderReadOnlyProbeResponse record(Long userId, String status, String date) {
         LocalDateTime checkedAt = LocalDateTime.now(KOREA_TIME);
-        probeMapper.insert(new OrderReadOnlyProbeRecord(userId, status, date, checkedAt));
+        storageCall(() -> probeMapper.insert(new OrderReadOnlyProbeRecord(userId, status, date, checkedAt)));
         return new OrderReadOnlyProbeResponse(status, date, checkedAt, true, message(status));
+    }
+
+    private <T> T storageCall(Supplier<T> query) {
+        try {
+            return query.get();
+        } catch (DataAccessException exception) {
+            throw new ApiException(ErrorCode.PROBE_STORAGE_UNAVAILABLE, exception);
+        }
     }
 
     private OrderReadOnlyProbeResponse toResponse(OrderReadOnlyProbeRecord item) {
