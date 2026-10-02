@@ -1,8 +1,10 @@
 package com.sagopalgo.api.order.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.sagopalgo.api.common.exception.ApiException;
@@ -20,6 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
 class OrderReadOnlyProbeServiceTest {
@@ -135,6 +139,50 @@ class OrderReadOnlyProbeServiceTest {
 
         assertThat(service.history(2L)).isEmpty();
         verify(probeMapper).findRecent(2L);
+    }
+
+    @Test
+    void missingStorageStopsManualProbeBeforeCallingKb() {
+        OrderReadOnlyProbeService service = configuredService();
+        when(probeMapper.verifyStorage()).thenThrow(
+            new DataAccessResourceFailureException("private SQL error")
+        );
+
+        assertStorageUnavailable(() -> service.probe(1L));
+
+        verifyNoInteractions(executionService);
+        verify(probeMapper, never()).insert(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void storageFailuresFromReadAndWriteHaveOnlySafeApiMessages() {
+        OrderReadOnlyProbeService service = configuredService();
+        OrderReadOnlyProbeService blockedService = new OrderReadOnlyProbeService(
+            new OrderReadinessService(new SecuritiesProviderProperties()), executionService, probeMapper
+        );
+        when(probeMapper.findLatest(1L)).thenThrow(
+            new DataAccessResourceFailureException("private SELECT error")
+        );
+        when(probeMapper.findRecent(1L)).thenThrow(
+            new DataAccessResourceFailureException("private HISTORY error")
+        );
+        when(probeMapper.insert(org.mockito.ArgumentMatchers.any())).thenThrow(
+            new DataAccessResourceFailureException("private INSERT error")
+        );
+
+        assertStorageUnavailable(() -> service.latest(1L));
+        assertStorageUnavailable(() -> service.history(1L));
+        assertStorageUnavailable(() -> blockedService.probe(1L));
+        verifyNoInteractions(executionService);
+    }
+
+    private void assertStorageUnavailable(Runnable action) {
+        assertThatThrownBy(action::run).isInstanceOfSatisfying(ApiException.class, exception -> {
+            assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.PROBE_STORAGE_UNAVAILABLE);
+            assertThat(exception.getErrorCode().getHttpStatus()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+            assertThat(exception.getMessage()).doesNotContain("private");
+            assertThat(exception.getCause()).isInstanceOf(DataAccessResourceFailureException.class);
+        });
     }
 
     private void verifyStoredResult(Long userId, String status, String orderDate) {

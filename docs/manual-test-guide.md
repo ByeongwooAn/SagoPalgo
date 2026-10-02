@@ -405,6 +405,8 @@ KB 주문 이력 조회 권한 수동 점검:
 
 기존 MySQL에는 먼저 `Back/database/migrations/014_order_read_only_probe_checks.sql`을 적용하고 백엔드를 재시작합니다. 새 볼륨의 테이블은 `schema.sql`에 포함됩니다.
 
+수동 POST 전에 `GET /api/v1/orders/readiness/probe/latest`가 정상 응답하는지 확인합니다. `PROBE_STORAGE_UNAVAILABLE`(503)이면 `014` 적용 여부와 MySQL 연결·서버 로그를 확인합니다. 이때 POST는 KB 호출 전에 중단되어야 하며, Flutter는 SQL 원문 없이 마이그레이션·연결 확인 안내를 보여야 합니다. `GET /api/v1/orders/readiness`의 `ACCOUNT_NUMBER`가 실패하면 서버 계좌번호 설정을 먼저 점검합니다. 설정값 원문을 로그나 문서에 복사하지 않습니다.
+
 ```powershell
 Invoke-RestMethod -Method Post -Uri 'http://localhost:8080/api/v1/orders/readiness/probe'
 ```

@@ -21,10 +21,13 @@ abstract class ProviderSettingsRepository {
 /// 증권사 설정 Repository 실패 예외입니다.
 class ProviderSettingsRepositoryException implements Exception {
   /// 사용자에게 보여줄 수 있는 오류 메시지를 받습니다.
-  const ProviderSettingsRepositoryException(this.message);
+  const ProviderSettingsRepositoryException(this.message, {this.code});
 
   /// 오류 화면이나 로그에서 사용할 실패 메시지입니다.
   final String message;
+
+  /// 백엔드의 안전한 오류 코드입니다.
+  final String? code;
 
   @override
   String toString() => message;

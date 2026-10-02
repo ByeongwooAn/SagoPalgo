@@ -464,9 +464,12 @@ class _OrderReadinessCardState extends State<_OrderReadinessCard> {
       final result = await widget.repository
           .fetchLatestReadOnlyOrderHistoryProbe();
       if (mounted && version == _probeVersion) setState(() => _probe = result);
-    } catch (_) {
+    } catch (error) {
       if (mounted && version == _probeVersion) {
-        setState(() => _probeError = '마지막 점검 기록을 불러오지 못했습니다.');
+        setState(
+          () =>
+              _probeError = _probeErrorMessage(error, '마지막 점검 기록을 불러오지 못했습니다.'),
+        );
       }
     } finally {
       if (mounted) setState(() => _loadingLatest = false);
@@ -487,10 +490,13 @@ class _OrderReadinessCardState extends State<_OrderReadinessCard> {
         _probeHistory = null;
       });
       if (_historyExpanded) await _loadProbeHistory();
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
       setState(() {
-        _probeError = '조회 권한 점검에 실패했습니다. 서버 연결을 확인해 주세요.';
+        _probeError = _probeErrorMessage(
+          error,
+          '조회 권한 점검에 실패했습니다. 서버 연결을 확인해 주세요.',
+        );
       });
     } finally {
       if (mounted) setState(() => _checking = false);
@@ -513,9 +519,11 @@ class _OrderReadinessCardState extends State<_OrderReadinessCard> {
       if (mounted && requestVersion == _historyRequestVersion) {
         setState(() => _probeHistory = history);
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted && requestVersion == _historyRequestVersion) {
-        setState(() => _historyError = '점검 이력을 불러오지 못했습니다.');
+        setState(
+          () => _historyError = _probeErrorMessage(error, '점검 이력을 불러오지 못했습니다.'),
+        );
       }
     } finally {
       if (mounted && requestVersion == _historyRequestVersion) {
@@ -728,6 +736,14 @@ String _probeStatusLabel(String status) => switch (status) {
   'CONFIGURATION_BLOCKED' => '설정 미완료',
   _ => '미확인',
 };
+
+String _probeErrorMessage(Object error, String fallback) {
+  if (error is ProviderSettingsRepositoryException &&
+      error.code == 'PROBE_STORAGE_UNAVAILABLE') {
+    return 'KB 점검 기록 저장소를 사용할 수 없습니다. 서버의 DB 마이그레이션 014와 연결 상태를 확인해 주세요.';
+  }
+  return fallback;
+}
 
 String _orderCheckLabel(String code) => switch (code) {
   'ACCOUNT_SWITCH' => 'KB 계좌 조회',
