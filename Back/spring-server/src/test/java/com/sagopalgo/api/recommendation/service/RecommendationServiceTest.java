@@ -99,7 +99,7 @@ class RecommendationServiceTest {
         when(holdingService.findRecord(1L, 21L)).thenReturn(holding("9"));
         when(marketPriceService.quoteMarket(any())).thenReturn(quote("KB", "75200"));
         when(holdingService.costExposure(1L, "005930", "KOSPI")).thenReturn(Optional.of(
-            new PortfolioCostExposure(new BigDecimal("40"), new BigDecimal("22"), new BigDecimal("20"))
+            new PortfolioCostExposure(new BigDecimal("40"), new BigDecimal("18"), new BigDecimal("20"))
         ));
         when(researchFeedStore.find(any())).thenReturn(new StoredResearchFeed(
             List.of(new NewsArticle(
@@ -158,7 +158,7 @@ class RecommendationServiceTest {
         assertThat(requestCaptor.getValue().currentPrice()).isEqualByComparingTo("75200");
         assertThat(requestCaptor.getValue().profitRate()).isEqualByComparingTo("7.43");
         assertThat(requestCaptor.getValue().portfolioWeightRate()).isEqualByComparingTo("40");
-        assertThat(requestCaptor.getValue().capitalWeightRate()).isEqualByComparingTo("22");
+        assertThat(requestCaptor.getValue().capitalWeightRate()).isEqualByComparingTo("18");
         assertThat(requestCaptor.getValue().maxCapitalWeightRate()).isEqualByComparingTo("20");
     }
 
@@ -199,6 +199,63 @@ class RecommendationServiceTest {
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.analyzeHolding(1L, 21L))
             .isInstanceOf(com.sagopalgo.api.common.exception.ApiException.class);
         org.mockito.Mockito.verifyNoInteractions(aiAnalysisGateway, recommendationStore, alertService);
+    }
+
+    @Test
+    void replacesBuySignalAtStopLossWithRuleFallback() {
+        stubHoldingAnalysis("66000");
+        when(aiAnalysisGateway.analyze(any())).thenReturn(Optional.of(new AiInvestmentAnalysisResponse(
+            "OLD_MODEL", "BUY", "BUY_STRONG", 90, "잘못된 매수 신호", List.of()
+        )));
+
+        RecommendationResponse response = service.analyzeHolding(1L, 21L);
+
+        assertThat(response.status()).isEqualTo("STOP_LOSS_WATCH");
+        assertThat(response.recommendationType()).isEqualTo("SELL");
+        assertThat(response.aiSummary()).doesNotContain("잘못된 매수 신호");
+    }
+
+    @Test
+    void replacesMismatchedHoldingStatusAndTypeWithRuleFallback() {
+        stubHoldingAnalysis("75200");
+        when(aiAnalysisGateway.analyze(any())).thenReturn(Optional.of(new AiInvestmentAnalysisResponse(
+            "OLD_MODEL", "SELL", "BUY_WATCH", 65, "상태와 유형 불일치", List.of()
+        )));
+
+        RecommendationResponse response = service.analyzeHolding(1L, 21L);
+
+        assertThat(response.status()).isEqualTo("HOLD");
+        assertThat(response.recommendationType()).isEqualTo("HOLD");
+    }
+
+    @Test
+    void rejectsBuySignalAboveCapitalWeightLimit() {
+        stubHoldingAnalysis("75200");
+        when(holdingService.costExposure(1L, "005930", "KOSPI")).thenReturn(Optional.of(
+            new PortfolioCostExposure(new BigDecimal("40"), new BigDecimal("22"), new BigDecimal("20"))
+        ));
+        when(aiAnalysisGateway.analyze(any())).thenReturn(Optional.of(new AiInvestmentAnalysisResponse(
+            "OLD_MODEL", "BUY", "BUY_WATCH", 65, "비중 초과 매수 신호", List.of()
+        )));
+
+        RecommendationResponse response = service.analyzeHolding(1L, 21L);
+
+        assertThat(response.status()).isEqualTo("HOLD");
+        assertThat(response.recommendationType()).isEqualTo("HOLD");
+        assertThat(response.aiSummary()).doesNotContain("비중 초과 매수 신호");
+    }
+
+    @Test
+    void rejectsTakeProfitSignalBelowThreshold() {
+        stubHoldingAnalysis("75200");
+        when(aiAnalysisGateway.analyze(any())).thenReturn(Optional.of(new AiInvestmentAnalysisResponse(
+            "OLD_MODEL", "SELL", "TAKE_PROFIT", 80, "잘못된 익절 신호", List.of()
+        )));
+
+        RecommendationResponse response = service.analyzeHolding(1L, 21L);
+
+        assertThat(response.status()).isEqualTo("HOLD");
+        assertThat(response.aiSummary()).doesNotContain("잘못된 익절 신호");
     }
 
     @Test
@@ -292,6 +349,15 @@ class RecommendationServiceTest {
             record.setRecommendationId(99L);
             return new StoredRecommendation(record, reasons);
         });
+    }
+
+    private void stubHoldingAnalysis(String price) {
+        when(holdingService.findRecord(1L, 21L)).thenReturn(holding("9"));
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("KB", price));
+        when(researchFeedStore.find(any())).thenReturn(new StoredResearchFeed(List.of(), List.of()));
+        when(marketCandleService.getCandles(any(), any(), any(), any(Integer.class)))
+            .thenReturn(candles());
+        stubStore();
     }
 
     private Holding holding(String takeProfitRate) {

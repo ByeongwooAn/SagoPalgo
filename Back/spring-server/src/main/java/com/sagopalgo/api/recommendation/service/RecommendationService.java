@@ -110,6 +110,7 @@ public class RecommendationService {
         ).orElse(null);
         AiInvestmentAnalysisRequest request = analysisRequest(holding, exposure);
         AiInvestmentAnalysisResponse analysis = aiAnalysisGateway.analyze(request)
+            .filter(candidate -> isHoldingSafe(candidate, holding, exposure))
             .orElseGet(() -> fallbackAnalysis(holding));
         StoredRecommendation stored = recommendationStore.save(
             recommendationRecord(userId, request, analysis),
@@ -310,6 +311,40 @@ public class RecommendationService {
             case "HOLD", "RISK" -> "HOLD".equals(analysis.recommendationType());
             default -> false;
         };
+    }
+
+    private boolean isHoldingSafe(
+        AiInvestmentAnalysisResponse analysis,
+        HoldingResponse holding,
+        PortfolioCostExposure exposure
+    ) {
+        if (analysis == null || analysis.status() == null || analysis.recommendationType() == null) {
+            return false;
+        }
+        boolean compatible = switch (analysis.status()) {
+            case "BUY_STRONG", "BUY_WATCH" -> "BUY".equals(analysis.recommendationType());
+            case "TAKE_PROFIT", "STOP_LOSS_WATCH" -> "SELL".equals(analysis.recommendationType());
+            case "HOLD" -> "HOLD".equals(analysis.recommendationType());
+            case "RISK" -> "HOLD".equals(analysis.recommendationType())
+                || "SELL".equals(analysis.recommendationType());
+            default -> false;
+        };
+        if (!compatible) {
+            return false;
+        }
+        if (holding.profitRate().compareTo(holding.stopLossRate().add(BigDecimal.ONE)) <= 0) {
+            return "STOP_LOSS_WATCH".equals(analysis.status());
+        }
+        if (holding.profitRate().compareTo(holding.takeProfitRate().subtract(BigDecimal.ONE)) >= 0) {
+            return "TAKE_PROFIT".equals(analysis.status());
+        }
+        if ("STOP_LOSS_WATCH".equals(analysis.status()) || "TAKE_PROFIT".equals(analysis.status())) {
+            return false;
+        }
+        return exposure == null || exposure.capitalWeightRate() == null
+            || exposure.maxCapitalWeightRate() == null
+            || exposure.capitalWeightRate().compareTo(exposure.maxCapitalWeightRate()) <= 0
+            || !"BUY".equals(analysis.recommendationType());
     }
 
     private RecommendationRecord recommendationRecord(
