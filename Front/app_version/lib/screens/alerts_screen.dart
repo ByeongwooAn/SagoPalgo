@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/app_alert.dart';
+import '../services/alert_delivery_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_text.dart';
@@ -17,12 +18,15 @@ class AlertsScreen extends StatelessWidget {
   const AlertsScreen({
     super.key,
     required this.alerts,
+    this.deliveryStatus,
     this.onRefresh,
     this.onAlertTap,
   });
 
   /// 최근 알림 데이터 목록입니다.
   final List<AppAlert> alerts;
+
+  final AlertDeliveryStatus? deliveryStatus;
 
   final Future<void> Function()? onRefresh;
 
@@ -54,6 +58,10 @@ class AlertsScreen extends StatelessWidget {
               ],
             ),
           ),
+          if (deliveryStatus != null) ...[
+            const SizedBox(height: 12),
+            _DeliveryStatusLine(status: deliveryStatus!),
+          ],
           const SizedBox(height: 18),
           if (alerts.isEmpty)
             const _EmptyAlerts()
@@ -65,6 +73,67 @@ class AlertsScreen extends StatelessWidget {
           const SizedBox(height: 10),
         ],
       ),
+    );
+  }
+}
+
+class _DeliveryStatusLine extends StatelessWidget {
+  const _DeliveryStatusLine({required this.status});
+
+  final AlertDeliveryStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    final hasIssue =
+        status.checkFailed ||
+        status.failedCount > 0 ||
+        status.unconfirmedCount > 0;
+    final label = status.checkedAt == null
+        ? '전달 상태 확인 전'
+        : status.checkFailed
+        ? '전달 상태 확인 실패'
+        : hasIssue
+        ? '전달 재시도 중'
+        : '전달 상태 정상';
+    final details = <String>[
+      if (status.unconfirmedCount > 0)
+        '전달 기록 확인 대기 ${status.unconfirmedCount}건',
+      if (status.failedCount > 0) '이번 점검 실패 ${status.failedCount}건',
+    ];
+    final checkedAt = status.checkedAt;
+    final timeLabel = checkedAt == null
+        ? null
+        : '${checkedAt.hour.toString().padLeft(2, '0')}:${checkedAt.minute.toString().padLeft(2, '0')}';
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          status.checkedAt == null
+              ? Icons.schedule_rounded
+              : hasIssue
+              ? Icons.sync_problem_rounded
+              : Icons.check_circle_outline_rounded,
+          size: 18,
+          color: hasIssue ? Theme.of(context).colorScheme.error : palette.muted,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            [label, ...details].join(' · '),
+            style: TextStyle(
+              color: hasIssue ? palette.text : palette.muted,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        if (timeLabel != null) ...[
+          const SizedBox(width: 8),
+          Text(timeLabel, style: TextStyle(color: palette.muted, fontSize: 12)),
+        ],
+      ],
     );
   }
 }

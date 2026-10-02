@@ -61,6 +61,26 @@ void main() {
     expect(repository.sentIds, [7]);
   });
 
+  test('completed scan clears a locally stale acknowledgement', () async {
+    final directory = await Directory.systemTemp.createTemp('alert-journal-');
+    addTearDown(() => directory.delete(recursive: true));
+    final journal = FileAlertDisplayJournal(
+      File('${directory.path}${Platform.pathSeparator}alerts.log'),
+    );
+    await journal.recordDisplayed(7);
+    final notifications = _FakeNotificationService();
+    final delivery = AlertDeliveryService(
+      repository: _FakeAlertRepository([]),
+      notificationService: notifications,
+      displayJournal: journal,
+    );
+
+    expect(await delivery.deliverPending(), isFalse);
+    expect(notifications.shownIds, isEmpty);
+    expect(delivery.status.unconfirmedCount, 0);
+    expect(await journal.load(), isEmpty);
+  });
+
   test(
     'journal write failure does not redisplay during the same session',
     () async {
@@ -112,11 +132,16 @@ void main() {
       );
 
       await delivery.deliverPending();
+      expect(delivery.status.failedCount, 1);
+      expect(delivery.status.unconfirmedCount, 1);
+      expect(delivery.status.checkFailed, isFalse);
       repository.failAckIds.clear();
       await delivery.deliverPending();
 
       expect(notifications.shownIds, [7]);
       expect(repository.sentIds, [7]);
+      expect(delivery.status.failedCount, 0);
+      expect(delivery.status.unconfirmedCount, 0);
     },
   );
 
@@ -135,6 +160,26 @@ void main() {
 
     expect(repository.sentIds, [21]);
     expect(repository.cursors, [null, 20]);
+  });
+
+  test('pending fetch failure is reported and clears after recovery', () async {
+    final repository = _FakeAlertRepository([_alert(7)])..failFetch = true;
+    final delivery = AlertDeliveryService(
+      repository: repository,
+      notificationService: _FakeNotificationService(),
+    );
+
+    await expectLater(
+      delivery.deliverPending(),
+      throwsA(isA<AlertRepositoryException>()),
+    );
+    expect(delivery.status.checkFailed, isTrue);
+    expect(delivery.status.checkedAt, isNotNull);
+
+    repository.failFetch = false;
+    await delivery.deliverPending();
+    expect(delivery.status.checkFailed, isFalse);
+    expect(delivery.status.failedCount, 0);
   });
 
   test(
@@ -175,9 +220,11 @@ class _FakeAlertRepository implements AlertRepository {
   final Set<int> failAckIds = {};
   final List<int> sentIds = [];
   final List<int?> cursors = [];
+  bool failFetch = false;
 
   @override
   Future<List<AppAlert>> fetchPending({int? afterAlertId}) async {
+    if (failFetch) throw const AlertRepositoryException('조회 실패');
     cursors.add(afterAlertId);
     return alerts
         .where(

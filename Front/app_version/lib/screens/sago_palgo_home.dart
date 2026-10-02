@@ -253,7 +253,8 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                       appLockPinConfigured: widget.appLockPinConfigured,
                       onAppLockPinChanged: widget.onAppLockPinChanged,
                       alerts: _alerts ?? investment.alerts,
-                      onAlertsRefresh: _refreshAlerts,
+                      deliveryStatus: _alertDeliveryService?.status,
+                      onAlertsRefresh: _refreshAlertsAndDelivery,
                       onAlertRead: _markAlertRead,
                       providerSettingsFuture: _providerSettingsFuture,
                       providerSettingsRepository:
@@ -377,7 +378,15 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
       // 알림 서버가 잠시 응답하지 않아도 투자 화면 사용은 계속할 수 있어야 합니다.
     } finally {
       _pollingAlerts = false;
+      if (mounted) {
+        setState(() {});
+      }
     }
+  }
+
+  Future<void> _refreshAlertsAndDelivery() async {
+    await _pollPendingAlerts();
+    await _refreshAlerts();
   }
 
   Future<void> _refreshAlerts() async {
@@ -623,6 +632,7 @@ class _TabContent extends StatelessWidget {
     required this.appLockPinConfigured,
     required this.onAppLockPinChanged,
     required this.alerts,
+    required this.deliveryStatus,
     required this.onAlertsRefresh,
     required this.onAlertRead,
     required this.providerSettingsFuture,
@@ -674,6 +684,8 @@ class _TabContent extends StatelessWidget {
   final ValueChanged<String?> onAppLockPinChanged;
 
   final List<AppAlert> alerts;
+
+  final AlertDeliveryStatus? deliveryStatus;
 
   final Future<void> Function() onAlertsRefresh;
 
@@ -753,6 +765,7 @@ class _TabContent extends StatelessWidget {
         ),
         AlertsScreen(
           alerts: alerts,
+          deliveryStatus: deliveryStatus,
           onRefresh: onAlertsRefresh,
           onAlertTap: onAlertRead,
         ),
