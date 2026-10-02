@@ -8,8 +8,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Set;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 
 /** 수동 요청 시 KB 주문 이력 조회 권한만 점검하며 주문은 전송하지 않습니다. */
@@ -50,15 +51,23 @@ public class OrderReadOnlyProbeService {
     }
 
     public Optional<OrderReadOnlyProbeResponse> latest(Long userId) {
-        return probeMapper.findLatest(userId).map(item -> new OrderReadOnlyProbeResponse(
-            item.status(), item.orderDate(), item.checkedAt(), true, message(item.status())
-        ));
+        return probeMapper.findLatest(userId).map(this::toResponse);
+    }
+
+    public List<OrderReadOnlyProbeResponse> history(Long userId) {
+        return probeMapper.findRecent(userId).stream().map(this::toResponse).toList();
     }
 
     private OrderReadOnlyProbeResponse record(Long userId, String status, String date) {
         LocalDateTime checkedAt = LocalDateTime.now(KOREA_TIME);
         probeMapper.insert(new OrderReadOnlyProbeRecord(userId, status, date, checkedAt));
         return new OrderReadOnlyProbeResponse(status, date, checkedAt, true, message(status));
+    }
+
+    private OrderReadOnlyProbeResponse toResponse(OrderReadOnlyProbeRecord item) {
+        return new OrderReadOnlyProbeResponse(
+            item.status(), item.orderDate(), item.checkedAt(), true, message(item.status())
+        );
     }
 
     private String message(String status) {

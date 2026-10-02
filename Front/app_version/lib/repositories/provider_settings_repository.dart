@@ -12,6 +12,10 @@ abstract class ProviderSettingsRepository {
   /// 저장된 마지막 점검 결과만 조회합니다. 새로운 KB 요청은 보내지 않습니다.
   Future<OrderReadOnlyProbe?> fetchLatestReadOnlyOrderHistoryProbe() async =>
       null;
+
+  /// 사용자 요청 시 저장된 최근 점검 10건만 조회합니다.
+  Future<List<OrderReadOnlyProbe>> fetchReadOnlyOrderProbeHistory() async =>
+      const [];
 }
 
 /// 증권사 설정 Repository 실패 예외입니다.

@@ -9,9 +9,11 @@ import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import com.sagopalgo.api.order.dto.KbOrderExecutionPageResponse;
+import com.sagopalgo.api.order.dto.OrderReadOnlyProbeResponse;
 import com.sagopalgo.api.order.mapper.OrderReadOnlyProbeMapper;
 import com.sagopalgo.api.order.model.OrderReadOnlyProbeRecord;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.Test;
@@ -99,6 +101,40 @@ class OrderReadOnlyProbeServiceTest {
 
         assertThat(service.latest(2L)).isEmpty();
         verify(probeMapper).findLatest(2L);
+    }
+
+    @Test
+    void historyReturnsOnlyRequestedUsersSafeRecordsWithoutCallingKb() {
+        OrderReadOnlyProbeService service = configuredService();
+        LocalDateTime newestAt = LocalDateTime.of(2026, 10, 2, 11, 0);
+        LocalDateTime olderAt = newestAt.minusHours(1);
+        when(probeMapper.findRecent(2L)).thenReturn(List.of(
+            new OrderReadOnlyProbeRecord(2L, "UNVERIFIED", "20261002", newestAt),
+            new OrderReadOnlyProbeRecord(2L, "VERIFIED", "20261002", olderAt)
+        ));
+
+        var history = service.history(2L);
+
+        assertThat(history).hasSize(2);
+        assertThat(history).extracting(OrderReadOnlyProbeResponse::status)
+            .containsExactly("UNVERIFIED", "VERIFIED");
+        assertThat(history).allSatisfy(item -> {
+            assertThat(item.readOnly()).isTrue();
+            assertThat(item.toString()).doesNotContain("12345678", "private-key", "private-secret");
+        });
+        assertThat(history.get(0).checkedAt()).isEqualTo(newestAt);
+        verify(probeMapper).findRecent(2L);
+        verify(executionService, never()).page(org.mockito.ArgumentMatchers.any(),
+            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void historyIsEmptyBeforeAnyManualProbe() {
+        OrderReadOnlyProbeService service = configuredService();
+        when(probeMapper.findRecent(2L)).thenReturn(List.of());
+
+        assertThat(service.history(2L)).isEmpty();
+        verify(probeMapper).findRecent(2L);
     }
 
     private void verifyStoredResult(Long userId, String status, String orderDate) {
