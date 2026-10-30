@@ -157,26 +157,37 @@ class KbSecuritiesAccountClientTest {
     }
 
     @Test
-    @DisplayName("조회 요청 IP 또는 MAC이 비어 있으면 KB 계좌 API를 호출하지 않는다")
-    void fetchHoldingsRequiresRequestDeviceAddress() {
+    @DisplayName("조회 요청 IP와 MAC이 비어 있어도 두 필드를 빈 문자열로 보내 계좌 API를 호출한다")
+    void fetchHoldingsSendsEmptyRequestDeviceAddresses() {
         SecuritiesProviderProperties properties = securitiesProperties();
         properties.getKb().setRequestIpAddress(" ");
-        KbSecuritiesAccountClient localClient = new KbSecuritiesAccountClient(properties, RestClient.create());
+        properties.getKb().setRequestMacAddress(null);
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer localServer = MockRestServiceServer.bindTo(builder).build();
+        KbSecuritiesAccountClient localClient = new KbSecuritiesAccountClient(properties, builder.build());
 
-        assertThatThrownBy(localClient::fetchHoldings)
-            .isInstanceOf(ApiException.class)
-            .hasMessage("KB증권 조회 요청 IP 주소 설정이 필요합니다.")
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
+        localServer.expect(requestTo("https://kb.test/oauth2/token"))
+            .andRespond(withSuccess("""
+                {"access_token": "access-token", "expires_in": 3600}
+                """, MediaType.APPLICATION_JSON));
+        localServer.expect(requestTo("https://kb.test/api/v1/holdings"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(content().json("""
+                {
+                  "dataHeader": {
+                    "ipAddr": "",
+                    "macAddr": "",
+                    "tr_id": "HOLDINGS_TR",
+                    "custtype": "P"
+                  }
+                }
+                """))
+            .andRespond(withSuccess("""
+                {"rt_cd": "0", "dataBody": {"Record1": []}}
+                """, MediaType.APPLICATION_JSON));
 
-        properties.getKb().setRequestIpAddress("192.0.2.10");
-        properties.getKb().setRequestMacAddress("");
-
-        assertThatThrownBy(localClient::fetchHoldings)
-            .isInstanceOf(ApiException.class)
-            .hasMessage("KB증권 조회 요청 MAC 주소 설정이 필요합니다.")
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
+        assertThat(localClient.items(localClient.fetchHoldings(), "Record1")).isEmpty();
+        localServer.verify();
     }
 
     @Test

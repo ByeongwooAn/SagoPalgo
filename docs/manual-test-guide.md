@@ -167,7 +167,7 @@ Invoke-WebRequest -Uri http://localhost:8080/api/v1/kb/accounts/primary/balances
 Invoke-WebRequest -Uri http://localhost:8080/api/v1/kb/accounts/primary/balances/execution -UseBasicParsing
 ```
 
-실제 KB 국내주식 조회를 확인하려면 KB증권 Open API 포털에서 App Key/App Secret을 발급받은 뒤 `SAGOPALGO_KB_ACCOUNT_ENABLED=true`로 바꿉니다. 조회 요청의 `dataHeader.ipAddr`와 `dataHeader.macAddr`에는 서버 루트 `.env`의 `SAGOPALGO_KB_REQUEST_IP_ADDRESS`와 `SAGOPALGO_KB_REQUEST_MAC_ADDRESS`가 필요합니다. KB가 허용한 실제 값과 형식을 확인해 입력하며, 주문 전용 `SAGOPALGO_KB_ORDER_IP_ADDRESS`와 `SAGOPALGO_KB_ORDER_MAC_ADDRESS`는 조회 설정을 대체하지 않습니다. KB 공식 API 문서 파일 기준 보유주식 조회는 `SSQM1801_보유주식 조회`, 결제기준 잔고 현황은 `SSQM2932_잔고현황조회(결제기준)`, 체결기준 잔고 현황은 `SSQM2952_잔고현황조회(체결기준)`입니다. 공개 path와 기본 요청값은 백엔드 기본 설정으로 관리하므로 루트 `.env`에 넣지 않아도 됩니다.
+실제 KB 국내주식 조회를 확인하려면 KB증권 Open API 포털에서 App Key/App Secret을 발급받은 뒤 `SAGOPALGO_KB_ACCOUNT_ENABLED=true`로 바꿉니다. 서버 루트 `.env`의 `SAGOPALGO_KB_REQUEST_IP_ADDRESS`와 `SAGOPALGO_KB_REQUEST_MAC_ADDRESS`는 조회 요청의 `dataHeader.ipAddr`와 `dataHeader.macAddr`에 넣을 선택적 값입니다. 비워 두어도 두 키를 빈 문자열로 전송합니다. [KB 공식 Python 예제](https://github.com/kbsecurities/kb-openapi/blob/main/example/python/common.py)는 백엔드 호출에서 빈 문자열을 허용하지만, 이 프로젝트의 실계좌 조회 성공은 배포 후 별도 확인해야 합니다. 주문 전용 `SAGOPALGO_KB_ORDER_IP_ADDRESS`와 `SAGOPALGO_KB_ORDER_MAC_ADDRESS`는 조회 설정을 대체하지 않습니다. KB 공식 API 문서 파일 기준 보유주식 조회는 `SSQM1801_보유주식 조회`, 결제기준 잔고 현황은 `SSQM2932_잔고현황조회(결제기준)`, 체결기준 잔고 현황은 `SSQM2952_잔고현황조회(체결기준)`입니다. 공개 path와 기본 요청값은 백엔드 기본 설정으로 관리하므로 루트 `.env`에 넣지 않아도 됩니다.
 
 설정 탭의 `KB 계좌 조회`에서 상세 버튼을 눌러 현재 응답에 포함된 잔고 항목을 확인합니다. `결제 잔고` 모드는 KB `SSQM2932`의 `valuationWeightRate`를 표시하고, `보유 주식` 모드는 `SSQM1801` 평가금액이 있을 때만 해당 조회 목록 안의 계산 비중을 표시합니다. 두 값은 분모와 출처가 다릅니다. 실제 KB 앱의 종목별 금액·평가비중과 대조하고, 응답 필드가 없거나 평가합계가 0이면 `산정 불가`인지 확인합니다. 이 확인은 읽기 전용이며 AI 매수 신호나 주문 전송 조건을 바꾸지 않습니다.
 
