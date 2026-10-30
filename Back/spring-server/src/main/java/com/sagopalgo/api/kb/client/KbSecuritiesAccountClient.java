@@ -346,12 +346,8 @@ public class KbSecuritiesAccountClient {
 
     private Map<String, Object> dataHeader(String transactionId) {
         Map<String, Object> dataHeader = new LinkedHashMap<>();
-        if (StringUtils.hasText(properties.getRequestIpAddress())) {
-            dataHeader.put("ipAddr", properties.getRequestIpAddress().trim());
-        }
-        if (StringUtils.hasText(properties.getRequestMacAddress())) {
-            dataHeader.put("macAddr", properties.getRequestMacAddress().trim());
-        }
+        dataHeader.put("ipAddr", optionalRequestAddress(properties.getRequestIpAddress()));
+        dataHeader.put("macAddr", optionalRequestAddress(properties.getRequestMacAddress()));
         if (StringUtils.hasText(transactionId)) {
             dataHeader.put("tr_id", transactionId);
         }
@@ -359,6 +355,10 @@ public class KbSecuritiesAccountClient {
             dataHeader.put("custtype", properties.getCustomerType());
         }
         return dataHeader;
+    }
+
+    private String optionalRequestAddress(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private void assertSuccessful(JsonNode response) {
@@ -554,8 +554,6 @@ public class KbSecuritiesAccountClient {
         ensureAccountEnabled();
         ensureText(properties.getAppKey(), "KB증권 App Key 설정이 필요합니다.");
         ensureText(properties.getAppSecret(), "KB증권 App Secret 설정이 필요합니다.");
-        ensureText(properties.getRequestIpAddress(), "KB증권 조회 요청 IP 주소 설정이 필요합니다.");
-        ensureText(properties.getRequestMacAddress(), "KB증권 조회 요청 MAC 주소 설정이 필요합니다.");
     }
 
     private void ensureMarketDataConfigured() {
