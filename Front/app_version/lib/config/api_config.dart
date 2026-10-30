@@ -54,6 +54,8 @@ class ApiConfig {
   /// KB증권 보유 주식 조회 API 경로입니다.
   String get kbHoldingsUrl => '$baseUrl/api/v1/kb/accounts/primary/holdings';
 
+  String get kbPortfolioImportUrl => '$baseUrl/api/v1/kb/portfolio-import';
+
   /// KB증권 결제기준 잔고 현황 조회 API 경로입니다.
   String get kbSettlementBalanceUrl =>
       '$baseUrl/api/v1/kb/accounts/primary/balances/settlement';

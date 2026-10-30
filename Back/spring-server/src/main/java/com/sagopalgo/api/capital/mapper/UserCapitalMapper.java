@@ -15,6 +15,9 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface UserCapitalMapper {
 
+    @Select("SELECT user_id FROM users WHERE user_id = #{userId} FOR UPDATE")
+    Long lockUser(@Param("userId") Long userId);
+
     @Select("""
         SELECT capital_id, user_id, available_capital, risk_per_trade_rate,
                recommended_min_position, recommended_max_position, created_at, updated_at

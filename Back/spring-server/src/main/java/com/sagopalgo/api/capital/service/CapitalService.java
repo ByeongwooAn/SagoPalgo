@@ -35,6 +35,7 @@ public class CapitalService {
 
     @Transactional
     public CapitalResponse update(Long userId, UpdateCapitalRequest request) {
+        userCapitalMapper.lockUser(userId);
         UserCapital capital = buildCapital(
             userId,
             normalizeMoney(request.availableCapital()),

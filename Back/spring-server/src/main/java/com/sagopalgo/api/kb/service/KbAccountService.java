@@ -123,7 +123,7 @@ public class KbAccountService {
             stockCode,
             defaultText(stockName, defaultText(stockCode, "알 수 없는 종목")),
             defaultText(kbClient.text(node, "market", "marketName", "mrktName"), "KRX"),
-            money(quantity),
+            quantity.setScale(4, RoundingMode.HALF_UP).stripTrailingZeros(),
             money(averageBuyPrice),
             money(currentPrice),
             money(purchaseAmount),

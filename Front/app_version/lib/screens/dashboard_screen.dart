@@ -57,6 +57,10 @@ class DashboardScreen extends StatelessWidget {
             monthlyReturnRate: summary.monthlyReturnRate,
             recommendedPositionRange: summary.recommendedPositionRange,
           ),
+          if (snapshot.holdings.any((holding) => holding.priceFallback)) ...[
+            const SizedBox(height: 8),
+            const Text('일부 보유 종목의 시세를 확인하지 못해 수익률에 매수가 대체 평가가 포함되어 있습니다.'),
+          ],
           if (_needsSetup) ...[
             const SizedBox(height: 12),
             DashboardSetupCard(

@@ -12,6 +12,7 @@ class ProviderSetting {
     required this.configured,
     required this.missingRequiredSettings,
     required this.roleDescription,
+    this.accountConfigured,
   });
 
   /// `KB`, `KIS`, `TOSS` 같은 증권사 코드입니다.
@@ -43,6 +44,10 @@ class ProviderSetting {
 
   /// 증권사별 현재 역할 설명입니다.
   final String roleDescription;
+  final bool? accountConfigured;
+
+  /// 시세 경로만 빠져 있어도 독립적인 KB 계좌 조회는 허용합니다.
+  bool get accountQueryConfigured => accountConfigured ?? configured;
 
   /// API JSON을 모델로 변환합니다.
   factory ProviderSetting.fromJson(Map<String, dynamic> json) {
@@ -60,6 +65,7 @@ class ProviderSetting {
               .map((item) => item as String)
               .toList(),
       roleDescription: json['roleDescription'] as String,
+      accountConfigured: json['accountConfigured'] as bool?,
     );
   }
 }

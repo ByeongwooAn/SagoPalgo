@@ -750,7 +750,7 @@ String _orderCheckLabel(String code) => switch (code) {
   'ORDER_PRECHECK_SWITCH' => '주문 사전검증',
   'LIVE_ORDER_SWITCH' => '실주문 별도 스위치',
   'CREDENTIALS' => 'KB API 인증',
-  'ACCOUNT_NUMBER' => '계좌번호',
+  'ACCOUNT_NUMBER' => '주문용 계좌번호',
   'HTTPS_ENDPOINT' => 'KB HTTPS 연결',
   'ORDER_IP' => '운영 주문 IP',
   'ORDER_MAC' => '운영 주문 MAC',
@@ -786,7 +786,7 @@ class _ProviderCard extends StatelessWidget {
     final statusLabel = !enabled
         ? '꺼짐'
         : provider.configured
-        ? '사용 가능'
+        ? '설정 완료'
         : '설정 필요';
 
     return AppCard(
@@ -847,6 +847,18 @@ class _ProviderCard extends StatelessWidget {
                 const _RoleChip(label: '주문 잠금'),
             ],
           ),
+          const SizedBox(height: 8),
+          const Text(
+            '설정값 기준 상태입니다. 실제 API 조회 성공 여부는 별도로 확인해야 합니다.',
+            style: TextStyle(fontSize: 12),
+          ),
+          if (provider.code == 'KB') ...[
+            const SizedBox(height: 6),
+            const Text(
+              'KB 계좌 조회는 API Key에 연결된 계좌를 사용합니다. 실주문 준비의 계좌번호 점검은 별도 조건입니다.',
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
           if (provider.missingRequiredSettings.isNotEmpty) ...[
             const SizedBox(height: 12),
             Row(
@@ -1036,7 +1048,7 @@ class _KbAccountSectionState extends State<_KbAccountSection> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.provider.accountEnabled || !widget.provider.configured) {
+    if (!widget.provider.accountEnabled || !widget.provider.accountQueryConfigured) {
       return const _KbAccountDisabledCard();
     }
 
@@ -1076,7 +1088,7 @@ class _KbAccountSectionState extends State<_KbAccountSection> {
   }
 
   bool get _shouldFetch {
-    return widget.provider.accountEnabled && widget.provider.configured;
+    return widget.provider.accountEnabled && widget.provider.accountQueryConfigured;
   }
 }
 

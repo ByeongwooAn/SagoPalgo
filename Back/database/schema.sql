@@ -72,15 +72,19 @@ CREATE TABLE IF NOT EXISTS holdings (
   market VARCHAR(20) NOT NULL COMMENT '시장: KOSPI, KOSDAQ, NASDAQ, NYSE 등',
   buy_price DECIMAL(18, 2) NOT NULL COMMENT '평균 매수가',
   quantity DECIMAL(18, 4) NOT NULL COMMENT '보유 수량',
-  buy_date DATE NOT NULL COMMENT '매수일',
+  buy_date DATE NULL COMMENT '매수일: KB 조회 미제공 시 NULL',
   stop_loss_rate DECIMAL(6, 3) NOT NULL COMMENT '손절 기준 수익률',
   take_profit_rate DECIMAL(6, 3) NOT NULL COMMENT '익절 기준 수익률',
   status VARCHAR(30) NOT NULL DEFAULT 'HOLDING' COMMENT '상태: HOLDING, PARTIAL_TAKE_PROFIT, STOP_LOSS_WATCH, SOLD',
+  source VARCHAR(20) NOT NULL DEFAULT 'MANUAL' COMMENT 'MANUAL 또는 KB',
+  source_account_key CHAR(64) NULL COMMENT 'KB 연결 지문: 계좌 원문 저장 금지',
+  source_synced_at DATETIME NULL COMMENT '마지막 수동 가져오기 시각 UTC',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 시각',
   PRIMARY KEY (holding_id),
   KEY idx_holdings_user_status (user_id, status),
   KEY idx_holdings_user_stock (user_id, stock_code, market),
+  UNIQUE KEY uq_holdings_import (user_id, source_account_key, stock_code),
   CONSTRAINT fk_holdings_user
     FOREIGN KEY (user_id) REFERENCES users (user_id)
     ON DELETE CASCADE

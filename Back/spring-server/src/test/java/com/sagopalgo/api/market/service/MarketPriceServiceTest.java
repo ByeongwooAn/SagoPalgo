@@ -92,6 +92,18 @@ class MarketPriceServiceTest {
         assertThat(quote.currentPrice()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
+    @Test
+    void invalidZeroOrNegativeQuoteContinuesToNextProvider() {
+        MarketPriceService service = new MarketPriceService(List.of(
+            new FixedMarketDataProvider("KB", true, "0", false),
+            new FixedMarketDataProvider("KIS", true, "-100", false),
+            new FixedMarketDataProvider("TOSS", true, "75000", false)
+        ));
+        StockQuote quote = service.quote(holding());
+        assertThat(quote.provider()).isEqualTo("TOSS");
+        assertThat(quote.currentPrice()).isEqualByComparingTo("75000");
+    }
+
     private Holding holding() {
         Holding holding = new Holding();
         holding.setStockCode("005930");

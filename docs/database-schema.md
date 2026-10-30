@@ -110,10 +110,15 @@ users 1 ── N research_sync_status
 | `market` | VARCHAR(20) | 시장 |
 | `buy_price` | DECIMAL(18,2) | 평균 매수가 |
 | `quantity` | DECIMAL(18,4) | 수량 |
-| `buy_date` | DATE | 매수일 |
+| `buy_date` | DATE NULL | 실제 매수일. KB 응답 미제공 시 NULL |
 | `stop_loss_rate` | DECIMAL(6,3) | 손절 기준 |
 | `take_profit_rate` | DECIMAL(6,3) | 익절 기준 |
 | `status` | VARCHAR(30) | `HOLDING`, `PARTIAL_TAKE_PROFIT`, `STOP_LOSS_WATCH`, `SOLD` |
+| `source` | VARCHAR(20) | `MANUAL` 또는 `KB` |
+| `source_account_key` | CHAR(64) NULL | KB 연결 지문. API Key·계좌번호 원문은 저장하지 않음 |
+| `source_synced_at` | DATETIME NULL | KB 스냅샷 마지막 반영 시각 UTC |
+
+`uq_holdings_import(user_id, source_account_key, stock_code)`로 같은 KB 연결의 종목 중복을 막습니다. 수동 등록분은 지문이 NULL이므로 기존 복수 매수 기록을 유지합니다. 기존 DB에는 `015_kb_portfolio_import.sql`을 한 번 적용합니다.
 
 ### 4.5 `recommendations`
 

@@ -48,7 +48,13 @@ public class MarketPriceService {
                 continue;
             }
             try {
-                return provider.quote(request);
+                StockQuote quote = provider.quote(request);
+                if (quote == null || quote.currentPrice() == null || quote.currentPrice().signum() <= 0
+                    || !provider.providerCode().equals(quote.provider())
+                    || !request.stockCode().equals(quote.stockCode())) {
+                    throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "현재가 응답의 가격·종목·출처가 올바르지 않습니다.");
+                }
+                return quote;
             } catch (ApiException exception) {
                 if (exception.getErrorCode() != ErrorCode.EXTERNAL_DATA_ERROR) {
                     throw exception;
