@@ -13,9 +13,12 @@ import com.sagopalgo.api.holding.dto.PortfolioSummaryResponse;
 import com.sagopalgo.api.holding.mapper.HoldingMapper;
 import com.sagopalgo.api.holding.model.Holding;
 import com.sagopalgo.api.market.service.MarketPriceService;
+import com.sagopalgo.api.market.model.StockQuote;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,10 +50,20 @@ public class HoldingService {
     @Transactional(readOnly = true)
     public HoldingsListResponse findAll(Long userId) {
         List<Holding> holdings = holdingMapper.findActiveByUserId(userId);
+        Map<String, StockQuote> quotes = new HashMap<>();
         List<HoldingResponse> items = holdings.stream()
-            .map(this::toResponse)
+            .map(holding -> {
+                String key = holding.getMarket() + ":" + holding.getStockCode();
+                StockQuote quote = quotes.computeIfAbsent(key, ignored -> marketPriceService.quote(holding));
+                // 대체 매수가는 동일 종목이라도 등록 건별 매수가를 사용합니다.
+                if ("FALLBACK".equals(quote.provider())) {
+                    quote = new StockQuote("FALLBACK", holding.getStockCode(), holding.getStockName(),
+                        holding.getMarket(), holding.getBuyPrice(), null, null, null, null, null, null, null, null);
+                }
+                return HoldingResponse.from(holding, quote, profitRate(holding, quote.currentPrice()));
+            })
             .toList();
-        return new HoldingsListResponse(summary(userId, holdings), items);
+        return new HoldingsListResponse(summary(userId, items), items);
     }
 
     @Transactional(readOnly = true)
@@ -108,6 +121,8 @@ public class HoldingService {
 
     @Transactional
     public HoldingCreateResponse create(Long userId, HoldingRequest request) {
+        holdingMapper.lockUser(userId);
+        rejectImportedDuplicate(userId, null, request);
         Holding holding = buildHolding(userId, request);
         holdingMapper.insert(holding);
         return new HoldingCreateResponse(holding.getHoldingId());
@@ -115,6 +130,12 @@ public class HoldingService {
 
     @Transactional
     public HoldingResponse update(Long userId, Long holdingId, HoldingRequest request) {
+        holdingMapper.lockUser(userId);
+        Holding existing = findRecord(userId, holdingId);
+        if ("KB".equals(existing.getSource())) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "KB 보유분은 KB에서 다시 불러와 갱신하세요. 직접 수정하려면 삭제 후 수동 등록하세요.");
+        }
+        rejectImportedDuplicate(userId, holdingId, request);
         Holding holding = buildHolding(userId, request);
         holding.setHoldingId(holdingId);
 
@@ -130,6 +151,7 @@ public class HoldingService {
 
     @Transactional
     public void delete(Long userId, Long holdingId) {
+        holdingMapper.lockUser(userId);
         int deletedRows = holdingMapper.deleteByIdAndUserId(holdingId, userId);
         if (deletedRows == 0) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "보유 종목을 찾을 수 없습니다.");
@@ -139,9 +161,9 @@ public class HoldingService {
     private Holding buildHolding(Long userId, HoldingRequest request) {
         Holding holding = new Holding();
         holding.setUserId(userId);
-        holding.setStockCode(request.stockCode());
-        holding.setStockName(request.stockName());
-        holding.setMarket(request.market());
+        holding.setStockCode(request.stockCode().trim());
+        holding.setStockName(request.stockName().trim());
+        holding.setMarket(request.market().trim().toUpperCase(java.util.Locale.ROOT));
         holding.setBuyPrice(normalizeMoney(request.buyPrice()));
         holding.setQuantity(request.quantity());
         holding.setBuyDate(request.buyDate());
@@ -151,19 +173,30 @@ public class HoldingService {
         return holding;
     }
 
-    private HoldingResponse toResponse(Holding holding) {
-        BigDecimal currentPrice = currentPrice(holding);
-        return HoldingResponse.from(holding, currentPrice, profitRate(holding, currentPrice));
+    private void rejectImportedDuplicate(Long userId, Long holdingId, HoldingRequest request) {
+        boolean duplicate = holdingMapper.findActiveByUserId(userId).stream()
+            .anyMatch(holding -> "KB".equals(holding.getSource())
+                && !holding.getHoldingId().equals(holdingId)
+                && holding.getStockCode().equals(request.stockCode().trim())
+                && java.util.Set.of("KOSPI", "KOSDAQ", "KONEX", "KRX", "KR", "KR_ETC")
+                    .contains(request.market().trim().toUpperCase(java.util.Locale.ROOT)));
+        if (duplicate) throw new ApiException(ErrorCode.VALIDATION_ERROR,
+            "같은 종목의 KB 보유분이 있습니다. 이중 계산을 피하려면 기존 KB 보유분을 먼저 정리하세요.");
     }
 
-    private PortfolioSummaryResponse summary(Long userId, List<Holding> holdings) {
+    private HoldingResponse toResponse(Holding holding) {
+        StockQuote quote = marketPriceService.quote(holding);
+        return HoldingResponse.from(holding, quote, profitRate(holding, quote.currentPrice()));
+    }
+
+    private PortfolioSummaryResponse summary(Long userId, List<HoldingResponse> holdings) {
         BigDecimal totalInvestment = BigDecimal.ZERO;
         BigDecimal totalProfit = BigDecimal.ZERO;
 
-        for (Holding holding : holdings) {
-            BigDecimal currentPrice = currentPrice(holding);
-            BigDecimal quantity = holding.getQuantity();
-            BigDecimal investment = holding.getBuyPrice().multiply(quantity);
+        for (HoldingResponse holding : holdings) {
+            BigDecimal currentPrice = holding.currentPrice();
+            BigDecimal quantity = holding.quantity();
+            BigDecimal investment = holding.buyPrice().multiply(quantity);
             BigDecimal valuation = currentPrice.multiply(quantity);
 
             totalInvestment = totalInvestment.add(investment);
@@ -199,10 +232,6 @@ public class HoldingService {
             .divide(holding.getBuyPrice(), 6, RoundingMode.HALF_UP)
             .multiply(new BigDecimal("100"))
             .setScale(RATE_SCALE, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal currentPrice(Holding holding) {
-        return marketPriceService.currentPrice(holding);
     }
 
     private BigDecimal normalizeMoney(BigDecimal value) {

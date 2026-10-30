@@ -17,6 +17,13 @@ class Holding {
     required this.stopLossRate,
     required this.takeProfitRate,
     required this.status,
+    this.priceProvider,
+    this.priceReceivedAt,
+    this.priceFallback = false,
+    this.source = 'MANUAL',
+    this.sourceSyncedAt,
+    this.buyPriceExact,
+    this.currentPriceExact,
   });
 
   /// 보유 종목 수정/삭제 API에서 사용할 PK입니다.
@@ -38,7 +45,7 @@ class Holding {
   final double quantity;
 
   /// 사용자가 기록한 매수일입니다.
-  final DateTime buyDate;
+  final DateTime? buyDate;
 
   /// 현재가입니다. 서버의 실제 시세 API 설정에 따라 외부 현재가 또는 매수가 기준값을 내려줍니다.
   final int currentPrice;
@@ -54,6 +61,15 @@ class Holding {
 
   /// 보유, 부분 익절, 손절 감시 같은 운영 상태입니다.
   final String status;
+  final String? priceProvider;
+  final DateTime? priceReceivedAt;
+  final bool priceFallback;
+  final String source;
+  final DateTime? sourceSyncedAt;
+  final double? buyPriceExact;
+  final double? currentPriceExact;
+
+  bool get isKbImport => source == 'KB';
 
   /// 백엔드 보유 종목 JSON을 앱 모델로 변환합니다.
   factory Holding.fromJson(Map<String, dynamic> json) {
@@ -64,12 +80,23 @@ class Holding {
       market: json['market'] as String? ?? 'KOSPI',
       buyPrice: _readInt(json['buyPrice']),
       quantity: _readDouble(json['quantity']),
-      buyDate: DateTime.parse(json['buyDate'] as String),
+      buyDate: json['buyDate'] == null
+          ? null
+          : DateTime.parse(json['buyDate'] as String),
       currentPrice: _readInt(json['currentPrice']),
       profitRate: _readDouble(json['profitRate']),
       stopLossRate: _readDouble(json['stopLossRate']),
       takeProfitRate: _readDouble(json['takeProfitRate']),
       status: json['statusLabel'] as String? ?? json['status'] as String,
+      priceProvider: json['priceProvider'] as String?,
+      priceReceivedAt: json['priceReceivedAt'] == null
+          ? null
+          : DateTime.parse(json['priceReceivedAt'] as String),
+      priceFallback: json['priceFallback'] as bool? ?? false,
+      source: json['source'] as String? ?? 'MANUAL',
+      sourceSyncedAt: _readUtcTimestamp(json['sourceSyncedAt']),
+      buyPriceExact: _readDouble(json['buyPrice']),
+      currentPriceExact: _readDouble(json['currentPrice']),
     );
   }
 }
@@ -105,7 +132,8 @@ class HoldingInput {
       market: holding.market,
       buyPrice: holding.buyPrice,
       quantity: holding.quantity,
-      buyDate: holding.buyDate,
+      buyDate:
+          holding.buyDate ?? (throw StateError('KB 조회는 실제 매수일을 제공하지 않습니다.')),
       stopLossRate: holding.stopLossRate,
       takeProfitRate: holding.takeProfitRate,
     );
@@ -262,4 +290,12 @@ String _formatDate(DateTime value) {
   final month = value.month.toString().padLeft(2, '0');
   final day = value.day.toString().padLeft(2, '0');
   return '$year-$month-$day';
+}
+
+DateTime? _readUtcTimestamp(Object? value) {
+  if (value == null) return null;
+  final text = value as String;
+  return DateTime.parse(
+    RegExp(r'(Z|[+-]\d\d:\d\d)$').hasMatch(text) ? text : '${text}Z',
+  );
 }

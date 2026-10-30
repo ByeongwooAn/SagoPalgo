@@ -20,12 +20,22 @@ public class Holding {
     private BigDecimal stopLossRate;
     private BigDecimal takeProfitRate;
     private String status;
+    private String source = "MANUAL";
+    private String sourceAccountKey;
+    private LocalDateTime sourceSyncedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public Long getHoldingId() {
         return holdingId;
     }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
+    public String getSourceAccountKey() { return sourceAccountKey; }
+    public void setSourceAccountKey(String key) { this.sourceAccountKey = key; }
+    public LocalDateTime getSourceSyncedAt() { return sourceSyncedAt; }
+    public void setSourceSyncedAt(LocalDateTime at) { this.sourceSyncedAt = at; }
 
     public void setHoldingId(Long holdingId) {
         this.holdingId = holdingId;

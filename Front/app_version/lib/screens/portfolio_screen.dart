@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/holding.dart';
 import '../repositories/portfolio_repository.dart';
+import '../repositories/kb_portfolio_importer.dart';
+import '../models/kb_portfolio_import.dart';
 import '../repositories/market_data_repository.dart';
 import '../repositories/order_precheck_repository.dart';
 import '../theme/app_theme.dart';
@@ -13,6 +15,7 @@ import '../widgets/status_chip.dart';
 import 'dashboard_screen.dart';
 import 'market_candle_screen.dart';
 import 'order_precheck_sheet.dart';
+import 'kb_portfolio_import_sheet.dart';
 
 /// 다른 탭의 빈 상태 CTA에서 포트폴리오 탭으로 전달하는 초기 작업입니다.
 enum PortfolioSetupAction { editCapital, addHolding }
@@ -168,8 +171,36 @@ class _PortfolioContent extends StatelessWidget {
             capital: portfolio.capital,
             onEdit: () => _openCapitalEditor(context),
           ),
+          if (repository is KbPortfolioImporter) ...[
+            const SizedBox(height: 12),
+            AppCard(
+              soft: true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'KB 조회 잔고와 앱 투자 기준은 별도로 관리됩니다. 불러오기에서 반영할 항목을 확인하세요.',
+                  ),
+                  const SizedBox(height: 8),
+                  FilledButton.icon(
+                    onPressed: isRefreshing || hasRefreshError
+                        ? null
+                        : () => _openKbImport(context),
+                    icon: const Icon(Icons.account_balance_rounded),
+                    label: const Text('KB 계좌에서 불러오기'),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           ProfitCard(summary: portfolio.summary),
+          if (holdings.any((holding) => holding.priceFallback)) ...[
+            const SizedBox(height: 8),
+            const Text(
+              '시세 조회에 실패한 종목은 매수가로 평가한 참고 손익입니다. 실제 현재가 기준 손익과 다를 수 있습니다.',
+            ),
+          ],
           const SizedBox(height: 12),
           if (holdings.isEmpty)
             EmptyHoldingsCard(onAdd: () => _openHoldingEditor(context))
@@ -229,6 +260,26 @@ class _PortfolioContent extends StatelessWidget {
       },
       successMessage: '자본금 기준을 저장했습니다.',
     );
+  }
+
+  Future<void> _openKbImport(BuildContext context) async {
+    final result = await showModalBottomSheet<KbPortfolioImportResult>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) =>
+          KbPortfolioImportSheet(importer: repository as KbPortfolioImporter),
+    );
+    if (result != null && context.mounted) {
+      onChanged();
+      _showMessage(
+        context,
+        'KB 반영 완료 · 추가 ${result.createdCount} · 갱신 ${result.updatedCount} · 보존 ${result.skippedCount}'
+        '${result.capitalImported ? ' · 자본금 반영' : ''}',
+      );
+    }
   }
 
   Future<void> _openHoldingEditor(
@@ -648,8 +699,18 @@ class PortfolioRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 TextCaption(
-                  '매수가 ${formatCurrency(holding.buyPrice)} · ${_formatQuantity(holding.quantity)}주',
+                  '평균 매수가 ${_formatPrice(holding.buyPriceExact ?? holding.buyPrice)} · ${_formatQuantity(holding.quantity)}주',
                 ),
+                const SizedBox(height: 4),
+                TextCaption(
+                  '현재가 ${_formatPrice(holding.currentPriceExact ?? holding.currentPrice)}원 · ${_priceSource(holding)}',
+                ),
+                if (holding.isKbImport) ...[
+                  const SizedBox(height: 4),
+                  TextCaption(
+                    'KB 스냅샷 · 매수일 미제공${holding.sourceSyncedAt == null ? '' : ' · 반영 ${_formatTimestamp(holding.sourceSyncedAt!)}'}',
+                  ),
+                ],
               ],
             ),
           ),
@@ -689,8 +750,8 @@ class PortfolioRow extends StatelessWidget {
                   onOrderPrecheck();
               }
             },
-            itemBuilder: (context) => const [
-              PopupMenuItem(
+            itemBuilder: (context) => [
+              const PopupMenuItem(
                 value: _HoldingMenuAction.orderPrecheck,
                 child: Row(
                   children: [
@@ -700,17 +761,18 @@ class PortfolioRow extends StatelessWidget {
                   ],
                 ),
               ),
-              PopupMenuItem(
-                value: _HoldingMenuAction.edit,
-                child: Row(
-                  children: [
-                    Icon(Icons.edit_rounded),
-                    SizedBox(width: 8),
-                    Text('수정'),
-                  ],
+              if (!holding.isKbImport)
+                const PopupMenuItem(
+                  value: _HoldingMenuAction.edit,
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit_rounded),
+                      SizedBox(width: 8),
+                      Text('수정'),
+                    ],
+                  ),
                 ),
-              ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: _HoldingMenuAction.delete,
                 child: Row(
                   children: [
@@ -729,6 +791,27 @@ class PortfolioRow extends StatelessWidget {
 }
 
 enum _HoldingMenuAction { orderPrecheck, edit, delete }
+
+String _formatPrice(num value) {
+  final parts = value
+      .toStringAsFixed(2)
+      .replaceFirst(RegExp(r'\.?0+$'), '')
+      .split('.');
+  final integer = parts.first.replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => ',',
+  );
+  return parts.length == 1 ? integer : '$integer.${parts.last}';
+}
+
+String _formatTimestamp(DateTime value) =>
+    value.toLocal().toString().split('.').first;
+
+String _priceSource(Holding holding) {
+  if (holding.priceFallback) return '시세 미확인 · 매수가 대체';
+  if (holding.priceProvider == null) return '시세 출처 미확인';
+  return '${holding.priceProvider} 조회${holding.priceReceivedAt == null ? '' : ' · ${_formatTimestamp(holding.priceReceivedAt!)}'}';
+}
 
 /// 현재 미실현 손실이 사용하는 위험 한도를 보여주는 리스크 관리 카드입니다.
 class RiskRuleCard extends StatelessWidget {

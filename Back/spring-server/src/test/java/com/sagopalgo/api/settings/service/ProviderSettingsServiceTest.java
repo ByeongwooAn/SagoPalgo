@@ -30,6 +30,11 @@ class ProviderSettingsServiceTest {
         kb.setOrderEnabled(false);
         kb.setAppKey("kb-app-key");
         kb.setAppSecret("kb-app-secret");
+        kb.setBaseUrl("https://kb.test");
+        kb.setTokenPath("/oauth/token");
+        kb.setHoldingsPath("/holdings");
+        kb.setSettlementBalancePath("/settlement");
+        kb.setExecutionBalancePath("/execution");
         kb.setAccountNumber("12345678");
         securitiesProperties.setKb(kb);
 
@@ -89,5 +94,34 @@ class ProviderSettingsServiceTest {
         assertThat(response.providers().get(4).disclosureEnabled()).isTrue();
         assertThat(response.providers().get(4).configured()).isFalse();
         assertThat(response.providers().get(4).missingRequiredSettings()).containsExactly("API Key");
+    }
+    @Test
+    void kbReadConfigurationDoesNotRequireOrderAccountNumberButNeedsApiPaths() {
+        SecuritiesProviderProperties properties = new SecuritiesProviderProperties();
+        Provider kb = properties.getKb();
+        kb.setAccountEnabled(true);
+        kb.setAppKey("key"); kb.setAppSecret("secret");
+        kb.setBaseUrl("https://kb.test"); kb.setTokenPath("/token");
+        kb.setHoldingsPath("/holdings"); kb.setSettlementBalancePath("/settlement");
+        kb.setExecutionBalancePath("/execution");
+        ProviderSettingsService service = new ProviderSettingsService(new KisMarketProperties(), properties,
+            new ResearchProviderProperties(), new OrderReadinessService(properties));
+
+        var settings = service.getSettings();
+        assertThat(settings.providers().get(0).configured()).isTrue();
+        assertThat(settings.orderReadiness().checks().stream().filter(check -> "ACCOUNT_NUMBER".equals(check.code()))
+            .findFirst().orElseThrow().passed()).isFalse();
+
+        kb.setSettlementBalancePath("");
+        var incomplete = service.getSettings().providers().get(0);
+        assertThat(incomplete.configured()).isFalse();
+        assertThat(incomplete.missingRequiredSettings()).containsExactly("결제기준 잔고 API 경로");
+        assertThat(incomplete.accountConfigured()).isFalse();
+
+        kb.setSettlementBalancePath("/settlement");
+        kb.setMarketDataEnabled(true);
+        var accountOnly = service.getSettings().providers().get(0);
+        assertThat(accountOnly.configured()).isFalse();
+        assertThat(accountOnly.accountConfigured()).isTrue();
     }
 }

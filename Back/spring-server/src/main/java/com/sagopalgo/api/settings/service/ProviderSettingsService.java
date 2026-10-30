@@ -41,7 +41,8 @@ public class ProviderSettingsService {
         ResearchProviderProperties.NaverNews naver = researchProviderProperties.getNaverNews();
         ResearchProviderProperties.OpenDart openDart = researchProviderProperties.getOpenDart();
 
-        List<String> kbMissing = kbMissingSettings(kb);
+        List<String> kbMissing = kbMissingSettings(kb, kb.isMarketDataEnabled(), kb.isAccountEnabled());
+        boolean kbAccountConfigured = kb.isAccountEnabled() && kbMissingSettings(kb, false, true).isEmpty();
         List<String> kisMissing = missingSettings(
             entry("App Key", kisMarketProperties.getAppKey()),
             entry("App Secret", kisMarketProperties.getAppSecret())
@@ -81,7 +82,8 @@ public class ProviderSettingsService {
                     false,
                     kbMissing.isEmpty(),
                     kbMissing,
-                    "계좌 조회와 추후 주문 기능의 기준 증권사"
+                    "계좌 조회와 추후 주문 기능의 기준 증권사",
+                    kbAccountConfigured
                 ),
                 new ProviderSettingResponse(
                     "KIS",
@@ -135,11 +137,20 @@ public class ProviderSettingsService {
         );
     }
 
-    private List<String> kbMissingSettings(Provider kb) {
+    private List<String> kbMissingSettings(Provider kb, boolean marketDataEnabled, boolean accountEnabled) {
         List<SettingEntry> entries = new ArrayList<>();
         entries.add(entry("App Key", kb.getAppKey()));
         entries.add(entry("App Secret", kb.getAppSecret()));
-        if (kb.isMarketDataEnabled()) {
+        entries.add(entry("Base URL", kb.getBaseUrl()));
+        entries.add(entry("인증 API 경로", kb.getTokenPath()));
+        if (accountEnabled) {
+            entries.add(entry("보유 주식 API 경로", kb.getHoldingsPath()));
+            entries.add(entry("결제기준 잔고 API 경로", kb.getSettlementBalancePath()));
+            entries.add(entry("체결기준 잔고 API 경로", kb.getExecutionBalancePath()));
+            entries.add(entry("보유주식 조회구분", kb.getHoldingsInquiryClassification()));
+            entries.add(entry("보유주식 시장시간구분", kb.getHoldingsMarketTimeCode()));
+        }
+        if (marketDataEnabled) {
             entries.add(entry("현재가 API 경로", kb.getCurrentPricePath()));
             entries.add(entry("통합차트 API 경로", kb.getCandlePath()));
         }

@@ -19,7 +19,8 @@ public interface HoldingMapper {
 
     @Select("""
         SELECT holding_id, user_id, stock_code, stock_name, market, buy_price, quantity,
-               buy_date, stop_loss_rate, take_profit_rate, status, created_at, updated_at
+               buy_date, stop_loss_rate, take_profit_rate, status, source, source_account_key,
+               source_synced_at, created_at, updated_at
         FROM holdings
         WHERE user_id = #{userId}
           AND status <> 'SOLD'
@@ -38,7 +39,8 @@ public interface HoldingMapper {
 
     @Select("""
         SELECT holding_id, user_id, stock_code, stock_name, market, buy_price, quantity,
-               buy_date, stop_loss_rate, take_profit_rate, status, created_at, updated_at
+               buy_date, stop_loss_rate, take_profit_rate, status, source, source_account_key,
+               source_synced_at, created_at, updated_at
         FROM holdings
         WHERE holding_id = #{holdingId}
           AND user_id = #{userId}
@@ -51,15 +53,38 @@ public interface HoldingMapper {
     @Insert("""
         INSERT INTO holdings (
             user_id, stock_code, stock_name, market, buy_price, quantity,
-            buy_date, stop_loss_rate, take_profit_rate, status
+            buy_date, stop_loss_rate, take_profit_rate, status, source, source_account_key, source_synced_at
         )
         VALUES (
             #{userId}, #{stockCode}, #{stockName}, #{market}, #{buyPrice}, #{quantity},
-            #{buyDate}, #{stopLossRate}, #{takeProfitRate}, #{status}
+            #{buyDate}, #{stopLossRate}, #{takeProfitRate}, #{status},
+            #{source}, #{sourceAccountKey}, #{sourceSyncedAt}
         )
         """)
     @Options(useGeneratedKeys = true, keyProperty = "holdingId", keyColumn = "holding_id")
     int insert(Holding holding);
+
+    // 같은 사용자의 가져오기를 직렬화하여 수동 등록분과 충돌하지 않게 합니다.
+    @Select("SELECT user_id FROM users WHERE user_id = #{userId} FOR UPDATE")
+    Long lockUser(@Param("userId") Long userId);
+
+    @Select("""
+        SELECT holding_id, user_id, stock_code, stock_name, market, buy_price, quantity,
+               buy_date, stop_loss_rate, take_profit_rate, status, source, source_account_key,
+               source_synced_at, created_at, updated_at
+        FROM holdings WHERE user_id = #{userId} AND source_account_key = #{accountKey}
+        ORDER BY holding_id
+        """)
+    List<Holding> findImported(@Param("userId") Long userId, @Param("accountKey") String accountKey);
+
+    @Update("""
+        UPDATE holdings SET stock_name = #{stockName}, market = #{market},
+            buy_price = #{buyPrice}, quantity = #{quantity}, status = 'HOLDING',
+            source_synced_at = #{sourceSyncedAt}
+        WHERE holding_id = #{holdingId} AND user_id = #{userId}
+          AND source = 'KB' AND source_account_key = #{sourceAccountKey}
+        """)
+    int updateImported(Holding holding);
 
     @Update("""
         UPDATE holdings
