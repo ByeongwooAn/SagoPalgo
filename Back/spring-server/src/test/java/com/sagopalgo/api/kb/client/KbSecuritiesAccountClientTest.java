@@ -70,6 +70,8 @@ class KbSecuritiesAccountClientTest {
             .andExpect(content().json("""
                 {
                   "dataHeader": {
+                    "ipAddr": "192.0.2.10",
+                    "macAddr": "AA-BB-CC-DD-EE-FF",
                     "tr_id": "HOLDINGS_TR",
                     "custtype": "P"
                   },
@@ -128,6 +130,8 @@ class KbSecuritiesAccountClientTest {
             .andExpect(content().json("""
                 {
                   "dataHeader": {
+                    "ipAddr": "192.0.2.10",
+                    "macAddr": "AA-BB-CC-DD-EE-FF",
                     "tr_id": "HOLDINGS_TR",
                     "custtype": "P"
                   },
@@ -150,6 +154,29 @@ class KbSecuritiesAccountClientTest {
 
         assertThat(localClient.items(response, "Record1")).isEmpty();
         localServer.verify();
+    }
+
+    @Test
+    @DisplayName("조회 요청 IP 또는 MAC이 비어 있으면 KB 계좌 API를 호출하지 않는다")
+    void fetchHoldingsRequiresRequestDeviceAddress() {
+        SecuritiesProviderProperties properties = securitiesProperties();
+        properties.getKb().setRequestIpAddress(" ");
+        KbSecuritiesAccountClient localClient = new KbSecuritiesAccountClient(properties, RestClient.create());
+
+        assertThatThrownBy(localClient::fetchHoldings)
+            .isInstanceOf(ApiException.class)
+            .hasMessage("KB증권 조회 요청 IP 주소 설정이 필요합니다.")
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
+
+        properties.getKb().setRequestIpAddress("192.0.2.10");
+        properties.getKb().setRequestMacAddress("");
+
+        assertThatThrownBy(localClient::fetchHoldings)
+            .isInstanceOf(ApiException.class)
+            .hasMessage("KB증권 조회 요청 MAC 주소 설정이 필요합니다.")
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
     }
 
     @Test
@@ -284,6 +311,8 @@ class KbSecuritiesAccountClientTest {
             .andExpect(content().json("""
                 {
                   "dataHeader": {
+                    "ipAddr": "192.0.2.10",
+                    "macAddr": "AA-BB-CC-DD-EE-FF",
                     "custtype": "P"
                   },
                   "dataBody": {
@@ -324,6 +353,8 @@ class KbSecuritiesAccountClientTest {
             .andExpect(content().json("""
                 {
                   "dataHeader": {
+                    "ipAddr": "192.0.2.10",
+                    "macAddr": "AA-BB-CC-DD-EE-FF",
                     "custtype": "P"
                   },
                   "dataBody": {
@@ -499,6 +530,8 @@ class KbSecuritiesAccountClientTest {
         kb.setCandlePath("/api/v1/ivs11560");
         kb.setHoldingsTransactionId("HOLDINGS_TR");
         kb.setCustomerType("P");
+        kb.setRequestIpAddress(" 192.0.2.10 ");
+        kb.setRequestMacAddress(" AA-BB-CC-DD-EE-FF ");
         kb.setBalanceInquiryClassification("1");
         kb.setBalanceExchangeMarketPriceCode("A");
         kb.setCurrentPriceExchangeClassification("0");

@@ -32,6 +32,8 @@ public class SecuritiesProviderProperties {
         private boolean accountEnabled = false;
         private boolean orderEnabled = false;
         private boolean liveOrderEnabled = false;
+        private String requestIpAddress = "";
+        private String requestMacAddress = "";
         private String orderIpAddress = "";
         private String orderMacAddress = "";
         private String baseUrl = "";
@@ -93,6 +95,22 @@ public class SecuritiesProviderProperties {
 
         public void setLiveOrderEnabled(boolean liveOrderEnabled) {
             this.liveOrderEnabled = liveOrderEnabled;
+        }
+
+        public String getRequestIpAddress() {
+            return requestIpAddress;
+        }
+
+        public void setRequestIpAddress(String requestIpAddress) {
+            this.requestIpAddress = requestIpAddress;
+        }
+
+        public String getRequestMacAddress() {
+            return requestMacAddress;
+        }
+
+        public void setRequestMacAddress(String requestMacAddress) {
+            this.requestMacAddress = requestMacAddress;
         }
 
         public String getOrderIpAddress() {
