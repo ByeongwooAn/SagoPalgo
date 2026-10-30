@@ -59,6 +59,8 @@ build\windows\x64\runner\Release\SagoPalgo.exe
 
 Flutter Windows 앱은 `SagoPalgo.exe`만 따로 복사해서 실행하는 구조가 아닙니다. 같은 폴더의 `flutter_windows.dll`과 `data/` 폴더가 함께 있어야 실행됩니다.
 
+Windows 실행 파일과 창 아이콘은 `windows/runner/resources/app_icon.ico`를 사용합니다. 브랜드 색상으로 아이콘을 다시 생성하려면 앱 폴더에서 `powershell -NoProfile -ExecutionPolicy Bypass -File .\tool\generate_windows_icon.ps1`을 실행하세요. 같은 폴더의 `app_icon.png`는 아이콘 미리보기입니다. 변경된 아이콘은 Release 재빌드 후 새 실행 파일에서 확인할 수 있습니다.
+
 ## 검증 명령
 
 ```powershell
