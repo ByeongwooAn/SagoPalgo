@@ -967,3 +967,9 @@ POST `/api/v1/orders/manual/{id}/reviews/prepare`, `/confirm`와 GET 기본 revi
 가상 evidence는 `source,commandId,kind,outcome,orderNo,parentOrderNo,stockCode,market,side,price,quantity,filledQuantity,openQuantity,parentState,parentFilled,parentOpen`입니다. source는 서버가 SIMULATION으로 생성하며 outcome은 FILLED/AMEND_FILLED/CANCELLED입니다. 공개 completion은 `resolutionId,evidence,confirmedAt,lockMaintained:false,source:"SIMULATION"`만 제공합니다. 토큰/근거 해시·실행 키·내부 준비는 제외합니다.
 
 90초 토큰·근거 재검사·동의·사용자 소유 세션 잠금 아래 감사 기록을 원자적으로 저장합니다. 동일 ID/정확한 토큰의 반복 확인은 저장 결과만 반환합니다. 원본 UNKNOWN과 가상 자원은 변경하지 않고 이 가상 완료만 pending에서 제외하며 다른 미확정 명령은 차단합니다. 이전 JSON에 소유권 근거가 없으면 종결을 허용하지 않습니다. 018 JSON 확장이므로 새 마이그레이션은 없습니다. [종결 규칙·공식 자료 조사와 제한](order-completion-evidence.md)을 따릅니다.
+
+## 24. 동일 수량 지정가 변경과 제한적 증액
+
+기존 실제 주문의 `POST /api/v1/orders/manual/{id}/changes/prepare`와 자식 submit 계약을 유지합니다. 준비 본문 `{kind:"AMEND",price}`의 가격은 기존과 달라야 하며 기존 원주문 수량을 그대로 사용합니다. 당일 전량 미체결 신규 주문·한 차례 변경 제한은 유지합니다. 새 경로/응답 필드/마이그레이션은 없습니다. 시뮬레이터도 기존 commands/prepare·confirm·submit을 사용합니다.
+
+매수 증액은 준비 및 제출 직전의 사전검증에서 BUYING_POWER가 명시적으로 성공하고 `orderAvailableCash >= 새 지정가 × 전체 수량`이어야 합니다. 기존 예약금이나 차액을 합산/대입하지 않습니다. 인하와 동일 수량 매도 정정은 기존 예약 자원의 중복 검사를 제외합니다. 모든 변경은 새 전체 금액 한도·현재가/이탈률·스위치·계좌를 검사하며 일부 수량 변경은 제공하지 않습니다. 상세 정책과 검증은 [지정가 변경](order-price-amendment.md)을 따릅니다.

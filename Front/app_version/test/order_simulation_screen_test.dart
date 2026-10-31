@@ -66,6 +66,61 @@ void main() {
   }
 
   testWidgets(
+    'simulated price increase reviews old and new price before one submission',
+    (t) async {
+      final r = FakeSimulation();
+      r.commands.add(command('c1', 'ACCEPTED'));
+      await mount(t, r);
+      await t.ensureVisible(find.text('지정가 변경 검토'));
+      await t.tap(find.text('지정가 변경 검토'));
+      await t.pumpAndSettle();
+      expect(find.textContaining('기존 예약금을 합산하지 않고'), findsOneWidget);
+      await t.enterText(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextFormField),
+        ),
+        '76000',
+      );
+      await t.tap(find.text('검증'));
+      await t.pump(const Duration(milliseconds: 400));
+      expect(r.lastPreparation?['kind'], 'AMEND');
+      expect(r.lastPreparation?['parentId'], 'c1');
+      expect((r.lastPreparation?['plan'] as Map)['quantity'], 2);
+      expect(find.textContaining('75000원 → 76000원'), findsOneWidget);
+      await approve(t);
+      expect(r.actions.where((x) => x.endsWith('/submit')), isEmpty);
+      expect(
+        t
+            .widget<FilledButton>(find.widgetWithText(FilledButton, '모의 주문 전송'))
+            .onPressed,
+        isNull,
+      );
+      await transmit(t);
+      await t.pumpAndSettle();
+      expect(r.actions.where((x) => x.endsWith('/submit')), hasLength(1));
+      expect(r.commands.first['plan']['limitPrice'], 75000);
+      expect(r.commands.last['plan']['limitPrice'], 76000);
+    },
+  );
+  testWidgets(
+    'unchanged simulation price leaves approval and parent untouched',
+    (t) async {
+      final r = FakeSimulation();
+      r.commands.add(command('c1', 'ACCEPTED'));
+      await mount(t, r);
+      await t.ensureVisible(find.text('지정가 변경 검토'));
+      await t.tap(find.text('지정가 변경 검토'));
+      await t.pumpAndSettle();
+      await t.tap(find.text('검증'));
+      await t.pumpAndSettle();
+      expect(r.actions, isEmpty);
+      expect(r.commands, hasLength(1));
+      expect(find.textContaining('기존과 다른 양수'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'unfinished simulation opens diagnosis without sending any mutation',
     (t) async {
       final r = FakeSimulation();

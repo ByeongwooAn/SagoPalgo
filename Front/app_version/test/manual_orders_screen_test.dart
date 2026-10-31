@@ -185,6 +185,72 @@ void main() {
     },
   );
 
+  testWidgets(
+    'price increase shows old and new price and needs separate consent',
+    (t) async {
+      final r = FakeRepository()..orders = [order('ACCEPTED')];
+      await mount(t, r);
+      await t.ensureVisible(find.text('지정가 변경'));
+      await t.tap(find.text('지정가 변경'));
+      await t.pumpAndSettle();
+      expect(find.textContaining('기존 예약금을 합산하지 않고'), findsOneWidget);
+      await t.enterText(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextFormField),
+        ),
+        '101',
+      );
+      await t.tap(find.text('주문안 조회'));
+      await t.pump(const Duration(milliseconds: 400));
+      expect(r.changedPrice, 101);
+      expect(find.text('실제 지정가 변경'), findsOneWidget);
+      expect(find.textContaining('100원 → 101원'), findsOneWidget);
+      expect(r.changeSubmits, 0);
+      expect(
+        t
+            .widget<FilledButton>(find.widgetWithText(FilledButton, '실제 주문 전송'))
+            .onPressed,
+        isNull,
+      );
+      await t.tap(find.byType(CheckboxListTile));
+      await t.pump();
+      await t.tap(find.text('실제 주문 전송'));
+      await t.pumpAndSettle();
+      expect(r.changeSubmits, 1);
+      expect(r.orders.single.price, 100);
+    },
+  );
+  testWidgets('unchanged price and rejected cash check never submit change', (
+    t,
+  ) async {
+    final r = FakeRepository()..orders = [order('ACCEPTED')];
+    await mount(t, r);
+    await t.ensureVisible(find.text('지정가 변경'));
+    await t.tap(find.text('지정가 변경'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('주문안 조회'));
+    await t.pumpAndSettle();
+    expect(r.changedPrice, isNull);
+    expect(find.textContaining('기존과 다른 양수'), findsOneWidget);
+    r.failChangePreparation = true;
+    await t.ensureVisible(find.text('지정가 변경'));
+    await t.tap(find.text('지정가 변경'));
+    await t.pumpAndSettle();
+    await t.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextFormField),
+      ),
+      '101',
+    );
+    await t.tap(find.text('주문안 조회'));
+    await t.pumpAndSettle();
+    expect(find.textContaining('새 주문 전체 금액'), findsOneWidget);
+    expect(r.changeSubmits, 0);
+    expect(r.orders.single.price, 100);
+  });
+
   Future<void> openReconciliation(WidgetTester t, ReconciliationFake r) async {
     await mount(t, r);
     await t.ensureVisible(find.text('KB 주문번호로 전량 체결 대조'));
@@ -538,6 +604,9 @@ class FakeRepository extends OrderPrecheckRepository
   int confirms = 0;
   int submits = 0;
   int changeSubmits = 0;
+  int? changedPrice;
+  String? changedKind;
+  bool failChangePreparation = false;
   List<ManualOrder> orders = [];
   Completer<ManualOrder>? pending;
   @override
@@ -584,10 +653,25 @@ class FakeRepository extends OrderPrecheckRepository
     String id,
     String kind,
     int? price,
-  ) async => {
-    'command': {...order('PREPARED').data, 'kind': kind, 'commandId': 'child'},
-    'token': 'change-token',
-  };
+  ) async {
+    changedPrice = price;
+    changedKind = kind;
+    if (failChangePreparation) {
+      throw const OrderPrecheckRepositoryException(
+        '매수 증액의 새 주문 전체 금액을 충당할 주문가능현금이 부족합니다.',
+      );
+    }
+    return {
+      'command': {
+        ...order('PREPARED').data,
+        'kind': kind,
+        'commandId': 'child',
+        'price': ?price,
+      },
+      'token': 'change-token',
+    };
+  }
+
   @override
   Future<ManualOrder> submitManualChange(String id, String token) async {
     expect(id, 'child');
@@ -595,7 +679,8 @@ class FakeRepository extends OrderPrecheckRepository
     changeSubmits++;
     return ManualOrder({
       ...order('ACCEPTED').data,
-      'kind': 'CANCEL',
+      'kind': changedKind ?? 'CANCEL',
+      if (changedPrice != null) 'price': changedPrice,
       'commandId': 'child',
     });
   }

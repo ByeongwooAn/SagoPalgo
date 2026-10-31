@@ -268,7 +268,7 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                                 onPressed: _busy || !_ready || _pending
                                     ? null
                                     : () => _change(c, 'AMEND'),
-                                child: const Text('지정가 인하'),
+                                child: const Text('지정가 변경'),
                               ),
                               TextButton(
                                 onPressed: _busy || !_ready || _pending
@@ -690,12 +690,22 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
       final text = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('새 지정가 (인하만 지원)'),
-          content: TextFormField(
-            initialValue: input,
-            onChanged: (v) => input = v,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            keyboardType: TextInputType.number,
+          title: const Text('새 지정가'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('기존 지정가 ${c.price}원 · 수량 ${c.quantity}주 유지'),
+              const Text(
+                '매수 증액은 기존 예약금을 합산하지 않고 새 주문 전체 금액 이상의 주문가능현금이 필요합니다.',
+              ),
+              TextFormField(
+                initialValue: input,
+                onChanged: (v) => input = v,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                keyboardType: TextInputType.number,
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -711,7 +721,10 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
       );
       if (text == null || !mounted) return;
       price = int.tryParse(text);
-      if (price == null || price <= 0) return;
+      if (price == null || price <= 0 || price == c.price) {
+        setState(() => _message = '새 지정가는 기존과 다른 양수 가격이어야 합니다.');
+        return;
+      }
     }
     if (!mounted) return;
     setState(() {
@@ -727,8 +740,8 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
       );
       final child = ManualOrder(preparation['command'] as Map<String, dynamic>);
       if (!await _review(
-            kind == 'AMEND' ? '실제 지정가 인하' : '실제 전부 취소',
-            '원주문 ${c.orderNo}\n${child.summary}\n90초 이내 확인 · 전량 미체결을 다시 조회합니다.',
+            kind == 'AMEND' ? '실제 지정가 변경' : '실제 전부 취소',
+            '원주문 ${c.orderNo}\n${kind == 'AMEND' ? '지정가 ${c.price}원 → ${child.price}원\n' : ''}${child.summary}\n90초 이내 확인 · 전량 미체결을 다시 조회합니다.${kind == 'AMEND' && c.side == 'BUY' && child.price > c.price ? '\n매수 증액의 새 주문 전체 금액과 현재 주문가능현금을 전송 직전에 다시 확인합니다.' : ''}',
             actual: true,
           ) ||
           !mounted) {

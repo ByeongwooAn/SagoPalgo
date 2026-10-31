@@ -89,13 +89,13 @@ public class OrderSimulationService {
                 BigDecimal price = "AMEND".equals(kind) ? requested.limitPrice() : parent.plan.limitPrice();
                 plan = new OrderPrecheckRequest(parent.plan.stockCode(), parent.plan.stockName(), parent.plan.market(),
                     parent.plan.side(), price, parent.plan.quantity());
-                if ("AMEND".equals(kind) && (price == null || price.compareTo(parent.plan.limitPrice()) >= 0)) throw invalid("실주문과 동일하게 지정가 인하만 지원합니다.");
+                if ("AMEND".equals(kind)) OrderWorkflowRules.requireAmendedPrice(parent.plan.limitPrice(),price);
             }
             KbLimitOrderContract.requireSupported(plan);
             if (Set.of("PARTIAL_FILL","TIMEOUT_AFTER_PARTIAL").contains(scenario) && !"CANCEL".equals(kind) && plan.quantity().compareTo(new BigDecimal("2")) < 0) {
                 throw invalid("부분체결 시나리오는 정수 2주 이상 필요합니다.");
             }
-            validate(state, plan, kind);
+            validate(state, plan, kind, "NEW".equals(kind)?null:command(state,parentId).plan);
             var command = new Command();
             command.id = UUID.randomUUID().toString(); command.parentId = parentId; command.kind = kind;
             command.plan = plan; command.scenario = scenario; command.tokenHash = OrderWorkflowRules.hash(token);
@@ -144,7 +144,7 @@ public class OrderSimulationService {
             if (state.commands.values().stream().anyMatch(OrderSimulationService::pending)) {
                 throw invalid("미확정 모의 전송이 있습니다. 기록은 유지하고 다른 시나리오는 새 세션에서 실행하세요.");
             }
-            validate(state, c.plan, c.kind);
+            validate(state, c.plan, c.kind, "NEW".equals(c.kind)?null:command(state,c.parentId).plan);
             if ("NEW".equals(c.kind)) KbLimitOrderContract.encode(c.plan);
             else KbLimitOrderContract.encodeChange(c.plan, c.kind, command(state, c.parentId).brokerOrderNo);
             if (!"NEW".equals(c.kind)) changeable(state, c.parentId).changed = true;
@@ -375,7 +375,7 @@ public class OrderSimulationService {
         return parent;
     }
 
-    private void validate(OrderSimulationState state, OrderPrecheckRequest plan, String kind) {
+    private void validate(OrderSimulationState state, OrderPrecheckRequest plan, String kind, OrderPrecheckRequest parent) {
         KbLimitOrderContract.requireSupported(plan);
         if ("CANCEL".equals(kind)) return;
         BigDecimal quote = state.quotes.get(key(plan.market(), plan.stockCode()));
@@ -385,6 +385,13 @@ public class OrderSimulationService {
             BigDecimal available = "BUY".equals(plan.side()) ? availableCash(state) : availableShares(state, key(plan.market(), plan.stockCode()));
             BigDecimal required = "BUY".equals(plan.side()) ? plan.limitPrice().multiply(plan.quantity()) : plan.quantity();
             if (!OrderWorkflowRules.covers(available, required)) throw invalid("예약분을 제외한 가상 현금/주식이 부족합니다.");
+        }
+        if ("AMEND".equals(kind)) {
+            OrderWorkflowRules.requireAmendedPrice(parent.limitPrice(),plan.limitPrice());
+            if(OrderWorkflowRules.requiresAmendCash(plan.side(),parent.limitPrice(),plan.limitPrice())
+                && !OrderWorkflowRules.covers(availableCash(state),plan.limitPrice().multiply(plan.quantity()))) {
+                throw invalid("매수 지정가 증액은 기존 예약금을 합산하지 않고 새 주문 전체 금액 이상의 가용 가상 현금이 필요합니다.");
+            }
         }
     }
 

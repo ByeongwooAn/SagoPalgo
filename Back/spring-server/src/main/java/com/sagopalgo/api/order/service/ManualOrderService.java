@@ -76,11 +76,11 @@ public class ManualOrderService {
         OrderPrecheckRequest request=new OrderPrecheckRequest(parent.stockCode(),parent.stockName(),parent.market(),
             parent.side(),newPrice,parent.quantity());
         KbLimitOrderContract.requireSupported(request);
-        // 정정은 신규 전체 금액에 대한 자원 검증 대신 실제 시세·한도 검증을 적용합니다.
-        // 기존 주문 예약 자원으로 인해 조회 잔액은 차감되어 있을 수 있습니다.
+        // 매수 증액에는 기존 예약금 반환을 가정하지 않는 별도 현금 검증을 적용합니다.
         if("AMEND".equals(kind)) validateAmend(user,request,parent);
+        if(!binding.matches(parent.accountFingerprint())) throw new ApiException(ErrorCode.VALIDATION_ERROR,"계좌 설정이 바뀌었습니다. 다시 확인하세요.");
         String token=OrderWorkflowRules.issueToken();
-        ManualOrderCommand child=command(user,null,parentId,kind,request,binding.requireFingerprint(),hash(token),"PREPARED");
+        ManualOrderCommand child=command(user,null,parentId,kind,request,parent.accountFingerprint(),hash(token),"PREPARED");
         mapper.insert(child);
         return new ChangePreparation(ManualOrderResponse.from(child),token,child.expiresAt());
     }
@@ -143,12 +143,16 @@ public class ManualOrderService {
         if(!precheckService.precheck(user,request).eligible()) throw new ApiException(ErrorCode.VALIDATION_ERROR,"최신 주문 안전 조건을 통과하지 못했습니다.");
     }
     private void validateAmend(Long user,OrderPrecheckRequest request,ManualOrderCommand parent) {
-        // 가격 증액은 예약된 자원과 신규 가용 자원의 합산이 필요하므로 현재 범위에서 차단합니다.
-        if(request.limitPrice().compareTo(parent.price())>=0) throw new ApiException(ErrorCode.VALIDATION_ERROR,
-            "현재는 지정가 인하만 지원합니다. 가격 증액은 KB 앱에서 확인하세요.");
+        OrderWorkflowRules.requireAmendedPrice(parent.price(),request.limitPrice());
         OrderPrecheckResponse check=precheckService.precheck(user,request);
         if(check.checks().stream().filter(x->!Set.of("BUYING_POWER","SELLABLE_QUANTITY").contains(x.code())).anyMatch(x->!x.passed())) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR,"최신 시세·주문 한도 검증을 통과하지 못했습니다.");
+        }
+        if(OrderWorkflowRules.requiresAmendCash(request.side(),parent.price(),request.limitPrice())
+            && (!check.checks().stream().anyMatch(x->"BUYING_POWER".equals(x.code()) && x.passed())
+                || !OrderWorkflowRules.covers(check.orderAvailableCash(),request.limitPrice().multiply(request.quantity())))) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                "매수 지정가 증액은 기존 예약금을 합산하지 않고 새 주문 전체 금액 이상의 현재 주문가능현금이 필요합니다.");
         }
     }
     private void requireChangeable(ManualOrderCommand c) {

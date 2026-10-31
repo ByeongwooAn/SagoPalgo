@@ -35,7 +35,7 @@ public final class SimulationCompletionRules {
                 || !zero(original.filled) || !zero(original.openQuantity())) throw invalid();
             parentNo=original.orderNo;parentState=original.status;parentFilled=norm(original.filled);parentOpen=norm(original.openQuantity());
             if("AMEND".equals(c.kind)) {
-                if(!"REPLACED".equals(original.status) || c.plan.limitPrice().compareTo(parent.plan.limitPrice())>=0 || !filled(child)) throw invalid();
+                if(!"REPLACED".equals(original.status) || c.plan.limitPrice().compareTo(parent.plan.limitPrice())==0 || !filled(child)) throw invalid();
                 outcome="AMEND_FILLED";
             } else if("CANCEL".equals(c.kind)) {
                 if(!"CANCELLED".equals(original.status) || !"CANCELLED".equals(child.status) || !zero(child.filled)
