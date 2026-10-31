@@ -214,6 +214,26 @@ public class KbSecuritiesAccountClient {
         }
     }
 
+    /** 호출자는 전송 전에 일회용 가드·감사 기록을 커밋해야 합니다. 이 메서드는 재시도하지 않습니다. */
+    public com.sagopalgo.api.order.client.KbLimitOrderContract.Outcome sendOrderOnce(
+        com.sagopalgo.api.order.client.KbLimitOrderContract.Request request
+    ) {
+        if (!properties.isAccountEnabled() || !properties.isOrderEnabled() || !properties.isLiveOrderEnabled()
+            || !com.sagopalgo.api.order.service.OrderReadinessService.officialEndpoint(properties.getBaseUrl())
+            || !"/oauth2/token".equals(properties.getTokenPath())
+            || !java.util.Set.of("/api/v1/ssam1801", "/api/v1/ssam1802", "/api/v1/ssam1805", "/api/v1/ssam1806").contains(request.path())) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "실주문 전송 설정을 확인하세요.");
+        }
+        JsonNode response = restClient.post().uri(endpoint(request.path()))
+            .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.AUTHORIZATION, "bearer " + accessToken())
+            .header("appKey", properties.getAppKey().trim())
+            .body(Map.of("dataHeader", Map.of("ipAddr", properties.getOrderIpAddress(),
+                "macAddr", properties.getOrderMacAddress()), "dataBody", request.dataBody()))
+            .retrieve().body(JsonNode.class);
+        return com.sagopalgo.api.order.client.KbLimitOrderContract.interpret(response);
+    }
+
     private String accessToken() {
         AccessToken accessToken = cachedAccessToken;
         if (isUsable(accessToken)) {

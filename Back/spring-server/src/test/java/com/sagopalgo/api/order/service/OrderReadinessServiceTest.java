@@ -19,6 +19,7 @@ class OrderReadinessServiceTest {
         kb.setAppSecret("private-secret");
         kb.setAccountNumber("12345678");
         kb.setBaseUrl("https://developer.kbsec.com:32484");
+        kb.setTokenPath("/oauth2/token");
         kb.setOrderIpAddress("192.168.1.12");
         kb.setOrderMacAddress("02:11:22:33:44:55");
 
@@ -30,6 +31,10 @@ class OrderReadinessServiceTest {
         assertThat(response.toString()).doesNotContain(
             "private-key", "private-secret", "12345678", "192.168.1.12", "02:11:22:33:44:55"
         );
+        var commands=org.mockito.Mockito.mock(com.sagopalgo.api.order.mapper.ManualOrderMapper.class);
+        assertThat(new OrderReadinessService(properties, commands).status().canSubmit()).isTrue();
+        org.mockito.Mockito.when(commands.verifyStorage()).thenThrow(new org.springframework.dao.DataAccessResourceFailureException("private"));
+        assertThat(new OrderReadinessService(properties, commands).status().canSubmit()).isFalse();
     }
 
     @Test

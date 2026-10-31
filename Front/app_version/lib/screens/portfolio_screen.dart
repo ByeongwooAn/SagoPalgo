@@ -17,6 +17,8 @@ import 'dashboard_screen.dart';
 import 'market_candle_screen.dart';
 import 'order_precheck_sheet.dart';
 import 'kb_portfolio_import_sheet.dart';
+import 'manual_orders_screen.dart';
+import '../repositories/manual_order_repository.dart';
 
 /// 다른 탭의 빈 상태 CTA에서 포트폴리오 탭으로 전달하는 초기 작업입니다.
 enum PortfolioSetupAction { editCapital, addHolding }
@@ -145,6 +147,20 @@ class _PortfolioContent extends StatelessWidget {
             action: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (orderPrecheckRepository is ManualOrderRepository)
+                  IconButton.filledTonal(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ManualOrdersScreen(
+                          repository: orderPrecheckRepository,
+                          manual:
+                              orderPrecheckRepository as ManualOrderRepository,
+                        ),
+                      ),
+                    ),
+                    tooltip: 'KB 수동 주문',
+                    icon: const Icon(Icons.assignment_outlined),
+                  ),
                 IconButton.filledTonal(
                   onPressed: () => _openCapitalEditor(context),
                   tooltip: '자본금 수정',

@@ -557,7 +557,7 @@ class _OrderReadinessCardState extends State<_OrderReadinessCard> {
                   ),
                 ),
               ),
-              StatusChip(label: widget.readiness.canSubmit ? '가능' : '잠금'),
+              StatusChip(label: widget.readiness.canSubmit ? '설정 충족' : '잠금'),
             ],
           ),
           const SizedBox(height: 6),
@@ -756,6 +756,8 @@ String _orderCheckLabel(String code) => switch (code) {
   'ORDER_IP' => '운영 주문 IP',
   'ORDER_MAC' => '운영 주문 MAC',
   'SUBMISSION_TRANSPORT' => '실주문 전송 연결',
+  'OFFICIAL_ORDER_ENDPOINT' => '공식 주문 서버',
+  'ORDER_TOKEN_ENDPOINT' => '주문 인증 경로',
   _ => code,
 };
 

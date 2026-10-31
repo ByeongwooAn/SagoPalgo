@@ -36,7 +36,7 @@ public class OrderPrecheckService {
     private static final int QUANTITY_SCALE = 4;
     private static final int RATE_SCALE = 2;
     private static final int MAX_HISTORY_LIMIT = 100;
-    private static final String SUBMISSION_MESSAGE = "사전검증 전용 단계로 실제 주문 전송은 구현되어 있지 않습니다.";
+    private static final String SUBMISSION_MESSAGE = "사전검증은 주문을 전송하지 않습니다. 승인 기록과 별도의 실제 전송 확인이 필요합니다.";
 
     private final OrderPrecheckMapper mapper;
     private final KbAccountService kbAccountService;

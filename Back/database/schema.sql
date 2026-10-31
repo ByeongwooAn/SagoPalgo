@@ -433,3 +433,48 @@ CREATE TABLE IF NOT EXISTS research_sync_status (
     FOREIGN KEY (user_id) REFERENCES users (user_id)
     ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT='관심 종목 뉴스·공시 동기화 상태';
+-- 기존 DB 백업 후 적용. 기본 OFF 실주문 스위치는 이 마이그레이션으로 변경되지 않습니다.
+CREATE TABLE IF NOT EXISTS manual_order_commands (
+  command_id CHAR(36) NOT NULL PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  approval_id BIGINT NULL,
+  parent_id CHAR(36) NULL,
+  kind VARCHAR(10) NOT NULL,
+  stock_code VARCHAR(20) NOT NULL,
+  stock_name VARCHAR(100) NOT NULL,
+  market VARCHAR(10) NOT NULL,
+  side VARCHAR(4) NOT NULL,
+  price DECIMAL(18,2) NOT NULL,
+  quantity DECIMAL(18,4) NOT NULL,
+  account_fingerprint CHAR(64) NOT NULL,
+  token_hash CHAR(64) NULL,
+  expires_at DATETIME NULL,
+  status VARCHAR(12) NOT NULL,
+  order_no CHAR(10) NULL,
+  order_date CHAR(8) NOT NULL,
+  result_code VARCHAR(30) NULL,
+  process_code VARCHAR(30) NULL,
+  change_id CHAR(36) NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  UNIQUE KEY uq_manual_order_approval (approval_id),
+  KEY idx_manual_order_user (user_id, created_at),
+  KEY idx_manual_order_pending (user_id, status),
+  CONSTRAINT fk_manual_order_user FOREIGN KEY (user_id) REFERENCES users(user_id),
+  CONSTRAINT fk_manual_order_approval FOREIGN KEY (approval_id) REFERENCES order_approvals(order_approval_id),
+  CONSTRAINT fk_manual_order_parent FOREIGN KEY (parent_id) REFERENCES manual_order_commands(command_id),
+  CONSTRAINT chk_manual_order_kind CHECK (kind IN ('NEW','AMEND','CANCEL')),
+  CONSTRAINT chk_manual_order_status CHECK (status IN ('PREPARED','SENDING','ACCEPTED','REJECTED','UNKNOWN'))
+) ENGINE=InnoDB COMMENT='KB 수동 주문 단일 전송 감사 기록';
+
+CREATE TABLE IF NOT EXISTS manual_order_observations (
+  observation_id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  command_id CHAR(36) NOT NULL,
+  status VARCHAR(12) NOT NULL,
+  complete_scan BOOLEAN NOT NULL,
+  filled_quantity DECIMAL(18,4) NULL,
+  open_quantity DECIMAL(18,4) NULL,
+  checked_at DATETIME NOT NULL,
+  KEY idx_manual_observation_command (command_id, observation_id),
+  CONSTRAINT fk_manual_observation_command FOREIGN KEY (command_id) REFERENCES manual_order_commands(command_id)
+) ENGINE=InnoDB COMMENT='KB 주문 체결 수동 조회 이력';

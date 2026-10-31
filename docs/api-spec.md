@@ -694,13 +694,15 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 이 단계는 실제 거래 승인/체결이 아닙니다. 기존 DB에는 `Back/database/migrations/007_order_approvals.sql`을 적용해야 합니다.
 
-### 15.4 KB 공식 지정가 주문 계약 (전송 미연결)
+### 15.4 KB 공식 지정가 주문 계약
 
 [매수주문 `SSAM1802`](https://openapi.kbsec.com/apidoc_b2c#O_5e895db9-9f4c-4c98-aeb1-efc9c57df6f8#G_domestic#A_b5c9ce31-f3f8-4f9c-a4cd-987ce047c39f)과 [매도주문 `SSAM1801`](https://openapi.kbsec.com/apidoc_b2c#O_5e895db9-9f4c-4c98-aeb1-efc9c57df6f8#G_domestic#A_402bb495-8f3d-4de5-99e4-161d378a4f55)의 공식 요청 필드를 확인했습니다. 둘 다 `POST /api/v1/ssam1802` 또는 `/api/v1/ssam1801`에 `dataBody`의 `mkt_tm_clsf=1`(정규장), `is_cd`(종목코드), `ordr_q`(수량), `ordr_uprc`(단가), `ordr_ccd=00`(지정가), `sor_ordr_ccd=K`(KRX)를 사용합니다. 현재 계약 코드는 이 본문을 생성하고 길이·정수 조건을 검증하지만 네트워크 요청은 보내지 않습니다.
 
 응답은 `dataHeader.resultCode=200` **만으로 성공 처리하지 않습니다**. `processFlag=A`와 0이 아닌 `dataBody.ordr_no`가 함께 있을 때만 접수로 분류합니다. 공식 매도 실패 샘플은 `resultCode=200`, `processFlag=B`, `ordr_no=0000000000`입니다. 명시적 실패는 거절, 서로 모순되거나 누락된 필드는 확인 필요(`UNKNOWN`)로 분류하고 자동 재시도하지 않는 것이 다음 구현의 원칙입니다. 이 분류는 체결 완료를 의미하지 않습니다.
 
 [체결미체결 조회 `SSQM2341`](https://openapi.kbsec.com/apidoc_b2c#O_5e895db9-9f4c-4c98-aeb1-efc9c57df6f8#G_domestic#A_66998ea3-85f3-4060-bf6d-f88a163eee35)는 `ccls_clsf`, `ordr_dt`, 선택적 `nxt_key`로 조회하고 `Record1`에 주문번호, 체결·미체결 수량을 반환합니다. 실주문 연결 전에는 운영용 `ipAddr`·`macAddr` 헤더, 응답 불명확 시 이력 대조, 서버 측 중복 제출 차단과 실제 계좌의 수동 검증을 마쳐야 합니다.
+
+수동 전송 연결과 정정/취소·감사·체결 조회 API, 016 배포 절차는 [KB 수동 주문 문서](kb-manual-orders.md)에 정리했습니다. 계약 클래스 자체는 순수 인코딩/분류이고 실제 HTTP 호출은 별도 단일 전송 메서드에서 실행합니다.
 
 ### 15.5 KB 체결미체결 읽기 전용 조회
 
@@ -744,7 +746,7 @@ KB `SSQM2341`을 호출합니다. `orderDate`를 생략하면 한국 시간의 �
 
 `GET /api/v1/orders/readiness`는 KB 계좌·사전검증·별도 실주문 스위치, API 키, 계좌번호, HTTPS 엔드포인트, 운영 주문 IP/MAC 형식 및 전송 어댑터 연결 여부를 `checks`로 반환합니다. IP/MAC과 비밀값 원문은 반환하지 않습니다. `SAGOPALGO_KB_LIVE_ORDER_ENABLED`는 기본 `false`이며 `SAGOPALGO_KB_ORDER_IP_ADDRESS`와 `SAGOPALGO_KB_ORDER_MAC_ADDRESS`는 기본 빈 값입니다. 형식 통과는 KB의 운영 승인이나 해당 서버가 실제 주문 발신지라는 증명이 아닙니다. [KB 개발 가이드](https://openapi.kbsec.com/guide_b2c)의 주문 요청 예시에는 `ipAddr`·`macAddr`가 있지만, 실제 사용 값은 계좌·운영 환경에서 검증해야 합니다.
 
-현재 `SUBMISSION_TRANSPORT` 검사는 항상 실패하고 `canSubmit=false`입니다. 두 스위치를 모두 켜고 주소를 채워도 주문 API가 생기거나 기존 계좌 조회 요청의 헤더가 바뀌지 않습니다. 설정 API의 `orderReadiness`와 Flutter 설정 화면도 같은 차단 사유를 보여줍니다.
+D 묶음에서 전송 어댑터를 연결했습니다. `SUBMISSION_TRANSPORT`는 016의 두 주문 테이블 접근 여부를 확인합니다. 별도로 `OFFICIAL_ORDER_ENDPOINT`와 `ORDER_TOKEN_ENDPOINT`를 검사하며 전체 설정 통과 시에만 `canSubmit=true`입니다. 이 값은 설정 충족이며 주문 권한·실계좌 운영 검증 완료를 뜻하지 않습니다. 기본 실주문 스위치는 계속 OFF이고 기존 계좌 조회 요청의 헤더는 바꾸지 않습니다.
 
 `POST /api/v1/orders/readiness/probe`는 사용자가 Flutter 설정 화면의 "조회 권한 점검"을 누를 때만 실행합니다. 서버는 오늘(한국 시간)의 KB `SSQM2341` 전체 구분 첫 페이지를 **읽기 전용으로 한 번** 조회합니다. 계좌 조회 스위치·인증값·계좌번호·HTTPS 설정이 빠졌다면 KB를 호출하지 않고 `CONFIGURATION_BLOCKED`를 반환합니다. 조회 응답 형식까지 확인되면 `VERIFIED`, 권한·네트워크·응답 오류가 있으면 `UNVERIFIED`입니다. 응답은 `status`, `orderDate`, `checkedAt`, `readOnly=true`, 일반 안내 문구만 포함하며 주문 행·계좌번호·인증값·원본 오류는 포함하지 않습니다. `VERIFIED`는 이 조회 API의 응답 확인일 뿐 주문 제출 권한, 운영 IP/MAC 승인, 실주문 가능 상태를 증명하지 않습니다. 이 진단은 가드나 승인 상태를 변경하지 않습니다.
 
