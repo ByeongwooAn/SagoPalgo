@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/order_precheck.dart';
 import '../repositories/order_precheck_repository.dart';
 import '../repositories/manual_order_repository.dart';
+import 'order_diagnostics_screen.dart';
 
 /// 수동 주문 입력·명시적 전송 확인·접수 기록 및 체결 조회 화면입니다.
 class ManualOrdersScreen extends StatefulWidget {
@@ -205,6 +206,13 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                                   : () => _observations(c, false),
                               child: const Text('저장된 체결 조회 이력'),
                             ),
+                            if (c.status != 'PREPARED' &&
+                                widget.manual
+                                    is ManualOrderDiagnosticRepository)
+                              TextButton(
+                                onPressed: _busy ? null : () => _diagnostics(c),
+                                child: const Text('저장된 진단 이력'),
+                              ),
                             if (c.status == 'ACCEPTED' || c.reconciled)
                               TextButton(
                                 onPressed: _busy
@@ -274,6 +282,7 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
       final record = await repository.fetchDispatch(command.id);
       if (!mounted) return;
       bool checked = false;
+      bool openDiagnosis = false;
       final confirmed =
           await showDialog<bool>(
             context: context,
@@ -305,6 +314,16 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                     onPressed: () => Navigator.pop(context, false),
                     child: const Text('닫기'),
                   ),
+                  if (record['commandStatus'] == 'SENDING' &&
+                      record['phase'] != 'RETURNED' &&
+                      widget.manual is ManualOrderDiagnosticRepository)
+                    OutlinedButton(
+                      onPressed: () {
+                        openDiagnosis = true;
+                        Navigator.pop(context, false);
+                      },
+                      child: const Text('주문번호로 잠금 유지 진단'),
+                    ),
                   if (record['recoverable'] == true)
                     FilledButton(
                       onPressed: checked
@@ -323,6 +342,7 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
           setState(() => _message = '저장 결과를 복구했습니다. 추가 주문은 전송하지 않았습니다.');
         }
       }
+      if (openDiagnosis && mounted) await _openDiagnostics(command, true);
     } catch (e) {
       if (mounted) {
         setState(
@@ -330,6 +350,30 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
               _message = '${_safeError(e)}\n복구 요청을 자동 반복하지 않습니다. 기록을 새로고침하세요.',
         );
       }
+    } finally {
+      if (mounted) await _refresh();
+    }
+  }
+
+  Future<void> _openDiagnostics(ManualOrder command, bool allowNew) async {
+    final repository = widget.manual as ManualOrderDiagnosticRepository;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => OrderDiagnosticsScreen(
+          summary: command.summary,
+          allowNew: allowNew,
+          load: () => repository.diagnosticHistory(command.id),
+          diagnose: (id, number) =>
+              repository.diagnoseSending(command.id, id, number),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _diagnostics(ManualOrder command) async {
+    setState(() => _busy = true);
+    try {
+      await _openDiagnostics(command, false);
     } finally {
       if (mounted) await _refresh();
     }

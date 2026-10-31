@@ -96,3 +96,7 @@ docker compose --env-file .env up -d --build --no-deps spring-api
 재현은 [격리 MySQL 테스트 실행 절차](kb-manual-orders.md#격리-mysql-통합-검증-재현)를 따릅니다. 이 작업에서 실제 KB 주문·장애 유발·실제 계좌 대조는 수행하지 않습니다. RETURNED가 없는 SENDING과 UNKNOWN 부분체결/변경 주문 대조 및 11번 자동매매는 후속 범위입니다.
 
 019 후속 변경은 [SENDING 기록 복구](order-dispatch-recovery.md)에 정리했습니다. SAVE_FAILURE의 반환 결과를 적용해도 모의 전송 횟수·가상 증권사·현금·보유분은 변하지 않습니다. 이전 JSON 세션의 필드가 없으면 LEGACY_UNVERIFIED로 조회하며 복구를 열지 않습니다. 내부 실행 UUID와 토큰 해시는 API에서 제외합니다.
+
+## 후속: 잠금 유지 진단
+
+SENDING의 RESERVED/DISPATCHING/LEGACY_UNVERIFIED 카드에서 `가상 주문번호로 잠금 유지 진단`을 엽니다. 예약 직후 중단은 빈 결과, 반환 기록 실패는 기본 신규 주문 항목 일치를 관찰할 수 있으나 상태·차단·전송 횟수·가상 자원은 유지합니다. 명령별 최대 20건을 저장하며 진단 이력은 세션 JSON의 diagnostics에 포함됩니다. 이전 JSON의 누락 필드는 빈 목록으로 읽습니다. POST `/{sessionId}/commands/{id}/diagnostics`는 `{diagnosticId,orderNo,acknowledged:true,confirmation:"잠금 유지 진단"}`을 받고 진단 한 건을 반환합니다. 실제 KB 조회는 없으며 020 실주문 진단 테이블도 사용하지 않습니다. 상세 기준은 [수동 진단 문서](sending-manual-diagnostics.md)를 따릅니다.

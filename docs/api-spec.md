@@ -921,7 +921,7 @@ AI 신호 기반 모의매매와 수익률·승률·최대 손실·회전율 지
 작업 묶음은 [개발 진척도](development-progress.md#화면-기준-실행-계획)를 기준으로 진행합니다.
 
 1. A/B/C 운영 확인: 새 Windows 앱의 창 크기·배율·초기 동선 및 사용자 선택 종목의 계좌·수집·분석·홈·알림·모의매매 대조. C(9)의 반응형 레이아웃·초기 동선 구현은 완료했으며 API 변경은 없음
-2. D(10): 017/018 적용 여부 확인·019 배포 후 SENDING 기록 복구 화면 대조. 다음은 종료 결과 없는 SENDING 확인 절차·UNKNOWN 부분체결/변경 주문 대조와 추가 변경 보강, 별도 승인된 실제 계좌 검증
+2. D(10): 017/018/019 적용 여부 확인·020 배포 후 SENDING 기록 복구 화면 대조. 다음은 UNKNOWN 부분체결/변경 주문 대조와 추가 변경 보강. 종료 결과 없는 SENDING의 잠금 유지 진단은 구현했으며 종결·해제는 미지원, 별도 승인된 실제 계좌 검증
 3. E(11): 운영 검증 후 제한적 자동매매 착수 여부 결정
 
 ## 19. 주문 시뮬레이션
@@ -939,3 +939,9 @@ AI 신호 기반 모의매매와 수익률·승률·최대 손실·회전율 지
 실주문 응답은 `commandId,commandStatus,phase,receipt,reservedAt,startedAt,returnedAt,recoveredAt,recoverable,message`이며 receipt는 정규화한 `status,orderNo,resultCode,processCode`입니다. SENDING+RETURNED+유효한 결과+현재 계좌 지문을 모두 확인합니다. ACCEPTED/REJECTED/UNKNOWN을 그대로 적용하며 UNKNOWN은 차단을 유지합니다. RESERVED/DISPATCHING/LEGACY_UNVERIFIED는 시간 경과로 해제하지 않습니다. 정상 완료·동시 복구는 동일 결과의 중복 적용을 막고 복구 감사 기록과 상태 변경을 원자적으로 저장합니다.
 
 시뮬레이터는 STOP_BEFORE_SEND(RESERVED,0회)·JOURNAL_FAILURE(DISPATCHING,1회)를 추가하고 SAVE_FAILURE는 RETURNED 후 최종 상태 저장 실패를 재현합니다. 기존 JSON 필드 누락은 증거 없는 기록으로 취급합니다. 내부 실행 UUID·토큰 해시·계좌 지문·증권사 원문 메시지는 API에 노출하지 않습니다. 복구와 GET은 실주문 스위치 OFF에서도 가능하며 외부 호출이 없습니다.
+
+## 21. 종료 결과 없는 SENDING 읽기 전용 진단
+
+GET/POST `/api/v1/orders/manual/{id}/diagnostics`와 POST `/api/v1/orders/simulations/{sessionId}/commands/{id}/diagnostics`를 추가했습니다. 진단 UUID·숫자 10자리 번호·`acknowledged:true`·`confirmation:"잠금 유지 진단"`을 요구합니다. 실제 요청은 REQUESTED 커밋 이후 읽기 전용 KB 조회를 수행하고 COMPLETED로 관찰을 저장합니다. 같은 ID는 기존 결과만 반환하며 조회를 반복하지 않습니다. 이력 GET은 최근 20건 저장 데이터만 반환합니다.
+
+응답 필드·판정·동시성·응답 유실·020 적용은 [진단 상세 계약](sending-manual-diagnostics.md)을 따릅니다. 020 누락은 DIAGNOSTIC_STORAGE_UNAVAILABLE(503)로 구분하며 기존 주문 준비 조건에는 추가하지 않습니다. 조회 실패 원문·계좌 지문·토큰 해시·전송 실행 UUID는 저장 응답에서 제외합니다. 항목 일치·빈 결과·부분/전량 체결 관찰로 주문 상태나 가드를 바꾸지 않습니다. UNKNOWN 주문 대조 범위도 확장하지 않습니다.

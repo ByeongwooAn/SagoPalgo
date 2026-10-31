@@ -128,3 +128,7 @@ try {
 [SENDING 기록/복구의 상세 기준·화면 확인·019 백업/적용](order-dispatch-recovery.md)을 따릅니다. 신규·정정·취소의 종료된 호출 결과를 별도 커밋하며, SENDING 카드의 `전송 기록 확인·복구`에서 유효한 RETURNED만 명시적 확인 후 반영합니다. 자동 재전송·가드 초기화는 없고 UNKNOWN은 차단을 유지합니다. 기존/진행 중/종료 기록 없는 SENDING을 해제하지 않습니다. 위의 전량 체결 대조는 계속 UNKNOWN 신규 주문에만 적용됩니다.
 
 GET `/manual/{id}/dispatch`는 단계·반환 결과·복구 가능 여부를 조회하고, POST `/manual/{id}/dispatch/recover`는 `{acknowledged:true,confirmation:"저장된 전송 결과 복구"}`로 상태만 적용합니다. 두 경로 모두 KB를 호출하지 않습니다. 019가 없으면 새 백엔드는 주문 저장소 사용을 차단하므로 재배포 전에 별도 백업 후 적용합니다.
+
+## 후속 020: SENDING 수동 진단 이력
+
+[종료 결과 없는 SENDING 진단](sending-manual-diagnostics.md)에서 RESERVED/DISPATCHING/LEGACY_UNVERIFIED의 읽기 전용 관찰 절차와 020 배포를 확인합니다. 전송 기록 창의 `주문번호로 잠금 유지 진단`으로 진입하고, 이후 카드의 `저장된 진단 이력`에서 최근 20건을 조회합니다. 일치·빈 결과·전량 체결 관찰로도 원래 상태/가드를 해제하지 않습니다. 020 누락은 새 진단 기능에만 503을 반환하며 기존 016/017/019 준비 조건과 분리됩니다.

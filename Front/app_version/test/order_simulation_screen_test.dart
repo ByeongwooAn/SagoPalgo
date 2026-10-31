@@ -6,6 +6,7 @@ import 'package:app_version/repositories/order_simulation_repository.dart';
 import 'package:app_version/repositories/paper_trading_repository.dart';
 import 'package:app_version/repositories/spring_paper_trading_repository.dart';
 import 'package:app_version/screens/order_simulation_screen.dart';
+import 'package:app_version/screens/order_diagnostics_screen.dart';
 import 'package:app_version/screens/paper_trading_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -62,6 +63,28 @@ void main() {
     await t.tap(find.text('모의 주문 전송'));
     await t.pump();
   }
+
+  testWidgets(
+    'unfinished simulation opens diagnosis without sending any mutation',
+    (t) async {
+      final r = FakeSimulation();
+      r.commands.add(
+        command('c1', 'SENDING')..['dispatchPhase'] = 'DISPATCHING',
+      );
+      r.state['blocked'] = true;
+      await mount(t, r);
+      await t.ensureVisible(find.text('가상 주문번호로 잠금 유지 진단'));
+      await t.tap(find.text('가상 주문번호로 잠금 유지 진단'));
+      await t.pumpAndSettle();
+      expect(find.byType(OrderDiagnosticsScreen), findsOneWidget);
+      expect(find.text('SIMULATION · 실제 KB 조회·주문 없음'), findsOneWidget);
+      expect(r.actions, isEmpty);
+      await t.pageBack();
+      await t.pumpAndSettle();
+      expect(r.commands.single['status'], 'SENDING');
+      expect(r.state['blocked'], true);
+    },
+  );
 
   testWidgets('new session uses virtual cash and makes no order requests', (
     t,

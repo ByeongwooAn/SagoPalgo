@@ -13,7 +13,8 @@ class SpringOrderPrecheckRepository
         OrderPrecheckRepository,
         ManualOrderRepository,
         ManualOrderReconciliationRepository,
-        ManualOrderDispatchRepository {
+        ManualOrderDispatchRepository,
+        ManualOrderDiagnosticRepository {
   SpringOrderPrecheckRepository({
     required this.accessToken,
     ApiConfig? config,
@@ -198,6 +199,28 @@ class SpringOrderPrecheckRepository
   @override
   Future<Map<String, dynamic>> fetchDispatch(String id) async =>
       await _manual('manual/$id/dispatch') as Map<String, dynamic>;
+
+  @override
+  Future<List<Map<String, dynamic>>> diagnosticHistory(String id) async =>
+      (await _manual('manual/$id/diagnostics') as List)
+          .cast<Map<String, dynamic>>();
+
+  @override
+  Future<Map<String, dynamic>> diagnoseSending(
+    String id,
+    String diagnosticId,
+    String orderNo,
+  ) async =>
+      await _manual(
+            'manual/$id/diagnostics',
+            body: {
+              'diagnosticId': diagnosticId,
+              'orderNo': orderNo,
+              'acknowledged': true,
+              'confirmation': '잠금 유지 진단',
+            },
+          )
+          as Map<String, dynamic>;
 
   @override
   Future<Map<String, dynamic>> recoverDispatch(String id) async =>

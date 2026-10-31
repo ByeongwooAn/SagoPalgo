@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../repositories/order_simulation_repository.dart';
+import 'order_diagnostics_screen.dart';
 
 /// 고정 가정 시세와 가상 현금으로 주문 실패/체결 순서를 수동 시험합니다.
 class OrderSimulationScreen extends StatefulWidget {
@@ -348,6 +349,22 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                                     onPressed: _busy ? null : () => _recover(c),
                                     child: const Text('기록으로 결과 복구'),
                                   ),
+                                if (c['status'] == 'SENDING' &&
+                                    c['dispatchPhase'] != 'RETURNED')
+                                  TextButton(
+                                    onPressed: _busy
+                                        ? null
+                                        : () => _diagnostics(c, true),
+                                    child: const Text('가상 주문번호로 잠금 유지 진단'),
+                                  ),
+                                if ((c['diagnostics'] as List? ?? [])
+                                    .isNotEmpty)
+                                  TextButton(
+                                    onPressed: _busy
+                                        ? null
+                                        : () => _diagnostics(c, false),
+                                    child: const Text('저장된 진단 이력'),
+                                  ),
                                 if (num.parse('${c['openQuantity']}') > 0) ...[
                                   TextButton(
                                     onPressed: _busy ? null : () => _fill(c, 1),
@@ -452,6 +469,42 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
       {'quantity': quantity},
     ),
   );
+  Future<void> _diagnostics(Map<String, dynamic> command, bool allowNew) async {
+    final session = _id;
+    setState(() => _busy = true);
+    try {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => OrderDiagnosticsScreen(
+            simulation: true,
+            summary: _summary(command['plan'] as Map<String, dynamic>),
+            allowNew: allowNew,
+            load: () async {
+              final snapshot = await widget.repository.simulation(session);
+              final c = (snapshot['commands'] as List)
+                  .cast<Map<String, dynamic>>()
+                  .firstWhere((c) => c['id'] == command['id']);
+              return (c['diagnostics'] as List? ?? [])
+                  .cast<Map<String, dynamic>>();
+            },
+            diagnose: (id, number) => widget.repository.simulationAction(
+              session,
+              'commands/${command['id']}/diagnostics',
+              {
+                'diagnosticId': id,
+                'orderNo': number,
+                'acknowledged': true,
+                'confirmation': '잠금 유지 진단',
+              },
+            ),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) await _load();
+    }
+  }
+
   Future<void> _recover(Map<String, dynamic> command) async {
     setState(() => _busy = true);
     try {

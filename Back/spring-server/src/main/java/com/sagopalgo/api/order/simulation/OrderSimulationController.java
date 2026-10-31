@@ -43,6 +43,12 @@ public class OrderSimulationController {
         @PathVariable String id,@PathVariable String commandId,@Valid @RequestBody Submit request) {
         return ok(service.recover(user.userId(),id,commandId,request.acknowledged(),request.confirmation()));
     }
+    @PostMapping("/{id}/commands/{commandId}/diagnostics") public ApiResponse<OrderSimulationState.Diagnostic> diagnose(
+        @PathVariable String id,@PathVariable String commandId,@Valid @RequestBody Diagnostic request) {
+        return ApiResponse.success(service.diagnose(user.userId(),id,commandId,request.diagnosticId(),request.orderNo(),request.acknowledged(),request.confirmation()),"SIMULATION 잠금 유지 진단. 실제 조회·주문 없음");
+    }
+    public record Diagnostic(@NotBlank @Size(max=36) String diagnosticId,@NotBlank @Pattern(regexp="[0-9]{10}") String orderNo,
+        boolean acknowledged,@NotBlank String confirmation){}
     private ApiResponse<Map<String,Object>> ok(Map<String,Object> data) { return ApiResponse.success(data,"SIMULATION 전용 결과. 실제 주문 전송 없음"); }
     public record Create(@NotNull @DecimalMin("0.01") @Digits(integer=10,fraction=2) BigDecimal cash) {}
     public record Quote(@NotBlank String stockCode,@NotBlank String market,@NotNull BigDecimal price) {}

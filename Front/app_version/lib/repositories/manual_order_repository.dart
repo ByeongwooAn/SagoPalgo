@@ -25,6 +25,15 @@ abstract interface class ManualOrderDispatchRepository {
   Future<Map<String, dynamic>> recoverDispatch(String id);
 }
 
+abstract interface class ManualOrderDiagnosticRepository {
+  Future<List<Map<String, dynamic>>> diagnosticHistory(String id);
+  Future<Map<String, dynamic>> diagnoseSending(
+    String id,
+    String diagnosticId,
+    String orderNo,
+  );
+}
+
 class ManualOrder {
   ManualOrder(this.data);
   final Map<String, dynamic> data;
