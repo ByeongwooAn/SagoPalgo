@@ -9,7 +9,10 @@ import 'manual_order_repository.dart';
 
 /// Spring Boot 주문 사전검증 API를 호출합니다.
 class SpringOrderPrecheckRepository
-    implements OrderPrecheckRepository, ManualOrderRepository {
+    implements
+        OrderPrecheckRepository,
+        ManualOrderRepository,
+        ManualOrderReconciliationRepository {
   SpringOrderPrecheckRepository({
     required this.accessToken,
     ApiConfig? config,
@@ -154,6 +157,29 @@ class SpringOrderPrecheckRepository
             )
             as Map<String, dynamic>,
       );
+
+  @override
+  Future<Map<String, dynamic>> prepareReconciliation(
+    String id,
+    String orderNo,
+  ) async =>
+      await _manual(
+            'manual/$id/reconciliation/prepare',
+            body: {'orderNo': orderNo},
+          )
+          as Map<String, dynamic>;
+
+  @override
+  Future<void> confirmReconciliation(String id, String token) async {
+    await _manual(
+      'manual/$id/reconciliation/confirm',
+      body: {
+        'token': token,
+        'acknowledged': true,
+        'confirmation': '전량 체결 대조 확정',
+      },
+    );
+  }
 
   Map<String, dynamic> _readData(http.Response response, String fallback) {
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;

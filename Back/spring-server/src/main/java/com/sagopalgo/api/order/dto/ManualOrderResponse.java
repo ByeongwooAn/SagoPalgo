@@ -8,9 +8,14 @@ public record ManualOrderResponse(
     String commandId, Long approvalId, String parentId, String kind, String stockCode, String stockName,
     String market, String side, BigDecimal price, BigDecimal quantity, String status,
     String orderNo, String orderDate, String resultCode, String processCode, boolean changeUsed,
-    LocalDateTime createdAt, String message
+    LocalDateTime createdAt, String message, ManualOrderReconciliationResponse reconciliation
 ) {
     public static ManualOrderResponse from(ManualOrderCommand c) {
+        return from(c, null);
+    }
+
+    public static ManualOrderResponse from(ManualOrderCommand c,
+        com.sagopalgo.api.order.model.ManualOrderReconciliationRecord reconciliation) {
         String message = switch (c.status()) {
             case "ACCEPTED" -> "KB 접수 응답을 받았습니다. 체결 완료 여부는 체결 조회로 확인하세요.";
             case "REJECTED" -> "KB 거절 응답을 받았습니다. 같은 요청은 재전송하지 않습니다.";
@@ -19,6 +24,7 @@ public record ManualOrderResponse(
         };
         return new ManualOrderResponse(c.commandId(), c.approvalId(), c.parentId(), c.kind(), c.stockCode(),
             c.stockName(), c.market(), c.side(), c.price(), c.quantity(), c.status(), c.orderNo(), c.orderDate(),
-            c.resultCode(), c.processCode(), c.changeId() != null, c.createdAt(), message);
+            c.resultCode(), c.processCode(), c.changeId() != null, c.createdAt(), message,
+            ManualOrderReconciliationResponse.from(reconciliation));
     }
 }

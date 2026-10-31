@@ -1,6 +1,6 @@
 # KB 수동 주문: 구현 범위와 배포 확인
 
-2026-10-31 D(10) 제한 범위 구현입니다. 실제 주문·운영 DB 적용은 실행하지 않았습니다. 자동매매는 포함하지 않습니다.
+2026-10-31 D(10) 제한 범위 구현입니다. 사용자가 운영 DB의 016 두 테이블·제약조건 생성을 확인했습니다. 에이전트는 실제 주문·운영 DB 변경을 실행하지 않았습니다. 후속 대조 기능은 별도 017 적용이 필요합니다.
 
 ## 지원 범위
 
@@ -25,9 +25,21 @@
 
 동일 승인 재호출은 저장 결과만 반환합니다. 사용자 DB 행 잠금과 미확정 전송 검사로 동시 제출을 직렬화합니다. `SENDING/UNKNOWN`이 있으면 다른 새 승인으로도 전송할 수 없습니다. 전송 후 DB 실패는 예약을 취소하지 않습니다. 자동 재전송·토큰 갱신 후 주문 재시도·자동 가드 해제는 없습니다.
 
-앱도 응답이 끊긴 뒤에는 기록이 아직 조회되지 않더라도 새 주문을 차단하고 GET으로만 결과를 재조회합니다. `주문 기록 새로고침`은 주문을 보내지 않습니다. 서버 재시작으로 `SENDING/UNKNOWN`이 풀리지 않습니다. 이 상태는 KB 앱에서 원주문을 확인한 뒤 별도 운영 복구가 필요하며 앱의 잠금 해제 기능은 아직 없습니다. 빈 조회 결과나 날짜별 비슷한 주문을 성공·미접수 근거로 자동 사용하지 않습니다.
+앱도 응답이 끊긴 뒤에는 기록이 아직 조회되지 않더라도 새 주문을 차단하고 GET으로만 결과를 재조회합니다. `주문 기록 새로고침`은 주문을 보내지 않습니다. 서버 재시작으로 `SENDING/UNKNOWN`이 풀리지 않습니다. `UNKNOWN` 신규 주문은 아래의 명시적 전량 체결 대조를 확정한 경우에만 해당 차단이 해소됩니다. 빈 조회 결과나 날짜별 비슷한 주문을 성공·미접수 근거로 자동 사용하지 않습니다.
 
 `KB 체결 조회`는 알려진 주문번호를 최대 10페이지 조회합니다. 전체 조회, 단일 행, 종목·방향·단가·수량이 모두 맞을 때만 `OPEN/PARTIAL/FILLED`로 표시합니다. 미일치·빈 결과·중복 행·불완전 페이지는 `UNKNOWN`입니다. 조회 결과는 별도 이력으로 저장하고 원래 접수 기록은 보존합니다. 앱 보유분·자본금·모의매매 원장은 자동 변경하지 않습니다.
+
+## 미확정 신규 주문의 전량 체결 대조
+
+`UNKNOWN` 신규 주문 카드의 `KB 주문번호로 전량 체결 대조`를 사용합니다. KB 앱에서 이 원주문의 주문번호와 전량 체결을 먼저 확인해야 합니다. 실주문 스위치 OFF 상태에서도 읽기 전용 조회와 감사 기록 저장은 가능합니다.
+
+1. 숫자 10자리 KB 주문번호를 입력해 `읽기 전용 대조`를 누릅니다. 원주문에 저장된 주문일로 최대 10페이지를 조회합니다.
+2. 전체 조회가 끝나고 단일 행의 주문일·번호·종목·방향·지정가·주문수량이 맞아야 합니다. 전량 체결·미체결 0·거절 사유 없음과 주문 시각도 확인합니다. 시각은 저장된 명령 생성 시각의 -2초~+300초 범위로 제한합니다. 서버/KB 시계 차이나 응답 표기 때문에 확인이 안 되면 잠금을 유지합니다.
+3. 다른 앱 명령에 이미 저장한 주문번호는 연결하지 못합니다. 같은 조건의 다른 주문은 자동으로 구별할 수 없으므로 KB 앱에서 원주문인지 직접 대조해야 합니다.
+4. 검토 창에서 원주문·전량 체결 확인을 체크하고 90초 안에 `대조 확정 저장`을 누릅니다. 서버는 다시 조회하고 일회용 토큰을 소비하면서 감사 기록을 저장합니다. 새 준비 요청은 이전 확인 토큰을 무효화합니다.
+5. 최초 상태 `UNKNOWN`과 원래 제출 가드는 보존하고 별도 `reconciliation`을 표시합니다. 확정된 이 주문은 신규 제출 차단 집계에서 제외합니다. 다른 `SENDING/UNKNOWN`이 있으면 차단은 계속됩니다. 이 절차는 매수·매도·정정·취소 POST를 보내지 않습니다.
+
+전송 중이거나 프로세스 종료로 남은 `SENDING`, 정정/취소의 `UNKNOWN`, 미체결·부분체결·빈 결과는 이번 복구 범위에 포함하지 않습니다. 취소·미접수·실패를 추정해 잠금을 해제하지 않습니다. 보유분·자본금 자동 변경이나 원래 요청 재전송도 없습니다.
 
 ## 제한적 정정·취소
 
@@ -51,6 +63,8 @@
 | GET `/manual/{id}/observations` | 최근 20건 저장 조회. KB 호출 없음 |
 | POST `/manual/{id}/changes/prepare` | `{kind:"AMEND",price:정수}` 또는 `{kind:"CANCEL"}` 준비. KB 읽기만 수행 |
 | POST `/manual/{id}/submit` | `{token,acknowledged:true,confirmation:"실제 주문 전송"}` 준비된 변경 전송 |
+| POST `/manual/{id}/reconciliation/prepare` | `{orderNo:"숫자10자리"}` 미확정 신규 주문의 전량 체결 대조·90초 확인 준비 |
+| POST `/manual/{id}/reconciliation/confirm` | `{token,acknowledged:true,confirmation:"전량 체결 대조 확정"}` 재조회 후 대조 확정 저장. 실제 주문 전송 없음 |
 
 ## 기존 DB 적용과 배포
 
@@ -68,12 +82,43 @@ docker compose --env-file .env exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSW
 docker compose --env-file .env up -d --build --no-deps spring-api
 ```
 
-016을 사용할 수 없으면 주문 화면은 `ORDER_STORAGE_UNAVAILABLE`(503)로 안내하고 전송을 막습니다. 준비 상태는 두 테이블 접근 가능 여부도 검사합니다. 공식 주문 URL은 `https://developer.kbsec.com:32484`, 토큰 경로는 `/oauth2/token`으로 제한합니다. IP/MAC 형식 충족만으로 KB 운영 승인을 받았다고 간주하지 않습니다. 계좌·사전검증·별도 실주문 스위치를 포함한 모든 설정이 충족되어야 `canSubmit=true`입니다.
+016·017 저장소를 사용할 수 없으면 주문 화면은 `ORDER_STORAGE_UNAVAILABLE`(503)로 안내하고 전송을 막습니다. 준비 상태는 네 주문 테이블 접근 가능 여부도 검사합니다. 공식 주문 URL은 `https://developer.kbsec.com:32484`, 토큰 경로는 `/oauth2/token`으로 제한합니다. IP/MAC 형식 충족만으로 KB 운영 승인을 받았다고 간주하지 않습니다. 계좌·사전검증·별도 실주문 스위치를 포함한 모든 설정이 충족되어야 `canSubmit=true`입니다.
 
-새 EXE 경로는 `Front/app_version/build/windows/x64/runner/Release/SagoPalgo.exe`입니다. 이 배포에는 DB 016·백엔드·새 EXE가 모두 필요합니다. 이번 작업은 운영 환경변수·실계좌 주문·운영 DB를 변경하지 않았습니다.
+016 적용을 마친 기존 DB는 아래처럼 **별도 백업 후 017**을 적용합니다. 위의 016 절차를 대체하지 않으며 실주문 스위치는 OFF로 유지합니다.
+
+```bash
+set -e
+backup="sagopalgo-before-017-$(date +%Y%m%d-%H%M%S).sql"
+docker compose --env-file .env exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysqldump -uroot --single-transaction --routines --triggers "$MYSQL_DATABASE"' > "$backup"
+test -s "$backup"
+docker compose --env-file .env exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot "$MYSQL_DATABASE"' < Back/database/migrations/017_manual_order_reconciliations.sql
+docker compose --env-file .env exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot "$MYSQL_DATABASE" -e "SHOW CREATE TABLE manual_order_reconciliation_preparations; SHOW CREATE TABLE manual_order_reconciliations;"'
+docker compose --env-file .env up -d --build --no-deps spring-api
+```
+
+새 EXE 경로는 `Front/app_version/build/windows/x64/runner/Release/SagoPalgo.exe`입니다. 이 배포에는 DB 016·017·백엔드·새 EXE가 모두 필요합니다. 이번 작업은 운영 환경변수·실계좌 주문·운영 DB를 변경하지 않았습니다.
 
 ## 남은 검증
 
-백엔드 253건·Flutter 기존 전체 129건과 추가 취소 화면 1건 자동 테스트는 모의 응답/Mapper 기반입니다. Dart 정적 분석 이슈 없음, Windows Release 빌드 성공을 확인했습니다. DB 예약의 독립 트랜잭션 커밋·실패 롤백 순서를 프록시로 검증했고, 타임아웃·중복 요청·만료·잘못된 계좌·부분체결·불완전 페이지·변경 직전 상태 변화·최종 확인 취소를 검증했습니다. 실제 MySQL 8.4 DDL/동시 갱신, KB 체결 응답의 종목/방향 표기, 운영 IP/MAC·주문 권한은 별도 검증이 필요합니다. 로컬 Docker Linux 엔진이 실행되지 않아 MySQL 실행 검증은 하지 못했습니다.
+후속 백엔드 290건에는 실제 MySQL 8.4 통합 8건이 포함됩니다. 격리된 임시 DB에서 016·017 적용/재적용, 실제 MyBatis record 매핑·제약조건, 같은/다른 승인 동시 제출, 실제 가드 롤백·만료, 동시 확정의 단일 소비, KB 주문번호 재사용 실패 시 토큰 롤백을 검증했습니다. 외부 KB 응답과 화면 테스트는 모의 응답 기반입니다. 운영 DB에서의 경쟁 실행이나 실제 KB 결과 대조를 했다는 뜻은 아닙니다.
 
-실제 소액 주문·체결·정정·취소는 사용자의 별도 승인 아래 검증해야 합니다. 미확정 전송 복구와 미지원 변경 범위가 남아 있어 D 전체 완료나 E 자동매매 착수로 처리하지 않습니다.
+실제 소액 주문·체결·정정·취소는 사용자의 별도 승인 아래 검증해야 합니다. `SENDING`과 미체결/변경 주문의 미확정 복구, 미지원 변경 범위가 남아 있어 D 전체 완료나 E 자동매매 착수로 처리하지 않습니다.
+
+## 격리 MySQL 통합 검증 재현
+
+Docker Desktop Linux 엔진을 실행하고 프로젝트 루트에서 아래 PowerShell 명령을 사용합니다. 운영 `.env`·볼륨을 연결하지 않고 별도 프로젝트 `sagopalgo-order-tests`의 tmpfs MySQL만 만듭니다. 테스트는 고정 루프백 `127.0.0.1:33316/sagopalgo_order_test`와 전용 마커를 확인한 후에만 테스트 테이블을 초기화합니다. KB 클라이언트나 Spring 앱 서버는 생성하지 않습니다.
+
+```powershell
+docker compose -f Back/spring-server/compose.order-test.yml up -d --wait
+Push-Location Back/spring-server
+$env:SAGOPALGO_ORDER_MYSQL_TEST = 'true'
+try {
+    .\gradlew.bat test --rerun-tasks
+} finally {
+    Remove-Item Env:SAGOPALGO_ORDER_MYSQL_TEST
+    Pop-Location
+    docker compose -f Back/spring-server/compose.order-test.yml down
+}
+```
+
+기본 테스트 실행에서는 이 8건을 건너뜁니다. 위 플래그와 임시 DB를 준비하고 `--rerun-tasks`로 실행해야 실제 MySQL 검증을 포함합니다. 테스트 자격증명은 임시 DB 전용 고정값이며 운영 설정에 사용하지 않습니다.

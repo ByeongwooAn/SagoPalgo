@@ -164,6 +164,121 @@ void main() {
     },
   );
 
+  Future<void> openReconciliation(WidgetTester t, ReconciliationFake r) async {
+    await mount(t, r);
+    await t.ensureVisible(find.text('KB 주문번호로 전량 체결 대조'));
+    await t.tap(find.text('KB 주문번호로 전량 체결 대조'));
+    await t.pumpAndSettle();
+    await t.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      '0040000638',
+    );
+    await t.tap(find.text('읽기 전용 대조'));
+    await t.pump(const Duration(milliseconds: 400));
+  }
+
+  testWidgets(
+    'reconciliation can be reviewed with live switch off and cancellation keeps lock',
+    (t) async {
+      final r = ReconciliationFake()..ready = false;
+      await openReconciliation(t, r);
+      expect(r.prepares, 1);
+      expect(r.resolutions, 0);
+      expect(
+        t
+            .widget<FilledButton>(find.widgetWithText(FilledButton, '대조 확정 저장'))
+            .onPressed,
+        isNull,
+      );
+      await t.tap(find.text('취소').last);
+      await t.pumpAndSettle();
+      expect(r.orders.single.unresolved, isTrue);
+      expect(r.submits, 0);
+      expect(r.resolutions, 0);
+    },
+  );
+
+  testWidgets(
+    'explicit filled reconciliation preserves UNKNOWN and clears only its pending block',
+    (t) async {
+      final r = ReconciliationFake();
+      await openReconciliation(t, r);
+      await t.tap(find.byType(CheckboxListTile));
+      await t.pump(const Duration(milliseconds: 100));
+      await t.tap(find.text('대조 확정 저장'));
+      await t.pumpAndSettle();
+      expect(r.resolutions, 1);
+      expect(r.submits, 0);
+      expect(r.orders.single.status, 'UNKNOWN');
+      expect(r.orders.single.reconciled, isTrue);
+      expect(find.textContaining('전량 체결 대조 확정 · KB 주문번호'), findsOneWidget);
+      expect(
+        t
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, '안전 조건 검증 및 주문안 확인'),
+            )
+            .onPressed,
+        isNotNull,
+      );
+    },
+  );
+
+  testWidgets('failed reconciliation save does not retry or unlock', (t) async {
+    final r = ReconciliationFake()..failResolution = true;
+    await openReconciliation(t, r);
+    await t.tap(find.byType(CheckboxListTile));
+    await t.pump(const Duration(milliseconds: 100));
+    await t.tap(find.text('대조 확정 저장'));
+    await t.pumpAndSettle();
+    expect(r.resolutions, 1);
+    expect(r.orders.single.unresolved, isTrue);
+    expect(r.submits, 0);
+    await t.tap(find.byTooltip('주문 기록 새로고침'));
+    await t.pumpAndSettle();
+    expect(r.resolutions, 1);
+    expect(
+      t
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, '안전 조건 검증 및 주문안 확인'),
+          )
+          .onPressed,
+      isNull,
+    );
+  });
+
+  test(
+    'reconciliation requests use read/confirm endpoints and never submission',
+    () async {
+      final paths = <String>[];
+      final repository = SpringOrderPrecheckRepository(
+        accessToken: '',
+        config: ApiConfig(baseUrl: 'http://localhost:8080'),
+        client: MockClient((request) async {
+          paths.add(request.url.path);
+          if (paths.length == 1) {
+            expect(jsonDecode(request.body), {'orderNo': '0040000638'});
+          } else {
+            expect(jsonDecode(request.body), {
+              'token': 'proof-token',
+              'acknowledged': true,
+              'confirmation': '전량 체결 대조 확정',
+            });
+          }
+          return http.Response(jsonEncode({'success': true, 'data': {}}), 200);
+        }),
+      );
+      await repository.prepareReconciliation('test', '0040000638');
+      await repository.confirmReconciliation('test', 'proof-token');
+      expect(paths, [
+        '/api/v1/orders/manual/test/reconciliation/prepare',
+        '/api/v1/orders/manual/test/reconciliation/confirm',
+      ]);
+    },
+  );
+
   test(
     'HTTP submission does not retry on failure and history only GETs',
     () async {
@@ -282,6 +397,52 @@ class FakeRepository extends OrderPrecheckRepository
       'kind': 'CANCEL',
       'commandId': 'child',
     });
+  }
+}
+
+class ReconciliationFake extends FakeRepository
+    implements ManualOrderReconciliationRepository {
+  ReconciliationFake() {
+    orders = [order('UNKNOWN')];
+  }
+  int prepares = 0;
+  int resolutions = 0;
+  bool failResolution = false;
+  @override
+  Future<Map<String, dynamic>> prepareReconciliation(
+    String id,
+    String orderNo,
+  ) async {
+    prepares++;
+    return {
+      'command': orders.single.data,
+      'orderNo': orderNo,
+      'orderTime': '090001',
+      'filledQuantity': 1,
+      'token': 'proof-token',
+    };
+  }
+
+  @override
+  Future<void> confirmReconciliation(String id, String token) async {
+    expect(id, 'test');
+    expect(token, 'proof-token');
+    resolutions++;
+    if (failResolution) {
+      throw const OrderPrecheckRepositoryException('대조 저장 실패');
+    }
+    orders = [
+      ManualOrder({
+        ...orders.single.data,
+        'reconciliation': {
+          'orderDate': '20261031',
+          'orderNo': '0040000638',
+          'orderTime': '090001',
+          'filledQuantity': 1,
+          'confirmedAt': '2026-10-31T10:00:00',
+        },
+      }),
+    ];
   }
 }
 

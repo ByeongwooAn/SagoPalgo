@@ -62,7 +62,9 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                 ((_awaitingApproval != null &&
                         '${c.data['approvalId']}' == '$_awaitingApproval') ||
                     (_awaitingCommand != null && c.id == _awaitingCommand)) &&
-                (c.status == 'ACCEPTED' || c.status == 'REJECTED'),
+                (c.status == 'ACCEPTED' ||
+                    c.status == 'REJECTED' ||
+                    c.reconciled),
           );
           if (resolved) {
             _awaitingApproval = null;
@@ -86,7 +88,7 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
   bool get _pending =>
       _awaitingApproval != null ||
       _awaitingCommand != null ||
-      _orders.any((c) => c.status == 'SENDING' || c.status == 'UNKNOWN');
+      _orders.any((c) => c.unresolved);
   @override
   Widget build(BuildContext context) => PopScope(
     canPop: !_busy,
@@ -189,6 +191,11 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                         SelectableText(
                           '${c.kind} · ${c.status}\n${c.summary}\n주문번호 ${c.orderNo.isEmpty ? '미확인' : c.orderNo}\n${c.data['orderDate']} · ${c.message}',
                         ),
+                        if (c.reconciled)
+                          SelectableText(
+                            '전량 체결 대조 확정 · KB 주문번호 ${c.reconciliation!['orderNo']}\n'
+                            '확정 ${c.reconciliation!['confirmedAt']} · 최초 전송 결과는 보존됩니다.',
+                          ),
                         Wrap(
                           spacing: 8,
                           children: [
@@ -198,12 +205,21 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                                   : () => _observations(c, false),
                               child: const Text('저장된 체결 조회 이력'),
                             ),
-                            if (c.status == 'ACCEPTED')
+                            if (c.status == 'ACCEPTED' || c.reconciled)
                               TextButton(
                                 onPressed: _busy
                                     ? null
                                     : () => _observations(c, true),
                                 child: const Text('KB 체결 조회'),
+                              ),
+                            if (c.status == 'UNKNOWN' &&
+                                c.kind == 'NEW' &&
+                                !c.reconciled &&
+                                widget.manual
+                                    is ManualOrderReconciliationRepository)
+                              TextButton(
+                                onPressed: _busy ? null : () => _reconcile(c),
+                                child: const Text('KB 주문번호로 전량 체결 대조'),
                               ),
                             if (c.status == 'ACCEPTED' &&
                                 c.kind == 'NEW' &&
@@ -237,6 +253,118 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
       ),
     ),
   );
+
+  Future<void> _reconcile(ManualOrder command) async {
+    var orderNo = '';
+    final entered = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('미확정 신규 주문 대조'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${command.summary}\n주문일 ${command.data['orderDate']}\n'
+                'KB 앱에서 이 주문의 주문번호와 전량 체결을 확인하세요. 빈 조회·미체결 결과로 잠금을 해제하지 않습니다.',
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                onChanged: (value) => orderNo = value,
+                maxLength: 10,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'KB 주문번호 10자리'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, orderNo),
+            child: const Text('읽기 전용 대조'),
+          ),
+        ],
+      ),
+    );
+    if (entered == null || !mounted) return;
+    if (!RegExp(r'^\d{10}$').hasMatch(entered)) {
+      setState(() => _message = 'KB 앱에서 확인한 숫자 10자리 주문번호를 입력하세요.');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    final repository = widget.manual as ManualOrderReconciliationRepository;
+    try {
+      final preparation = await repository.prepareReconciliation(
+        command.id,
+        entered,
+      );
+      if (!mounted) return;
+      bool checked = false;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => StatefulBuilder(
+          builder: (context, update) => AlertDialog(
+            title: const Text('전량 체결 대조 확정'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${command.summary}\nKB 주문번호 ${preparation['orderNo']}\n'
+                    '주문 시각 ${preparation['orderTime']} · 체결 ${preparation['filledQuantity']}주\n\n'
+                    '확정 직전에 다시 조회합니다. 원래 전송 기록과 가드는 보존하고, 이 주문의 신규 전송 차단만 해소합니다. '
+                    '동일 조건의 다른 주문을 연결하지 않도록 KB 앱에서 확인하세요. 실제 주문은 전송하지 않습니다.',
+                  ),
+                  CheckboxListTile(
+                    value: checked,
+                    onChanged: (value) =>
+                        update(() => checked = value ?? false),
+                    title: const Text('KB 앱에서 이 원주문과 전량 체결을 확인했습니다.'),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('취소'),
+              ),
+              FilledButton(
+                onPressed: checked ? () => Navigator.pop(context, true) : null,
+                child: const Text('대조 확정 저장'),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+      await repository.confirmReconciliation(
+        command.id,
+        preparation['token'] as String,
+      );
+      if (mounted) {
+        setState(() => _message = '전량 체결 대조를 저장했습니다. 실제 주문은 전송하지 않았습니다.');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(
+          () => _message =
+              '${_safeError(e)}\n저장 결과는 주문 기록 새로고침으로 확인하세요. 확인 요청을 자동 반복하지 않습니다.',
+        );
+      }
+    } finally {
+      if (mounted) await _refresh();
+    }
+  }
 
   Widget _field(
     TextEditingController controller,

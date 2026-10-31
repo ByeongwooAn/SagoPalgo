@@ -35,15 +35,19 @@ public class ManualOrderService {
     }
 
     public List<ManualOrderResponse> history(Long user) {
-        storage(); return mapper.recent(user).stream().map(ManualOrderResponse::from).toList();
+        storage(); return mapper.recent(user).stream().map(c -> response(user,c)).toList();
     }
-    public ManualOrderResponse get(Long user,String id) { return ManualOrderResponse.from(require(user,id)); }
+    public ManualOrderResponse get(Long user,String id) { return response(user,require(user,id)); }
+
+    private ManualOrderResponse response(Long user,ManualOrderCommand command) {
+        return ManualOrderResponse.from(command,mapper.reconciliation(command.commandId(),user));
+    }
 
     public ManualOrderResponse submit(Long user,Long approvalId,boolean acknowledged,String confirmation) {
         acknowledge(acknowledged,confirmation);
         storage();
         ManualOrderCommand previous=mapper.findApproval(approvalId,user);
-        if(previous!=null) return ManualOrderResponse.from(previous);
+        if(previous!=null) return response(user,previous);
         ready();
         OrderPrecheckRecord plan=prechecks.findForApproval(approvalId,user);
         if(plan==null) throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND);
@@ -110,9 +114,11 @@ public class ManualOrderService {
     public ManualOrderObservation sync(Long user,String id) {
         ManualOrderCommand c=require(user,id);
         if(!binding.matches(c.accountFingerprint())) throw new ApiException(ErrorCode.VALIDATION_ERROR,"승인 당시 계좌 설정과 다릅니다.");
-        if(!"ACCEPTED".equals(c.status()) || c.orderNo()==null) throw new ApiException(ErrorCode.VALIDATION_ERROR,
+        var reconciliation=mapper.reconciliation(id,user);
+        String knownOrderNo=reconciliation==null?c.orderNo():reconciliation.orderNo();
+        if((!"ACCEPTED".equals(c.status()) && reconciliation==null) || knownOrderNo==null) throw new ApiException(ErrorCode.VALIDATION_ERROR,
             "알려진 KB 접수 주문번호가 필요합니다. 불명확한 전송은 KB 앱과 기존 수동 대조에서 확인하세요.");
-        KbOrderLookupResponse lookup=executions.findByOrderNumber(c.orderDate(),c.orderNo());
+        KbOrderLookupResponse lookup=executions.findByOrderNumber(c.orderDate(),knownOrderNo);
         KbOrderExecutionItemResponse row=lookup.completeScan() && lookup.matches().size()==1?lookup.matches().get(0):null;
         boolean matches=row!=null && c.stockCode().equals(row.stockCode())
             && c.quantity().compareTo(row.orderQuantity())==0 && row.orderPrice()!=null

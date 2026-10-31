@@ -8,15 +8,29 @@ import org.apache.ibatis.annotations.*;
 
 @Mapper
 public interface ManualOrderMapper {
-    @Select("SELECT c.command_id FROM manual_order_commands c LEFT JOIN manual_order_observations o ON o.command_id=c.command_id LIMIT 1")
+    @Select("""
+        SELECT c.command_id FROM manual_order_commands c
+        LEFT JOIN manual_order_observations o ON o.command_id=c.command_id
+        LEFT JOIN manual_order_reconciliations r ON r.command_id=c.command_id
+        LEFT JOIN manual_order_reconciliation_preparations p ON p.command_id=c.command_id LIMIT 1
+        """)
     String verifyStorage();
 
     // 같은 사용자의 동시 신규 주문·정정 준비를 직렬화합니다. HTTP 호출 중에는 DB 잠금을 유지하지 않습니다.
     @Select("SELECT user_id FROM users WHERE user_id = #{userId} FOR UPDATE")
     Long lockUser(Long userId);
 
-    @Select("SELECT COUNT(*) FROM manual_order_commands WHERE user_id=#{userId} AND status IN ('SENDING','UNKNOWN')")
+    @Select("""
+        SELECT COUNT(*) FROM manual_order_commands c
+        WHERE c.user_id=#{userId} AND (c.status='SENDING' OR (c.status='UNKNOWN' AND NOT EXISTS (
+          SELECT 1 FROM manual_order_reconciliations r
+          WHERE r.command_id=c.command_id AND r.user_id=c.user_id AND c.kind='NEW'
+        )))
+        """)
     int pending(Long userId);
+
+    @Select("SELECT * FROM manual_order_commands WHERE command_id=#{id} AND user_id=#{userId} FOR UPDATE")
+    ManualOrderCommand lockCommand(@Param("id") String id, @Param("userId") Long userId);
 
     @Insert("""
         INSERT INTO manual_order_commands (command_id,user_id,approval_id,parent_id,kind,stock_code,stock_name,
@@ -34,6 +48,10 @@ public interface ManualOrderMapper {
 
     @Select("SELECT * FROM manual_order_commands WHERE user_id=#{userId} ORDER BY created_at DESC,command_id DESC LIMIT 100")
     List<ManualOrderCommand> recent(Long userId);
+
+    @Select("SELECT * FROM manual_order_reconciliations WHERE command_id=#{id} AND user_id=#{userId}")
+    com.sagopalgo.api.order.model.ManualOrderReconciliationRecord reconciliation(
+        @Param("id") String id, @Param("userId") Long userId);
 
     @Update("""
         UPDATE manual_order_commands SET status=#{status}, order_no=#{orderNo}, result_code=#{resultCode},
