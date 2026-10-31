@@ -51,6 +51,22 @@ public final class KbLimitOrderContract {
         return new Request(path, Map.copyOf(dataBody));
     }
 
+    public static Request encodeChange(OrderPrecheckRequest request, String kind, String originalOrderNo) {
+        requireSupported(request);
+        if (!java.util.Set.of("AMEND", "CANCEL").contains(kind) || originalOrderNo == null
+            || !originalOrderNo.matches("[0-9]{10}") || originalOrderNo.matches("0+")) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "원주문 번호와 정정·취소 종류를 확인하세요.");
+        }
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put("is_cd", request.stockCode()); body.put("orgn_ordr_no", originalOrderNo);
+        body.put("crct_clsf", "2"); body.put("ordr_q", request.quantity().toBigIntegerExact().toString());
+        if ("AMEND".equals(kind)) {
+            body.put("mkt_tm_clsf", "1"); body.put("ordr_uprc", request.limitPrice().toBigIntegerExact().toString());
+            body.put("ordr_ccd", "00"); body.put("sor_ordr_ccd", "K");
+        }
+        return new Request("AMEND".equals(kind) ? "/api/v1/ssam1805" : "/api/v1/ssam1806", Map.copyOf(body));
+    }
+
     public static Outcome interpret(JsonNode response) {
         JsonNode header = response == null ? null : response.path("dataHeader");
         JsonNode body = response == null ? null : response.path("dataBody");

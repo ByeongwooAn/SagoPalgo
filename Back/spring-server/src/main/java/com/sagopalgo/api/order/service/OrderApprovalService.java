@@ -11,29 +11,21 @@ import com.sagopalgo.api.order.dto.OrderPrecheckResponse;
 import com.sagopalgo.api.order.mapper.OrderApprovalMapper;
 import com.sagopalgo.api.order.mapper.OrderSubmissionGuardMapper;
 import com.sagopalgo.api.order.model.OrderApprovalRecord;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.HexFormat;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /** 수동 승인 기록까지만 처리하며 KB 주문 API는 호출하지 않습니다. */
 @Service
 public class OrderApprovalService {
-    private static final int TOKEN_BYTES = 32;
-    private static final int TOKEN_TTL_SECONDS = 90;
-    private static final int RESERVATION_TTL_SECONDS = 90;
+    private static final int TOKEN_TTL_SECONDS = OrderWorkflowRules.APPROVAL_SECONDS;
+    private static final int RESERVATION_TTL_SECONDS = OrderWorkflowRules.APPROVAL_SECONDS;
     private static final String NOT_SUBMITTED = "승인 기록만 저장되었습니다. KB증권에 실제 주문은 전송되지 않았습니다.";
 
     private final OrderPrecheckService precheckService;
     private final OrderApprovalMapper mapper;
     private final OrderSubmissionGuardMapper submissionGuardMapper;
     private final OrderAccountBinding accountBinding;
-    private final SecureRandom secureRandom = new SecureRandom();
 
     public OrderApprovalService(
         OrderPrecheckService precheckService,
@@ -54,9 +46,7 @@ public class OrderApprovalService {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "안전 조건을 통과하지 못해 승인할 수 없습니다.");
         }
 
-        byte[] tokenBytes = new byte[TOKEN_BYTES];
-        secureRandom.nextBytes(tokenBytes);
-        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+        String token = OrderWorkflowRules.issueToken();
         LocalDateTime now = LocalDateTime.now();
         OrderApprovalRecord record = new OrderApprovalRecord();
         record.setUserId(userId);
@@ -93,12 +83,6 @@ public class OrderApprovalService {
     }
 
     private String hash(String token) {
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256")
-                .digest(token.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException("SHA-256을 사용할 수 없습니다.", exception);
-        }
+        return OrderWorkflowRules.hash(token);
     }
 }

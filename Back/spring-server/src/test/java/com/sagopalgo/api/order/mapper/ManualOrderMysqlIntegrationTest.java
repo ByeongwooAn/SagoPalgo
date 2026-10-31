@@ -7,15 +7,21 @@ import com.sagopalgo.api.order.model.ManualOrderReconciliationPreparation;
 import com.sagopalgo.api.order.model.ManualOrderReconciliationRecord;
 import com.sagopalgo.api.order.service.ManualOrderStore;
 import com.sagopalgo.api.order.service.ManualOrderReconciliationStore;
+import com.sagopalgo.api.order.simulation.*;
+import com.sagopalgo.api.order.dto.OrderPrecheckRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.aop.framework.ProxyFactory;
@@ -37,6 +43,9 @@ class ManualOrderMysqlIntegrationTest {
     private ManualOrderStore store;
     private ManualOrderReconciliationStore reconciliationStore;
     private DataSourceTransactionManager transactions;
+    private OrderSimulationMapper simulations;
+    private OrderSimulationStore simulationStore;
+    private OrderSimulationService simulationService;
     private static final String FINGERPRINT = "f".repeat(64);
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
@@ -57,6 +66,9 @@ class ManualOrderMysqlIntegrationTest {
             jdbc.execute("DROP TABLE IF EXISTS manual_order_commands");
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/016_manual_order_commands.sql"));
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/017_manual_order_reconciliations.sql"));
+            jdbc.execute("DROP TABLE IF EXISTS order_simulation_sessions");
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/018_order_simulation_sessions.sql"));
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/018_order_simulation_sessions.sql"));
             // 재적용도 안전한 CREATE IF NOT EXISTS인지 검증합니다.
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/016_manual_order_commands.sql"));
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/017_manual_order_reconciliations.sql"));
@@ -66,6 +78,7 @@ class ManualOrderMysqlIntegrationTest {
         configuration.addMapper(ManualOrderMapper.class);
         configuration.addMapper(OrderSubmissionGuardMapper.class);
         configuration.addMapper(ManualOrderReconciliationMapper.class);
+        configuration.addMapper(OrderSimulationMapper.class);
         var factory = new SqlSessionFactoryBean();
         factory.setDataSource(dataSource);
         factory.setConfiguration(configuration);
@@ -75,6 +88,9 @@ class ManualOrderMysqlIntegrationTest {
         transactions = new DataSourceTransactionManager(dataSource);
         store = proxy(new ManualOrderStore(commands, session.getMapper(OrderSubmissionGuardMapper.class)));
         reconciliationStore = proxy(new ManualOrderReconciliationStore(commands, reconciliations));
+        simulations = session.getMapper(OrderSimulationMapper.class);
+        simulationStore = new OrderSimulationStore(simulations, new ObjectMapper(), transactions);
+        simulationService = new OrderSimulationService(simulations, simulationStore, new ObjectMapper());
     }
 
     @SuppressWarnings("unchecked")
@@ -86,7 +102,7 @@ class ManualOrderMysqlIntegrationTest {
     }
 
     @BeforeEach void resetOnlyIsolatedOrderTables() {
-        for (String table : List.of("manual_order_reconciliations", "manual_order_reconciliation_preparations",
+        for (String table : List.of("order_simulation_sessions", "manual_order_reconciliations", "manual_order_reconciliation_preparations",
             "manual_order_observations", "manual_order_commands", "order_submission_guards", "order_approvals", "order_prechecks")) {
             jdbc.update("DELETE FROM " + table);
         }
@@ -170,6 +186,144 @@ class ManualOrderMysqlIntegrationTest {
             .isInstanceOf(org.springframework.dao.DataAccessException.class);
         assertThat(reconciliations.preparation(second.commandId(), 1L)).isNotNull();
         assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+
+    @Test void simulationApprovalIsSeparateAndUsesHashOnlyInDatabase() {
+        String id = simSession("1000000");
+        var prepared = simulationService.prepare(1L,id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+        String command = (String) prepared.get("commandId");
+        assertThat(simCommand(simulationService.get(1L,id), command)).containsEntry("status","PREPARED").containsEntry("sendCount",0);
+        assertThat(simulations.find(id,1L).stateJson()).contains("tokenHash").doesNotContain((String)prepared.get("token"));
+        assertThat(simulationService.get(1L,id).toString()).doesNotContain("tokenHash").contains("SIMULATION");
+        assertThatThrownBy(() -> simulationService.submit(1L,id,command,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+        simulationService.confirm(1L,id,command,(String)prepared.get("token"),true);
+        assertThatThrownBy(() -> simulationService.confirm(1L,id,command,(String)prepared.get("token"),true)).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> simulationService.submit(1L,id,command,true,"실제 주문 전송")).isInstanceOf(RuntimeException.class);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM order_approvals",Integer.class)).isZero();
+    }
+
+    @Test void simulationWaitPartialFullAndSellUpdateOnlyVirtualAccount() {
+        String id=simSession("1000000");
+        String buy=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+        var accepted=simulationService.submit(1L,id,buy,true,"모의 주문 전송");
+        String number=(String)simCommand(accepted,buy).get("brokerOrderNo");
+        assertThat((BigDecimal)accepted.get("availableCash")).isEqualByComparingTo("850000");
+        var partial=simulationService.fill(1L,id,number,BigDecimal.ONE);
+        assertThat(simCommand(partial,buy)).containsEntry("brokerStatus","PARTIAL");
+        assertThat((BigDecimal)partial.get("cash")).isEqualByComparingTo("925000");
+        simulationService.fill(1L,id,number,BigDecimal.ONE);
+        String sell=simReady(id,simPlan("SELL","75000","2"),"NEW",null,"FULL_FILL");
+        var done=simulationService.submit(1L,id,sell,true,"모의 주문 전송");
+        assertThat((BigDecimal)done.get("cash")).isEqualByComparingTo("1000000");
+        assertThat(((Map<?,?>)done.get("positions")).get("KOSPI:005930")).isEqualTo(new BigDecimal("0"));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_commands",Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM trade_records",Integer.class)).isZero();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings={"WAIT","PARTIAL_FILL","FULL_FILL","REJECT","TIMEOUT_BEFORE_ACCEPT","TIMEOUT_AFTER_ACCEPT","SAVE_FAILURE"})
+    void simulationFaultScenariosPersistSingleSendAndSurviveServiceRecreation(String scenario) {
+        String id=simSession("1000000");
+        String command=simReady(id,simPlan("BUY","75000","2"),"NEW",null,scenario);
+        if (scenario.equals("SAVE_FAILURE")) assertThatThrownBy(() -> simulationService.submit(1L,id,command,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+        else simulationService.submit(1L,id,command,true,"모의 주문 전송");
+        var restarted=new OrderSimulationService(simulations,new OrderSimulationStore(simulations,new ObjectMapper(),transactions),new ObjectMapper());
+        var result=restarted.get(1L,id);
+        String expected=switch(scenario){case "REJECT"->"REJECTED";case "SAVE_FAILURE"->"SENDING";
+            case "TIMEOUT_BEFORE_ACCEPT","TIMEOUT_AFTER_ACCEPT"->"UNKNOWN";default->"ACCEPTED";};
+        assertThat(simCommand(result,command)).containsEntry("status",expected).containsEntry("sendCount",1);
+        restarted.submit(1L,id,command,true,"모의 주문 전송");
+        assertThat(simCommand(restarted.get(1L,id),command)).containsEntry("sendCount",1);
+        if (List.of("UNKNOWN","SENDING").contains(expected)) {
+            assertThat(result.get("blocked")).isEqualTo(true);
+            String other=simReady(id,simPlan("BUY","75000","1"),"NEW",null,"WAIT");
+            assertThatThrownBy(() -> restarted.submit(1L,id,other,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+        }
+        if (scenario.equals("TIMEOUT_BEFORE_ACCEPT")) assertThat(simCommand(result,command)).containsEntry("brokerStatus","NONE");
+        if (scenario.equals("TIMEOUT_AFTER_ACCEPT")) {
+            assertThat(simCommand(result,command)).containsEntry("brokerStatus","FILLED");
+            assertThat((BigDecimal)result.get("cash")).isEqualByComparingTo("850000");
+        }
+    }
+
+    @Test void simulationSimultaneousSameCommandCannotSendTwice() throws Exception {
+        String id=simSession("1000000");String command=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+        race(() -> simulationService.submit(1L,id,command,true,"모의 주문 전송"),()->simulationService.submit(1L,id,command,true,"모의 주문 전송"));
+        var state=simulationService.get(1L,id);
+        assertThat(simCommand(state,command)).containsEntry("sendCount",1);
+        assertThat((BigDecimal)state.get("availableCash")).isEqualByComparingTo("850000");
+    }
+
+    @Test void simulationConcurrentDifferentCommandsCannotOverReserveCash() throws Exception {
+        String id=simSession("200000");
+        String a=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+        String b=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+        assertThat(race(() -> simulationService.submit(1L,id,a,true,"모의 주문 전송"),()->simulationService.submit(1L,id,b,true,"모의 주문 전송")))
+            .containsExactlyInAnyOrder(true,false);
+        assertThat((BigDecimal)simulationService.get(1L,id).get("availableCash")).isEqualByComparingTo("50000");
+    }
+
+    @Test void simulationCancelReleasesReservationEvenAfterQuoteDriftAndCannotRepeat() {
+        String id=simSession("1000000");String root=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+        var accepted=simulationService.submit(1L,id,root,true,"모의 주문 전송");
+        String originalNo=(String)simCommand(accepted,root).get("brokerOrderNo");
+        simulationService.quote(1L,id,"KOSPI","005930",BigDecimal.ONE);
+        String cancel=simReady(id,simPlan("BUY","75000","2"),"CANCEL",root,"WAIT");
+        var result=simulationService.submit(1L,id,cancel,true,"모의 주문 전송");
+        assertThat(simCommand(result,root)).containsEntry("brokerStatus","CANCELLED").containsEntry("changed",true);
+        assertThat((BigDecimal)result.get("availableCash")).isEqualByComparingTo("1000000");
+        assertThatThrownBy(() -> simulationService.fill(1L,id,originalNo,BigDecimal.ONE)).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> simReady(id,simPlan("BUY","75000","2"),"CANCEL",root,"WAIT")).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test void simulationAmendReplacesOriginalAndPartialFillBlocksChanges() {
+        String id=simSession("1000000");String root=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+        simulationService.submit(1L,id,root,true,"모의 주문 전송");
+        String amend=simReady(id,simPlan("BUY","74000","2"),"AMEND",root,"WAIT");
+        var result=simulationService.submit(1L,id,amend,true,"모의 주문 전송");
+        assertThat(simCommand(result,root)).containsEntry("brokerStatus","REPLACED");
+        assertThat((BigDecimal)result.get("availableCash")).isEqualByComparingTo("852000");
+        String id2=simSession("1000000");String partial=simReady(id2,simPlan("BUY","75000","2"),"NEW",null,"PARTIAL_FILL");
+        simulationService.submit(1L,id2,partial,true,"모의 주문 전송");
+        assertThatThrownBy(() -> simReady(id2,simPlan("BUY","75000","2"),"CANCEL",partial,"WAIT")).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test void simulationFreshQuoteExpiryAndStockAvailabilityBlockBeforeSend() {
+        String id=simSession("1000000");
+        assertThatThrownBy(() -> simReady(id,simPlan("SELL","75000","1"),"NEW",null,"WAIT")).isInstanceOf(RuntimeException.class);
+        String command=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+        simulationService.quote(1L,id,"KOSPI","005930",new BigDecimal("100000"));
+        assertThatThrownBy(() -> simulationService.submit(1L,id,command,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+        assertThat(simCommand(simulationService.get(1L,id),command)).containsEntry("sendCount",0).containsEntry("status","READY");
+        simulationService.quote(1L,id,"KOSPI","005930",new BigDecimal("75000"));
+        simulationStore.mutate(1L,id,state->{state.commands.get(command).expiresAt=now().minusSeconds(1).toString();return null;});
+        assertThatThrownBy(() -> simulationService.submit(1L,id,command,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test void simulationOwnershipAndSessionIsolationDoNotTouchRealOrders() {
+        String id=simSession("1000000");String c=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"TIMEOUT_AFTER_ACCEPT");
+        simulationService.submit(1L,id,c,true,"모의 주문 전송");
+        assertThatThrownBy(() -> simulationService.get(2L,id)).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> simulationService.fill(2L,id,"0000000001",BigDecimal.ONE)).isInstanceOf(RuntimeException.class);
+        String fresh=simSession("2000000");
+        assertThat(simulationService.get(1L,id).get("blocked")).isEqualTo(true);
+        assertThat(simulationService.get(1L,fresh).get("blocked")).isEqualTo(false);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_commands",Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM order_approvals",Integer.class)).isZero();
+    }
+
+    private String simSession(String cash) {return (String)simulationService.create(1L,new BigDecimal(cash)).get("sessionId");}
+    private OrderPrecheckRequest simPlan(String side,String price,String quantity) {
+        return new OrderPrecheckRequest("005930","삼성전자","KOSPI",side,new BigDecimal(price),new BigDecimal(quantity));
+    }
+    private String simReady(String id,OrderPrecheckRequest plan,String kind,String parent,String scenario) {
+        var prepared=simulationService.prepare(1L,id,plan,kind,parent,scenario);
+        String command=(String)prepared.get("commandId");
+        simulationService.confirm(1L,id,command,(String)prepared.get("token"),true);return command;
+    }
+    @SuppressWarnings("unchecked")
+    private Map<String,Object> simCommand(Map<String,Object> snapshot,String id) {
+        return ((List<Map<String,Object>>)snapshot.get("commands")).stream().filter(c->id.equals(c.get("id"))).findFirst().orElseThrow();
     }
 
     private ManualOrderReconciliationRecord prepareResolution(ManualOrderCommand command, String orderNo) {
