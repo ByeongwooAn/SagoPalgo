@@ -8,6 +8,7 @@ import '../repositories/watchlist_repository.dart';
 import '../repositories/research_feed_repository.dart';
 import '../models/research_feed.dart';
 import 'watchlist_setup_sheet.dart';
+import 'watchlist_management_sheet.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_text.dart';
@@ -108,6 +109,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         onHoldingTap: widget.onHoldingSetupOpen,
         onWatchlistTap: _openWatchlistPicker,
         onWatchlistAdd: _addWatchlist,
+        onWatchlistManage: _manageWatchlist,
         historyError: _historyError,
         onRetry: () => _loadHistory(reset: true),
       );
@@ -133,6 +135,11 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             onPressed: _addWatchlist,
             icon: const Icon(Icons.add),
             label: const Text('관심 종목 등록'),
+          ),
+          OutlinedButton.icon(
+            onPressed: _manageWatchlist,
+            icon: const Icon(Icons.edit_note),
+            label: const Text('관심 목록 관리'),
           ),
           if (widget.researchFeedRepository != null)
             CheckboxListTile(
@@ -437,6 +444,13 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
 
   Future<void> _addWatchlist() async {
     if (await showWatchlistSetup(context, widget.watchlistRepository)) {
+      widget.onRecommendationChanged();
+    }
+  }
+
+  Future<void> _manageWatchlist() async {
+    if (await showWatchlistManagement(context, widget.watchlistRepository) &&
+        mounted) {
       widget.onRecommendationChanged();
     }
   }
@@ -904,6 +918,7 @@ class _EmptyRecommendationState extends StatelessWidget {
     required this.onHoldingTap,
     required this.onWatchlistTap,
     required this.onWatchlistAdd,
+    required this.onWatchlistManage,
     this.historyError,
     this.onRetry,
   });
@@ -912,6 +927,7 @@ class _EmptyRecommendationState extends StatelessWidget {
   final VoidCallback onHoldingTap;
   final VoidCallback onWatchlistTap;
   final VoidCallback onWatchlistAdd;
+  final VoidCallback onWatchlistManage;
   final Object? historyError;
   final VoidCallback? onRetry;
 
@@ -934,6 +950,11 @@ class _EmptyRecommendationState extends StatelessWidget {
             onPressed: onWatchlistAdd,
             icon: const Icon(Icons.add),
             label: const Text('관심 종목 등록'),
+          ),
+          OutlinedButton.icon(
+            onPressed: onWatchlistManage,
+            icon: const Icon(Icons.edit_note),
+            label: const Text('관심 목록 관리'),
           ),
           const SizedBox(height: 8),
           AppCard(

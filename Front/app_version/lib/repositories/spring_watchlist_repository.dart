@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/recommendation.dart';
 import '../models/watchlist_item.dart';
+import '../models/stock_identity.dart';
 import 'watchlist_repository.dart';
 import 'watchlist_editor.dart';
 
@@ -27,6 +28,35 @@ class SpringWatchlistRepository
 
   /// HTTP 요청을 실제로 보내는 클라이언트입니다.
   final http.Client client;
+
+  @override
+  Future<StockIdentity> lookupStock(String stockCode) async {
+    if (!RegExp(r'^\d{6}$').hasMatch(stockCode)) {
+      throw const WatchlistRepositoryException('국내 종목코드 6자리를 입력하세요.');
+    }
+    final response = await client.get(
+      Uri.parse('${config.marketStocksUrl}/$stockCode/identity'),
+      headers: _headers(),
+    );
+    final result = StockIdentity.fromJson(
+      _decodeResponse(response)['data'] as Map<String, dynamic>,
+    );
+    if (result.stockCode != stockCode) {
+      throw const WatchlistRepositoryException(
+        '조회한 종목코드가 일치하지 않습니다. 다시 조회하세요.',
+      );
+    }
+    return result;
+  }
+
+  @override
+  Future<void> deleteStock(int watchlistId) async {
+    final response = await client.delete(
+      Uri.parse('${config.watchlistBaseUrl}/$watchlistId'),
+      headers: _headers(),
+    );
+    _decodeResponse(response);
+  }
 
   @override
   Future<void> addStock({

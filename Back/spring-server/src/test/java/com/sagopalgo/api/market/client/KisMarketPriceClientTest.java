@@ -347,6 +347,95 @@ class KisMarketPriceClientTest {
         }
     }
 
+    @Test
+    void stockIdentityUsesOfficialProductInfoWithoutInventingMarketFromRequest() {
+        expectToken();
+        server.expect(requestTo("https://kis.test/uapi/domestic-stock/v1/quotations/search-stock-info?PRDT_TYPE_CD=300&PDNO=000660"))
+            .andExpect(header("tr_id", "CTPF1002R"))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+            .andRespond(withSuccess("""
+                {"rt_cd":"0","output":{"pdno":"000660","prdt_abrv_name":"SK하이닉스",
+                 "scts_mket_lstg_dt":"19961226","scts_mket_lstg_abol_dt":"00000000"}}
+                """, MediaType.APPLICATION_JSON));
+        var identity = client.domesticStockIdentity("000660").orElseThrow();
+        assertThat(identity.stockCode()).isEqualTo("000660");
+        assertThat(identity.stockName()).isEqualTo("SK하이닉스");
+        assertThat(identity.market()).isEqualTo("KOSPI");
+        assertThat(identity.provider()).isEqualTo("KIS");
+        server.verify();
+    }
+
+    @Test
+    void stockIdentityUsesCurrentListingRatherThanFormerMarket() {
+        expectToken();
+        expectIdentity("000001", """
+            {"pdno":"000001","prdt_name":"테스트 종목","scts_mket_lstg_dt":"19960101",
+            "scts_mket_lstg_abol_dt":"20000101","kosdaq_mket_lstg_dt":"20010101"}
+            """);
+        assertThat(client.domesticStockIdentity("000001").orElseThrow().market()).isEqualTo("KOSDAQ");
+        server.verify();
+    }
+
+    @Test
+    void missingListingDatesUseExplicitQuoteMarketAndMatchingSymbol() {
+        expectToken();
+        expectIdentity("000001", "{\"pdno\":\"000001\",\"prdt_abrv_name\":\"테스트 종목\"}");
+        server.expect(requestTo("https://kis.test/uapi/domestic-stock/v1/quotations/inquire-price?FID_COND_MRKT_DIV_CODE=J&FID_INPUT_ISCD=000001"))
+            .andRespond(withSuccess("{\"rt_cd\":\"0\",\"output\":{\"stck_shrn_iscd\":\"000001\",\"rprs_mrkt_kor_name\":\"코넥스\"}}", MediaType.APPLICATION_JSON));
+        assertThat(client.domesticStockIdentity("000001").orElseThrow().market()).isEqualTo("KONEX");
+        server.verify();
+    }
+
+    @Test
+    void identityRejectsDifferentProductInsteadOfFillingWrongName() {
+        expectToken();
+        expectIdentity("000660", "{\"pdno\":\"005930\",\"prdt_abrv_name\":\"다른 종목\",\"scts_mket_lstg_dt\":\"19960101\"}");
+        assertThatThrownBy(() -> client.domesticStockIdentity("000660")).isInstanceOf(ApiException.class)
+            .hasMessageContaining("종목코드가 일치하지");
+        server.verify();
+    }
+
+    @Test
+    void unknownMarketIsNotDefaultedToKospi() {
+        expectToken();
+        expectIdentity("000001", "{\"pdno\":\"000001\",\"prdt_abrv_name\":\"테스트 종목\"}");
+        server.expect(request -> assertThat(request.getURI().getPath()).endsWith("inquire-price"))
+            .andRespond(withSuccess("{\"rt_cd\":\"0\",\"output\":{\"stck_shrn_iscd\":\"000001\",\"rprs_mrkt_kor_name\":\"알 수 없음\"}}", MediaType.APPLICATION_JSON));
+        assertThatThrownBy(() -> client.domesticStockIdentity("000001")).hasMessageContaining("상장 시장을 확인할 수 없습니다");
+        server.verify();
+    }
+
+    @Test
+    void delistedIdentityIsRejected() {
+        expectToken();
+        expectIdentity("000001", "{\"pdno\":\"000001\",\"prdt_abrv_name\":\"테스트 종목\",\"lstg_abol_dt\":\"20000101\"}");
+        assertThatThrownBy(() -> client.domesticStockIdentity("000001")).hasMessageContaining("상장폐지");
+        server.verify();
+    }
+
+    @Test
+    void identityHttpErrorRetainsSafeDiagnostics() {
+        expectToken();
+        server.expect(request -> assertThat(request.getURI().getPath()).endsWith("search-stock-info"))
+            .andRespond(withStatus(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON)
+                .body("{\"msg_cd\":\"EGW00123\",\"msg1\":\"private-app-secret\"}"));
+        assertThatThrownBy(() -> client.domesticStockIdentity("000660"))
+            .hasMessageContaining("stage=STOCK_INFO httpStatus=403 kisCode=EGW00123")
+            .hasMessageNotContaining("private-app-secret");
+        server.verify();
+    }
+
+    @Test
+    void disabledIdentityDoesNotCallProvider() {
+        var disabled = new KisMarketPriceClient(new KisMarketProperties(), RestClient.create());
+        assertThat(disabled.domesticStockIdentity("000660")).isEmpty();
+    }
+
+    private void expectIdentity(String code, String output) {
+        server.expect(requestTo("https://kis.test/uapi/domestic-stock/v1/quotations/search-stock-info?PRDT_TYPE_CD=300&PDNO=" + code))
+            .andRespond(withSuccess("{\"rt_cd\":\"0\",\"output\":" + output + "}", MediaType.APPLICATION_JSON));
+    }
+
     private void expectToken() {
         server.expect(requestTo("https://kis.test/oauth2/tokenP"))
             .andRespond(withSuccess("{\"access_token\":\"access-token\",\"expires_in\":3600}", MediaType.APPLICATION_JSON));

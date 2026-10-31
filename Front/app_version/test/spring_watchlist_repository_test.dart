@@ -9,6 +9,78 @@ import 'package:http/testing.dart';
 
 void main() {
   test(
+    'code-only lookup requests identity and preserves leading zeroes',
+    () async {
+      final repository = SpringWatchlistRepository(
+        accessToken: '',
+        config: ApiConfig(baseUrl: 'http://localhost:8080'),
+        client: MockClient((request) async {
+          expect(request.method, 'GET');
+          expect(request.url.path, '/api/v1/market/stocks/000660/identity');
+          expect(request.url.query, isEmpty);
+          return _success({
+            'stockCode': '000660',
+            'stockName': 'SK하이닉스',
+            'market': 'KOSPI',
+            'provider': 'KIS',
+          });
+        }),
+      );
+      final result = await repository.lookupStock('000660');
+      expect(result.stockName, 'SK하이닉스');
+      expect(result.market, 'KOSPI');
+    },
+  );
+
+  test('identity for another code is rejected', () async {
+    final repository = SpringWatchlistRepository(
+      accessToken: '',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient(
+        (_) async => _success({
+          'stockCode': '005930',
+          'stockName': '삼성전자',
+          'market': 'KOSPI',
+          'provider': 'KIS',
+        }),
+      ),
+    );
+    expect(
+      repository.lookupStock('000660'),
+      throwsA(isA<WatchlistRepositoryException>()),
+    );
+  });
+
+  test('delete targets selected watchlist id and exposes rejection', () async {
+    var rejected = false;
+    final repository = SpringWatchlistRepository(
+      accessToken: 'access-token',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient((request) async {
+        expect(request.method, 'DELETE');
+        expect(request.url.path, '/api/v1/watchlist/11');
+        expect(request.headers['Authorization'], 'Bearer access-token');
+        return rejected
+            ? http.Response(
+                jsonEncode({
+                  'success': false,
+                  'error': {'message': '관심 종목을 찾을 수 없습니다.'},
+                }),
+                404,
+                headers: {'content-type': 'application/json; charset=utf-8'},
+              )
+            : _success(null);
+      }),
+    );
+    await repository.deleteStock(11);
+    rejected = true;
+    expect(
+      repository.deleteStock(11),
+      throwsA(isA<WatchlistRepositoryException>()),
+    );
+  });
+
+  test(
     'manual registration posts identity and explicit notification preference without invented prices',
     () async {
       final repository = SpringWatchlistRepository(

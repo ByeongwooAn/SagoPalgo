@@ -38,6 +38,7 @@ class ApiConfig {
 
   /// 국내주식 일·주·월봉 조회 경로입니다.
   String get marketCandlesUrl => '$baseUrl/api/v1/market/candles';
+  String get marketStocksUrl => '$baseUrl/api/v1/market/stocks';
 
   /// 앱 알림 이력과 Windows 전달 대기 목록의 기본 경로입니다.
   String get alertsBaseUrl => '$baseUrl/api/v1/alerts';

@@ -9,6 +9,7 @@ import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockCandle;
 import com.sagopalgo.api.market.model.StockInfo;
+import com.sagopalgo.api.market.model.DomesticStockIdentity;
 import com.sagopalgo.api.market.model.StockQuote;
 import com.sagopalgo.api.market.provider.MarketDataProvider;
 import java.math.BigDecimal;
@@ -165,6 +166,15 @@ public class TossMarketDataProvider implements MarketDataProvider {
 
         return findStockInfo(response == null ? null : response.result(), request.stockCode())
             .map(this::toStockInfo);
+    }
+
+    @Override
+    public Optional<DomesticStockIdentity> domesticStockIdentity(String stockCode) {
+        MarketDataRequest request = new MarketDataRequest(stockCode, "KOSPI");
+        if (!supports(request) || !StringUtils.hasText(properties.getStockInfoPath())) return Optional.empty();
+        // KOSPI는 호출 가능 여부 점검용이며 반환 시장은 종목정보 응답에서만 가져옵니다.
+        return stockInfo(request).map(info -> new DomesticStockIdentity(
+            info.provider(), info.stockCode(), info.stockName(), normalizeMarket(info.market())));
     }
 
     private String accessToken() {

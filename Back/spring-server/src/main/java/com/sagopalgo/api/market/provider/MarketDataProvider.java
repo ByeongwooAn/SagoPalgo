@@ -5,6 +5,7 @@ import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockCandle;
 import com.sagopalgo.api.market.model.StockInfo;
 import com.sagopalgo.api.market.model.StockQuote;
+import com.sagopalgo.api.market.model.DomesticStockIdentity;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +21,10 @@ public interface MarketDataProvider {
     StockQuote quote(MarketDataRequest request);
 
     default Optional<StockInfo> stockInfo(MarketDataRequest request) {
+        return Optional.empty();
+    }
+
+    default Optional<DomesticStockIdentity> domesticStockIdentity(String stockCode) {
         return Optional.empty();
     }
 

@@ -1,6 +1,9 @@
 package com.sagopalgo.api.watchlist.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.sagopalgo.api.common.exception.ApiException;
+import com.sagopalgo.api.common.exception.ErrorCode;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
@@ -77,5 +80,21 @@ class WatchlistServiceTest {
             assertThat(result.currentPrice()).isEqualByComparingTo("75200");
             assertThat(result.changeRate()).isEqualByComparingTo("1.21");
         });
+    }
+
+    @Test
+    void deleteUsesUserScopedIdWithoutCallingPrices() {
+        when(watchlistMapper.deleteByIdAndUserId(7L, 1L)).thenReturn(1);
+        new WatchlistService(watchlistMapper, marketPriceService).delete(1L, 7L);
+        verify(watchlistMapper).deleteByIdAndUserId(7L, 1L);
+        verifyNoInteractions(marketPriceService);
+    }
+
+    @Test
+    void deleteOfMissingOrOtherUsersItemIsRejected() {
+        assertThatThrownBy(() -> new WatchlistService(watchlistMapper, marketPriceService).delete(2L, 7L))
+            .isInstanceOf(ApiException.class).extracting("errorCode").isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
+        verify(watchlistMapper).deleteByIdAndUserId(7L, 2L);
+        verifyNoInteractions(marketPriceService);
     }
 }
