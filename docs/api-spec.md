@@ -704,6 +704,8 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 수동 전송 연결과 정정/취소·감사·체결 조회 API, 016 배포 절차는 [KB 수동 주문 문서](kb-manual-orders.md)에 정리했습니다. 계약 클래스 자체는 순수 인코딩/분류이고 실제 HTTP 호출은 별도 단일 전송 메서드에서 실행합니다.
 
+후속 017은 `POST /api/v1/orders/manual/{id}/reconciliation/prepare`와 `/confirm`을 추가합니다. UNKNOWN 신규 주문의 전량 체결을 사용자가 확정한 경우에만 해당 신규 제출 차단을 해소합니다. 원래 상태와 가드는 보존하고 GET 수동 주문 응답의 `reconciliation`에 대조 번호·시각·수량·확정 시각을 반환합니다. 이 두 API는 KB 읽기 전용 조회만 수행하며 주문을 전송하지 않습니다. 만료·동시 확인·주문번호 재사용·정정/취소/SENDING 차단 및 마이그레이션은 위 문서에 정리했습니다.
+
 ### 15.5 KB 체결미체결 읽기 전용 조회
 
 `GET /api/v1/orders/kb/executions?orderDate=yyyyMMdd&classification=0&nextKey=...`
@@ -746,7 +748,7 @@ KB `SSQM2341`을 호출합니다. `orderDate`를 생략하면 한국 시간의 �
 
 `GET /api/v1/orders/readiness`는 KB 계좌·사전검증·별도 실주문 스위치, API 키, 계좌번호, HTTPS 엔드포인트, 운영 주문 IP/MAC 형식 및 전송 어댑터 연결 여부를 `checks`로 반환합니다. IP/MAC과 비밀값 원문은 반환하지 않습니다. `SAGOPALGO_KB_LIVE_ORDER_ENABLED`는 기본 `false`이며 `SAGOPALGO_KB_ORDER_IP_ADDRESS`와 `SAGOPALGO_KB_ORDER_MAC_ADDRESS`는 기본 빈 값입니다. 형식 통과는 KB의 운영 승인이나 해당 서버가 실제 주문 발신지라는 증명이 아닙니다. [KB 개발 가이드](https://openapi.kbsec.com/guide_b2c)의 주문 요청 예시에는 `ipAddr`·`macAddr`가 있지만, 실제 사용 값은 계좌·운영 환경에서 검증해야 합니다.
 
-D 묶음에서 전송 어댑터를 연결했습니다. `SUBMISSION_TRANSPORT`는 016의 두 주문 테이블 접근 여부를 확인합니다. 별도로 `OFFICIAL_ORDER_ENDPOINT`와 `ORDER_TOKEN_ENDPOINT`를 검사하며 전체 설정 통과 시에만 `canSubmit=true`입니다. 이 값은 설정 충족이며 주문 권한·실계좌 운영 검증 완료를 뜻하지 않습니다. 기본 실주문 스위치는 계속 OFF이고 기존 계좌 조회 요청의 헤더는 바꾸지 않습니다.
+D 묶음에서 전송 어댑터를 연결했습니다. `SUBMISSION_TRANSPORT`는 016·017의 네 주문 테이블 접근 여부를 확인합니다. 별도로 `OFFICIAL_ORDER_ENDPOINT`와 `ORDER_TOKEN_ENDPOINT`를 검사하며 전체 설정 통과 시에만 `canSubmit=true`입니다. 이 값은 설정 충족이며 주문 권한·실계좌 운영 검증 완료를 뜻하지 않습니다. 기본 실주문 스위치는 계속 OFF이고 기존 계좌 조회 요청의 헤더는 바꾸지 않습니다.
 
 `POST /api/v1/orders/readiness/probe`는 사용자가 Flutter 설정 화면의 "조회 권한 점검"을 누를 때만 실행합니다. 서버는 오늘(한국 시간)의 KB `SSQM2341` 전체 구분 첫 페이지를 **읽기 전용으로 한 번** 조회합니다. 계좌 조회 스위치·인증값·계좌번호·HTTPS 설정이 빠졌다면 KB를 호출하지 않고 `CONFIGURATION_BLOCKED`를 반환합니다. 조회 응답 형식까지 확인되면 `VERIFIED`, 권한·네트워크·응답 오류가 있으면 `UNVERIFIED`입니다. 응답은 `status`, `orderDate`, `checkedAt`, `readOnly=true`, 일반 안내 문구만 포함하며 주문 행·계좌번호·인증값·원본 오류는 포함하지 않습니다. `VERIFIED`는 이 조회 API의 응답 확인일 뿐 주문 제출 권한, 운영 IP/MAC 승인, 실주문 가능 상태를 증명하지 않습니다. 이 진단은 가드나 승인 상태를 변경하지 않습니다.
 

@@ -13,6 +13,12 @@ abstract interface class ManualOrderRepository {
   Future<ManualOrder> submitManualChange(String id, String token);
 }
 
+/// 미확정 전송 대조는 실제 주문 전송 기능과 분리합니다.
+abstract interface class ManualOrderReconciliationRepository {
+  Future<Map<String, dynamic>> prepareReconciliation(String id, String orderNo);
+  Future<void> confirmReconciliation(String id, String token);
+}
+
 class ManualOrder {
   ManualOrder(this.data);
   final Map<String, dynamic> data;
@@ -26,6 +32,11 @@ class ManualOrder {
   num get price => num.parse('${data['price']}');
   num get quantity => num.parse('${data['quantity']}');
   bool get changeUsed => data['changeUsed'] == true;
+  Map<String, dynamic>? get reconciliation =>
+      data['reconciliation'] as Map<String, dynamic>?;
+  bool get reconciled => reconciliation != null;
+  bool get unresolved =>
+      status == 'SENDING' || (status == 'UNKNOWN' && !reconciled);
   String get message => data['message'] as String;
   String get summary =>
       '$stockName ($stockCode) · ${side == 'BUY' ? '매수' : '매도'}\n'
