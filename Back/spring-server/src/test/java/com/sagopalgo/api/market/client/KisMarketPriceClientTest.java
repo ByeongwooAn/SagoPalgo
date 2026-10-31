@@ -6,6 +6,8 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
@@ -16,6 +18,9 @@ import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockCandle;
 import com.sagopalgo.api.market.model.StockQuote;
 import java.math.BigDecimal;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.net.ConnectException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -25,9 +30,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.ResourceAccessException;
+import javax.net.ssl.SSLHandshakeException;
 
 /**
  * 한국투자증권 현재가 클라이언트의 외부 API 계약을 검증합니다.
@@ -244,6 +252,104 @@ class KisMarketPriceClientTest {
         var disabled = new KisMarketPriceClient(new KisMarketProperties(), RestClient.create());
         assertThat(disabled.kospi().status()).isEqualTo("DISABLED");
         assertThat(disabled.kospi().receivedAt()).isNull();
+    }
+
+    @Test
+    void httpFailureRetainsStatusAndKisCodeWithoutResponseBodyOrCredentials() {
+        expectToken();
+        server.expect(request -> assertThat(request.getURI().getPath()).endsWith("inquire-price"))
+            .andRespond(withStatus(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body("""
+                {"msg_cd":"EGW00201","msg1":"private-app-secret access-token", "appkey":"app-key"}
+                """));
+
+        assertThatThrownBy(() -> client.quote(new MarketDataRequest("000660", "KOSPI")))
+            .isInstanceOf(ApiException.class)
+            .hasMessageContaining("stage=QUOTE httpStatus=403 kisCode=EGW00201")
+            .hasMessageNotContaining("private-app-secret")
+            .hasMessageNotContaining("access-token")
+            .hasMessageNotContaining("app-key")
+            .hasMessageNotContaining("https://");
+        server.verify();
+    }
+
+    @Test
+    void tokenHttpFailureIdentifiesTokenStageWithoutAttemptingPriceRequest() {
+        server.expect(requestTo("https://kis.test/oauth2/tokenP"))
+            .andRespond(withStatus(HttpStatus.UNAUTHORIZED).contentType(MediaType.APPLICATION_JSON)
+                .body("{\"error_code\":\"EGW00123\",\"error_description\":\"private-app-secret\"}"));
+        assertThatThrownBy(() -> client.quote(new MarketDataRequest("000660", "KOSPI")))
+            .hasMessageContaining("stage=TOKEN httpStatus=401 kisCode=EGW00123")
+            .hasMessageNotContaining("private-app-secret");
+        server.verify();
+    }
+
+    @Test
+    void nonJsonHttpFailureKeepsStatusWithoutCopyingUpstreamPage() {
+        expectToken();
+        server.expect(request -> assertThat(request.getURI().getPath()).endsWith("inquire-price"))
+            .andRespond(withStatus(HttpStatus.BAD_GATEWAY).contentType(MediaType.TEXT_HTML)
+                .body("<html>private-app-secret</html>"));
+        assertThatThrownBy(() -> client.quote(new MarketDataRequest("000660", "KOSPI")))
+            .hasMessageContaining("httpStatus=502 kisCode=UNAVAILABLE")
+            .hasMessageNotContaining("private-app-secret");
+        server.verify();
+    }
+
+    @Test
+    void rejectsUnstructuredErrorCodesInsteadOfLoggingArbitraryText() {
+        expectToken();
+        server.expect(request -> assertThat(request.getURI().getPath()).endsWith("inquire-price"))
+            .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON)
+                .body("{\"msg_cd\":\"private-app-secret\\nforged log line\",\"msg1\":\"access-token\"}"));
+        assertThatThrownBy(() -> client.quote(new MarketDataRequest("000660", "KOSPI")))
+            .hasMessageContaining("httpStatus=500 kisCode=UNAVAILABLE")
+            .hasMessageNotContaining("private-app-secret")
+            .hasMessageNotContaining("forged")
+            .hasMessageNotContaining("access-token");
+        server.verify();
+    }
+
+    @Test
+    void businessFailureRetainsCodesWithoutUpstreamMessageText() {
+        expectToken();
+        server.expect(request -> assertThat(request.getURI().getPath()).endsWith("inquire-price"))
+            .andRespond(withSuccess("{\"rt_cd\":\"1\",\"msg_cd\":\"OPSQ0002\",\"msg1\":\"private-app-secret\"}",
+                MediaType.APPLICATION_JSON));
+        assertThatThrownBy(() -> client.quote(new MarketDataRequest("000660", "KOSPI")))
+            .hasMessageContaining("stage=QUOTE httpStatus=200 rt_cd=1 kisCode=OPSQ0002")
+            .hasMessageNotContaining("private-app-secret");
+        server.verify();
+    }
+
+    @Test
+    void priceTimeoutIsConvertedToSafeDiagnostic() {
+        expectToken();
+        server.expect(request -> assertThat(request.getURI().getPath()).endsWith("inquire-price"))
+            .andRespond(withException(new SocketTimeoutException("private-app-secret")));
+        assertThatThrownBy(() -> client.quote(new MarketDataRequest("000660", "KOSPI")))
+            .hasMessageContaining("stage=QUOTE kind=TIMEOUT")
+            .hasMessageNotContaining("private-app-secret");
+        server.verify();
+    }
+
+    @Test
+    void transportDiagnosticsDistinguishDnsTlsAndConnectionWithoutCauseText() {
+        List<java.io.IOException> causes = List.of(new UnknownHostException("private-host"),
+            new SSLHandshakeException("private-certificate"), new ConnectException("private-host"));
+        List<String> kinds = List.of("DNS", "TLS", "CONNECT");
+        for (int index = 0; index < causes.size(); index++) {
+            ApiException failure = KisApiErrors.requestFailure("QUOTE", "현재가",
+                new ResourceAccessException("private-url", causes.get(index)));
+            assertThat(failure.getErrorCode()).isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
+            assertThat(failure.getMessage()).contains("kind=" + kinds.get(index))
+                .doesNotContain("private-host", "private-certificate", "private-url");
+            assertThat(failure.getCause()).isNull();
+        }
+    }
+
+    private void expectToken() {
+        server.expect(requestTo("https://kis.test/oauth2/tokenP"))
+            .andRespond(withSuccess("{\"access_token\":\"access-token\",\"expires_in\":3600}", MediaType.APPLICATION_JSON));
     }
 
     private KisMarketProperties kisProperties() {

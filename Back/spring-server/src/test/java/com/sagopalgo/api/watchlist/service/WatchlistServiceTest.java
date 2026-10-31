@@ -2,11 +2,15 @@ package com.sagopalgo.api.watchlist.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
 
 import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockQuote;
 import com.sagopalgo.api.market.service.MarketPriceService;
 import com.sagopalgo.api.watchlist.dto.WatchlistResponse;
+import com.sagopalgo.api.watchlist.dto.WatchlistCreateRequest;
 import com.sagopalgo.api.watchlist.mapper.WatchlistMapper;
 import com.sagopalgo.api.watchlist.model.WatchlistItem;
 import java.math.BigDecimal;
@@ -27,6 +31,21 @@ class WatchlistServiceTest {
 
     @Mock
     private MarketPriceService marketPriceService;
+
+    @Test
+    @DisplayName("관심 종목 등록은 현재가 Provider 호출 없이 저장한다")
+    void registrationDoesNotDependOnMarketPrice() {
+        when(watchlistMapper.insert(any(WatchlistItem.class))).thenAnswer(invocation -> {
+            WatchlistItem item = invocation.getArgument(0);
+            item.setWatchlistId(7L);
+            return 1;
+        });
+        var response = new WatchlistService(watchlistMapper, marketPriceService).create(1L,
+            new WatchlistCreateRequest("000660", "SK하이닉스", "KOSPI", false));
+        assertThat(response.watchlistId()).isEqualTo(7L);
+        verify(watchlistMapper).insert(any(WatchlistItem.class));
+        verifyNoInteractions(marketPriceService);
+    }
 
     @Test
     @DisplayName("관심 종목 목록에 현재가 Provider와 등락률을 포함한다")
