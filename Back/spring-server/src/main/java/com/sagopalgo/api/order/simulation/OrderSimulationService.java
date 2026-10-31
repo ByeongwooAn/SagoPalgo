@@ -8,6 +8,7 @@ import com.sagopalgo.api.order.service.OrderSubmissionWorkflow;
 import com.sagopalgo.api.order.service.OrderWorkflowRules;
 import com.sagopalgo.api.order.service.OrderDispatchReceipt;
 import com.sagopalgo.api.order.service.OrderSendingDiagnosticRules;
+import com.sagopalgo.api.order.service.UnknownOrderReviewRules;
 import com.sagopalgo.api.order.dto.KbOrderExecutionItemResponse;
 import com.sagopalgo.api.order.dto.KbOrderLookupResponse;
 import com.sagopalgo.api.order.simulation.OrderSimulationState.*;
@@ -21,7 +22,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderSimulationService {
     public static final Set<String> SCENARIOS = Set.of("WAIT", "PARTIAL_FILL", "FULL_FILL", "REJECT",
-        "TIMEOUT_BEFORE_ACCEPT", "TIMEOUT_AFTER_ACCEPT", "SAVE_FAILURE", "STOP_BEFORE_SEND", "JOURNAL_FAILURE");
+        "TIMEOUT_BEFORE_ACCEPT", "TIMEOUT_AFTER_ACCEPT", "SAVE_FAILURE", "STOP_BEFORE_SEND", "JOURNAL_FAILURE",
+        "TIMEOUT_AFTER_OPEN","TIMEOUT_AFTER_PARTIAL");
     private static final BigDecimal MAX_AMOUNT = new BigDecimal("1000000");
     private final OrderSimulationMapper mapper;
     private final OrderSimulationStore store;
@@ -72,7 +74,7 @@ public class OrderSimulationService {
     public Map<String, Object> prepare(Long userId, String id, OrderPrecheckRequest requested, String kind,
         String parentId, String scenario) {
         if (!SCENARIOS.contains(scenario) || !Set.of("NEW", "AMEND", "CANCEL").contains(kind)) throw invalid("모의 시나리오/주문 종류가 올바르지 않습니다.");
-        if ("CANCEL".equals(kind) && Set.of("PARTIAL_FILL", "FULL_FILL").contains(scenario)) throw invalid("취소는 체결 시나리오 대신 대기·거절·응답 유실 시나리오를 선택하세요.");
+        if ("CANCEL".equals(kind) && Set.of("PARTIAL_FILL", "FULL_FILL","TIMEOUT_AFTER_PARTIAL","TIMEOUT_AFTER_OPEN").contains(scenario)) throw invalid("취소는 체결 시나리오 대신 대기·거절·접수 후 응답 유실 시나리오를 선택하세요.");
         String token = OrderWorkflowRules.issueToken();
         String commandId = store.mutate(userId, id, state -> {
             if (state.commands.size() >= 100) throw invalid("세션의 명령 100건 한도입니다. 새 세션을 만드세요.");
@@ -89,7 +91,7 @@ public class OrderSimulationService {
                 if ("AMEND".equals(kind) && (price == null || price.compareTo(parent.plan.limitPrice()) >= 0)) throw invalid("실주문과 동일하게 지정가 인하만 지원합니다.");
             }
             KbLimitOrderContract.requireSupported(plan);
-            if ("PARTIAL_FILL".equals(scenario) && !"CANCEL".equals(kind) && plan.quantity().compareTo(new BigDecimal("2")) < 0) {
+            if (Set.of("PARTIAL_FILL","TIMEOUT_AFTER_PARTIAL").contains(scenario) && !"CANCEL".equals(kind) && plan.quantity().compareTo(new BigDecimal("2")) < 0) {
                 throw invalid("부분체결 시나리오는 정수 2주 이상 필요합니다.");
             }
             validate(state, plan, kind);
@@ -177,12 +179,13 @@ public class OrderSimulationService {
             c.brokerOrderNo = orderNo;
             if (!"CANCEL".equals(c.kind)) {
                 if (Set.of("FULL_FILL", "TIMEOUT_AFTER_ACCEPT").contains(scenario)) fill(state, broker, c.plan.quantity());
-                else if ("PARTIAL_FILL".equals(scenario)) fill(state, broker, c.plan.quantity().divideToIntegralValue(new BigDecimal("2")));
+                else if (Set.of("PARTIAL_FILL","TIMEOUT_AFTER_PARTIAL").contains(scenario)) fill(state, broker, c.plan.quantity().divideToIntegralValue(new BigDecimal("2")));
             }
             event(state, commandId, "가상 증권사 접수 " + orderNo + " · " + broker.status);
             return interpreted(true, orderNo);
         });
-        if ("TIMEOUT_AFTER_ACCEPT".equals(scenario) && outcome.status() == KbLimitOrderContract.Status.ACCEPTED) throw new IllegalStateException("simulated timeout after accept");
+        if (Set.of("TIMEOUT_AFTER_ACCEPT","TIMEOUT_AFTER_OPEN","TIMEOUT_AFTER_PARTIAL").contains(scenario)
+            && outcome.status() == KbLimitOrderContract.Status.ACCEPTED) throw new IllegalStateException("simulated timeout after accept");
         return outcome;
     }
 
@@ -263,6 +266,50 @@ public class OrderSimulationService {
         });
     }
 
+    public Map<String,Object> prepareReview(Long user,String session,String commandId,String orderNo) {
+        UnknownOrderReviewRules.number(orderNo);String token=OrderWorkflowRules.issueToken();
+        var prepared=store.mutate(user,session,state->{
+            var c=command(state,commandId);UnknownOrderReviewRules.candidate(c.status);
+            if(c.reviews.size()>=20) throw invalid("명령당 대조 관찰 20건 한도입니다.");
+            var evidence=reviewEvidence(state,c,orderNo);
+            var preparation=new ReviewPreparation(UUID.randomUUID().toString(),OrderWorkflowRules.hash(token),UnknownOrderReviewRules.digest(evidence),
+                OrderSimulationStore.now().plusSeconds(90).toString(),evidence);
+            c.reviewPreparation=preparation;event(state,commandId,"UNKNOWN 대조 준비 · 차단 유지");return preparation;
+        });
+        return Map.of("reviewId",prepared.reviewId(),"token",token,"expiresAt",prepared.expiresAt(),"evidence",prepared.evidence(),"message",UnknownOrderReviewRules.MESSAGE);
+    }
+    public Map<String,Object> confirmReview(Long user,String session,String commandId,String reviewId,String token,boolean acknowledged,String confirmation) {
+        UnknownOrderReviewRules.acknowledge(acknowledged,confirmation);
+        if(token==null || token.length()>200) throw invalid("대조 토큰을 확인하세요.");
+        store.mutate(user,session,state->{
+            var c=command(state,commandId);String hash=OrderWorkflowRules.hash(token);
+            var previous=c.reviews.stream().filter(r->r.reviewId().equals(reviewId)).findFirst().orElse(null);
+            if(previous!=null){if(!previous.tokenHash().equals(hash)) throw invalid("대조 토큰이 다릅니다.");return null;}
+            UnknownOrderReviewRules.candidate(c.status);var prepared=c.reviewPreparation;
+            if(prepared==null || !prepared.reviewId().equals(reviewId) || !OrderWorkflowRules.validToken(token,prepared.tokenHash(),
+                LocalDateTime.parse(prepared.expiresAt()),OrderSimulationStore.now())) throw invalid("대조 확인이 만료·변경되었습니다.");
+            var evidence=reviewEvidence(state,c,prepared.evidence().orderNo());
+            if(!UnknownOrderReviewRules.digest(evidence).equals(prepared.evidenceHash())) throw invalid("조회 관찰이 바뀌었습니다. 다시 준비하세요.");
+            c.reviews.add(new StoredReview(reviewId,hash,evidence,OrderSimulationStore.now().toString()));c.reviewPreparation=null;
+            event(state,commandId,"UNKNOWN 대조 관찰 저장 · 차단·가상 자원·전송 횟수 유지");return null;
+        });
+        return get(user,session);
+    }
+    private UnknownOrderReviewRules.Evidence reviewEvidence(OrderSimulationState state,Command c,String orderNo) {
+        var broker=state.brokerOrders.get(orderNo);List<KbOrderExecutionItemResponse> rows=List.of();
+        String parent="NEW".equals(c.kind)?"":command(state,c.parentId).brokerOrderNo;
+        if(broker!=null){
+            var source=command(state,broker.commandId);var p=broker.plan;
+            String original="NEW".equals(source.kind)?"":command(state,source.parentId).brokerOrderNo;
+            rows=List.of(new KbOrderExecutionItemResponse(orderNo,p.stockCode(),"","BUY".equals(p.side())?"매수":"매도",
+                LocalDateTime.parse(source.createdAt).format(java.time.format.DateTimeFormatter.ofPattern("HHmmss")),p.quantity(),broker.filled,
+                broker.openQuantity(),p.limitPrice(),null,"",broker.status,original,"NEW".equals(source.kind)?"":"SIM_"+source.kind,
+                "AMEND".equals(source.kind)?p.quantity():BigDecimal.ZERO,BigDecimal.ZERO));
+        }
+        var created=LocalDateTime.parse(c.createdAt);String date=created.toLocalDate().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
+        return UnknownOrderReviewRules.verify(c.plan,c.kind,date,created,parent,orderNo,new KbOrderLookupResponse(date,orderNo,true,1,rows));
+    }
+
     private void fill(OrderSimulationState state, BrokerOrder order, BigDecimal quantity) {
         if (quantity == null || quantity.signum() <= 0 || quantity.stripTrailingZeros().scale() > 0
             || order.openQuantity().compareTo(quantity) < 0) throw invalid("체결 수량은 남은 미체결 이내의 양수 정수여야 합니다.");
@@ -330,6 +377,8 @@ public class OrderSimulationService {
             item.put("receipt",c.receipt); item.put("startedAt",c.startedAt); item.put("returnedAt",c.returnedAt); item.put("recoveredAt",c.recoveredAt);
             item.put("recoverable","SENDING".equals(c.status) && "RETURNED".equals(c.dispatchPhase) && c.receipt!=null && c.receipt.valid());
             item.put("diagnostics",List.copyOf(c.diagnostics));
+            item.put("reviews",c.reviews.stream().map(r->Map.of("reviewId",r.reviewId(),"evidence",r.evidence(),
+                "confirmedAt",r.confirmedAt(),"lockMaintained",true,"message",UnknownOrderReviewRules.MESSAGE)).toList());
             item.put("brokerOrderNo", c.brokerOrderNo); item.put("brokerStatus", broker == null ? "NONE" : broker.status);
             item.put("filledQuantity", broker == null ? BigDecimal.ZERO : broker.filled);
             item.put("openQuantity", broker == null ? BigDecimal.ZERO : broker.openQuantity()); commands.add(item);

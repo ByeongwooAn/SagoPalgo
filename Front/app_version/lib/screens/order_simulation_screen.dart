@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../repositories/order_simulation_repository.dart';
 import 'order_diagnostics_screen.dart';
+import 'unknown_order_review_screen.dart';
 
 /// 고정 가정 시세와 가상 현금으로 주문 실패/체결 순서를 수동 시험합니다.
 class OrderSimulationScreen extends StatefulWidget {
@@ -35,6 +36,8 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
     'SAVE_FAILURE': '접수 후 결과 저장 실패',
     'STOP_BEFORE_SEND': '전송 예약 직후 중단',
     'JOURNAL_FAILURE': '접수 후 반환 기록 실패',
+    'TIMEOUT_AFTER_OPEN': '미체결 접수 후 응답 유실',
+    'TIMEOUT_AFTER_PARTIAL': '부분체결 후 응답 유실',
   };
   @override
   void initState() {
@@ -344,6 +347,20 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                             Wrap(
                               spacing: 8,
                               children: [
+                                if (c['status'] == 'UNKNOWN')
+                                  TextButton(
+                                    onPressed: _busy
+                                        ? null
+                                        : () => _unknownReview(c, true),
+                                    child: const Text('미체결·변경 주문 대조'),
+                                  ),
+                                if ((c['reviews'] as List? ?? []).isNotEmpty)
+                                  TextButton(
+                                    onPressed: _busy
+                                        ? null
+                                        : () => _unknownReview(c, false),
+                                    child: const Text('저장된 대조 관찰'),
+                                  ),
                                 if (c['recoverable'] == true)
                                   TextButton(
                                     onPressed: _busy ? null : () => _recover(c),
@@ -469,6 +486,49 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
       {'quantity': quantity},
     ),
   );
+  Future<void> _unknownReview(Map<String, dynamic> c, bool allowNew) async {
+    final session = _id;
+    setState(() => _busy = true);
+    try {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => UnknownOrderReviewScreen(
+            summary: _summary(c['plan'] as Map<String, dynamic>),
+            simulation: true,
+            allowNew: allowNew,
+            load: () async {
+              final state = await widget.repository.simulation(session);
+              final command = (state['commands'] as List)
+                  .cast<Map<String, dynamic>>()
+                  .firstWhere((r) => r['id'] == c['id']);
+              return (command['reviews'] as List? ?? [])
+                  .cast<Map<String, dynamic>>();
+            },
+            prepare: (number) => widget.repository.simulationAction(
+              session,
+              'commands/${c['id']}/reviews/prepare',
+              {'orderNo': number},
+            ),
+            confirm: (id, token) async {
+              await widget.repository.simulationAction(
+                session,
+                'commands/${c['id']}/reviews/confirm',
+                {
+                  'reviewId': id,
+                  'token': token,
+                  'acknowledged': true,
+                  'confirmation': '잠금 유지 대조 저장',
+                },
+              );
+            },
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) await _load();
+    }
+  }
+
   Future<void> _diagnostics(Map<String, dynamic> command, bool allowNew) async {
     final session = _id;
     setState(() => _busy = true);

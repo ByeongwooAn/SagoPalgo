@@ -921,7 +921,7 @@ AI 신호 기반 모의매매와 수익률·승률·최대 손실·회전율 지
 작업 묶음은 [개발 진척도](development-progress.md#화면-기준-실행-계획)를 기준으로 진행합니다.
 
 1. A/B/C 운영 확인: 새 Windows 앱의 창 크기·배율·초기 동선 및 사용자 선택 종목의 계좌·수집·분석·홈·알림·모의매매 대조. C(9)의 반응형 레이아웃·초기 동선 구현은 완료했으며 API 변경은 없음
-2. D(10): 017/018/019 적용 여부 확인·020 배포 후 SENDING 기록 복구 화면 대조. 다음은 UNKNOWN 부분체결/변경 주문 대조와 추가 변경 보강. 종료 결과 없는 SENDING의 잠금 유지 진단은 구현했으며 종결·해제는 미지원, 별도 승인된 실제 계좌 검증
+2. D(10): 017~020 적용 여부 확인·021 배포 후 SENDING 기록 복구 화면 대조. 다음은 공식 변경 코드·잔량/변경 주문 종결과 추가 변경 보강. UNKNOWN 잔량·변경의 대조 관찰은 구현. 종료 결과 없는 SENDING의 잠금 유지 진단은 구현했으며 종결·해제는 미지원, 별도 승인된 실제 계좌 검증
 3. E(11): 운영 검증 후 제한적 자동매매 착수 여부 결정
 
 ## 19. 주문 시뮬레이션
@@ -945,3 +945,9 @@ AI 신호 기반 모의매매와 수익률·승률·최대 손실·회전율 지
 GET/POST `/api/v1/orders/manual/{id}/diagnostics`와 POST `/api/v1/orders/simulations/{sessionId}/commands/{id}/diagnostics`를 추가했습니다. 진단 UUID·숫자 10자리 번호·`acknowledged:true`·`confirmation:"잠금 유지 진단"`을 요구합니다. 실제 요청은 REQUESTED 커밋 이후 읽기 전용 KB 조회를 수행하고 COMPLETED로 관찰을 저장합니다. 같은 ID는 기존 결과만 반환하며 조회를 반복하지 않습니다. 이력 GET은 최근 20건 저장 데이터만 반환합니다.
 
 응답 필드·판정·동시성·응답 유실·020 적용은 [진단 상세 계약](sending-manual-diagnostics.md)을 따릅니다. 020 누락은 DIAGNOSTIC_STORAGE_UNAVAILABLE(503)로 구분하며 기존 주문 준비 조건에는 추가하지 않습니다. 조회 실패 원문·계좌 지문·토큰 해시·전송 실행 UUID는 저장 응답에서 제외합니다. 항목 일치·빈 결과·부분/전량 체결 관찰로 주문 상태나 가드를 바꾸지 않습니다. UNKNOWN 주문 대조 범위도 확장하지 않습니다.
+
+## 22. UNKNOWN 미체결·부분체결·변경 대조 관찰
+
+POST `/api/v1/orders/manual/{id}/reviews/prepare`, `/confirm`와 GET 기본 reviews 경로를 추가했습니다. 준비는 `{orderNo}`와 90초 토큰/관찰 해시, 확인은 `{reviewId,token,acknowledged:true,confirmation:"잠금 유지 대조 저장"}`을 사용합니다. 확인 전 재조회가 달라지면 저장하지 않습니다. 기존 017의 신규 전량 체결 확정과 달리 이 관찰은 UNKNOWN/차단·원주문 가드를 유지합니다. 전체 필드·21번 저장소와 별개인 021 오류/배포 계약은 [대조 관찰 문서](unknown-order-reviews.md)를 따릅니다.
+
+기존 체결 조회 항목에 originalOrderNo/changeCode/correctedQuantity/sorCancelledQuantity를 추가합니다. 선택 수량 누락은 null, 유효하지 않은 수량은 조회 오류입니다. 명시적 응답 주문일이 요청과 다르면 조회를 거절합니다. 구분 원문을 변경 완료로 매핑하지 않습니다. 시뮬레이터에는 같은 command reviews/prepare·confirm 경로와 공개 reviews 이력, TIMEOUT_AFTER_OPEN/TIMEOUT_AFTER_PARTIAL 시나리오를 추가했습니다. 내부 준비/확인 해시는 상태에서 제외합니다.

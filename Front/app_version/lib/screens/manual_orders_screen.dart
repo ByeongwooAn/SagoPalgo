@@ -4,6 +4,7 @@ import '../models/order_precheck.dart';
 import '../repositories/order_precheck_repository.dart';
 import '../repositories/manual_order_repository.dart';
 import 'order_diagnostics_screen.dart';
+import 'unknown_order_review_screen.dart';
 
 /// 수동 주문 입력·명시적 전송 확인·접수 기록 및 체결 조회 화면입니다.
 class ManualOrdersScreen extends StatefulWidget {
@@ -239,6 +240,27 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                                 onPressed: _busy ? null : () => _reconcile(c),
                                 child: const Text('KB 주문번호로 전량 체결 대조'),
                               ),
+                            if (c.status == 'UNKNOWN' &&
+                                !c.reconciled &&
+                                widget.manual is UnknownOrderReviewRepository)
+                              TextButton(
+                                onPressed: _busy
+                                    ? null
+                                    : () => _unknownReview(c, true),
+                                child: Text(
+                                  c.kind == 'NEW'
+                                      ? '미체결·부분체결 대조'
+                                      : '정정·취소 주문 대조',
+                                ),
+                              ),
+                            if (c.status != 'PREPARED' &&
+                                widget.manual is UnknownOrderReviewRepository)
+                              TextButton(
+                                onPressed: _busy
+                                    ? null
+                                    : () => _unknownReview(c, false),
+                                child: const Text('저장된 대조 관찰'),
+                              ),
                             if (c.status == 'ACCEPTED' &&
                                 c.kind == 'NEW' &&
                                 !c.changeUsed) ...[
@@ -374,6 +396,27 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
     setState(() => _busy = true);
     try {
       await _openDiagnostics(command, false);
+    } finally {
+      if (mounted) await _refresh();
+    }
+  }
+
+  Future<void> _unknownReview(ManualOrder c, bool allowNew) async {
+    final repository = widget.manual as UnknownOrderReviewRepository;
+    setState(() => _busy = true);
+    try {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => UnknownOrderReviewScreen(
+            summary: c.summary,
+            allowNew: allowNew,
+            load: () => repository.unknownReviewHistory(c.id),
+            prepare: (number) => repository.prepareUnknownReview(c.id, number),
+            confirm: (id, token) =>
+                repository.confirmUnknownReview(c.id, id, token),
+          ),
+        ),
+      );
     } finally {
       if (mounted) await _refresh();
     }

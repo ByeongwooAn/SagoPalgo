@@ -100,3 +100,7 @@ docker compose --env-file .env up -d --build --no-deps spring-api
 ## 후속: 잠금 유지 진단
 
 SENDING의 RESERVED/DISPATCHING/LEGACY_UNVERIFIED 카드에서 `가상 주문번호로 잠금 유지 진단`을 엽니다. 예약 직후 중단은 빈 결과, 반환 기록 실패는 기본 신규 주문 항목 일치를 관찰할 수 있으나 상태·차단·전송 횟수·가상 자원은 유지합니다. 명령별 최대 20건을 저장하며 진단 이력은 세션 JSON의 diagnostics에 포함됩니다. 이전 JSON의 누락 필드는 빈 목록으로 읽습니다. POST `/{sessionId}/commands/{id}/diagnostics`는 `{diagnosticId,orderNo,acknowledged:true,confirmation:"잠금 유지 진단"}`을 받고 진단 한 건을 반환합니다. 실제 KB 조회는 없으며 020 실주문 진단 테이블도 사용하지 않습니다. 상세 기준은 [수동 진단 문서](sending-manual-diagnostics.md)를 따릅니다.
+
+## 후속: UNKNOWN 잔량·변경 대조 관찰
+
+TIMEOUT_AFTER_OPEN(미체결 접수 후 응답 유실), TIMEOUT_AFTER_PARTIAL(부분체결 후 응답 유실)을 추가해 전체 11개 시나리오입니다. 취소에는 새 두 시나리오를 지정하지 않으며 기존 접수 후 응답 유실을 사용합니다. UNKNOWN 카드의 미체결·변경 주문 대조에서 90초 준비/재조회/확인과 이후 reviews 이력을 확인합니다. 관찰 저장으로 차단·전송 횟수·가상 자원은 변하지 않습니다. 정정/취소의 SIM_AMEND/SIM_CANCEL은 가상 표식이며 KB 구분 코드가 아닙니다. [공통 확인·API 절차](unknown-order-reviews.md)를 따릅니다. 내부 reviewPreparation/토큰 해시는 API 상태에서 제외하고 이전 JSON 누락 필드는 빈 이력으로 읽습니다.

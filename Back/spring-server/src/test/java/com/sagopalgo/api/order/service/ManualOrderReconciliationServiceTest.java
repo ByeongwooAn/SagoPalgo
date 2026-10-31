@@ -131,6 +131,16 @@ class ManualOrderReconciliationServiceTest {
         verifyNoInteractions(executions, store);
     }
 
+    @ParameterizedTest @ValueSource(strings={"original","corrected","sor"})
+    void legacyFilledConfirmationRejectsExplicitChangeOrCancellationEvidence(String field) {
+        var r=row("valid");var changed=new KbOrderExecutionItemResponse(r.orderNo(),r.stockCode(),r.stockName(),r.tradeTypeName(),r.orderTime(),
+            r.orderQuantity(),r.filledQuantity(),r.openQuantity(),r.orderPrice(),r.fillPrice(),r.rejectionReason(),r.status(),
+            "original".equals(field)?"0040000637":"","9","corrected".equals(field)?BigDecimal.ONE:BigDecimal.ZERO,"sor".equals(field)?BigDecimal.ONE:BigDecimal.ZERO);
+        when(executions.findByOrderNumber("20261031","0040000638")).thenReturn(lookup(true,changed));
+        assertThatThrownBy(()->service.prepare(1L,"command","0040000638")).isInstanceOf(ApiException.class);
+        verify(mapper,never()).prepare(any());verifyNoInteractions(store);
+    }
+
     private ManualOrderReconciliationService.Preparation prepare() {
         var result = service.prepare(1L, "command", "0040000638");
         var captor = ArgumentCaptor.forClass(ManualOrderReconciliationPreparation.class);

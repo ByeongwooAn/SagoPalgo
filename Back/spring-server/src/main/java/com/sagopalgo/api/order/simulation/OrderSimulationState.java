@@ -34,10 +34,15 @@ public class OrderSimulationState {
         public String returnedAt;
         public String recoveredAt;
         public List<Diagnostic> diagnostics = new ArrayList<>();
+        public ReviewPreparation reviewPreparation;
+        public List<StoredReview> reviews = new ArrayList<>();
     }
 
     public record Diagnostic(String diagnosticId,String commandId,String orderNo,String phaseBefore,String state,
         com.sagopalgo.api.order.service.OrderSendingDiagnosticRules.Report report,String createdAt,String completedAt){}
+    public record ReviewPreparation(String reviewId,String tokenHash,String evidenceHash,String expiresAt,
+        com.sagopalgo.api.order.service.UnknownOrderReviewRules.Evidence evidence){}
+    public record StoredReview(String reviewId,String tokenHash,com.sagopalgo.api.order.service.UnknownOrderReviewRules.Evidence evidence,String confirmedAt){}
 
     public static class BrokerOrder {
         public String orderNo;

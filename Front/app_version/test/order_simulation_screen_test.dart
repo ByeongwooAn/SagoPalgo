@@ -7,6 +7,7 @@ import 'package:app_version/repositories/paper_trading_repository.dart';
 import 'package:app_version/repositories/spring_paper_trading_repository.dart';
 import 'package:app_version/screens/order_simulation_screen.dart';
 import 'package:app_version/screens/order_diagnostics_screen.dart';
+import 'package:app_version/screens/unknown_order_review_screen.dart';
 import 'package:app_version/screens/paper_trading_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -86,6 +87,24 @@ void main() {
     },
   );
 
+  testWidgets(
+    'unknown simulation opens review without mutation and remains blocked',
+    (t) async {
+      final r = FakeSimulation();
+      r.commands.add(command('c1', 'UNKNOWN'));
+      r.state['blocked'] = true;
+      await mount(t, r);
+      await t.ensureVisible(find.text('미체결·변경 주문 대조'));
+      await t.tap(find.text('미체결·변경 주문 대조'));
+      await t.pumpAndSettle();
+      expect(find.byType(UnknownOrderReviewScreen), findsOneWidget);
+      expect(r.actions, isEmpty);
+      await t.pageBack();
+      await t.pumpAndSettle();
+      expect(r.commands.single['status'], 'UNKNOWN');
+      expect(r.state['blocked'], true);
+    },
+  );
   testWidgets('new session uses virtual cash and makes no order requests', (
     t,
   ) async {
