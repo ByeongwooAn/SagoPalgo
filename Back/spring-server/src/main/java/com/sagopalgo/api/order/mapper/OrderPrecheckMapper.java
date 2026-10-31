@@ -46,7 +46,7 @@ public interface OrderPrecheckMapper {
     );
 
     @Select("""
-        SELECT p.order_precheck_id, p.user_id, p.stock_code, p.stock_name,
+        SELECT p.order_precheck_id, p.user_id, p.stock_code, p.stock_name, p.market,
                p.order_side, p.order_type, p.requested_price, p.quantity,
                p.created_at
         FROM order_prechecks p

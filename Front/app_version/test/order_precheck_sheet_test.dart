@@ -20,7 +20,10 @@ void main() {
     );
 
     expect(find.text('삼성전자 주문 사전검토'), findsOneWidget);
-    expect(find.text('승인 기록만 저장 · 실제 주문 전송 미지원'), findsOneWidget);
+    expect(
+      find.text('이 창은 승인 기록만 저장합니다. 실제 전송은 보유 탭의 KB 수동 주문에서 진행하세요.'),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('안전 조건 검증'));
     await tester.pumpAndSettle();

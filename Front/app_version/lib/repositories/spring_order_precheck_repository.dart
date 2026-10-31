@@ -5,9 +5,11 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/order_precheck.dart';
 import 'order_precheck_repository.dart';
+import 'manual_order_repository.dart';
 
 /// Spring Boot 주문 사전검증 API를 호출합니다.
-class SpringOrderPrecheckRepository implements OrderPrecheckRepository {
+class SpringOrderPrecheckRepository
+    implements OrderPrecheckRepository, ManualOrderRepository {
   SpringOrderPrecheckRepository({
     required this.accessToken,
     ApiConfig? config,
@@ -80,6 +82,78 @@ class SpringOrderPrecheckRepository implements OrderPrecheckRepository {
     'Content-Type': 'application/json',
     if (accessToken.trim().isNotEmpty) 'Authorization': 'Bearer $accessToken',
   };
+
+  Future<dynamic> _manual(String path, {Map<String, dynamic>? body}) async {
+    final uri = Uri.parse('${config.orderBaseUrl}/$path');
+    final response =
+        await (body == null
+                ? client.get(uri, headers: _headers)
+                : client.post(uri, headers: _headers, body: jsonEncode(body)))
+            .timeout(const Duration(seconds: 45));
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        decoded['success'] == true) {
+      return decoded['data'];
+    }
+    throw OrderPrecheckRepositoryException(
+      (decoded['error'] as Map<String, dynamic>?)?['message'] as String? ??
+          '주문 기록을 확인할 수 없습니다.',
+    );
+  }
+
+  @override
+  Future<bool> manualOrderReady() async =>
+      (await _manual('readiness') as Map<String, dynamic>)['canSubmit'] == true;
+  @override
+  Future<List<ManualOrder>> manualOrderHistory() async =>
+      (await _manual('manual') as List)
+          .map((e) => ManualOrder(e as Map<String, dynamic>))
+          .toList();
+  @override
+  Future<ManualOrder> submitManualOrder(int approvalId) async => ManualOrder(
+    await _manual(
+          'manual',
+          body: {
+            'approvalId': approvalId,
+            'acknowledged': true,
+            'confirmation': '실제 주문 전송',
+          },
+        )
+        as Map<String, dynamic>,
+  );
+  @override
+  Future<Map<String, dynamic>> observeManualOrder(String id) async =>
+      await _manual('manual/$id/observations', body: {})
+          as Map<String, dynamic>;
+  @override
+  Future<List<Map<String, dynamic>>> manualOrderObservations(String id) async =>
+      (await _manual('manual/$id/observations') as List)
+          .cast<Map<String, dynamic>>();
+  @override
+  Future<Map<String, dynamic>> prepareManualChange(
+    String id,
+    String kind,
+    int? price,
+  ) async =>
+      await _manual(
+            'manual/$id/changes/prepare',
+            body: {'kind': kind, 'price': ?price},
+          )
+          as Map<String, dynamic>;
+  @override
+  Future<ManualOrder> submitManualChange(String id, String token) async =>
+      ManualOrder(
+        await _manual(
+              'manual/$id/submit',
+              body: {
+                'token': token,
+                'acknowledged': true,
+                'confirmation': '실제 주문 전송',
+              },
+            )
+            as Map<String, dynamic>,
+      );
 
   Map<String, dynamic> _readData(http.Response response, String fallback) {
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;

@@ -97,6 +97,16 @@ class KbLimitOrderContractTest {
             .isEqualTo(KbLimitOrderContract.Status.UNKNOWN);
     }
 
+    @Test
+    void malformedOrderNumberOrConflictingFailureNeverBecomesAcceptedOrRejected() throws Exception {
+        for (String number : java.util.List.of("123", "ABCDEFGHIJ", "00400006381")) {
+            var response=objectMapper.readTree("{\"dataHeader\":{\"resultCode\":\"200\",\"processFlag\":\"A\"},\"dataBody\":{\"ordr_no\":\""+number+"\"}}");
+            assertThat(KbLimitOrderContract.interpret(response).status()).isEqualTo(KbLimitOrderContract.Status.UNKNOWN);
+        }
+        var conflicting=objectMapper.readTree("{\"dataHeader\":{\"resultCode\":\"500\",\"processFlag\":\"B\"},\"dataBody\":{}}");
+        assertThat(KbLimitOrderContract.interpret(conflicting).status()).isEqualTo(KbLimitOrderContract.Status.UNKNOWN);
+    }
+
     private OrderPrecheckRequest request(String side, String stockCode, String price, String quantity) {
         return new OrderPrecheckRequest(
             stockCode, "삼성전자", "KOSPI", side, new BigDecimal(price), new BigDecimal(quantity)

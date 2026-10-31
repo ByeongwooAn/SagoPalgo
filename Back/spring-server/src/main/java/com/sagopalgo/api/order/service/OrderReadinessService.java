@@ -7,28 +7,51 @@ import com.sagopalgo.api.order.dto.OrderReadinessResponse;
 import java.net.URI;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.sagopalgo.api.order.mapper.ManualOrderMapper;
 
 /** 설정 누락을 진단하지만 실제 주문 전송 권한을 부여하지 않습니다. */
 @Service
 public class OrderReadinessService {
     private final Provider kb;
+    private final ManualOrderMapper commands;
 
     public OrderReadinessService(SecuritiesProviderProperties properties) {
+        this(properties, null);
+    }
+
+    @Autowired
+    public OrderReadinessService(SecuritiesProviderProperties properties, ManualOrderMapper commands) {
         this.kb = properties.getKb();
+        this.commands = commands;
     }
 
     public OrderReadinessResponse status() {
-        return new OrderReadinessResponse(false, List.of(
+        List<OrderReadinessCheckResponse> checks = List.of(
             check("ACCOUNT_SWITCH", kb.isAccountEnabled(), "KB 계좌 조회가 활성화되어야 합니다."),
             check("ORDER_PRECHECK_SWITCH", kb.isOrderEnabled(), "KB 주문 사전검증 스위치가 꺼져 있습니다."),
             check("LIVE_ORDER_SWITCH", kb.isLiveOrderEnabled(), "실주문 별도 스위치가 꺼져 있습니다."),
             check("CREDENTIALS", kb.hasRequiredSecrets(), "KB App Key 또는 App Secret이 누락되었습니다."),
             check("ACCOUNT_NUMBER", kb.hasAccountNumber(), "KB 계좌번호가 누락되었습니다."),
             check("HTTPS_ENDPOINT", validHttpsEndpoint(kb.getBaseUrl()), "KB HTTPS 엔드포인트가 올바르지 않습니다."),
+            check("OFFICIAL_ORDER_ENDPOINT", officialEndpoint(kb.getBaseUrl()), "실주문은 KB 공식 운영 엔드포인트만 허용합니다."),
+            check("ORDER_TOKEN_ENDPOINT", "/oauth2/token".equals(kb.getTokenPath()), "실주문 인증 경로를 확인하세요."),
             check("ORDER_IP", validIp(kb.getOrderIpAddress()), "운영 주문 IP 주소가 누락되었거나 올바르지 않습니다."),
             check("ORDER_MAC", validMac(kb.getOrderMacAddress()), "운영 주문 MAC 주소가 누락되었거나 올바르지 않습니다."),
-            check("SUBMISSION_TRANSPORT", false, "KB 실주문 전송 어댑터가 아직 연결되지 않았습니다.")
-        ));
+            check("SUBMISSION_TRANSPORT", storageReady(), "주문 저장소를 확인할 수 없습니다. DB 마이그레이션 016과 연결 상태를 확인하세요.")
+        );
+        return new OrderReadinessResponse(checks.stream().allMatch(OrderReadinessCheckResponse::passed), checks);
+    }
+
+    private boolean storageReady() {
+        if (commands == null) return false;
+        try { commands.verifyStorage(); return true; }
+        catch (org.springframework.dao.DataAccessException exception) { return false; }
+    }
+
+    public static boolean officialEndpoint(String value) {
+        return "https://developer.kbsec.com:32484".equals(value)
+            || "https://developer.kbsec.com:32484/".equals(value);
     }
 
     private OrderReadinessCheckResponse check(String code, boolean passed, String blocker) {

@@ -62,9 +62,10 @@ public final class KbLimitOrderContract {
         if (message.isEmpty()) {
             message = value(header, "processMessage");
         }
-        boolean validOrderNumber = !orderNumber.isEmpty() && !orderNumber.matches("0+");
-        if ("B".equalsIgnoreCase(processFlag)) {
-            return new Outcome(validOrderNumber ? Status.UNKNOWN : Status.REJECTED, "", resultCode, processCode, message);
+        boolean hasOrderNumber = !orderNumber.isEmpty() && !orderNumber.matches("0+");
+        boolean validOrderNumber = orderNumber.matches("[0-9]{10}") && hasOrderNumber;
+        if ("200".equals(resultCode) && "B".equalsIgnoreCase(processFlag)) {
+            return new Outcome(hasOrderNumber ? Status.UNKNOWN : Status.REJECTED, "", resultCode, processCode, message);
         }
         if ("200".equals(resultCode) && "A".equalsIgnoreCase(processFlag)
             && validOrderNumber) {
