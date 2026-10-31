@@ -655,3 +655,20 @@ docker compose --env-file .env logs --since 5m --tail 100 spring-api
 ```
 
 401은 API HUB 인증정보·API 권한, 403은 HTTPS·권한·요청 설정, 429는 호출 한도를 점검합니다. 실제 원인은 함께 표시된 코드로 좁히며 HTTP 상태만으로 하나로 단정하지 않습니다. `naverCode=UNAVAILABLE`은 코드가 없거나 안전하게 판독되지 않은 경우입니다. 키·토큰·응답 본문을 로그에 추가하지 않습니다. 추가 DB 마이그레이션이나 EXE 재빌드는 없습니다.
+
+## 11. AI 서버 422 캔들 날짜 오류 확인
+
+`candles[n].dateTime`, `datetime_type`, `input=[2026,9,15,0,0]`은 Spring에서 날짜 배열을 보내 Python의 datetime 검증이 거절한 오류입니다. 수정 후에는 `"2026-09-15T00:00:00"` 형식으로 보냅니다. 서버 연결 성공과 모델 분석 성공을 구분합니다. 422인 요청은 입력 검증 단계에서 거절됩니다.
+
+PR 병합 후 Ubuntu 프로젝트 루트에서 Spring만 갱신합니다.
+
+```bash
+git switch develop
+git pull --ff-only origin develop
+docker compose --env-file .env up -d --build --no-deps spring-api
+```
+
+1. 실제 시세·캔들을 조회할 수 있는 등록 종목을 추천 탭에서 다시 분석합니다.
+2. 새 결과의 분석 시각·모델·캔들 입력 건수를 확인합니다. `RULE_FALLBACK_V1`이면 대체 결과이므로 정상 AI 서버 응답으로 간주하지 않고 해당 시각의 로그를 확인합니다.
+3. AI 서버 로그에 분석 요청 성공을 확인하고 기존 dateTime 검증 오류가 사라졌는지 확인합니다. 실패가 계속되면 Spring의 HTTP 상태와 AI 서버의 해당 시각 오류를 함께 확인합니다. 요청 전체·검증 응답 원문을 로그에 추가하지 않습니다.
+4. 이전 분석 이력은 바뀌지 않아야 합니다. 이 수정은 Spring의 전송 형식 변경이며 AI 운영 코드·DB 마이그레이션·EXE 재빌드는 필요하지 않습니다.

@@ -896,6 +896,12 @@ KIS 지수는 [공식 업종기간별시세 예제](https://github.com/koreainve
 
 실패 메시지는 `stage=NEWS_SEARCH`, `httpStatus`와 `naverCode` 또는 `kind=DNS/TIMEOUT/TLS/CONNECT/NETWORK/CLIENT`를 포함합니다. Gateway의 `error.errorCode`와 검색 API의 `errorCode`를 검사하며 코드 형식이 잘못됐거나 비 JSON 응답이면 `UNAVAILABLE`입니다. 원문 메시지·본문·인증값·URL은 로그와 Provider 상태에 복사하지 않습니다. 정상 빈 배열은 성공 0건으로 유지합니다.
 
+### 17.6 AI 분석 캔들 날짜 전송 계약
+
+Spring → Python `POST /internal/ai/analyze-investment`의 `candles[].dateTime`은 ISO 지역 날짜·시각 문자열입니다. 예: `"2026-09-15T00:00:00"`. 시간·소수초도 보존하며 날짜 배열(`[2026,9,15,0,0]`)이나 임의 타임존 변환을 사용하지 않습니다.
+
+Spring 요청 DTO의 캔들 날짜 필드에 문자열 직렬화를 명시합니다. Python의 기존 `datetime` 검증 계약은 유지하고 배열 입력은 HTTP 422로 거절합니다. AI 호출 실패 시 기존 대체 결과 경로는 유지하며, 서버 로그는 응답의 요청 값/검증 본문 대신 종목코드와 HTTP 상태 또는 예외 유형만 남깁니다. 기존 저장 분석은 자동 재작성하지 않습니다.
+
 ## 18. 다음 구현 순서
 
 Flutter 추천 이력 목록·상세 화면, 보유 종목 수동 재분석과 관심 종목 직접 분석 액션까지 연결되었습니다.

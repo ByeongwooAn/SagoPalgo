@@ -3,21 +3,31 @@ package com.sagopalgo.api.recommendation.client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 
 import com.sagopalgo.api.config.AiAnalysisProperties;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisRequest;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisResponse;
 import java.math.BigDecimal;
 import java.util.List;
+import java.time.LocalDateTime;
+import java.net.SocketTimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+@ExtendWith(OutputCaptureExtension.class)
 class HttpAiAnalysisClientTest {
 
     private MockRestServiceServer server;
@@ -39,6 +49,8 @@ class HttpAiAnalysisClientTest {
     void analyzeMapsPythonResponse() {
         server.expect(requestTo("http://ai.test/internal/ai/analyze-investment"))
             .andExpect(method(HttpMethod.POST))
+            .andExpect(jsonPath("$.candles[0].dateTime").value("2026-09-15T00:00:00"))
+            .andExpect(jsonPath("$.candles[1].dateTime").value("2026-09-16T12:34:56.123"))
             .andRespond(withSuccess("""
                 {
                   "modelVersion": "WEIGHTED_SIGNAL_V1",
@@ -75,6 +87,25 @@ class HttpAiAnalysisClientTest {
         server.verify();
     }
 
+    @Test
+    void validationFailureKeepsFallbackButDoesNotDumpUpstreamInputs(CapturedOutput output) {
+        server.expect(requestTo("http://ai.test/internal/ai/analyze-investment"))
+            .andRespond(withStatus(HttpStatus.UNPROCESSABLE_ENTITY).contentType(MediaType.APPLICATION_JSON)
+                .body("{\"detail\":\"private-ai-payload\"}"));
+        assertThat(client.analyze(request())).isEmpty();
+        assertThat(output.getOut()).contains("httpStatus=422").doesNotContain("private-ai-payload");
+        server.verify();
+    }
+
+    @Test
+    void transportFailureKeepsFallbackWithoutExceptionText(CapturedOutput output) {
+        server.expect(requestTo("http://ai.test/internal/ai/analyze-investment"))
+            .andRespond(withException(new SocketTimeoutException("private-ai-url")));
+        assertThat(client.analyze(request())).isEmpty();
+        assertThat(output.getOut()).contains("type=ResourceAccessException").doesNotContain("private-ai-url");
+        server.verify();
+    }
+
     private AiInvestmentAnalysisRequest request() {
         return new AiInvestmentAnalysisRequest(
             "005930",
@@ -85,7 +116,12 @@ class HttpAiAnalysisClientTest {
             new BigDecimal("7.43"),
             new BigDecimal("-5"),
             new BigDecimal("12"),
-            List.of(),
+            List.of(
+                new AiInvestmentAnalysisRequest.CandleInput(LocalDateTime.of(2026, 9, 15, 0, 0),
+                    new BigDecimal("74000"), new BigDecimal("1000")),
+                new AiInvestmentAnalysisRequest.CandleInput(LocalDateTime.of(2026, 9, 16, 12, 34, 56, 123000000),
+                    new BigDecimal("75200"), new BigDecimal("1200"))
+            ),
             List.of(),
             List.of(),
             "HOLDING",
