@@ -145,7 +145,7 @@ class ManualOrderServiceTest {
         assertThat(request.getValue().dataBody()).containsEntry("orgn_ordr_no","0040000638").containsEntry("crct_clsf","2");
         assertThat(preparation.command().toString()).doesNotContain(child.tokenHash(),"fingerprint");
     }
-    @Test void partialFillPreventsChangeAndPriceIncreaseIsRejected() {
+    @Test void partialFillAndUnverifiedCashPreventChange() {
         ManualOrderCommand parent=command("NEW","ACCEPTED");when(mapper.find("parent",1L)).thenReturn(parent);
         var partial=new KbOrderExecutionItemResponse(parent.orderNo(),"005930","삼성전자","매수","090000",BigDecimal.ONE,
             new BigDecimal("0.5"),new BigDecimal("0.5"),new BigDecimal("100"),new BigDecimal("100"),"","PARTIAL");
@@ -154,6 +154,84 @@ class ManualOrderServiceTest {
         when(executions.findByOrderNumber(parent.orderDate(),parent.orderNo())).thenReturn(lookup(true,row()));
         assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"))).isInstanceOf(ApiException.class);
         verifyNoInteractions(client,store);
+    }
+    @Test void increasedBuyPriceRequiresFullFreshCashAtPrepareAndSubmit() {
+        var parent=command("NEW","ACCEPTED");when(mapper.find("parent",1L)).thenReturn(parent);
+        when(executions.findByOrderNumber(parent.orderDate(),parent.orderNo())).thenReturn(lookup(true,row()));
+        var check=amendCheck("101",true);when(precheck.precheck(eq(1L),any())).thenReturn(check);
+        var prepared=service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"));
+        var child=captureChild();when(mapper.find(child.commandId(),1L)).thenReturn(child);
+        when(client.sendOrderOnce(any())).thenReturn(new KbLimitOrderContract.Outcome(KbLimitOrderContract.Status.ACCEPTED,"0040000639","200","A",""));
+        service.submitChange(1L,child.commandId(),prepared.token(),true,"실제 주문 전송");
+        verify(precheck,times(2)).precheck(eq(1L),argThat(p->p.limitPrice().compareTo(new BigDecimal("101"))==0 && p.quantity().compareTo(BigDecimal.ONE)==0));
+        verify(client).sendOrderOnce(argThat(r->r.path().equals("/api/v1/ssam1805")
+            && "101".equals(r.dataBody().get("ordr_uprc")) && "2".equals(r.dataBody().get("crct_clsf"))));
+        verify(store,times(1)).claim(any(),anyString());
+    }
+    @Test void increasedBuyCannotUseDeltaOrMissingCashCheckEvenIfOtherChecksPass() {
+        var parent=command("NEW","ACCEPTED");when(mapper.find("parent",1L)).thenReturn(parent);
+        when(executions.findByOrderNumber(parent.orderDate(),parent.orderNo())).thenReturn(lookup(true,row()));
+        for(var cash:java.util.Arrays.asList(null,"1","100")) {
+            doReturn(amendCheck(cash,true)).when(precheck).precheck(eq(1L),any());
+            assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"))).isInstanceOf(ApiException.class);
+        }
+        var missing=amendCheck("1000",true);when(missing.checks()).thenReturn(List.of());when(precheck.precheck(eq(1L),any())).thenReturn(missing);
+        assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"))).isInstanceOf(ApiException.class);
+        doReturn(amendCheck("1000",false)).when(precheck).precheck(eq(1L),any());
+        assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"))).isInstanceOf(ApiException.class);
+        verify(mapper,never()).insert(any());verifyNoInteractions(client,store);
+    }
+    @Test void cashLostAfterPrepareBlocksBeforeClaimWithoutConsumingParent() {
+        var parent=command("NEW","ACCEPTED");when(mapper.find("parent",1L)).thenReturn(parent);
+        when(executions.findByOrderNumber(parent.orderDate(),parent.orderNo())).thenReturn(lookup(true,row()));
+        doReturn(amendCheck("101",true),amendCheck("1",false)).when(precheck).precheck(eq(1L),any());
+        var prepared=service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"));var child=captureChild();
+        when(mapper.find(child.commandId(),1L)).thenReturn(child);
+        assertThatThrownBy(()->service.submitChange(1L,child.commandId(),prepared.token(),true,"실제 주문 전송")).isInstanceOf(ApiException.class);
+        verifyNoInteractions(client,store);verify(mapper,never()).claimParent(any(),any(),any(),any());
+    }
+    @Test void unchangedPriceAndFailedMarketChecksCannotPrepareAmendment() {
+        var parent=command("NEW","ACCEPTED");when(mapper.find("parent",1L)).thenReturn(parent);
+        when(executions.findByOrderNumber(parent.orderDate(),parent.orderNo())).thenReturn(lookup(true,row()));
+        assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("100.00"))).isInstanceOf(ApiException.class);
+        var check=amendCheck("1000",true);when(check.checks()).thenReturn(List.of(new OrderSafetyCheckResponse("REAL_PRICE","현재가",false,"실패")));
+        when(precheck.precheck(eq(1L),any())).thenReturn(check);
+        assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"))).isInstanceOf(ApiException.class);
+        verify(mapper,never()).insert(any());verifyNoInteractions(client,store);
+    }
+    @Test void lowerBuyPriceDoesNotRequireFreshCashOnTopOfExistingReservation() {
+        var parent=command("NEW","ACCEPTED");when(mapper.find("parent",1L)).thenReturn(parent);
+        when(executions.findByOrderNumber(parent.orderDate(),parent.orderNo())).thenReturn(lookup(true,row()));
+        doReturn(amendCheck("0",false)).when(precheck).precheck(eq(1L),any());
+        assertThat(service.prepareChange(1L,"parent","AMEND",new BigDecimal("99")).command().price()).isEqualByComparingTo("99");
+        verifyNoInteractions(client,store);
+    }
+    @Test void changedBindingDuringPrecheckPreventsPreparation() {
+        var parent=command("NEW","ACCEPTED");when(mapper.find("parent",1L)).thenReturn(parent);
+        when(executions.findByOrderNumber(parent.orderDate(),parent.orderNo())).thenReturn(lookup(true,row()));
+        when(precheck.precheck(eq(1L),any())).thenAnswer(i->{when(binding.matches("fingerprint")).thenReturn(false);return amendCheck("1000",true);});
+        assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"))).isInstanceOf(ApiException.class);
+        verify(mapper,never()).insert(any());verifyNoInteractions(client,store);
+    }
+    @Test void increasedSellPriceKeepsReservedSharesAndDoesNotRequireBuyCash() {
+        var parent=command("NEW","ACCEPTED","SELL");when(mapper.find("parent",1L)).thenReturn(parent);
+        var row=new KbOrderExecutionItemResponse(parent.orderNo(),"005930","삼성전자","매도","090000",BigDecimal.ONE,
+            BigDecimal.ZERO,BigDecimal.ONE,new BigDecimal("100"),null,"","OPEN");
+        when(executions.findByOrderNumber(parent.orderDate(),parent.orderNo())).thenReturn(lookup(true,row));
+        var check=amendCheck("0",false);when(check.checks()).thenReturn(List.of(new OrderSafetyCheckResponse("REAL_PRICE","현재가",true,"확인"),
+            new OrderSafetyCheckResponse("SELLABLE_QUANTITY","수량",false,"원주문 예약")));when(precheck.precheck(eq(1L),any())).thenReturn(check);
+        var prepared=service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"));
+        assertThat(prepared.command().quantity()).isEqualByComparingTo("1");assertThat(prepared.command().price()).isEqualByComparingTo("101");
+        verifyNoInteractions(client,store);
+    }
+    private OrderPrecheckResponse amendCheck(String cash,boolean buyingPower) {
+        var check=mock(OrderPrecheckResponse.class);when(check.orderAvailableCash()).thenReturn(cash==null?null:new BigDecimal(cash));
+        when(check.checks()).thenReturn(List.of(new OrderSafetyCheckResponse("REAL_PRICE","현재가",true,"확인"),
+            new OrderSafetyCheckResponse("BUYING_POWER","주문가능현금",buyingPower,"자원")));
+        return check;
+    }
+    private ManualOrderCommand captureChild() {
+        var child=ArgumentCaptor.forClass(ManualOrderCommand.class);verify(mapper).insert(child.capture());return child.getValue();
     }
     @Test void changedOrderAfterPreparationPreventsTransmission() {
         ManualOrderCommand parent=command("NEW","ACCEPTED");when(mapper.find("parent",1L)).thenReturn(parent);
@@ -180,8 +258,11 @@ class ManualOrderServiceTest {
     }
 
     private ManualOrderCommand command(String kind,String status) {
+        return command(kind,status,"BUY");
+    }
+    private ManualOrderCommand command(String kind,String status,String side) {
         LocalDateTime now=LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-        return new ManualOrderCommand("parent",1L,7L,null,kind,"005930","삼성전자","KOSPI","BUY",new BigDecimal("100"),
+        return new ManualOrderCommand("parent",1L,7L,null,kind,"005930","삼성전자","KOSPI",side,new BigDecimal("100"),
             BigDecimal.ONE,"fingerprint",null,now.plusSeconds(90),status,"0040000638",LocalDate.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.BASIC_ISO_DATE),"200","",null,now,now);
     }
     private KbOrderExecutionItemResponse row(){return new KbOrderExecutionItemResponse("0040000638","005930","삼성전자","매수","090000",BigDecimal.ONE,

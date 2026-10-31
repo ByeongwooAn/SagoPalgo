@@ -42,6 +42,17 @@ public final class OrderWorkflowRules {
         return available != null && available.compareTo(required) >= 0;
     }
 
+    public static void requireAmendedPrice(BigDecimal original, BigDecimal amended) {
+        if (original == null || amended == null || amended.signum() <= 0 || original.compareTo(amended) == 0) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "새 지정가는 기존과 다른 양수 가격이어야 합니다.");
+        }
+    }
+
+    /** 기존 예약금 반환을 가정하지 않고 새 주문 전체 금액을 별도 가용 현금으로 확인합니다. */
+    public static boolean requiresAmendCash(String side, BigDecimal original, BigDecimal amended) {
+        return "BUY".equals(side) && amended.compareTo(original) > 0;
+    }
+
     public static void requireChangeable(String kind, String status, boolean changed, boolean sameDay) {
         if (!"NEW".equals(kind) || !"ACCEPTED".equals(status) || changed || !sameDay) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "당일 신규 접수 주문만 한 차례 전부 정정·취소할 수 있습니다.");

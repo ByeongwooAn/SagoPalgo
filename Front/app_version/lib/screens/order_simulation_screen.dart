@@ -434,7 +434,7 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                                         ? null
                                         : () =>
                                               _order(parent: c, kind: 'AMEND'),
-                                    child: const Text('지정가 인하 검토'),
+                                    child: const Text('지정가 변경 검토'),
                                   ),
                                   TextButton(
                                     onPressed: _busy || blocked
@@ -724,11 +724,23 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
         final value = await showDialog<String>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('모의 새 지정가 (인하)'),
-            content: TextFormField(
-              initialValue: input,
-              onChanged: (v) => input = v,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            title: const Text('모의 새 지정가'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '기존 지정가 ${plan['limitPrice']}원 · 수량 ${plan['quantity']}주 유지',
+                ),
+                const Text(
+                  '매수 증액은 기존 예약금을 합산하지 않고 새 주문 전체 금액 이상의 가용 가상 현금이 필요합니다.',
+                ),
+                TextFormField(
+                  initialValue: input,
+                  onChanged: (v) => input = v,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ),
+              ],
             ),
             actions: [
               TextButton(
@@ -743,7 +755,12 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
           ),
         );
         if (value == null || !mounted) return;
-        plan['limitPrice'] = num.parse(value);
+        final amended = num.parse(value);
+        if (amended <= 0 || amended == plan['limitPrice']) {
+          setState(() => _message = '새 지정가는 기존과 다른 양수 가격이어야 합니다.');
+          return;
+        }
+        plan['limitPrice'] = amended;
       }
     } catch (_) {
       setState(() => _message = '종목·시장·방향·정수 지정가와 수량을 확인하세요.');
@@ -770,7 +787,7 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
         setState(() => _state = prepared['snapshot'] as Map<String, dynamic>);
       }
       final summary =
-          '${_summary(plan)}\n$kind · ${scenarios[_scenario]}\n90초 안에 승인하세요. 실제 계좌에는 전송하지 않습니다.';
+          '${_summary(plan)}\n${kind == 'AMEND' ? '지정가 ${parent!['plan']['limitPrice']}원 → ${plan['limitPrice']}원\n' : ''}$kind · ${scenarios[_scenario]}\n90초 안에 승인하세요. 실제 계좌에는 전송하지 않습니다.';
       if (!await _review('모의 주문안 승인', summary) || !mounted) return;
       final confirmed = await widget.repository.simulationAction(
         _id,
