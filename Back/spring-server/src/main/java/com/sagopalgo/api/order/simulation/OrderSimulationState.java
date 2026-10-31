@@ -36,6 +36,8 @@ public class OrderSimulationState {
         public List<Diagnostic> diagnostics = new ArrayList<>();
         public ReviewPreparation reviewPreparation;
         public List<StoredReview> reviews = new ArrayList<>();
+        public CompletionPreparation completionPreparation;
+        public StoredCompletion completion;
     }
 
     public record Diagnostic(String diagnosticId,String commandId,String orderNo,String phaseBefore,String state,
@@ -43,6 +45,8 @@ public class OrderSimulationState {
     public record ReviewPreparation(String reviewId,String tokenHash,String evidenceHash,String expiresAt,
         com.sagopalgo.api.order.service.UnknownOrderReviewRules.Evidence evidence){}
     public record StoredReview(String reviewId,String tokenHash,com.sagopalgo.api.order.service.UnknownOrderReviewRules.Evidence evidence,String confirmedAt){}
+    public record CompletionPreparation(String resolutionId,String tokenHash,String evidenceHash,String expiresAt,SimulationCompletionRules.Evidence evidence){}
+    public record StoredCompletion(String resolutionId,String tokenHash,SimulationCompletionRules.Evidence evidence,String confirmedAt){}
 
     public static class BrokerOrder {
         public String orderNo;
@@ -50,6 +54,9 @@ public class OrderSimulationState {
         public OrderPrecheckRequest plan;
         public String status = "OPEN";
         public BigDecimal filled = BigDecimal.ZERO;
+        public String originalOrderNo;
+        public String changeKind;
+        public String changedByCommandId;
         public BigDecimal openQuantity() {
             return Set.of("OPEN", "PARTIAL").contains(status) ? plan.quantity().subtract(filled) : BigDecimal.ZERO;
         }

@@ -104,3 +104,11 @@ SENDING의 RESERVED/DISPATCHING/LEGACY_UNVERIFIED 카드에서 `가상 주문번
 ## 후속: UNKNOWN 잔량·변경 대조 관찰
 
 TIMEOUT_AFTER_OPEN(미체결 접수 후 응답 유실), TIMEOUT_AFTER_PARTIAL(부분체결 후 응답 유실)을 추가해 전체 11개 시나리오입니다. 취소에는 새 두 시나리오를 지정하지 않으며 기존 접수 후 응답 유실을 사용합니다. UNKNOWN 카드의 미체결·변경 주문 대조에서 90초 준비/재조회/확인과 이후 reviews 이력을 확인합니다. 관찰 저장으로 차단·전송 횟수·가상 자원은 변하지 않습니다. 정정/취소의 SIM_AMEND/SIM_CANCEL은 가상 표식이며 KB 구분 코드가 아닙니다. [공통 확인·API 절차](unknown-order-reviews.md)를 따릅니다. 내부 reviewPreparation/토큰 해시는 API 상태에서 제외하고 이전 JSON 누락 필드는 빈 이력으로 읽습니다.
+
+## 후속: 가상 UNKNOWN 종결 (2026-11-01)
+
+UNKNOWN은 기본적으로 계속 차단합니다. 새 `가상 주문 종결 대조`에서 내부 가상 증권사의 전송 종료·1회 전송·명령 소유권과 엄격한 종결 근거를 확인하고 별도 확정한 경우에만 해당 가상 명령을 차단 집계에서 제외합니다. NEW는 전량 체결, AMEND는 해당 자식에 의해 부모가 REPLACED이고 자식 전량 체결, CANCEL은 연결된 부모·자식 모두 CANCELLED여야 합니다. SENDING·미체결/부분체결은 종결하지 않습니다. 부분체결은 별도 수동 체결을 마친 뒤 다시 준비할 수 있습니다.
+
+원본 UNKNOWN·전송 횟수·가상 현금/보유·부모 변경 기록은 보존합니다. 다른 미확정 명령은 계속 차단하며 동일 명령 재제출은 추가 전송하지 않습니다. 준비/확정은 90초 토큰·근거 해시·별도 동의와 한 트랜잭션으로 검증하고, 완료 이력은 세션 GET의 `resolved`/`completion`으로 읽습니다. 응답 유실 뒤에는 GET만 수행합니다.
+
+신규 경로는 POST `/{sessionId}/commands/{id}/completion/prepare`와 `/confirm`이며 실제 수동 주문 API에는 없습니다. 018 JSON에 보관하므로 추가 마이그레이션은 없고 내부 완료 준비/해시/실행 키는 API에서 제외합니다. 이전 세션에 changeKind/변경 소유권 같은 근거가 없으면 추정하지 않고 차단을 유지하므로 새 세션에서 시험합니다. [상세 화면 순서·API·제약](order-completion-evidence.md)을 따릅니다. 11개 시나리오 수는 유지하며 백엔드 462건(MySQL 87건)·Flutter 182건·Dart 분석·Windows Release 빌드로 검증했습니다.

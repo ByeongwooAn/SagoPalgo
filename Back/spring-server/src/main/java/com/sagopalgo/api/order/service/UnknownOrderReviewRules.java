@@ -78,5 +78,13 @@ public final class UnknownOrderReviewRules {
     private static ApiException invalid(String message){return new ApiException(ErrorCode.VALIDATION_ERROR,message);}
     public record Evidence(String kind,String observation,String orderDate,String orderNo,String orderTime,String stockCode,String side,
         BigDecimal price,BigDecimal quantity,BigDecimal filledQuantity,BigDecimal openQuantity,String originalOrderNo,String changeCode,
-        BigDecimal correctedQuantity,BigDecimal sorCancelledQuantity){}
+        BigDecimal correctedQuantity,BigDecimal sorCancelledQuantity,OrderParentEvidence.Snapshot parentObservation){
+        public Evidence(String kind,String observation,String orderDate,String orderNo,String orderTime,String stockCode,String side,
+            BigDecimal price,BigDecimal quantity,BigDecimal filledQuantity,BigDecimal openQuantity,String originalOrderNo,String changeCode,
+            BigDecimal correctedQuantity,BigDecimal sorCancelledQuantity){
+            this(kind,observation,orderDate,orderNo,orderTime,stockCode,side,price,quantity,filledQuantity,openQuantity,originalOrderNo,changeCode,correctedQuantity,sorCancelledQuantity,null);
+        }
+        public Evidence withParent(OrderParentEvidence.Snapshot parent){return new Evidence(kind,observation,orderDate,orderNo,orderTime,stockCode,side,
+            price,quantity,filledQuantity,openQuantity,originalOrderNo,changeCode,correctedQuantity,sorCancelledQuantity,parent);}
+    }
 }

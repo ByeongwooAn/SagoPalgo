@@ -73,7 +73,10 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
           final resolved = (state?['commands'] as List? ?? []).any(
             (c) =>
                 c['id'] == _awaitingCommandId &&
-                ['ACCEPTED', 'REJECTED'].contains(c['status']),
+                (['ACCEPTED', 'REJECTED'].contains(c['status']) ||
+                    (c['resolved'] == true &&
+                        c['completion'] is Map &&
+                        c['completion']['source'] == 'SIMULATION')),
           );
           if (resolved) {
             _uncertainRequest = false;
@@ -334,6 +337,8 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                               '${c['kind']} · ${c['status']}${c['expired'] == true ? ' (승인 만료)' : ''} · ${scenarios[c['scenario']]}\n${_summary(c['plan'] as Map<String, dynamic>)}\n'
                               '모의 전송 ${c['sendCount']}회 · 가상 증권사 ${c['brokerStatus']} · 번호 ${c['brokerOrderNo']}\n체결 ${c['filledQuantity']}주 / 미체결 ${c['openQuantity']}주',
                             ),
+                            if (c['resolved'] == true)
+                              const Text('가상 종결 확인 · UNKNOWN 원본 보존'),
                             Text(
                               '전송 단계 ${c['dispatchPhase'] ?? 'LEGACY_UNVERIFIED'} · 저장 결과 ${c['receipt'] ?? '없음'}',
                             ),
@@ -347,7 +352,31 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                             Wrap(
                               spacing: 8,
                               children: [
-                                if (c['status'] == 'UNKNOWN')
+                                if (c['status'] == 'UNKNOWN' &&
+                                    c['resolved'] != true)
+                                  TextButton(
+                                    onPressed: _busy
+                                        ? null
+                                        : () => _unknownReview(
+                                            c,
+                                            true,
+                                            terminal: true,
+                                          ),
+                                    child: const Text('가상 주문 종결 대조'),
+                                  ),
+                                if (c['resolved'] == true)
+                                  TextButton(
+                                    onPressed: _busy
+                                        ? null
+                                        : () => _unknownReview(
+                                            c,
+                                            false,
+                                            terminal: true,
+                                          ),
+                                    child: const Text('가상 종결 이력'),
+                                  ),
+                                if (c['status'] == 'UNKNOWN' &&
+                                    c['resolved'] != true)
                                   TextButton(
                                     onPressed: _busy
                                         ? null
@@ -486,7 +515,11 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
       {'quantity': quantity},
     ),
   );
-  Future<void> _unknownReview(Map<String, dynamic> c, bool allowNew) async {
+  Future<void> _unknownReview(
+    Map<String, dynamic> c,
+    bool allowNew, {
+    bool terminal = false,
+  }) async {
     final session = _id;
     setState(() => _busy = true);
     try {
@@ -495,29 +528,49 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
           builder: (_) => UnknownOrderReviewScreen(
             summary: _summary(c['plan'] as Map<String, dynamic>),
             simulation: true,
+            terminal: terminal,
             allowNew: allowNew,
             load: () async {
               final state = await widget.repository.simulation(session);
               final command = (state['commands'] as List)
                   .cast<Map<String, dynamic>>()
                   .firstWhere((r) => r['id'] == c['id']);
+              if (terminal) {
+                final completion = command['completion'];
+                if (command['resolved'] != true ||
+                    completion is! Map ||
+                    completion['source'] != 'SIMULATION') {
+                  return <Map<String, dynamic>>[];
+                }
+                return [
+                  {
+                    ...Map<String, dynamic>.from(completion),
+                    'reviewId': completion['resolutionId'],
+                  },
+                ];
+              }
               return (command['reviews'] as List? ?? [])
                   .cast<Map<String, dynamic>>();
             },
-            prepare: (number) => widget.repository.simulationAction(
-              session,
-              'commands/${c['id']}/reviews/prepare',
-              {'orderNo': number},
-            ),
+            prepare: (number) async {
+              final result = await widget.repository.simulationAction(
+                session,
+                'commands/${c['id']}/${terminal ? 'completion' : 'reviews'}/prepare',
+                {'orderNo': number},
+              );
+              return terminal
+                  ? {...result, 'reviewId': result['resolutionId']}
+                  : result;
+            },
             confirm: (id, token) async {
               await widget.repository.simulationAction(
                 session,
-                'commands/${c['id']}/reviews/confirm',
+                'commands/${c['id']}/${terminal ? 'completion' : 'reviews'}/confirm',
                 {
-                  'reviewId': id,
+                  if (terminal) 'resolutionId': id else 'reviewId': id,
                   'token': token,
                   'acknowledged': true,
-                  'confirmation': '잠금 유지 대조 저장',
+                  'confirmation': terminal ? '가상 주문 종결 확정' : '잠금 유지 대조 저장',
                 },
               );
             },

@@ -779,6 +779,125 @@ class ManualOrderMysqlIntegrationTest {
         assertThat(reviewMapper.preparation(c.commandId(),1L)).isNotNull();assertThat(reviewService.history(1L,c.commandId())).isEmpty();
     }
 
+    @Test void changeReviewRechecksParentRowAndPreservesProductionBlock() {
+        var c=reviewCandidate("AMEND");
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,"AMEND"));
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000638")).thenReturn(parentLookup(c,BigDecimal.ZERO));
+        var before=commands.find(c.commandId(),1L);var parentBefore=commands.find(c.parentId(),1L);
+        var p=reviewService.prepare(1L,c.commandId(),"0040000639");assertThat(p.evidence().parentObservation().verification()).isEqualTo("REFERENCE_MATCH");
+        var saved=reviewService.confirm(1L,c.commandId(),p.reviewId(),p.token(),true,"잠금 유지 대조 저장");
+        assertThat(saved.lockMaintained()).isTrue();assertThat(saved.evidence().parentObservation().openQuantity()).isZero();
+        assertThat(commands.find(c.commandId(),1L)).isEqualTo(before);assertThat(commands.find(c.parentId(),1L)).isEqualTo(parentBefore);
+        assertThat(commands.pending(1L)).isEqualTo(1);
+        verify(diagnosticExecutions,times(2)).findByOrderNumber(c.orderDate(),"0040000638");
+    }
+    @Test void parentOnlyQuantityDriftInvalidatesFinalReview() {
+        var c=reviewCandidate("AMEND");when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,"AMEND"));
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000638")).thenReturn(parentLookup(c,BigDecimal.ZERO));
+        var p=reviewService.prepare(1L,c.commandId(),"0040000639");
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000638")).thenReturn(parentLookup(c,BigDecimal.ONE));
+        assertThatThrownBy(()->reviewService.confirm(1L,c.commandId(),p.reviewId(),p.token(),true,"잠금 유지 대조 저장")).isInstanceOf(RuntimeException.class).hasMessageContaining("달라졌습니다");
+        assertThat(reviewMapper.preparation(c.commandId(),1L)).isNotNull();assertThat(reviewService.history(1L,c.commandId())).isEmpty();
+        assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+    @Test void parentLookupFailureIsSanitizedAndSimulationAckCannotConfirmLiveReview() {
+        var c=reviewCandidate("CANCEL");when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,"CANCEL"));
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000638")).thenThrow(new IllegalStateException("private-key-account"));
+        var p=reviewService.prepare(1L,c.commandId(),"0040000639");
+        assertThat(p.evidence().parentObservation().verification()).isEqualTo("LOOKUP_FAILED");assertThat(p.toString()).doesNotContain("private-key-account");
+        assertThatThrownBy(()->reviewService.confirm(1L,c.commandId(),p.reviewId(),p.token(),true,"가상 주문 종결 확정")).isInstanceOf(RuntimeException.class);
+        verify(diagnosticExecutions,times(1)).findByOrderNumber(c.orderDate(),"0040000639");assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+    @ParameterizedTest @ValueSource(strings={"NEW","AMEND","CANCEL"})
+    void virtualCompletionPreservesOriginalAndResourcesThenAllowsNewVirtualOrder(String kind) {
+        String session=simSession("1000000");String id=completionCandidate(session,kind);
+        var before=simulationService.get(1L,session);var c=simCommand(before,id);String number=(String)c.get("brokerOrderNo");
+        var p=simulationService.prepareCompletion(1L,session,id,number);
+        assertThat(simulationService.get(1L,session).get("blocked")).isEqualTo(true);
+        String resolution=(String)p.get("resolutionId"),token=(String)p.get("token");
+        var after=simulationService.confirmCompletion(1L,session,id,resolution,token,true,"가상 주문 종결 확정");
+        assertThat(simCommand(after,id)).containsEntry("status","UNKNOWN").containsEntry("resolved",true).containsEntry("sendCount",1);
+        assertThat(after.get("blocked")).isEqualTo(false);assertThat(after.get("cash")).isEqualTo(before.get("cash"));
+        assertThat(after.get("positions")).isEqualTo(before.get("positions"));assertThat(after.get("availableCash")).isEqualTo(before.get("availableCash"));
+        assertThat(after.toString()).doesNotContain(token,"tokenHash","executionKey","completionPreparation");
+        simulationService.confirmCompletion(1L,session,id,resolution,token,true,"가상 주문 종결 확정");
+        assertThat(((List<?>)simulationService.get(1L,session).get("events")).stream().filter(e->e.toString().contains("가상 종결 확정 ·")).count()).isEqualTo(1);
+        String next=simReady(session,simPlan("BUY","75000","1"),"NEW",null,"WAIT");
+        assertThat(simCommand(simulationService.submit(1L,session,next,true,"모의 주문 전송"),next)).containsEntry("status","ACCEPTED");
+        assertThat(simCommand(simulationService.get(1L,session),id)).containsEntry("sendCount",1);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_commands",Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM trade_records",Integer.class)).isZero();
+    }
+    @Test void completingPartialThenFullVirtualFillDoesNotFillAgain() {
+        String session=simSession("1000000");String id=simReady(session,simPlan("BUY","75000","2"),"NEW",null,"TIMEOUT_AFTER_PARTIAL");
+        simulationService.submit(1L,session,id,true,"모의 주문 전송");
+        assertThatThrownBy(()->simulationService.prepareCompletion(1L,session,id,"0000000001")).isInstanceOf(RuntimeException.class);
+        var before=simulationService.fill(1L,session,"0000000001",BigDecimal.ONE);var p=simulationService.prepareCompletion(1L,session,id,"0000000001");
+        var after=simulationService.confirmCompletion(1L,session,id,(String)p.get("resolutionId"),(String)p.get("token"),true,"가상 주문 종결 확정");
+        assertThat(after.get("cash")).isEqualTo(before.get("cash"));assertThat(after.get("positions")).isEqualTo(before.get("positions"));
+        assertThat(simCommand(after,id)).containsEntry("filledQuantity",new BigDecimal("2")).containsEntry("resolved",true);
+    }
+    @ParameterizedTest @ValueSource(strings={"TIMEOUT_BEFORE_ACCEPT","STOP_BEFORE_SEND","JOURNAL_FAILURE","SAVE_FAILURE","TIMEOUT_AFTER_OPEN"})
+    void unfinishedMissingOrNonterminalVirtualProofCannotResolve(String scenario) {
+        String session=simSession("1000000");String id=simReady(session,simPlan("BUY","75000","2"),"NEW",null,scenario);
+        try{simulationService.submit(1L,session,id,true,"모의 주문 전송");}catch(RuntimeException expected){}
+        assertThatThrownBy(()->simulationService.prepareCompletion(1L,session,id,"0000000001")).isInstanceOf(RuntimeException.class);
+        assertThat(simulationService.get(1L,session).get("blocked")).isEqualTo(true);
+    }
+    @Test void virtualCompletionTokenExpiryReplacementAndOwnerAreEnforced() {
+        String session=simSession("1000000");String id=completionCandidate(session,"NEW");
+        var first=simulationService.prepareCompletion(1L,session,id,"0000000001");var p=simulationService.prepareCompletion(1L,session,id,"0000000001");
+        assertThatThrownBy(()->simulationService.confirmCompletion(1L,session,id,(String)first.get("resolutionId"),(String)first.get("token"),true,"가상 주문 종결 확정")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->simulationService.confirmCompletion(2L,session,id,(String)p.get("resolutionId"),(String)p.get("token"),true,"가상 주문 종결 확정")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->simulationService.confirmCompletion(1L,session,id,(String)p.get("resolutionId"),(String)p.get("token"),false,"가상 주문 종결 확정")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->simulationService.confirmCompletion(1L,session,id,(String)p.get("resolutionId"),(String)p.get("token"),true,"실제 주문 전송")).isInstanceOf(RuntimeException.class);
+        simulationStore.mutate(1L,session,state->{var c=state.commands.get(id);var r=c.completionPreparation;c.completionPreparation=new OrderSimulationState.CompletionPreparation(r.resolutionId(),r.tokenHash(),r.evidenceHash(),now().minusSeconds(1).toString(),r.evidence());return null;});
+        assertThatThrownBy(()->simulationService.confirmCompletion(1L,session,id,(String)p.get("resolutionId"),(String)p.get("token"),true,"가상 주문 종결 확정")).isInstanceOf(RuntimeException.class);
+        assertThat(simulationService.get(1L,session).get("blocked")).isEqualTo(true);
+    }
+    @Test void simultaneousVirtualCompletionAuditsOnceAndKeepsParentClaim() throws Exception {
+        String session=simSession("1000000");String id=completionCandidate(session,"CANCEL");var p=simulationService.prepareCompletion(1L,session,id,"0000000002");
+        assertThat(race(()->simulationService.confirmCompletion(1L,session,id,(String)p.get("resolutionId"),(String)p.get("token"),true,"가상 주문 종결 확정"),
+            ()->simulationService.confirmCompletion(1L,session,id,(String)p.get("resolutionId"),(String)p.get("token"),true,"가상 주문 종결 확정"))).containsOnly(true);
+        var result=simulationService.get(1L,session);assertThat(result.get("blocked")).isEqualTo(false);
+        var state=simulationStore.decode(simulations.find(session,1L).stateJson());assertThat(state.commands.get(state.commands.get(id).parentId).changed).isTrue();
+        assertThat(((List<?>)result.get("events")).stream().filter(e->e.toString().contains("가상 종결 확정 ·")).count()).isEqualTo(1);
+    }
+    @Test void changedVirtualParentAndFailedCommitCannotConsumeCompletion() {
+        String session=simSession("1000000");String id=completionCandidate(session,"AMEND");var p=simulationService.prepareCompletion(1L,session,id,"0000000002");
+        simulationStore.mutate(1L,session,state->{state.brokerOrders.get("0000000001").filled=BigDecimal.ONE;return null;});
+        assertThatThrownBy(()->simulationService.confirmCompletion(1L,session,id,(String)p.get("resolutionId"),(String)p.get("token"),true,"가상 주문 종결 확정")).isInstanceOf(RuntimeException.class);
+        simulationStore.mutate(1L,session,state->{state.brokerOrders.get("0000000001").filled=BigDecimal.ZERO;return null;});
+        jdbc.execute("CREATE TRIGGER reject_completion_write BEFORE UPDATE ON order_simulation_sessions FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='test completion failure'");
+        try{assertThatThrownBy(()->simulationService.confirmCompletion(1L,session,id,(String)p.get("resolutionId"),(String)p.get("token"),true,"가상 주문 종결 확정")).isInstanceOf(RuntimeException.class);}
+        finally{jdbc.execute("DROP TRIGGER reject_completion_write");}
+        var state=simulationStore.decode(simulations.find(session,1L).stateJson());assertThat(state.commands.get(id).completion).isNull();assertThat(state.commands.get(id).completionPreparation).isNotNull();
+        assertThat(simulationService.get(1L,session).get("blocked")).isEqualTo(true);
+    }
+    @Test void resolvedVirtualCommandDoesNotBypassOtherSendingAndLegacyFieldsStayBlocked() {
+        String session=simSession("1000000");String id=completionCandidate(session,"NEW");var p=simulationService.prepareCompletion(1L,session,id,"0000000001");
+        String other=simReady(session,simPlan("BUY","75000","1"),"NEW",null,"WAIT");
+        simulationStore.mutate(1L,session,state->{state.commands.get(other).status="SENDING";return null;});
+        var result=simulationService.confirmCompletion(1L,session,id,(String)p.get("resolutionId"),(String)p.get("token"),true,"가상 주문 종결 확정");
+        assertThat(result.get("blocked")).isEqualTo(true);assertThat(simCommand(result,id)).containsEntry("resolved",true);
+        String legacy=simSession("1000000");String c=completionCandidate(legacy,"NEW");
+        simulationStore.mutate(1L,legacy,state->{state.brokerOrders.get("0000000001").changeKind=null;return null;});
+        assertThatThrownBy(()->simulationService.prepareCompletion(1L,legacy,c,"0000000001")).isInstanceOf(RuntimeException.class);
+        assertThat(simulationService.get(1L,legacy).get("blocked")).isEqualTo(true);
+    }
+    private String completionCandidate(String session,String kind){
+        if("NEW".equals(kind)){
+            String id=simReady(session,simPlan("BUY","75000","2"),"NEW",null,"TIMEOUT_AFTER_ACCEPT");simulationService.submit(1L,session,id,true,"모의 주문 전송");return id;
+        }
+        String parent=simReady(session,simPlan("BUY","75000","2"),"NEW",null,"WAIT");simulationService.submit(1L,session,parent,true,"모의 주문 전송");
+        String child=simReady(session,simPlan("BUY","74000","2"),kind,parent,"TIMEOUT_AFTER_ACCEPT");simulationService.submit(1L,session,child,true,"모의 주문 전송");return child;
+    }
+    private com.sagopalgo.api.order.dto.KbOrderLookupResponse parentLookup(ManualOrderCommand child,BigDecimal filled){
+        var p=commands.find(child.parentId(),1L);var row=new com.sagopalgo.api.order.dto.KbOrderExecutionItemResponse(p.orderNo(),p.stockCode(),"private-name","매수",
+            p.createdAt().format(java.time.format.DateTimeFormatter.ofPattern("HHmmss")),p.quantity(),filled,BigDecimal.ZERO,p.price(),null,"","UNKNOWN","","9",p.quantity(),BigDecimal.ZERO);
+        return new com.sagopalgo.api.order.dto.KbOrderLookupResponse(p.orderDate(),p.orderNo(),true,1,List.of(row));
+    }
+
     private ManualOrderCommand reviewCandidate(String kind) {
         var t=now();var parent=new ManualOrderCommand(UUID.randomUUID().toString(),1L,approval(),null,"NEW","005930","삼성전자","KOSPI","BUY",
             new BigDecimal("100"),new BigDecimal("2"),FINGERPRINT,null,t.plusSeconds(90),"SENDING",null,t.toLocalDate().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE),null,null,null,t,t);

@@ -10,13 +10,15 @@ class UnknownOrderReviewScreen extends StatefulWidget {
     required this.confirm,
     this.simulation = false,
     this.allowNew = true,
-  });
+    this.terminal = false,
+  }) : assert(!terminal || simulation);
   final String summary;
   final Future<List<Map<String, dynamic>>> Function() load;
   final Future<Map<String, dynamic>> Function(String orderNo) prepare;
   final Future<void> Function(String reviewId, String token) confirm;
   final bool simulation;
   final bool allowNew;
+  final bool terminal;
   @override
   State<UnknownOrderReviewScreen> createState() =>
       _UnknownOrderReviewScreenState();
@@ -28,6 +30,7 @@ class _UnknownOrderReviewScreenState extends State<UnknownOrderReviewScreen> {
   String? _waitingId, _message;
   Map<String, dynamic>? _preparation;
   List<Map<String, dynamic>> _history = [];
+  bool get _terminal => widget.terminal && widget.simulation;
   @override
   void initState() {
     super.initState();
@@ -91,7 +94,11 @@ class _UnknownOrderReviewScreenState extends State<UnknownOrderReviewScreen> {
         prepared['token'] as String,
       );
       if (mounted) {
-        setState(() => _message = '대조 관찰을 저장했습니다. UNKNOWN·전송 차단은 유지됩니다.');
+        setState(
+          () => _message = _terminal
+              ? '가상 종결을 확정했습니다. 해당 UNKNOWN의 차단만 해소합니다. 실제 주문은 전송하지 않았습니다.'
+              : '대조 관찰을 저장했습니다. UNKNOWN·전송 차단은 유지됩니다.',
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -102,28 +109,55 @@ class _UnknownOrderReviewScreenState extends State<UnknownOrderReviewScreen> {
     }
   }
 
-  Widget _evidence(Map<String, dynamic> e) => SelectableText(
-    '${e['kind']} · ${switch (e['observation']) {
-      'OPEN' => '미체결 관찰',
-      'PARTIAL' => '부분체결 관찰',
-      _ => '변경 주문 연결 근거 · 완료 미확정',
-    }}\n'
-    '${e['stockCode']} · ${e['side']} · 지정가 ${e['price']} · 주문 ${e['quantity']}주\n'
-    '체결 ${e['filledQuantity']}주 · 미체결 ${e['openQuantity']}주\n'
-    '주문일 ${e['orderDate']} · 번호 ${e['orderNo']} · 시각 ${e['orderTime']}\n'
-    '원주문 ${e['originalOrderNo'] == '' ? '없음' : e['originalOrderNo']} · 구분 원문 ${e['changeCode'] == '' ? '없음' : e['changeCode']}\n'
-    '정정 수량 ${e['correctedQuantity'] ?? '미제공'} · SOR 취소 수량 ${e['sorCancelledQuantity'] ?? '미제공'}',
-  );
+  Widget _evidence(Map<String, dynamic> e) {
+    if (_terminal) {
+      return SelectableText(
+        '출처 ${e['source']} · ${e['kind']} · 가상 종결 ${e['outcome']}\n'
+        '${e['stockCode']} · ${e['side']} · 지정가 ${e['price']} · ${e['quantity']}주\n'
+        '체결 ${e['filledQuantity']}주 · 미체결 ${e['openQuantity']}주\n'
+        '번호 ${e['orderNo']} · 원주문 ${e['parentOrderNo']} · 원주문 상태 ${e['parentState']}\n'
+        '실제 KB 완료 판정에 사용하지 않습니다.',
+      );
+    }
+    final parent = e['parentObservation'] as Map<String, dynamic>?;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SelectableText(
+          '${e['kind']} · ${switch (e['observation']) {
+            'OPEN' => '미체결 관찰',
+            'PARTIAL' => '부분체결 관찰',
+            _ => '변경 주문 연결 근거 · 완료 미확정',
+          }}\n'
+          '${e['stockCode']} · ${e['side']} · 지정가 ${e['price']} · 주문 ${e['quantity']}주\n'
+          '체결 ${e['filledQuantity']}주 · 미체결 ${e['openQuantity']}주\n'
+          '주문일 ${e['orderDate']} · 번호 ${e['orderNo']} · 시각 ${e['orderTime']}\n'
+          '원주문 ${e['originalOrderNo'] == '' ? '없음' : e['originalOrderNo']} · 구분 원문 ${e['changeCode'] == '' ? '없음' : e['changeCode']}\n'
+          '정정 수량 ${e['correctedQuantity'] ?? '미제공'} · SOR 취소 수량 ${e['sorCancelledQuantity'] ?? '미제공'}',
+        ),
+        if (parent != null)
+          SelectableText(
+            '원주문 추가 조회 ${parent['verification']}\n'
+            '번호 ${parent['orderNo']} · 시각 ${parent['orderTime']} · 주문 ${parent['quantity']}주\n'
+            '체결 ${parent['filledQuantity']}주 · 잔량 ${parent['openQuantity']}주 · 정정 ${parent['correctedQuantity']}주\n'
+            '원주문 참조가 일치해도 정정·취소 완료와 차단 해제를 확정하지 않습니다.',
+          ),
+        if (parent == null && e['kind'] != 'NEW')
+          const Text('추가 원주문 관찰이 없는 이력입니다. 완료 근거로 사용하지 않습니다.'),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) => PopScope(
     canPop: !_busy,
     child: Scaffold(
       appBar: AppBar(
-        title: const Text('UNKNOWN 대조 관찰'),
+        title: Text(_terminal ? '가상 주문 종결 대조' : 'UNKNOWN 대조 관찰'),
         actions: [
           IconButton(
             onPressed: _busy ? null : _load,
-            tooltip: '대조 관찰 이력 새로고침',
+            tooltip: _terminal ? '가상 종결 이력 새로고침' : '대조 관찰 이력 새로고침',
             icon: const Icon(Icons.refresh),
           ),
         ],
@@ -136,8 +170,10 @@ class _UnknownOrderReviewScreenState extends State<UnknownOrderReviewScreen> {
             children: [
               if (widget.simulation) const Text('SIMULATION · 실제 KB 조회·주문 없음'),
               SelectableText(widget.summary),
-              const Text(
-                '미체결·부분체결과 정정·취소의 조회 근거를 대조합니다. 관찰 저장은 전송 차단을 해제하지 않습니다. 신규 주문 전량 체결은 기존 전량 체결 대조를 사용하세요.',
+              Text(
+                _terminal
+                    ? '가상 증권사의 전량 체결·정정 후 전량 체결·명시적 취소와 원주문을 확인합니다. 확인 후 해당 UNKNOWN의 차단만 해소하며 원본 상태·전송 횟수·가상 자원은 유지합니다. 실제 KB 완료 판정이 아닙니다.'
+                    : '미체결·부분체결과 정정·취소의 조회 근거를 대조합니다. 관찰 저장은 전송 차단을 해제하지 않습니다. 신규 주문 전량 체결은 기존 전량 체결 대조를 사용하세요.',
               ),
               if (_busy) const LinearProgressIndicator(),
               if (_message != null)
@@ -149,7 +185,9 @@ class _UnknownOrderReviewScreenState extends State<UnknownOrderReviewScreen> {
                 const Text(
                   '확인 결과를 이력에서 확인 중입니다. 자동 반복하지 않습니다. 새 대조가 필요하면 이 화면을 다시 열어 새로 준비하세요.',
                 ),
-              if (widget.allowNew && _preparation == null) ...[
+              if (widget.allowNew &&
+                  _preparation == null &&
+                  (!_terminal || _history.isEmpty)) ...[
                 TextField(
                   controller: _number,
                   enabled: !_busy && _waitingId == null,
@@ -172,7 +210,7 @@ class _UnknownOrderReviewScreenState extends State<UnknownOrderReviewScreen> {
                           RegExp(r'^0+$').hasMatch(_number.text)
                       ? null
                       : _prepare,
-                  child: const Text('읽기 전용 대조 준비'),
+                  child: Text(_terminal ? '가상 종결 근거 확인' : '읽기 전용 대조 준비'),
                 ),
               ],
               if (_preparation != null)
@@ -186,16 +224,20 @@ class _UnknownOrderReviewScreenState extends State<UnknownOrderReviewScreen> {
                           _preparation!['evidence'] as Map<String, dynamic>,
                         ),
                         Text('확인 기한 ${_preparation!['expiresAt']} · 90초 이내'),
-                        const Text(
-                          '저장 직전에 다시 조회합니다. 체결·잔량·변경 근거가 달라지면 다시 준비해야 합니다. 원래 UNKNOWN과 가드를 보존합니다.',
+                        Text(
+                          _terminal
+                              ? '확정 직전 가상 주문·원주문 근거와 소유권을 다시 검사합니다. 실제 KB 계좌에는 적용하지 않습니다.'
+                              : '저장 직전에 다시 조회합니다. 체결·잔량·변경 근거가 달라지면 다시 준비해야 합니다. 원래 UNKNOWN과 가드를 보존합니다.',
                         ),
                         CheckboxListTile(
                           value: _checked,
                           onChanged: _busy
                               ? null
                               : (v) => setState(() => _checked = v ?? false),
-                          title: const Text(
-                            '해당 원주문과 관찰 내용을 확인했고 전송 차단이 유지됨을 이해했습니다.',
+                          title: Text(
+                            _terminal
+                                ? '가상 종결 결과와 해당 명령의 차단 해소를 확인했습니다.'
+                                : '해당 원주문과 관찰 내용을 확인했고 전송 차단이 유지됨을 이해했습니다.',
                           ),
                         ),
                         Wrap(
@@ -212,7 +254,7 @@ class _UnknownOrderReviewScreenState extends State<UnknownOrderReviewScreen> {
                             ),
                             FilledButton(
                               onPressed: _busy || !_checked ? null : _confirm,
-                              child: const Text('대조 관찰 저장'),
+                              child: Text(_terminal ? '가상 종결 확정' : '대조 관찰 저장'),
                             ),
                           ],
                         ),
@@ -221,8 +263,13 @@ class _UnknownOrderReviewScreenState extends State<UnknownOrderReviewScreen> {
                   ),
                 ),
               const SizedBox(height: 20),
-              const Text('저장된 대조 관찰 · 당시 조회이며 현재 체결 확정 아님'),
-              if (_loaded && _history.isEmpty) const Text('저장된 대조 관찰이 없습니다.'),
+              Text(
+                _terminal
+                    ? '저장된 가상 종결 · 실계좌에 적용하지 않음'
+                    : '저장된 대조 관찰 · 당시 조회이며 현재 체결 확정 아님',
+              ),
+              if (_loaded && _history.isEmpty)
+                Text(_terminal ? '저장된 가상 종결이 없습니다.' : '저장된 대조 관찰이 없습니다.'),
               for (final r in _history)
                 Card(
                   child: Padding(
@@ -230,7 +277,9 @@ class _UnknownOrderReviewScreenState extends State<UnknownOrderReviewScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('저장 ${r['confirmedAt']} · 전송 차단 유지'),
+                        Text(
+                          '저장 ${r['confirmedAt']} · ${_terminal ? '해당 가상 명령 차단 제외' : '전송 차단 유지'}',
+                        ),
                         _evidence(r['evidence'] as Map<String, dynamic>),
                       ],
                     ),
