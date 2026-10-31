@@ -13,7 +13,9 @@ void main() {
     WidgetTester t,
     ReviewFake r, {
     bool allowNew = true,
+    bool terminal = false,
   }) async {
+    r.terminal = terminal;
     await t.pumpWidget(
       MaterialApp(
         home: UnknownOrderReviewScreen(
@@ -23,27 +25,100 @@ void main() {
           confirm: r.confirm,
           simulation: true,
           allowNew: allowNew,
+          terminal: terminal,
         ),
       ),
     );
     await t.pumpAndSettle();
   }
 
-  Future<void> prepare(WidgetTester t) async {
+  Future<void> prepare(WidgetTester t, {bool terminal = false}) async {
     await t.enterText(find.byType(TextField), '0040000639');
     await t.pump();
-    await t.tap(find.text('읽기 전용 대조 준비'));
+    await t.tap(find.text(terminal ? '가상 종결 근거 확인' : '읽기 전용 대조 준비'));
     await t.pumpAndSettle();
   }
 
-  Future<void> confirm(WidgetTester t) async {
+  Future<void> confirm(WidgetTester t, {bool terminal = false}) async {
     await t.ensureVisible(find.byType(CheckboxListTile));
     await t.tap(find.byType(CheckboxListTile));
     await t.pump();
-    await t.ensureVisible(find.text('대조 관찰 저장'));
-    await t.tap(find.text('대조 관찰 저장'));
+    await t.ensureVisible(find.text(terminal ? '가상 종결 확정' : '대조 관찰 저장'));
+    await t.tap(find.text(terminal ? '가상 종결 확정' : '대조 관찰 저장'));
     await t.pump();
   }
+
+  testWidgets(
+    'simulation terminal mode needs explicit checked confirmation and retains audit',
+    (t) async {
+      final r = ReviewFake();
+      await mount(t, r, terminal: true);
+      await prepare(t, terminal: true);
+      expect(
+        t
+            .widget<FilledButton>(find.widgetWithText(FilledButton, '가상 종결 확정'))
+            .onPressed,
+        isNull,
+      );
+      expect(find.text('실제 주문 전송'), findsNothing);
+      await confirm(t, terminal: true);
+      await t.pumpAndSettle();
+      expect(r.confirms, 1);
+      expect(find.textContaining('가상 종결을 확정'), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
+      expect(find.textContaining('출처 SIMULATION'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'lost terminal response only rereads history without repeating confirmation',
+    (t) async {
+      final r = ReviewFake()..loseResponse = true;
+      await mount(t, r, terminal: true);
+      await prepare(t, terminal: true);
+      await confirm(t, terminal: true);
+      await t.pumpAndSettle();
+      await t.tap(find.byTooltip('가상 종결 이력 새로고침'));
+      await t.pumpAndSettle();
+      expect(r.confirms, 1);
+      expect(r.gets, 3);
+      expect(find.byType(TextField), findsNothing);
+    },
+  );
+  testWidgets(
+    'parent reference observation appears separately and cannot unlock live review',
+    (t) async {
+      final r = ReviewFake()
+        ..kind = 'CANCEL'
+        ..parent = {
+          'orderNo': '0040000638',
+          'orderTime': '090000',
+          'price': 75000,
+          'quantity': 2,
+          'filledQuantity': 0,
+          'openQuantity': 0,
+          'correctedQuantity': 2,
+          'verification': 'REFERENCE_MATCH',
+        };
+      await mount(t, r);
+      await prepare(t);
+      expect(find.textContaining('원주문 추가 조회 REFERENCE_MATCH'), findsOneWidget);
+      expect(find.textContaining('완료와 차단 해제를 확정하지 않습니다'), findsOneWidget);
+      expect(find.text('가상 종결 확정'), findsNothing);
+    },
+  );
+  test('terminal controls cannot be constructed for a live screen', () {
+    final r = ReviewFake();
+    expect(
+      () => UnknownOrderReviewScreen(
+        summary: 'live',
+        load: r.load,
+        prepare: r.prepare,
+        confirm: r.confirm,
+        terminal: true,
+      ),
+      throwsAssertionError,
+    );
+  });
 
   testWidgets(
     'opening reads history only and confirmation needs checked fresh evidence',
@@ -270,6 +345,8 @@ Map<String, dynamic> review() => {
 };
 
 class ReviewFake {
+  bool terminal = false;
+  Map<String, dynamic>? parent;
   String kind = 'NEW';
   bool loadFailure = false;
   int gets = 0, prepares = 0, confirms = 0;
@@ -295,6 +372,15 @@ class ReviewFake {
         if (kind != 'NEW') 'observation': 'CHANGE_REFERENCE',
         if (kind != 'NEW') 'originalOrderNo': '0040000638',
         if (kind != 'NEW') 'changeCode': '9',
+        if (parent != null) 'parentObservation': parent,
+        if (terminal) ...{
+          'source': 'SIMULATION',
+          'outcome': 'FILLED',
+          'filledQuantity': 2,
+          'openQuantity': 0,
+          'parentOrderNo': '',
+          'parentState': '',
+        },
       },
     };
   }
@@ -305,7 +391,23 @@ class ReviewFake {
     expect(token, 'one-use-token');
     if (pending != null) await pending!.future;
     if (changed) throw Exception('관찰이 변경되었습니다. 다시 준비하세요.');
-    records = [review()];
+    records = [
+      terminal
+          ? {
+              ...review(),
+              'evidence': {
+                ...evidence(),
+                'source': 'SIMULATION',
+                'outcome': 'FILLED',
+                'filledQuantity': 2,
+                'openQuantity': 0,
+                'parentOrderNo': '',
+                'parentState': '',
+              },
+              'lockMaintained': false,
+            }
+          : review(),
+    ];
     if (loseResponse) throw TimeoutException('test lost response');
   }
 }

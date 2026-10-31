@@ -58,8 +58,17 @@ public class UnknownOrderReviewService {
         String parent=UnknownOrderReviewStore.requireParent(commands,c);
         var lookup=executions.findByOrderNumber(c.orderDate(),orderNo);
         if(!binding.matches(c.accountFingerprint())) throw invalid();
-        return UnknownOrderReviewRules.verify(new OrderPrecheckRequest(c.stockCode(),c.stockName(),c.market(),c.side(),c.price(),c.quantity()),
+        var evidence=UnknownOrderReviewRules.verify(new OrderPrecheckRequest(c.stockCode(),c.stockName(),c.market(),c.side(),c.price(),c.quantity()),
             c.kind(),c.orderDate(),c.createdAt(),parent,orderNo,lookup);
+        if(!"NEW".equals(c.kind())){
+            var p=commands.find(c.parentId(),c.userId());OrderParentEvidence.Snapshot observation;
+            try{observation=OrderParentEvidence.inspect(new OrderPrecheckRequest(p.stockCode(),p.stockName(),p.market(),p.side(),p.price(),p.quantity()),
+                p.orderDate(),p.createdAt(),parent,executions.findByOrderNumber(p.orderDate(),parent));}
+            catch(RuntimeException exception){observation=OrderParentEvidence.failed(parent,"LOOKUP_FAILED");}
+            if(!binding.matches(c.accountFingerprint())) throw invalid();
+            evidence=evidence.withParent(observation);
+        }
+        return evidence;
     }
     private void storage() {
         try{commands.verifyStorage();}catch(DataAccessException exception){throw new ApiException(ErrorCode.ORDER_STORAGE_UNAVAILABLE);}

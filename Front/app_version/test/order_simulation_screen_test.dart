@@ -105,6 +105,67 @@ void main() {
       expect(r.state['blocked'], true);
     },
   );
+  for (final source in ['SIMULATION', 'KB']) {
+    testWidgets(
+      'lost terminal response rereads $source proof and never resends original order',
+      (t) async {
+        final r = CompletionFakeSimulation()
+          ..source = source
+          ..pending = Completer<Map<String, dynamic>>();
+        await mount(t, r);
+        await prepare(t);
+        await approve(t);
+        await transmit(t);
+        r.commands.last.addAll({
+          'status': 'UNKNOWN',
+          'brokerStatus': 'FILLED',
+          'filledQuantity': 2,
+          'openQuantity': 0,
+        });
+        r.state['blocked'] = true;
+        r.pending!.completeError(TimeoutException('lost submit response'));
+        await t.pumpAndSettle();
+        await t.ensureVisible(find.text('가상 주문 종결 대조'));
+        await t.tap(find.text('가상 주문 종결 대조'));
+        await t.pumpAndSettle();
+        await t.enterText(find.byType(TextField), '0000000001');
+        await t.pump();
+        await t.tap(find.text('가상 종결 근거 확인'));
+        await t.pumpAndSettle();
+        expect(
+          t
+              .widget<FilledButton>(
+                find.widgetWithText(FilledButton, '가상 종결 확정'),
+              )
+              .onPressed,
+          isNull,
+        );
+        await t.ensureVisible(find.byType(CheckboxListTile));
+        await t.tap(find.byType(CheckboxListTile));
+        await t.pump();
+        await t.ensureVisible(find.text('가상 종결 확정'));
+        await t.tap(find.text('가상 종결 확정'));
+        await t.pumpAndSettle();
+        await t.pageBack();
+        await t.pumpAndSettle();
+        expect(r.actions.where((a) => a.endsWith('/submit')).length, 1);
+        expect(
+          r.actions.where((a) => a.endsWith('/completion/confirm')).length,
+          1,
+        );
+        expect(r.commands.last['sendCount'], 1);
+        final button = t.widget<FilledButton>(
+          find.widgetWithText(FilledButton, '모의 주문 검증·승인'),
+        );
+        if (source == 'SIMULATION') {
+          expect(button.onPressed, isNotNull);
+          expect(find.text('가상 종결 이력'), findsOneWidget);
+        } else {
+          expect(button.onPressed, isNull);
+        }
+      },
+    );
+  }
   testWidgets('new session uses virtual cash and makes no order requests', (
     t,
   ) async {
@@ -393,6 +454,60 @@ Map<String, dynamic> command(String id, String status) => {
     'quantity': 2,
   },
 };
+
+class CompletionFakeSimulation extends FakeSimulation {
+  String source = 'SIMULATION';
+  Map<String, dynamic> proof() => {
+    'source': source,
+    'kind': 'NEW',
+    'outcome': 'FILLED',
+    'stockCode': '005930',
+    'side': 'BUY',
+    'price': 75000,
+    'quantity': 2,
+    'filledQuantity': 2,
+    'openQuantity': 0,
+    'orderNo': '0000000001',
+    'parentOrderNo': '',
+    'parentState': '',
+  };
+  @override
+  Future<Map<String, dynamic>> simulationAction(
+    String id,
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    if (path.endsWith('/completion/prepare')) {
+      actions.add(path);
+      expect(body, {'orderNo': '0000000001'});
+      return {
+        'resolutionId': 'resolution',
+        'token': 'terminal-token',
+        'expiresAt': '2026-11-01T09:01:30',
+        'evidence': proof(),
+      };
+    }
+    if (path.endsWith('/completion/confirm')) {
+      actions.add(path);
+      expect(body, {
+        'resolutionId': 'resolution',
+        'token': 'terminal-token',
+        'acknowledged': true,
+        'confirmation': '가상 주문 종결 확정',
+      });
+      commands.last['resolved'] = true;
+      commands.last['completion'] = {
+        'resolutionId': 'resolution',
+        'source': source,
+        'evidence': proof(),
+        'confirmedAt': '2026-11-01T09:00:01',
+      };
+      state['blocked'] = false;
+      throw TimeoutException('lost completion response');
+    }
+    return super.simulationAction(id, path, body);
+  }
+}
 
 class FakeSimulation
     implements OrderSimulationRepository, PaperTradingRepository {

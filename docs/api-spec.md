@@ -951,3 +951,19 @@ GET/POST `/api/v1/orders/manual/{id}/diagnostics`와 POST `/api/v1/orders/simula
 POST `/api/v1/orders/manual/{id}/reviews/prepare`, `/confirm`와 GET 기본 reviews 경로를 추가했습니다. 준비는 `{orderNo}`와 90초 토큰/관찰 해시, 확인은 `{reviewId,token,acknowledged:true,confirmation:"잠금 유지 대조 저장"}`을 사용합니다. 확인 전 재조회가 달라지면 저장하지 않습니다. 기존 017의 신규 전량 체결 확정과 달리 이 관찰은 UNKNOWN/차단·원주문 가드를 유지합니다. 전체 필드·21번 저장소와 별개인 021 오류/배포 계약은 [대조 관찰 문서](unknown-order-reviews.md)를 따릅니다.
 
 기존 체결 조회 항목에 originalOrderNo/changeCode/correctedQuantity/sorCancelledQuantity를 추가합니다. 선택 수량 누락은 null, 유효하지 않은 수량은 조회 오류입니다. 명시적 응답 주문일이 요청과 다르면 조회를 거절합니다. 구분 원문을 변경 완료로 매핑하지 않습니다. 시뮬레이터에는 같은 command reviews/prepare·confirm 경로와 공개 reviews 이력, TIMEOUT_AFTER_OPEN/TIMEOUT_AFTER_PARTIAL 시나리오를 추가했습니다. 내부 준비/확인 해시는 상태에서 제외합니다.
+
+## 23. 원주문 추가 관찰과 가상 종결
+
+22번 evidence에 선택적 `parentObservation`을 추가합니다. 정정/취소의 알려진 원주문을 별도 조회해 `orderNo,orderTime,price,quantity,filledQuantity,openQuantity,correctedQuantity,sorCancelledQuantity,verification`을 보관합니다. 검증 실패는 원문 없이 결과 코드만 남기며 참조 일치를 완료로 처리하지 않습니다. 부모 관찰도 확인 직전 해시에 포함하고 계좌 변경을 거절합니다. 이전 이력의 누락 필드는 null로 읽습니다. 기존 021 JSON을 사용합니다.
+
+가상 종결은 **시뮬레이터에만** 추가하며 실제 `/orders/manual` 경로에는 대응 API가 없습니다.
+
+| 메서드/경로 | 요청·응답 |
+|---|---|
+| POST `/api/v1/orders/simulations/{sessionId}/commands/{id}/completion/prepare` | `{orderNo}` → `{mode:"SIMULATION",resolutionId,token,expiresAt,evidence,message}` |
+| POST `/api/v1/orders/simulations/{sessionId}/commands/{id}/completion/confirm` | `{resolutionId,token,acknowledged:true,confirmation:"가상 주문 종결 확정"}` → 가상 세션 상태 |
+| 기존 GET `/api/v1/orders/simulations/{sessionId}` | 명령에 `resolved`와 검증된 `completion`(미완료 null) 추가 |
+
+가상 evidence는 `source,commandId,kind,outcome,orderNo,parentOrderNo,stockCode,market,side,price,quantity,filledQuantity,openQuantity,parentState,parentFilled,parentOpen`입니다. source는 서버가 SIMULATION으로 생성하며 outcome은 FILLED/AMEND_FILLED/CANCELLED입니다. 공개 completion은 `resolutionId,evidence,confirmedAt,lockMaintained:false,source:"SIMULATION"`만 제공합니다. 토큰/근거 해시·실행 키·내부 준비는 제외합니다.
+
+90초 토큰·근거 재검사·동의·사용자 소유 세션 잠금 아래 감사 기록을 원자적으로 저장합니다. 동일 ID/정확한 토큰의 반복 확인은 저장 결과만 반환합니다. 원본 UNKNOWN과 가상 자원은 변경하지 않고 이 가상 완료만 pending에서 제외하며 다른 미확정 명령은 차단합니다. 이전 JSON에 소유권 근거가 없으면 종결을 허용하지 않습니다. 018 JSON 확장이므로 새 마이그레이션은 없습니다. [종결 규칙·공식 자료 조사와 제한](order-completion-evidence.md)을 따릅니다.

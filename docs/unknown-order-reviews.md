@@ -64,7 +64,7 @@
 | POST `/api/v1/orders/simulations/{sessionId}/commands/{id}/reviews/prepare` | 같은 번호 본문으로 가상 대조 준비 |
 | POST `/api/v1/orders/simulations/{sessionId}/commands/{id}/reviews/confirm` | 같은 확인 본문으로 저장 후 가상 세션 상태 반환 |
 
-evidence는 `kind,observation,orderDate,orderNo,orderTime,stockCode,side,price,quantity,filledQuantity,openQuantity,originalOrderNo,changeCode,correctedQuantity,sorCancelledQuantity`입니다. 저장 응답은 여기에 `reviewId,commandId,confirmedAt,lockMaintained:true,message`를 제공합니다. 시뮬레이터 저장 상태에는 공개 reviews 목록을 추가하고 내부 reviewPreparation/토큰 해시는 반환하지 않습니다.
+evidence는 `kind,observation,orderDate,orderNo,orderTime,stockCode,side,price,quantity,filledQuantity,openQuantity,originalOrderNo,changeCode,correctedQuantity,sorCancelledQuantity,parentObservation`입니다. 선택적 parentObservation은 아래 후속 범위를 따릅니다. 저장 응답은 여기에 `reviewId,commandId,confirmedAt,lockMaintained:true,message`를 제공합니다. 시뮬레이터 저장 상태에는 공개 reviews 목록을 추가하고 내부 reviewPreparation/토큰 해시는 반환하지 않습니다.
 
 021 미적용은 새 관찰 API에서 `REVIEW_STORAGE_UNAVAILABLE`(503)로 안내합니다. 기존 전량 체결 확정과 수동 주문 준비 조건에는 021을 추가하지 않습니다. 016은 사용자가 운영 적용을 확인했고, 017~021 적용 완료는 아직 확인받지 않았습니다. PR 병합 후 Ubuntu 프로젝트 루트에서 기존 DB를 백업하고 적용합니다. 실제 주문 스위치는 OFF로 유지합니다.
 
@@ -87,3 +87,11 @@ docker compose --env-file .env up -d --build --no-deps spring-api
 변경 구분 코드의 공식 값/실제 응답과 최종 정정·취소 결과 검증, 잔량 주문의 종결·차단 해제, 종료 증거 없는 SENDING 종결, 가격 증액·일부 수량 변경·추가 정정, 실제 계좌 검증 및 11번 자동매매는 남았습니다. 이번 관찰 저장을 해당 범위의 완료로 계산하지 않습니다.
 
 자동 검증은 백엔드 410건(실제 격리 MySQL 통합 71건), Flutter 176건 통과, Dart 분석 이슈 없음, Windows Release 빌드 성공입니다. 새 대조·레거시 전량 체결 오인 차단·조회 일자·토큰 교체/만료·재조회 변경·동시 확인·저장 실패 롤백·가상 자원 보존을 검증했습니다. 테스트 컨테이너·네트워크는 정리했습니다.
+
+## 후속: 원주문 관찰과 가상 종결의 분리 (2026-11-01)
+
+정정/취소는 자식 조회 이후 저장된 원주문번호로 원주문도 별도 조회합니다. `parentObservation`은 `orderNo,orderTime,price,quantity,filledQuantity,openQuantity,correctedQuantity,sorCancelledQuantity,verification`이며 검증된 항목만 담습니다. verification은 REFERENCE_MATCH/LOOKUP_FAILED/SCOPE_MISMATCH/INCOMPLETE/ROW_NOT_UNIQUE/IDENTITY_MISMATCH/QUANTITY_INVALID입니다. 참조 일치는 정정·취소 완료가 아닙니다. 실패는 원문 없이 보관하며, 부모 관찰만 달라져도 확인 시 재준비를 요구합니다. 계좌 변경은 거절하고 실제 상태·차단·가드는 유지합니다.
+
+이전 이력의 누락 필드는 null로 읽고 원주문 미조회로 표시합니다. 021 JSON 확장이므로 추가 마이그레이션은 없습니다. 배포 전 발급한 90초 준비는 해시가 달라질 수 있어 다시 준비합니다. KB 공개 자료 조사에서는 완료 코드값 근거를 찾지 못했습니다. [공식 출처·조회 한계·후속 확인](order-completion-evidence.md)을 참고합니다.
+
+시뮬레이터에는 별도의 `가상 주문 종결 대조`를 추가했습니다. 가상 증권사의 엄격한 소유권/종결 근거와 별도 동의가 있는 명령만 가상 차단 집계에서 제외합니다. 이 문서의 reviews 저장은 계속 잠금을 유지하며, 실제 주문 종결/해제 API는 추가하지 않았습니다. 후속 전체 자동 검증은 백엔드 462건(MySQL 87건)·Flutter 182건입니다.

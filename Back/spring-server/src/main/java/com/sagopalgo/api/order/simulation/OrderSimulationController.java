@@ -55,6 +55,11 @@ public class OrderSimulationController {
         @PathVariable String id,@PathVariable String commandId,@Valid @RequestBody ReviewConfirm r){return ok(service.confirmReview(user.userId(),id,commandId,r.reviewId(),r.token(),r.acknowledged(),r.confirmation()));}
     public record ReviewPrepare(@NotBlank @Pattern(regexp="[0-9]{10}") String orderNo){}
     public record ReviewConfirm(@NotBlank @Size(max=36) String reviewId,@NotBlank @Size(max=200) String token,boolean acknowledged,@NotBlank String confirmation){}
+    @PostMapping("/{id}/commands/{commandId}/completion/prepare") public ApiResponse<Map<String,Object>> prepareCompletion(
+        @PathVariable String id,@PathVariable String commandId,@Valid @RequestBody ReviewPrepare r){return ok(service.prepareCompletion(user.userId(),id,commandId,r.orderNo()));}
+    @PostMapping("/{id}/commands/{commandId}/completion/confirm") public ApiResponse<Map<String,Object>> confirmCompletion(
+        @PathVariable String id,@PathVariable String commandId,@Valid @RequestBody CompletionConfirm r){return ok(service.confirmCompletion(user.userId(),id,commandId,r.resolutionId(),r.token(),r.acknowledged(),r.confirmation()));}
+    public record CompletionConfirm(@NotBlank @Size(max=36) String resolutionId,@NotBlank @Size(max=200) String token,boolean acknowledged,@NotBlank String confirmation){}
     private ApiResponse<Map<String,Object>> ok(Map<String,Object> data) { return ApiResponse.success(data,"SIMULATION 전용 결과. 실제 주문 전송 없음"); }
     public record Create(@NotNull @DecimalMin("0.01") @Digits(integer=10,fraction=2) BigDecimal cash) {}
     public record Quote(@NotBlank String stockCode,@NotBlank String market,@NotNull BigDecimal price) {}

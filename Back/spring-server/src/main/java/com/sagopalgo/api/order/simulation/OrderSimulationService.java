@@ -9,6 +9,7 @@ import com.sagopalgo.api.order.service.OrderWorkflowRules;
 import com.sagopalgo.api.order.service.OrderDispatchReceipt;
 import com.sagopalgo.api.order.service.OrderSendingDiagnosticRules;
 import com.sagopalgo.api.order.service.UnknownOrderReviewRules;
+import com.sagopalgo.api.order.service.OrderParentEvidence;
 import com.sagopalgo.api.order.dto.KbOrderExecutionItemResponse;
 import com.sagopalgo.api.order.dto.KbOrderLookupResponse;
 import com.sagopalgo.api.order.simulation.OrderSimulationState.*;
@@ -140,7 +141,7 @@ public class OrderSimulationService {
         store.mutate(userId, id, state -> {
             var c = command(state, commandId);
             if (!"READY".equals(c.status) || !LocalDateTime.parse(c.expiresAt).isAfter(OrderSimulationStore.now())) throw invalid("모의 제출 승인이 만료·사용되었습니다.");
-            if (state.commands.values().stream().anyMatch(x -> Set.of("SENDING", "UNKNOWN").contains(x.status))) {
+            if (state.commands.values().stream().anyMatch(OrderSimulationService::pending)) {
                 throw invalid("미확정 모의 전송이 있습니다. 기록은 유지하고 다른 시나리오는 새 세션에서 실행하세요.");
             }
             validate(state, c.plan, c.kind);
@@ -172,7 +173,8 @@ public class OrderSimulationService {
             }
             String orderNo = String.format(java.util.Locale.ROOT, "%010d", state.sequence++);
             var broker = new BrokerOrder(); broker.orderNo = orderNo; broker.commandId = commandId; broker.plan = c.plan;
-            if (parentOrder != null) parentOrder.status = "CANCEL".equals(c.kind) ? "CANCELLED" : "REPLACED";
+            broker.changeKind=c.kind;broker.originalOrderNo=parentOrder==null?"":parentOrder.orderNo;
+            if (parentOrder != null) {parentOrder.status = "CANCEL".equals(c.kind) ? "CANCELLED" : "REPLACED";parentOrder.changedByCommandId=commandId;}
             if ("CANCEL".equals(c.kind)) broker.status = "CANCELLED";
             state.brokerOrders.put(orderNo, broker);
             // 응답 유실 시에도 증권사 쪽 접수 여부를 시험할 수 있도록 내부 가정 상태를 별도로 보관합니다.
@@ -307,8 +309,49 @@ public class OrderSimulationService {
                 "AMEND".equals(source.kind)?p.quantity():BigDecimal.ZERO,BigDecimal.ZERO));
         }
         var created=LocalDateTime.parse(c.createdAt);String date=created.toLocalDate().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
-        return UnknownOrderReviewRules.verify(c.plan,c.kind,date,created,parent,orderNo,new KbOrderLookupResponse(date,orderNo,true,1,rows));
+        var evidence=UnknownOrderReviewRules.verify(c.plan,c.kind,date,created,parent,orderNo,new KbOrderLookupResponse(date,orderNo,true,1,rows));
+        if(!"NEW".equals(c.kind)){
+            var p=command(state,c.parentId);var original=state.brokerOrders.get(parent);
+            if(original==null) return evidence.withParent(OrderParentEvidence.failed(parent,"ROW_NOT_UNIQUE"));
+            var r=new KbOrderExecutionItemResponse(parent,p.plan.stockCode(),"","BUY".equals(p.plan.side())?"매수":"매도",
+                LocalDateTime.parse(p.createdAt).format(java.time.format.DateTimeFormatter.ofPattern("HHmmss")),p.plan.quantity(),original.filled,
+                original.openQuantity(),p.plan.limitPrice(),null,"",original.status,"","", "REPLACED".equals(original.status)?p.plan.quantity():BigDecimal.ZERO,BigDecimal.ZERO);
+            evidence=evidence.withParent(OrderParentEvidence.inspect(p.plan,date,LocalDateTime.parse(p.createdAt),parent,new KbOrderLookupResponse(date,parent,true,1,List.of(r))));
+        }
+        return evidence;
     }
+
+    public Map<String,Object> prepareCompletion(Long user,String session,String commandId,String orderNo){
+        UnknownOrderReviewRules.number(orderNo);String token=OrderWorkflowRules.issueToken();
+        var p=store.mutate(user,session,state->{
+            var c=command(state,commandId);if(c.completion!=null) throw invalid("이미 가상 종결한 명령입니다. 저장 결과를 확인하세요.");
+            var evidence=SimulationCompletionRules.inspect(state,c,orderNo);
+            var prepared=new CompletionPreparation(UUID.randomUUID().toString(),OrderWorkflowRules.hash(token),SimulationCompletionRules.digest(evidence),
+                OrderSimulationStore.now().plusSeconds(90).toString(),evidence);
+            c.completionPreparation=prepared;event(state,commandId,"가상 종결 근거 준비 · 아직 차단 유지");return prepared;
+        });
+        return Map.of("mode","SIMULATION","resolutionId",p.resolutionId(),"token",token,"expiresAt",p.expiresAt(),"evidence",p.evidence(),
+            "message","가상 증권사의 명시적 종결만 확인합니다. 실제 KB 주문에 적용하지 않습니다.");
+    }
+    public Map<String,Object> confirmCompletion(Long user,String session,String commandId,String resolutionId,String token,boolean acknowledged,String confirmation){
+        if(!acknowledged || !SimulationCompletionRules.CONFIRMATION.equals(confirmation) || token==null || token.length()>200
+            || resolutionId==null || resolutionId.length()!=36) throw invalid("가상 종결 확인이 필요합니다.");
+        store.mutate(user,session,state->{
+            var c=command(state,commandId);String hash=OrderWorkflowRules.hash(token);
+            if(c.completion!=null){
+                if(!resolutionId.equals(c.completion.resolutionId()) || !hash.equals(c.completion.tokenHash()) || !SimulationCompletionRules.resolved(c)) throw invalid("가상 종결 확인이 다릅니다.");
+                return null;
+            }
+            var p=c.completionPreparation;
+            if(p==null || !p.resolutionId().equals(resolutionId) || !OrderWorkflowRules.validToken(token,p.tokenHash(),LocalDateTime.parse(p.expiresAt()),OrderSimulationStore.now())) throw invalid("가상 종결 확인이 만료·변경되었습니다.");
+            var evidence=SimulationCompletionRules.inspect(state,c,p.evidence().orderNo());
+            if(!SimulationCompletionRules.digest(evidence).equals(p.evidenceHash())) throw invalid("가상 종결 근거가 바뀌었습니다. 다시 준비하세요.");
+            c.completion=new StoredCompletion(resolutionId,hash,evidence,OrderSimulationStore.now().toString());c.completionPreparation=null;
+            event(state,commandId,"가상 종결 확정 · UNKNOWN 원본·전송 횟수·가상 자원 보존, 해당 차단 제외");return null;
+        });
+        return get(user,session);
+    }
+    private static boolean pending(Command c){return "SENDING".equals(c.status) || ("UNKNOWN".equals(c.status) && !SimulationCompletionRules.resolved(c));}
 
     private void fill(OrderSimulationState state, BrokerOrder order, BigDecimal quantity) {
         if (quantity == null || quantity.signum() <= 0 || quantity.stripTrailingZeros().scale() > 0
@@ -379,6 +422,9 @@ public class OrderSimulationService {
             item.put("diagnostics",List.copyOf(c.diagnostics));
             item.put("reviews",c.reviews.stream().map(r->Map.of("reviewId",r.reviewId(),"evidence",r.evidence(),
                 "confirmedAt",r.confirmedAt(),"lockMaintained",true,"message",UnknownOrderReviewRules.MESSAGE)).toList());
+            boolean resolved=SimulationCompletionRules.resolved(c);item.put("resolved",resolved);
+            item.put("completion",resolved?Map.of("resolutionId",c.completion.resolutionId(),"evidence",c.completion.evidence(),
+                "confirmedAt",c.completion.confirmedAt(),"lockMaintained",false,"source","SIMULATION"):null);
             item.put("brokerOrderNo", c.brokerOrderNo); item.put("brokerStatus", broker == null ? "NONE" : broker.status);
             item.put("filledQuantity", broker == null ? BigDecimal.ZERO : broker.filled);
             item.put("openQuantity", broker == null ? BigDecimal.ZERO : broker.openQuantity()); commands.add(item);
@@ -386,7 +432,7 @@ public class OrderSimulationService {
         return Map.of("mode", "SIMULATION", "sessionId", id, "revision", revision, "cash", state.cash,
             "availableCash", availableCash(state), "positions", state.positions, "quotes", state.quotes,
             "commands", commands, "events", state.events,
-            "blocked", state.commands.values().stream().anyMatch(c -> Set.of("SENDING", "UNKNOWN").contains(c.status)));
+            "blocked", state.commands.values().stream().anyMatch(OrderSimulationService::pending));
     }
     private KbLimitOrderContract.Outcome interpreted(boolean accepted, String orderNo) {
         return KbLimitOrderContract.interpret(json.valueToTree(Map.of("dataHeader", Map.of("resultCode", "200", "processFlag", accepted ? "A" : "B"),
