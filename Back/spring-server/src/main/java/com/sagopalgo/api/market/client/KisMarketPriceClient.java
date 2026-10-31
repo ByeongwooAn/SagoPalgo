@@ -11,6 +11,8 @@ import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockCandle;
 import com.sagopalgo.api.market.model.StockQuote;
+import com.sagopalgo.api.market.model.DomesticStockIdentity;
+import java.util.Optional;
 import com.sagopalgo.api.market.provider.MarketDataProvider;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -183,6 +185,86 @@ public class KisMarketPriceClient implements MarketDataProvider {
         }
 
         return parseQuote(request, response);
+    }
+
+    @Override
+    public Optional<DomesticStockIdentity> domesticStockIdentity(String stockCode) {
+        if (!properties.isEnabled()) return Optional.empty();
+        if (stockCode == null || !stockCode.matches("[0-9]{6}")) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "국내 종목코드 6자리를 입력하세요.");
+        }
+        ensureQuoteConfigured();
+        URI uri = UriComponentsBuilder.fromUri(endpoint(properties.getStockInfoPath()))
+            .queryParam("PRDT_TYPE_CD", "300").queryParam("PDNO", stockCode).build().encode().toUri();
+        JsonNode output = identityOutput(uri, properties.getStockInfoTransactionId(), "STOCK_INFO");
+        if (!stockCode.equals(output.path("pdno").asText().trim())) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "종목정보 응답의 종목코드가 일치하지 않습니다.");
+        }
+        String name = output.path("prdt_abrv_name").asText().trim();
+        if (name.isEmpty()) name = output.path("prdt_name").asText().trim();
+        if (name.isEmpty() || name.length() > 100) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "종목명을 확인할 수 없습니다.");
+        }
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate delisted = identityDate(output, "lstg_abol_dt");
+        if (delisted != null && !delisted.isAfter(today)) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "상장폐지된 종목은 자동 등록할 수 없습니다.");
+        }
+        boolean kospi = currentlyListed(output, "scts_mket_lstg_dt", "scts_mket_lstg_abol_dt", today);
+        boolean kosdaq = currentlyListed(output, "kosdaq_mket_lstg_dt", "kosdaq_mket_lstg_abol_dt", today);
+        String market;
+        if (kospi != kosdaq) {
+            market = kospi ? "KOSPI" : "KOSDAQ";
+        } else {
+            JsonNode price = identityOutput(priceUri(stockCode), properties.getTransactionId(), "STOCK_MARKET");
+            if (!stockCode.equals(price.path("stck_shrn_iscd").asText().trim())) {
+                throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "시장정보 응답의 종목코드가 일치하지 않습니다.");
+            }
+            market = switch (price.path("rprs_mrkt_kor_name").asText().trim().toUpperCase(Locale.ROOT)) {
+                case "KOSPI", "코스피", "유가증권", "유가증권시장" -> "KOSPI";
+                case "KOSDAQ", "코스닥", "코스닥시장" -> "KOSDAQ";
+                case "KONEX", "코넥스", "코넥스시장" -> "KONEX";
+                default -> throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "상장 시장을 확인할 수 없습니다. 직접 입력하세요.");
+            };
+        }
+        return Optional.of(new DomesticStockIdentity("KIS", stockCode, name, market));
+    }
+
+    private JsonNode identityOutput(URI uri, String transactionId, String stage) {
+        JsonNode body;
+        try {
+            body = restClient.get().uri(uri).accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken())
+                .header("appkey", properties.getAppKey()).header("appsecret", properties.getAppSecret())
+                .header("tr_id", transactionId).header("custtype", properties.getCustomerType())
+                .retrieve().body(JsonNode.class);
+        } catch (RestClientException exception) {
+            throw KisApiErrors.requestFailure(stage, "종목정보", exception);
+        }
+        if (body == null) throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "종목정보 응답이 비어 있습니다.");
+        if (!"0".equals(body.path("rt_cd").asText())) {
+            throw KisApiErrors.responseFailure(stage, "종목정보", body.path("rt_cd").asText(), body.path("msg_cd").asText());
+        }
+        if (!body.path("output").isObject()) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "종목정보 응답 형식이 올바르지 않습니다.");
+        }
+        return body.path("output");
+    }
+
+    private LocalDate identityDate(JsonNode output, String field) {
+        String date = output.path(field).asText().trim();
+        if (date.isEmpty() || "00000000".equals(date)) return null;
+        try {
+            return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
+        } catch (DateTimeParseException exception) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "종목정보의 상장 일자를 확인할 수 없습니다.");
+        }
+    }
+
+    private boolean currentlyListed(JsonNode output, String listedField, String delistedField, LocalDate today) {
+        LocalDate listed = identityDate(output, listedField);
+        LocalDate delisted = identityDate(output, delistedField);
+        return listed != null && !listed.isAfter(today) && (delisted == null || delisted.isAfter(today));
     }
 
     @Override

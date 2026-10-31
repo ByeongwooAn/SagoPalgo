@@ -4,6 +4,7 @@ import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.market.dto.MarketStockInfoResponse;
 import com.sagopalgo.api.market.model.MarketDataRequest;
+import com.sagopalgo.api.market.model.DomesticStockIdentity;
 import com.sagopalgo.api.market.provider.MarketDataProvider;
 import java.util.List;
 import java.util.Locale;
@@ -47,6 +48,33 @@ public class MarketStockInfoService {
             throw lastFailure;
         }
         throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "사용 가능한 종목 정보 Provider가 없습니다.");
+    }
+
+    public DomesticStockIdentity lookupDomesticStock(String stockCode) {
+        String code = stockCode == null ? "" : stockCode.trim();
+        if (!code.matches("[0-9]{6}")) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "국내 종목코드 6자리를 입력하세요.");
+        }
+        ApiException lastFailure = null;
+        for (MarketDataProvider provider : providers) {
+            try {
+                var result = provider.domesticStockIdentity(code);
+                if (result.isEmpty()) continue;
+                DomesticStockIdentity identity = result.orElseThrow();
+                if (!code.equals(identity.stockCode()) || !provider.providerCode().equals(identity.provider())
+                    || !StringUtils.hasText(identity.stockName()) || identity.stockName().trim().length() > 100
+                    || identity.market() == null || !List.of("KOSPI", "KOSDAQ", "KONEX").contains(identity.market())) {
+                    throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "조회한 종목명·코드·시장을 확인할 수 없습니다.");
+                }
+                return new DomesticStockIdentity(identity.provider(), code, identity.stockName().trim(), identity.market());
+            } catch (ApiException exception) {
+                if (exception.getErrorCode() != ErrorCode.EXTERNAL_DATA_ERROR) throw exception;
+                lastFailure = exception;
+            }
+        }
+        if (lastFailure != null) throw lastFailure;
+        throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR,
+            "종목 자동 조회를 사용할 수 없습니다. 서버의 KIS 또는 Toss 종목정보 연동 설정을 확인하거나 직접 입력하세요.");
     }
 
     private MarketDataRequest validateRequest(String stockCode, String market) {

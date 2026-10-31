@@ -7,6 +7,7 @@ import '../models/research_feed.dart';
 import '../repositories/research_feed_repository.dart';
 import '../repositories/watchlist_repository.dart';
 import 'watchlist_setup_sheet.dart';
+import 'watchlist_management_sheet.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/section_header.dart';
@@ -104,6 +105,11 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
               onPressed: _syncing ? null : _addStock,
               icon: const Icon(Icons.star_border),
               label: const Text('관심 종목 등록'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _syncing ? null : _manageStocks,
+              icon: const Icon(Icons.edit_note),
+              label: const Text('관심 목록 관리'),
             ),
             const SizedBox(height: 12),
           ],
@@ -260,6 +266,14 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
   Future<void> _addStock() async {
     final repository = widget.watchlistRepository;
     if (repository != null && await showWatchlistSetup(context, repository)) {
+      widget.onStocksChanged?.call();
+    }
+  }
+
+  Future<void> _manageStocks() async {
+    final repository = widget.watchlistRepository;
+    if (repository == null) return;
+    if (await showWatchlistManagement(context, repository) && mounted) {
       widget.onStocksChanged?.call();
     }
   }

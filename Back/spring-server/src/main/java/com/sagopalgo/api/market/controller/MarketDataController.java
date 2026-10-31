@@ -5,6 +5,7 @@ import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.common.response.ApiResponse;
 import com.sagopalgo.api.market.dto.MarketCandleResponse;
 import com.sagopalgo.api.market.dto.MarketStockInfoResponse;
+import com.sagopalgo.api.market.model.DomesticStockIdentity;
 import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.service.MarketCandleService;
 import com.sagopalgo.api.market.service.MarketStockInfoService;
@@ -40,6 +41,14 @@ public class MarketDataController {
     ) {
         MarketStockInfoResponse response = marketStockInfoService.getStockInfo(stockCode, market);
         return ResponseEntity.ok(ApiResponse.success(response, "종목 기본 정보가 조회되었습니다."));
+    }
+
+    @GetMapping("/stocks/{stockCode}/identity")
+    public ResponseEntity<ApiResponse<DomesticStockIdentity>> lookupDomesticStock(
+        @org.springframework.web.bind.annotation.PathVariable String stockCode
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(marketStockInfoService.lookupDomesticStock(stockCode),
+            "종목명과 상장 시장이 조회되었습니다."));
     }
 
     @GetMapping("/candles")

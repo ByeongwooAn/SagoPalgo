@@ -21,6 +21,13 @@ public class KisMarketProperties {
     private String customerType = "P";
     private String indexPath = "/uapi/domestic-stock/v1/quotations/inquire-daily-indexchartprice";
     private String indexTransactionId = "FHKUP03500100";
+    private String stockInfoPath = "/uapi/domestic-stock/v1/quotations/search-stock-info";
+    private String stockInfoTransactionId = "CTPF1002R";
+
+    public String getStockInfoPath() { return stockInfoPath; }
+    public void setStockInfoPath(String value) { stockInfoPath = value; }
+    public String getStockInfoTransactionId() { return stockInfoTransactionId; }
+    public void setStockInfoTransactionId(String value) { stockInfoTransactionId = value; }
 
     public String getIndexPath() { return indexPath; }
     public void setIndexPath(String value) { indexPath = value; }

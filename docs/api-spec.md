@@ -860,6 +860,26 @@ KIS 지수는 [공식 업종기간별시세 예제](https://github.com/koreainve
 
 모의 자본금 미설정은 `409 PAPER_CAPITAL_REQUIRED`를 반환합니다. 새 앱은 자본금 설정으로 이동하는 CTA를 표시하며 이전 서버의 동일 안내 문구도 지원합니다. 가상 매수·매도는 사용자 행 잠금으로 자본금 수정과 직렬화합니다. 모의매매는 현재 설정 자본금 기준이므로 설정 변경 시 현금·수익률은 재산정되지만 PAPER 기록은 유지합니다. 실주문을 호출하지 않습니다.
 
+### 17.4 관심 종목 코드 조회와 삭제 화면
+
+`GET /api/v1/market/stocks/{stockCode}/identity`는 시장 입력 없이 국내 6자리 종목코드로 등록용 정보를 조회합니다. 예시 응답의 이름·시장은 예시이며 실제 Provider 응답을 사용합니다.
+
+```json
+{
+  "provider": "KIS",
+  "stockCode": "000660",
+  "stockName": "SK하이닉스",
+  "market": "KOSPI"
+}
+```
+
+위 객체는 공통 응답의 `data`입니다. 형식 오류는 `VALIDATION_ERROR`, 미설정·없는/잘못된 종목 응답·시장 판독 불가·외부 호출 실패는 `EXTERNAL_DATA_ERROR`입니다. 코드·Provider·종목명·지원 시장을 검사한 결과만 반환하며 임의 이름이나 KOSPI 기본값을 만들지 않습니다. 저장 POST와 독립적인 읽기 전용 API입니다.
+
+- KIS는 [공식 주식기본조회](https://github.com/koreainvestment/open-trading-api/blob/main/examples_llm/domestic_stock/search_stock_info/search_stock_info.py)의 `search-stock-info`, `CTPF1002R`, `PRDT_TYPE_CD=300`, `PDNO` 계약을 사용합니다. 종목명과 현재 유효한 KOSPI/KOSDAQ 상장 일자를 확인합니다. 시장 판독이 안 되면 [현재가 조회의 명시적 시장명·단축 코드](https://github.com/koreainvestment/open-trading-api/blob/main/examples_llm/domestic_stock/inquire_price/chk_inquire_price.py)를 확인하며, 불명확하면 오류로 남깁니다. 확인된 상장폐지 종목은 자동 조회 결과로 반환하지 않습니다.
+- KIS 조회가 불가능하면 설정된 Toss 종목정보를 시도하고 실제 응답의 시장을 사용합니다. 기존 KIS/Toss 활성화·인증 설정을 사용하며 새 DB 테이블이나 환경변수 추가는 없습니다.
+- Flutter 등록 시 코드 입력 후 400ms 동안 변경이 없으면 조회합니다. 조회된 이름·시장은 자동 입력되며 코드 변경 시 즉시 초기화하고 이전 응답을 무시합니다. 조회 실패 시 재시도 또는 명시적인 `종목명·시장 직접 입력`을 선택합니다. 기존 `POST /api/v1/watchlist` 계약은 유지하며 확인된 값과 알림 선택을 보냅니다.
+- 추천·소식 탭의 `관심 목록 관리`에서 기존 `DELETE /api/v1/watchlist/{watchlistId}`를 호출합니다. 확인 취소는 요청을 보내지 않고, 실패는 행을 유지하며, 완료 전 닫기·중복 요청을 막습니다. 삭제된 관심 행과 그 알림 설정만 제거하고 보유분·뉴스·추천·기존 알림 이력은 보존합니다. 관리 창을 닫을 때 변경이 있으면 루트 데이터를 다시 조회합니다.
+
 ## 18. 다음 구현 순서
 
 Flutter 추천 이력 목록·상세 화면, 보유 종목 수동 재분석과 관심 종목 직접 분석 액션까지 연결되었습니다.

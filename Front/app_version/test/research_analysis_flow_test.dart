@@ -5,6 +5,7 @@ import 'package:app_version/models/paper_trading.dart';
 import 'package:app_version/models/recommendation.dart';
 import 'package:app_version/models/research_feed.dart';
 import 'package:app_version/models/watchlist_item.dart';
+import 'package:app_version/models/stock_identity.dart';
 import 'package:app_version/repositories/paper_trading_repository.dart';
 import 'package:app_version/repositories/recommendation_repository.dart';
 import 'package:app_version/repositories/research_feed_repository.dart';
@@ -55,7 +56,9 @@ void main() {
       expect(editor.saved, isNull);
       expect(find.text('국내 종목코드 6자리를 입력하세요.'), findsOneWidget);
       await tester.enterText(find.byType(TextFormField).at(0), '005930');
-      await tester.enterText(find.byType(TextFormField).at(1), '삼성전자');
+      await tester.pump(const Duration(milliseconds: 401));
+      await tester.pumpAndSettle();
+      expect(find.text('삼성전자'), findsOneWidget);
       await tester.tap(find.text('추천 신호 알림 켜기'));
       await tester.tap(find.text('관심 종목 저장'));
       await tester.pumpAndSettle();
@@ -297,6 +300,15 @@ void main() {
 const _stock = ResearchStock(stockCode: '005930', stockName: '삼성전자');
 
 class _Watchlist implements WatchlistRepository, WatchlistEditor {
+  @override
+  Future<StockIdentity> lookupStock(String stockCode) async => StockIdentity(
+    stockCode: stockCode,
+    stockName: '삼성전자',
+    market: 'KOSPI',
+    provider: 'KIS',
+  );
+  @override
+  Future<void> deleteStock(int watchlistId) async {}
   Map<String, Object>? saved;
   @override
   Future<void> addStock({
