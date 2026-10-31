@@ -46,6 +46,10 @@ class ManualOrderMysqlIntegrationTest {
     private ManualOrderDispatchMapper dispatches;
     private ManualOrderDispatchService dispatchService;
     private OrderAccountBinding binding;
+    private ManualOrderDiagnosticMapper diagnosticMapper;
+    private ManualOrderDiagnosticStore diagnosticStore;
+    private ManualOrderDiagnosticService diagnosticService;
+    private KbOrderExecutionService diagnosticExecutions;
     private ManualOrderReconciliationStore reconciliationStore;
     private DataSourceTransactionManager transactions;
     private OrderSimulationMapper simulations;
@@ -65,6 +69,7 @@ class ManualOrderMysqlIntegrationTest {
         try (var connection = dataSource.getConnection()) {
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/schema.sql"));
             // 016을 실제 업그레이드와 같은 테이블 부재 상태에서 검증합니다.
+            jdbc.execute("DROP TABLE IF EXISTS manual_order_diagnostics");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_dispatch_recoveries");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_dispatches");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_reconciliations");
@@ -82,10 +87,15 @@ class ManualOrderMysqlIntegrationTest {
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/019_manual_order_dispatch_journal.sql"));
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/019_manual_order_dispatch_journal.sql"));
         }
+        try(var connection=dataSource.getConnection()) {
+            ScriptUtils.executeSqlScript(connection,new FileSystemResource("../database/migrations/020_manual_order_diagnostics.sql"));
+            ScriptUtils.executeSqlScript(connection,new FileSystemResource("../database/migrations/020_manual_order_diagnostics.sql"));
+        }
         var configuration = new Configuration();
         configuration.setMapUnderscoreToCamelCase(true);
         configuration.addMapper(ManualOrderMapper.class);
         configuration.addMapper(ManualOrderDispatchMapper.class);
+        configuration.addMapper(ManualOrderDiagnosticMapper.class);
         configuration.addMapper(OrderSubmissionGuardMapper.class);
         configuration.addMapper(ManualOrderReconciliationMapper.class);
         configuration.addMapper(OrderSimulationMapper.class);
@@ -99,6 +109,10 @@ class ManualOrderMysqlIntegrationTest {
         dispatches=session.getMapper(ManualOrderDispatchMapper.class);
         binding=mock(OrderAccountBinding.class);
         dispatchService=proxy(new ManualOrderDispatchService(commands,dispatches,binding));
+        diagnosticMapper=session.getMapper(ManualOrderDiagnosticMapper.class);
+        diagnosticExecutions=mock(KbOrderExecutionService.class);
+        diagnosticStore=proxy(new ManualOrderDiagnosticStore(commands,dispatches,diagnosticMapper,binding,new ObjectMapper()));
+        diagnosticService=new ManualOrderDiagnosticService(commands,diagnosticMapper,diagnosticStore,diagnosticExecutions,new ObjectMapper());
         store = proxy(new ManualOrderStore(commands, session.getMapper(OrderSubmissionGuardMapper.class),dispatches));
         reconciliationStore = proxy(new ManualOrderReconciliationStore(commands, reconciliations));
         simulations = session.getMapper(OrderSimulationMapper.class);
@@ -116,9 +130,10 @@ class ManualOrderMysqlIntegrationTest {
 
     @BeforeEach void resetOnlyIsolatedOrderTables() {
         when(binding.matches(FINGERPRINT)).thenReturn(true);
+        reset(diagnosticExecutions);
         // 같은 테이블의 부모 FK는 DELETE 전체 실행 순서에도 적용됩니다. 격리 fixture의 참조만 먼저 끊습니다.
         jdbc.update("UPDATE manual_order_commands SET parent_id=NULL");
-        for (String table : List.of("manual_order_dispatch_recoveries","manual_order_dispatches","order_simulation_sessions", "manual_order_reconciliations", "manual_order_reconciliation_preparations",
+        for (String table : List.of("manual_order_diagnostics","manual_order_dispatch_recoveries","manual_order_dispatches","order_simulation_sessions", "manual_order_reconciliations", "manual_order_reconciliation_preparations",
             "manual_order_observations", "manual_order_commands", "order_submission_guards", "order_approvals", "order_prechecks")) {
             jdbc.update("DELETE FROM " + table);
         }
@@ -497,6 +512,157 @@ class ManualOrderMysqlIntegrationTest {
     private KbLimitOrderContract.Outcome accepted() {return new KbLimitOrderContract.Outcome(KbLimitOrderContract.Status.ACCEPTED,"0040000638","200","A","private message");}
     private KbLimitOrderContract.Outcome unknown() {return new KbLimitOrderContract.Outcome(KbLimitOrderContract.Status.UNKNOWN,"","","","");}
 
+    @ParameterizedTest @ValueSource(strings={"RESERVED","DISPATCHING","LEGACY_UNVERIFIED"})
+    void sendingDiagnosticsPersistReadOnlyObservationWithoutUnlocking(String phase) {
+        var c=diagnosticCandidate(phase);var before=commands.find(c.commandId(),1L);var journal=dispatches.find(c.commandId(),1L);
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000638")).thenReturn(diagnosticLookup(c));
+        String id=UUID.randomUUID().toString();
+        var response=diagnosticService.diagnose(1L,c.commandId(),id,"0040000638",true,"잠금 유지 진단");
+        assertThat(response.state()).isEqualTo("COMPLETED");assertThat(response.report().assessment()).isEqualTo("FIELDS_MATCH");
+        assertThat(response.report().phaseAfter()).isEqualTo(phase);assertThat(response.report().commandStatusAfter()).isEqualTo("SENDING");
+        assertThat(response.toString()).doesNotContain(FINGERPRINT,"private-name","private-reason");
+        assertThat(commands.find(c.commandId(),1L)).isEqualTo(before);
+        assertThat(dispatches.find(c.commandId(),1L)).isEqualTo(journal);
+        assertThat(commands.pending(1L)).isEqualTo(1);
+        assertThat(diagnosticService.history(1L,c.commandId())).hasSize(1);
+        var restarted=new ManualOrderDiagnosticService(commands,diagnosticMapper,diagnosticStore,diagnosticExecutions,new ObjectMapper());
+        assertThat(restarted.diagnose(1L,c.commandId(),id,"0040000638",true,"잠금 유지 진단")).isEqualTo(response);
+        verify(diagnosticExecutions,times(1)).findByOrderNumber(c.orderDate(),"0040000638");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_reconciliations",Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM trade_records",Integer.class)).isZero();
+    }
+
+    @Test void requestedDiagnosticSurvivesCrashAndNeverAutomaticallyQueriesAgain() {
+        var c=diagnosticCandidate("RESERVED");String id=UUID.randomUUID().toString();
+        diagnosticStore.claim(1L,c.commandId(),id,"0040000638");
+        assertThat(diagnosticService.diagnose(1L,c.commandId(),id,"0040000638",true,"잠금 유지 진단").state()).isEqualTo("REQUESTED");
+        assertThat(diagnosticService.history(1L,c.commandId()).get(0).report()).isNull();
+        assertThatThrownBy(()->diagnosticService.diagnose(1L,c.commandId(),id,"0040000639",true,"잠금 유지 진단")).isInstanceOf(RuntimeException.class);
+        verifyNoInteractions(diagnosticExecutions);
+    }
+
+    @Test void concurrentSameDiagnosticIdHasAtMostOneReadAndCommittedRequestBeforeLookup() throws Exception {
+        var c=diagnosticCandidate("DISPATCHING");String id=UUID.randomUUID().toString();
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var executor=Executors.newSingleThreadExecutor();
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000638")).thenAnswer(call->{
+            assertThat(diagnosticMapper.find(id,1L).state()).isEqualTo("REQUESTED");entered.countDown();
+            if(!release.await(10,TimeUnit.SECONDS)) throw new IllegalStateException("test timeout");return diagnosticLookup(c);
+        });
+        try {
+            var running=executor.submit(()->diagnosticService.diagnose(1L,c.commandId(),id,"0040000638",true,"잠금 유지 진단"));
+            assertThat(entered.await(10,TimeUnit.SECONDS)).isTrue();
+            assertThat(diagnosticService.diagnose(1L,c.commandId(),id,"0040000638",true,"잠금 유지 진단").state()).isEqualTo("REQUESTED");
+            release.countDown();assertThat(running.get(10,TimeUnit.SECONDS).state()).isEqualTo("COMPLETED");
+        } finally {release.countDown();executor.shutdownNow();}
+        verify(diagnosticExecutions,times(1)).findByOrderNumber(c.orderDate(),"0040000638");
+        assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+
+    @Test void diagnosticLookupFailureIsSanitizedAndRecordedWithoutStateChanges() {
+        var c=diagnosticCandidate("DISPATCHING");
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000638")).thenThrow(new IllegalStateException("private-key-account"));
+        var response=diagnosticService.diagnose(1L,c.commandId(),UUID.randomUUID().toString(),"0040000638",true,"잠금 유지 진단");
+        assertThat(response.report().assessment()).isEqualTo("LOOKUP_FAILED");assertThat(response.toString()).doesNotContain("private-key-account");
+        assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+
+    @Test void accountChangedDuringLookupSuppressesBrokerObservation() {
+        var c=diagnosticCandidate("DISPATCHING");
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000638")).thenAnswer(call->{when(binding.matches(FINGERPRINT)).thenReturn(false);return diagnosticLookup(c);});
+        var response=diagnosticService.diagnose(1L,c.commandId(),UUID.randomUUID().toString(),"0040000638",true,"잠금 유지 진단");
+        assertThat(response.report().assessment()).isEqualTo("ACCOUNT_CHANGED");assertThat(response.report().observation()).isNull();
+        assertThat(response.report().checks()).isEmpty();assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+
+    @Test void workerFinishingDuringDiagnosisIsObservedButNeverOverwritten() {
+        var c=diagnosticCandidate("DISPATCHING");
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000638")).thenAnswer(call->{
+            dispatchService.recordOutcome(c,"worker",accepted());dispatchService.complete(1L,c.commandId());return diagnosticLookup(c);
+        });
+        var response=diagnosticService.diagnose(1L,c.commandId(),UUID.randomUUID().toString(),"0040000638",true,"잠금 유지 진단");
+        assertThat(response.report().phaseAfter()).isEqualTo("RETURNED");assertThat(response.report().commandStatusAfter()).isEqualTo("ACCEPTED");
+        assertThat(commands.find(c.commandId(),1L).status()).isEqualTo("ACCEPTED");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_dispatch_recoveries",Integer.class)).isZero();
+    }
+
+    @Test void invalidAckWrongOwnerChangedAccountAndReturnedReceiptCannotTriggerLookup() {
+        var c=diagnosticCandidate("RESERVED");String id=UUID.randomUUID().toString();
+        assertThatThrownBy(()->diagnosticService.diagnose(1L,c.commandId(),id,"0040000638",false,"잠금 유지 진단")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->diagnosticService.diagnose(2L,c.commandId(),id,"0040000638",true,"잠금 유지 진단")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->diagnosticService.history(2L,c.commandId())).isInstanceOf(RuntimeException.class);
+        when(binding.matches(FINGERPRINT)).thenReturn(false);
+        assertThatThrownBy(()->diagnosticService.diagnose(1L,c.commandId(),id,"0040000638",true,"잠금 유지 진단")).isInstanceOf(RuntimeException.class);
+        when(binding.matches(FINGERPRINT)).thenReturn(true);dispatchService.begin(c,"worker");dispatchService.recordOutcome(c,"worker",accepted());
+        assertThatThrownBy(()->diagnosticService.diagnose(1L,c.commandId(),id,"0040000638",true,"잠금 유지 진단")).isInstanceOf(RuntimeException.class);
+        verifyNoInteractions(diagnosticExecutions);
+    }
+
+    @Test void finalDiagnosticSaveFailurePreservesRequestedAndDoesNotRepeatRead() {
+        var c=diagnosticCandidate("DISPATCHING");String id=UUID.randomUUID().toString();
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000638")).thenReturn(diagnosticLookup(c));
+        jdbc.execute("CREATE TRIGGER reject_diagnostic_result BEFORE UPDATE ON manual_order_diagnostics FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='private db failure'");
+        try {assertThatThrownBy(()->diagnosticService.diagnose(1L,c.commandId(),id,"0040000638",true,"잠금 유지 진단")).isInstanceOf(com.sagopalgo.api.common.exception.ApiException.class).hasMessageNotContaining("private db failure");}
+        finally {jdbc.execute("DROP TRIGGER reject_diagnostic_result");}
+        assertThat(diagnosticService.diagnose(1L,c.commandId(),id,"0040000638",true,"잠금 유지 진단").state()).isEqualTo("REQUESTED");
+        verify(diagnosticExecutions,times(1)).findByOrderNumber(c.orderDate(),"0040000638");assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+
+    @Test void missing020FailsBeforeLookupButExistingOrderStorageRemainsAvailable() {
+        var c=diagnosticCandidate("RESERVED");
+        jdbc.execute("RENAME TABLE manual_order_diagnostics TO isolated_diagnostics_hidden");
+        try {
+            assertThatThrownBy(()->diagnosticService.diagnose(1L,c.commandId(),UUID.randomUUID().toString(),"0040000638",true,"잠금 유지 진단")).isInstanceOf(com.sagopalgo.api.common.exception.ApiException.class).hasMessageContaining("020");
+            assertThat(commands.verifyStorage()).isNotBlank();
+        } finally {jdbc.execute("RENAME TABLE isolated_diagnostics_hidden TO manual_order_diagnostics");}
+        verifyNoInteractions(diagnosticExecutions);
+    }
+
+    @ParameterizedTest @ValueSource(strings={"STOP_BEFORE_SEND","JOURNAL_FAILURE"})
+    void simulationDiagnosisNeverUsesBrokerTruthToUnlockOrResend(String scenario) {
+        String id=simSession("1000000");String c=simReady(id,simPlan("BUY","75000","2"),"NEW",null,scenario);
+        assertThatThrownBy(()->simulationService.submit(1L,id,c,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+        var before=simulationService.get(1L,id);String diagnosticId=UUID.randomUUID().toString();
+        var result=simulationService.diagnose(1L,id,c,diagnosticId,"0000000001",true,"잠금 유지 진단");
+        assertThat(result.report().assessment()).isEqualTo("STOP_BEFORE_SEND".equals(scenario)?"NOT_FOUND":"FIELDS_MATCH");
+        assertThat(simulationService.diagnose(1L,id,c,diagnosticId,"0000000001",true,"잠금 유지 진단")).isEqualTo(result);
+        var after=simulationService.get(1L,id);
+        assertThat(simCommand(after,c).get("sendCount")).isEqualTo(simCommand(before,c).get("sendCount"));
+        assertThat(simCommand(after,c)).containsEntry("status","SENDING");assertThat(after.get("blocked")).isEqualTo(true);
+        assertThat(after.get("cash")).isEqualTo(before.get("cash"));assertThat(after.get("positions")).isEqualTo(before.get("positions"));
+        assertThat((List<?>)simCommand(after,c).get("diagnostics")).hasSize(1);
+        assertThatThrownBy(()->simulationService.diagnose(2L,id,c,UUID.randomUUID().toString(),"0000000001",true,"잠금 유지 진단")).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test void failedDiagnosticReservationDoesNotQueryAndRollsBackRequestOnly() {
+        var c=diagnosticCandidate("RESERVED");String id=UUID.randomUUID().toString();
+        jdbc.execute("CREATE TRIGGER reject_diagnostic_request BEFORE INSERT ON manual_order_diagnostics FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='test reservation failure'");
+        try {assertThatThrownBy(()->diagnosticService.diagnose(1L,c.commandId(),id,"0040000638",true,"잠금 유지 진단")).isInstanceOf(com.sagopalgo.api.common.exception.ApiException.class);}
+        finally {jdbc.execute("DROP TRIGGER reject_diagnostic_request");}
+        assertThat(diagnosticMapper.find(id,1L)).isNull();verifyNoInteractions(diagnosticExecutions);assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+
+    @Test void diagnosticHistoryIsBoundedAndReadOnlyAfterAccountChange() {
+        var c=diagnosticCandidate("RESERVED");
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000638")).thenReturn(diagnosticLookup(c));
+        for(int i=0;i<22;i++) diagnosticService.diagnose(1L,c.commandId(),UUID.randomUUID().toString(),"0040000638",true,"잠금 유지 진단");
+        when(binding.matches(FINGERPRINT)).thenReturn(false);
+        assertThat(diagnosticService.history(1L,c.commandId())).hasSize(20);
+        verify(diagnosticExecutions,times(22)).findByOrderNumber(c.orderDate(),"0040000638");
+        assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+
+    private ManualOrderCommand diagnosticCandidate(String phase) {
+        var c=command(approval(),"SENDING");
+        if("LEGACY_UNVERIFIED".equals(phase)) commands.insert(c);
+        else {store.claim(c,"worker");if("DISPATCHING".equals(phase)) dispatchService.begin(c,"worker");}
+        return c;
+    }
+    private com.sagopalgo.api.order.dto.KbOrderLookupResponse diagnosticLookup(ManualOrderCommand c) {
+        var row=new com.sagopalgo.api.order.dto.KbOrderExecutionItemResponse("0040000638",c.stockCode(),"private-name","BUY".equals(c.side())?"매수":"매도",
+            c.createdAt().format(java.time.format.DateTimeFormatter.ofPattern("HHmmss")),c.quantity(),c.quantity(),BigDecimal.ZERO,c.price(),null,"","FILLED");
+        return new com.sagopalgo.api.order.dto.KbOrderLookupResponse(c.orderDate(),"0040000638",true,1,List.of(row));
+    }
+
     private String simSession(String cash) {return (String)simulationService.create(1L,new BigDecimal(cash)).get("sessionId");}
     private OrderPrecheckRequest simPlan(String side,String price,String quantity) {
         return new OrderPrecheckRequest("005930","삼성전자","KOSPI",side,new BigDecimal(price),new BigDecimal(quantity));
@@ -557,7 +723,7 @@ class ManualOrderMysqlIntegrationTest {
         var timestamp = now();
         return new ManualOrderCommand(UUID.randomUUID().toString(), 1L, approval, null, "NEW", "005930", "삼성전자", "KOSPI", "BUY",
             new BigDecimal("100.00"), new BigDecimal("1.0000"), FINGERPRINT, null, timestamp.plusSeconds(90), status,
-            null, "20261031", null, null, null, timestamp, timestamp);
+            null, timestamp.toLocalDate().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE), null, null, null, timestamp, timestamp);
     }
 
     private LocalDateTime now() { return LocalDateTime.now(KST).withNano(0); }

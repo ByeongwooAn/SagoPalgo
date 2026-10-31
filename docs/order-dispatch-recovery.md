@@ -77,3 +77,7 @@ docker compose --env-file .env up -d --build --no-deps spring-api
 실제 주문/계좌 검증, RETURNED가 없는 SENDING의 확인·운영 대응, UNKNOWN 부분체결·변경 주문 대조와 추가 정정은 남았습니다. D(10) 전체 완료나 E(11) 자동매매 완료로 계산하지 않습니다.
 
 최종 자동 검증은 백엔드 326건(격리 MySQL 40건), Flutter 155건 통과·Dart 분석 이슈 없음·Windows Release 빌드 성공입니다.
+
+## 후속 020: 잠금 유지 진단
+
+RETURNED가 없는 SENDING에는 [수동 진단 화면·이력](sending-manual-diagnostics.md)을 연결했습니다. 전송 기록 창에서 주문번호로 읽기 전용 관찰을 보관하며, FIELDS_MATCH·NOT_FOUND를 포함해 어떤 진단도 상태/잠금을 변경하지 않습니다. REQUESTED를 먼저 커밋해 같은 ID의 중복 KB 조회를 막습니다. 진단 이력에는 별도 020이 필요하며 기존 019 복구 기준은 유지합니다.

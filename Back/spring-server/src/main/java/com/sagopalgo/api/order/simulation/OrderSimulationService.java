@@ -7,6 +7,9 @@ import com.sagopalgo.api.order.dto.OrderPrecheckRequest;
 import com.sagopalgo.api.order.service.OrderSubmissionWorkflow;
 import com.sagopalgo.api.order.service.OrderWorkflowRules;
 import com.sagopalgo.api.order.service.OrderDispatchReceipt;
+import com.sagopalgo.api.order.service.OrderSendingDiagnosticRules;
+import com.sagopalgo.api.order.dto.KbOrderExecutionItemResponse;
+import com.sagopalgo.api.order.dto.KbOrderLookupResponse;
 import com.sagopalgo.api.order.simulation.OrderSimulationState.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -227,6 +230,39 @@ public class OrderSimulationService {
         return get(userId, id);
     }
 
+    public Diagnostic diagnose(Long userId,String id,String commandId,String diagnosticId,String orderNo,boolean acknowledged,String confirmation) {
+        OrderSendingDiagnosticRules.validate(diagnosticId,orderNo,acknowledged,confirmation);
+        return store.mutate(userId,id,state -> {
+            var c=command(state,commandId);
+            for(var candidate:state.commands.values()) for(var previous:candidate.diagnostics) {
+                if(diagnosticId.equals(previous.diagnosticId())) {
+                    if(!commandId.equals(previous.commandId()) || !orderNo.equals(previous.orderNo())) throw invalid("같은 진단 ID의 조회 대상을 바꿀 수 없습니다.");
+                    return previous;
+                }
+            }
+            String phase=c.dispatchPhase==null?"LEGACY_UNVERIFIED":c.dispatchPhase;
+            OrderSendingDiagnosticRules.requireCandidate(c.status,phase);
+            if(c.diagnostics.size()>=20) throw invalid("명령당 진단 20건 한도입니다. 저장 이력을 확인하세요.");
+            var broker=state.brokerOrders.get(orderNo);
+            List<KbOrderExecutionItemResponse> rows=List.of();
+            if(broker!=null) {
+                var plan=broker.plan;
+                String time=LocalDateTime.parse(command(state,broker.commandId).createdAt).format(java.time.format.DateTimeFormatter.ofPattern("HHmmss"));
+                rows=List.of(new KbOrderExecutionItemResponse(orderNo,plan.stockCode(),"","BUY".equals(plan.side())?"매수":"매도",time,
+                    plan.quantity(),broker.filled,broker.openQuantity(),plan.limitPrice(),null,"",broker.status));
+            }
+            var created=LocalDateTime.parse(c.createdAt);
+            String date=created.toLocalDate().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
+            var report=OrderSendingDiagnosticRules.evaluate(c.plan,c.kind,date,created,orderNo,new KbOrderLookupResponse(date,orderNo,true,1,rows))
+                .after(phase,c.status,true);
+            String now=OrderSimulationStore.now().toString();
+            var diagnostic=new Diagnostic(diagnosticId,commandId,orderNo,phase,"COMPLETED",report,now,now);
+            c.diagnostics.add(diagnostic);
+            event(state,commandId,"잠금 유지 진단 " + report.assessment() + " · 추가 전송·상태 변경 없음");
+            return diagnostic;
+        });
+    }
+
     private void fill(OrderSimulationState state, BrokerOrder order, BigDecimal quantity) {
         if (quantity == null || quantity.signum() <= 0 || quantity.stripTrailingZeros().scale() > 0
             || order.openQuantity().compareTo(quantity) < 0) throw invalid("체결 수량은 남은 미체결 이내의 양수 정수여야 합니다.");
@@ -293,6 +329,7 @@ public class OrderSimulationService {
             item.put("dispatchPhase",c.dispatchPhase==null?"LEGACY_UNVERIFIED":c.dispatchPhase);
             item.put("receipt",c.receipt); item.put("startedAt",c.startedAt); item.put("returnedAt",c.returnedAt); item.put("recoveredAt",c.recoveredAt);
             item.put("recoverable","SENDING".equals(c.status) && "RETURNED".equals(c.dispatchPhase) && c.receipt!=null && c.receipt.valid());
+            item.put("diagnostics",List.copyOf(c.diagnostics));
             item.put("brokerOrderNo", c.brokerOrderNo); item.put("brokerStatus", broker == null ? "NONE" : broker.status);
             item.put("filledQuantity", broker == null ? BigDecimal.ZERO : broker.filled);
             item.put("openQuantity", broker == null ? BigDecimal.ZERO : broker.openQuantity()); commands.add(item);

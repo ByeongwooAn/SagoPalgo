@@ -6,6 +6,7 @@ import 'package:app_version/repositories/manual_order_repository.dart';
 import 'package:app_version/repositories/order_precheck_repository.dart';
 import 'package:app_version/repositories/spring_order_precheck_repository.dart';
 import 'package:app_version/screens/manual_orders_screen.dart';
+import 'package:app_version/screens/order_diagnostics_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -276,6 +277,32 @@ void main() {
         '/api/v1/orders/manual/test/reconciliation/prepare',
         '/api/v1/orders/manual/test/reconciliation/confirm',
       ]);
+    },
+  );
+
+  testWidgets(
+    'unfinished dispatch opens read-only diagnostics without a recovery or order request',
+    (t) async {
+      final r = DiagnosticNavigationFake()
+        ..ready = false
+        ..phase = 'DISPATCHING'
+        ..recoverable = false;
+      await mount(t, r);
+      await t.ensureVisible(find.text('전송 기록 확인·복구'));
+      await t.tap(find.text('전송 기록 확인·복구'));
+      await t.pump(const Duration(milliseconds: 400));
+      expect(find.text('기록으로 결과 복구'), findsNothing);
+      await t.tap(find.text('주문번호로 잠금 유지 진단'));
+      await t.pumpAndSettle();
+      expect(find.byType(OrderDiagnosticsScreen), findsOneWidget);
+      expect(r.historyReads, 1);
+      expect(r.diagnoses, 0);
+      expect(r.submits, 0);
+      expect(r.changeSubmits, 0);
+      expect(r.recoveries, 0);
+      await t.pageBack();
+      await t.pumpAndSettle();
+      expect(find.byType(OrderDiagnosticsScreen), findsNothing);
     },
   );
 
@@ -582,6 +609,27 @@ class DispatchFake extends FakeRepository
     orders = [order(outcome)];
     if (loseResponse) throw TimeoutException('test lost recovery response');
     return fetchDispatch(id);
+  }
+}
+
+class DiagnosticNavigationFake extends DispatchFake
+    implements ManualOrderDiagnosticRepository {
+  int historyReads = 0;
+  int diagnoses = 0;
+  @override
+  Future<List<Map<String, dynamic>>> diagnosticHistory(String id) async {
+    historyReads++;
+    return [];
+  }
+
+  @override
+  Future<Map<String, dynamic>> diagnoseSending(
+    String id,
+    String diagnosticId,
+    String orderNo,
+  ) async {
+    diagnoses++;
+    return {};
   }
 }
 

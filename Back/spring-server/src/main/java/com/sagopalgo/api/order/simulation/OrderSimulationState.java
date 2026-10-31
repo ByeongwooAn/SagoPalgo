@@ -33,7 +33,11 @@ public class OrderSimulationState {
         public String startedAt;
         public String returnedAt;
         public String recoveredAt;
+        public List<Diagnostic> diagnostics = new ArrayList<>();
     }
+
+    public record Diagnostic(String diagnosticId,String commandId,String orderNo,String phaseBefore,String state,
+        com.sagopalgo.api.order.service.OrderSendingDiagnosticRules.Report report,String createdAt,String completedAt){}
 
     public static class BrokerOrder {
         public String orderNo;
