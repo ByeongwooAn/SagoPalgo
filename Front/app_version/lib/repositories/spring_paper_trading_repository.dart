@@ -5,9 +5,11 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/paper_trading.dart';
 import 'paper_trading_repository.dart';
+import 'order_simulation_repository.dart';
 
 /// Spring Boot 모의매매 API를 호출합니다.
-class SpringPaperTradingRepository implements PaperTradingRepository {
+class SpringPaperTradingRepository
+    implements PaperTradingRepository, OrderSimulationRepository {
   SpringPaperTradingRepository({
     required this.accessToken,
     ApiConfig? config,
@@ -18,6 +20,49 @@ class SpringPaperTradingRepository implements PaperTradingRepository {
   final String accessToken;
   final ApiConfig config;
   final http.Client client;
+
+  Future<dynamic> _simulationRequest(
+    String path, [
+    Map<String, dynamic>? body,
+  ]) async {
+    final uri = Uri.parse('${config.orderBaseUrl}/simulations$path');
+    final response =
+        await (body == null
+                ? client.get(uri, headers: _headers())
+                : client.post(
+                    uri,
+                    headers: _headers(contentType: true),
+                    body: jsonEncode(body),
+                  ))
+            .timeout(const Duration(seconds: 30));
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        decoded['success'] == true) {
+      return decoded['data'];
+    }
+    throw Exception(
+      (decoded['error'] as Map<String, dynamic>?)?['message'] ??
+          '모의 주문 요청에 실패했습니다.',
+    );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> simulationSessions() async =>
+      (await _simulationRequest('') as List).cast<Map<String, dynamic>>();
+  @override
+  Future<Map<String, dynamic>> createSimulation(num cash) async =>
+      await _simulationRequest('', {'cash': cash}) as Map<String, dynamic>;
+  @override
+  Future<Map<String, dynamic>> simulation(String id) async =>
+      await _simulationRequest('/$id') as Map<String, dynamic>;
+  @override
+  Future<Map<String, dynamic>> simulationAction(
+    String id,
+    String path,
+    Map<String, dynamic> body,
+  ) async =>
+      await _simulationRequest('/$id/$path', body) as Map<String, dynamic>;
 
   @override
   Future<PaperTradingSnapshot> fetchSnapshot() async {

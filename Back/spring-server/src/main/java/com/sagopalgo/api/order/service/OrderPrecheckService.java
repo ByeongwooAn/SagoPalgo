@@ -31,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class OrderPrecheckService {
 
-    private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
     private static final int MONEY_SCALE = 2;
     private static final int QUANTITY_SCALE = 4;
     private static final int RATE_SCALE = 2;
@@ -228,7 +227,7 @@ public class OrderPrecheckService {
         }
         try {
             BigDecimal availableCash = kbAccountService.settlementBalance().summary().orderAvailableCash();
-            boolean passed = availableCash.compareTo(amount) >= 0;
+            boolean passed = OrderWorkflowRules.covers(availableCash, amount);
             return new AccountCheck(
                 availableCash,
                 passed,
@@ -249,7 +248,7 @@ public class OrderPrecheckService {
                 .map(KbBalanceItemResponse::orderableQuantity)
                 .findFirst()
                 .orElse(BigDecimal.ZERO);
-            boolean passed = availableQuantity.compareTo(requestedQuantity) >= 0;
+            boolean passed = OrderWorkflowRules.covers(availableQuantity, requestedQuantity);
             return new AccountCheck(
                 availableQuantity,
                 passed,
@@ -276,12 +275,7 @@ public class OrderPrecheckService {
     }
 
     private BigDecimal deviationRate(BigDecimal requestedPrice, BigDecimal currentPrice) {
-        if (currentPrice == null || currentPrice.signum() <= 0) {
-            return BigDecimal.ZERO;
-        }
-        return requestedPrice.subtract(currentPrice).abs()
-            .divide(currentPrice, 8, RoundingMode.HALF_UP)
-            .multiply(ONE_HUNDRED);
+        return OrderWorkflowRules.deviation(requestedPrice, currentPrice);
     }
 
     private void addCheck(

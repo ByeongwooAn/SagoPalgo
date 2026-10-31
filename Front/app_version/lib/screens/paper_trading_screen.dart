@@ -11,6 +11,8 @@ import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
 import '../widgets/responsive_layout.dart';
 import 'dashboard_screen.dart';
+import 'order_simulation_screen.dart';
+import '../repositories/order_simulation_repository.dart';
 
 /// 실제 주문과 완전히 분리된 AI 신호 기반 모의매매 화면입니다.
 class PaperTradingScreen extends StatefulWidget {
@@ -71,7 +73,7 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
       return const SizedBox.shrink();
     }
 
-    return FutureBuilder<PaperTradingSnapshot>(
+    final content = FutureBuilder<PaperTradingSnapshot>(
       future: future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -88,6 +90,27 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
         }
         return _buildContent(snapshot.data!);
       },
+    );
+    final repository = widget.repository;
+    if (repository is! OrderSimulationRepository) return content;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => OrderSimulationScreen(
+                  repository: repository as OrderSimulationRepository,
+                ),
+              ),
+            ),
+            icon: const Icon(Icons.bug_report_outlined),
+            label: const Text('주문 시뮬레이션 · 실패/체결 시나리오 시험'),
+          ),
+        ),
+        Expanded(child: content),
+      ],
     );
   }
 
