@@ -27,6 +27,8 @@ import '../services/desktop_window_service.dart';
 import '../services/local_notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
+import '../widgets/responsive_layout.dart';
+import 'watchlist_setup_sheet.dart';
 import 'alerts_screen.dart';
 import 'dashboard_screen.dart';
 import 'mini_widget_screen.dart';
@@ -205,106 +207,149 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     final palette = AppPalette.of(context);
     final isDark = palette.isDark;
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: palette.pageGradient),
-        child: FutureBuilder<InvestmentSnapshot>(
-          future: _snapshotFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done &&
-                !snapshot.hasData &&
-                _lastInvestment == null) {
-              return const LoadingState();
-            }
-            if (!snapshot.hasData && _lastInvestment == null) {
-              return ErrorState(onRetry: _reloadSnapshot);
-            }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final desktopNavigation =
+            !_isMiniMode &&
+            constraints.maxWidth >= AppLayout.desktopNavigationWidth;
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(gradient: palette.pageGradient),
+            child: FutureBuilder<InvestmentSnapshot>(
+              future: _snapshotFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done &&
+                    !snapshot.hasData &&
+                    _lastInvestment == null) {
+                  return const LoadingState();
+                }
+                if (!snapshot.hasData && _lastInvestment == null) {
+                  return ErrorState(onRetry: _reloadSnapshot);
+                }
 
-            final investment = snapshot.data ?? _lastInvestment!;
-            if (snapshot.hasData &&
-                snapshot.connectionState == ConnectionState.done) {
-              _lastInvestment = investment;
-            }
-            if (_isMiniMode) {
-              return FutureBuilder<List<WatchlistItem>>(
-                future: _watchlistFuture,
-                builder: (context, watchlistSnapshot) => MiniWidgetScreen(
-                  snapshot: investment,
-                  watchlist: watchlistSnapshot.data ?? const [],
-                  onExpand: _expandDashboard,
-                  onRefresh: _reloadAllInvestmentData,
-                  onHide: _hideToTray,
-                ),
-              );
-            }
-
-            return SafeArea(
-              child: Column(
-                children: [
-                  TopBar(
-                    isDark: isDark,
-                    user: widget.session.user,
-                    onMiniMode: _enterMiniMode,
-                    onThemeToggle: () =>
-                        widget.onThemeToggle(Theme.of(context).brightness),
-                  ),
-                  if (snapshot.hasError)
-                    TextButton.icon(
-                      onPressed: _reloadAllInvestmentData,
-                      icon: const Icon(Icons.sync_problem),
-                      label: const Text('최근 투자 데이터 갱신 실패 · 이전 표시 유지 · 다시 조회'),
-                    ),
-                  Expanded(
-                    child: _TabContent(
-                      selectedIndex: _selectedIndex,
+                final investment = snapshot.data ?? _lastInvestment!;
+                if (snapshot.hasData &&
+                    snapshot.connectionState == ConnectionState.done) {
+                  _lastInvestment = investment;
+                }
+                if (_isMiniMode) {
+                  return FutureBuilder<List<WatchlistItem>>(
+                    future: _watchlistFuture,
+                    builder: (context, watchlistSnapshot) => MiniWidgetScreen(
                       snapshot: investment,
-                      watchlistFuture: _watchlistFuture,
-                      alertsFetchError: _alertsFetchError,
-                      alertsCheckedAt: _alertsCheckedAt,
-                      watchlistRepository: widget.watchlistRepository,
-                      portfolioRepository: widget.portfolioRepository,
-                      kbAccountRepository: widget.kbAccountRepository,
-                      marketDataRepository: widget.marketDataRepository,
-                      orderPrecheckRepository: widget.orderPrecheckRepository,
-                      paperTradingRepository: widget.paperTradingRepository,
-                      researchFeedRepository: widget.researchFeedRepository,
-                      recommendationRepository: widget.recommendationRepository,
-                      appSecurityService: widget.appSecurityService,
-                      appLockPinConfigured: widget.appLockPinConfigured,
-                      onAppLockPinChanged: widget.onAppLockPinChanged,
-                      alerts: _alerts ?? investment.alerts,
-                      deliveryStatus: _alertDeliveryService?.status,
-                      onAlertsRefresh: _refreshAlertsAndDelivery,
-                      onAlertRead: _markAlertRead,
-                      providerSettingsFuture: _providerSettingsFuture,
-                      providerSettingsRepository:
-                          widget.providerSettingsRepository,
-                      portfolioFuture: _portfolioFuture,
-                      onPortfolioRetry: _reloadPortfolio,
-                      onProviderSettingsRetry: _reloadProviderSettings,
-                      onPortfolioChanged: _reloadAllInvestmentData,
-                      pendingPortfolioSetupAction: _pendingPortfolioSetupAction,
-                      onCapitalSetupOpen: () =>
-                          _openPortfolioSetup(PortfolioSetupAction.editCapital),
-                      onHoldingSetupOpen: () =>
-                          _openPortfolioSetup(PortfolioSetupAction.addHolding),
-                      onPendingPortfolioSetupActionConsumed:
-                          _clearPendingPortfolioSetupAction,
+                      watchlist: watchlistSnapshot.data ?? const [],
+                      onExpand: _expandDashboard,
+                      onRefresh: _reloadAllInvestmentData,
+                      onHide: _hideToTray,
                     ),
+                  );
+                }
+
+                return SafeArea(
+                  child: Column(
+                    children: [
+                      TopBar(
+                        isDark: isDark,
+                        user: widget.session.user,
+                        onMiniMode: _enterMiniMode,
+                        onThemeToggle: () =>
+                            widget.onThemeToggle(Theme.of(context).brightness),
+                      ),
+                      if (snapshot.hasError)
+                        TextButton.icon(
+                          onPressed: _reloadAllInvestmentData,
+                          icon: const Icon(Icons.sync_problem),
+                          label: const Text(
+                            '최근 투자 데이터 갱신 실패 · 이전 표시 유지 · 다시 조회',
+                          ),
+                        ),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            if (desktopNavigation)
+                              DesktopNav(
+                                selectedIndex: _selectedIndex,
+                                onSelected: (index) =>
+                                    setState(() => _selectedIndex = index),
+                              ),
+                            Expanded(
+                              key: const ValueKey('main-content'),
+                              child: _TabContent(
+                                selectedIndex: _selectedIndex,
+                                snapshot: investment,
+                                watchlistFuture: _watchlistFuture,
+                                alertsFetchError: _alertsFetchError,
+                                alertsCheckedAt: _alertsCheckedAt,
+                                watchlistRepository: widget.watchlistRepository,
+                                portfolioRepository: widget.portfolioRepository,
+                                kbAccountRepository: widget.kbAccountRepository,
+                                marketDataRepository:
+                                    widget.marketDataRepository,
+                                orderPrecheckRepository:
+                                    widget.orderPrecheckRepository,
+                                paperTradingRepository:
+                                    widget.paperTradingRepository,
+                                researchFeedRepository:
+                                    widget.researchFeedRepository,
+                                recommendationRepository:
+                                    widget.recommendationRepository,
+                                appSecurityService: widget.appSecurityService,
+                                appLockPinConfigured:
+                                    widget.appLockPinConfigured,
+                                onAppLockPinChanged: widget.onAppLockPinChanged,
+                                alerts: _alerts ?? investment.alerts,
+                                deliveryStatus: _alertDeliveryService?.status,
+                                onAlertsRefresh: _refreshAlertsAndDelivery,
+                                onAlertRead: _markAlertRead,
+                                providerSettingsFuture: _providerSettingsFuture,
+                                providerSettingsRepository:
+                                    widget.providerSettingsRepository,
+                                portfolioFuture: _portfolioFuture,
+                                onPortfolioRetry: _reloadPortfolio,
+                                onProviderSettingsRetry:
+                                    _reloadProviderSettings,
+                                onPortfolioChanged: _reloadAllInvestmentData,
+                                pendingPortfolioSetupAction:
+                                    _pendingPortfolioSetupAction,
+                                onCapitalSetupOpen: () => _openPortfolioSetup(
+                                  PortfolioSetupAction.editCapital,
+                                ),
+                                onHoldingSetupOpen: () => _openPortfolioSetup(
+                                  PortfolioSetupAction.addHolding,
+                                ),
+                                onWatchlistSetupOpen: _openWatchlistSetup,
+                                onAnalysisOpen: () =>
+                                    setState(() => _selectedIndex = 1),
+                                onSettingsOpen: _openSettings,
+                                onPendingPortfolioSetupActionConsumed:
+                                    _clearPendingPortfolioSetupAction,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-      bottomNavigationBar: _isMiniMode
-          ? null
-          : BottomNav(
-              selectedIndex: _selectedIndex,
-              onSelected: (index) => setState(() => _selectedIndex = index),
+                );
+              },
             ),
+          ),
+          bottomNavigationBar: _isMiniMode || desktopNavigation
+              ? null
+              : BottomNav(
+                  selectedIndex: _selectedIndex,
+                  onSelected: (index) => setState(() => _selectedIndex = index),
+                ),
+        );
+      },
     );
+  }
+
+  Future<void> _openWatchlistSetup() async {
+    if (await showWatchlistSetup(context, widget.watchlistRepository) &&
+        mounted) {
+      _reloadAllInvestmentData();
+    }
   }
 
   void _enterMiniMode() {
@@ -535,6 +580,8 @@ class TopBar extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   '${user.nickname} · ${_profileLabel(user.authProvider)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: palette.muted,
                     fontSize: 12,
@@ -693,6 +740,9 @@ class _TabContent extends StatelessWidget {
     required this.pendingPortfolioSetupAction,
     required this.onCapitalSetupOpen,
     required this.onHoldingSetupOpen,
+    required this.onWatchlistSetupOpen,
+    required this.onAnalysisOpen,
+    required this.onSettingsOpen,
     required this.onPendingPortfolioSetupActionConsumed,
   });
 
@@ -768,6 +818,9 @@ class _TabContent extends StatelessWidget {
 
   /// 데이터 없음 상태에서 보유 종목 추가 시트를 여는 콜백입니다.
   final VoidCallback onHoldingSetupOpen;
+  final VoidCallback onWatchlistSetupOpen;
+  final VoidCallback onAnalysisOpen;
+  final VoidCallback onSettingsOpen;
 
   /// 포트폴리오 초기 작업을 실행한 뒤 pending 상태를 비우는 콜백입니다.
   final VoidCallback onPendingPortfolioSetupActionConsumed;
@@ -777,11 +830,19 @@ class _TabContent extends StatelessWidget {
     return IndexedStack(
       index: selectedIndex,
       children: [
-        DashboardScreen(
-          snapshot: snapshot,
-          onCapitalSetupOpen: onCapitalSetupOpen,
-          onHoldingSetupOpen: onHoldingSetupOpen,
-          onRefresh: onPortfolioChanged,
+        FutureBuilder<List<WatchlistItem>>(
+          future: watchlistFuture,
+          builder: (context, state) => DashboardScreen(
+            snapshot: snapshot,
+            onCapitalSetupOpen: onCapitalSetupOpen,
+            onHoldingSetupOpen: onHoldingSetupOpen,
+            onRefresh: onPortfolioChanged,
+            watchlistCount: state.data?.length,
+            watchlistLoadFailed: state.hasError,
+            onWatchlistSetupOpen: onWatchlistSetupOpen,
+            onAnalysisOpen: onAnalysisOpen,
+            onSettingsOpen: onSettingsOpen,
+          ),
         ),
         RecommendationScreen(
           recommendation: snapshot.recommendation,
@@ -842,6 +903,7 @@ class _TabContent extends StatelessWidget {
           onAlertTap: onAlertRead,
           fetchError: alertsFetchError,
           checkedAt: alertsCheckedAt,
+          onAnalysisOpen: onAnalysisOpen,
         ),
         PaperTradingScreen(
           repository: paperTradingRepository,
@@ -849,6 +911,7 @@ class _TabContent extends StatelessWidget {
           active: selectedIndex == 5,
           availableCapital: snapshot.marketSummary.availableCapital,
           onCapitalSetupOpen: onCapitalSetupOpen,
+          onAnalysisOpen: onAnalysisOpen,
         ),
         SettingsScreen(
           providerSettingsFuture: providerSettingsFuture,

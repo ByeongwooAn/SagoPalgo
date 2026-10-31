@@ -9,6 +9,7 @@ import '../widgets/app_card.dart';
 import '../widgets/app_text.dart';
 import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
+import '../widgets/responsive_layout.dart';
 import 'dashboard_screen.dart';
 
 /// 실제 주문과 완전히 분리된 AI 신호 기반 모의매매 화면입니다.
@@ -20,6 +21,7 @@ class PaperTradingScreen extends StatefulWidget {
     required this.active,
     this.onCapitalSetupOpen,
     this.availableCapital,
+    this.onAnalysisOpen,
   });
 
   final PaperTradingRepository repository;
@@ -27,6 +29,7 @@ class PaperTradingScreen extends StatefulWidget {
   final bool active;
   final VoidCallback? onCapitalSetupOpen;
   final int? availableCapital;
+  final VoidCallback? onAnalysisOpen;
 
   @override
   State<PaperTradingScreen> createState() => _PaperTradingScreenState();
@@ -102,17 +105,20 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          _SummaryCard(summary: snapshot.summary),
+          AdaptiveColumns(
+            first: _SummaryCard(summary: snapshot.summary),
+            second: _RecommendationAction(
+              recommendation: widget.recommendation,
+              submitting: _submitting,
+              onBuy: _buyFromRecommendation,
+              onAnalysisOpen: widget.onAnalysisOpen,
+            ),
+          ),
           const SizedBox(height: 8),
           const TextCaption(
             '현재 설정 자본금 기준입니다. 자본금을 변경하면 모의 현금·수익률도 재산정되며 거래 기록은 유지됩니다.',
           ),
           const SizedBox(height: 12),
-          _RecommendationAction(
-            recommendation: widget.recommendation,
-            submitting: _submitting,
-            onBuy: _buyFromRecommendation,
-          ),
           const SizedBox(height: 18),
           _SubsectionTitle(
             title: '보유 포지션',
@@ -439,11 +445,13 @@ class _RecommendationAction extends StatelessWidget {
     required this.recommendation,
     required this.submitting,
     required this.onBuy,
+    this.onAnalysisOpen,
   });
 
   final InvestmentRecommendation? recommendation;
   final bool submitting;
   final VoidCallback onBuy;
+  final VoidCallback? onAnalysisOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -484,6 +492,12 @@ class _RecommendationAction extends StatelessWidget {
               label: const Text('AI 신호로 모의매수'),
             ),
           ),
+          if (!canBuy && onAnalysisOpen != null)
+            TextButton.icon(
+              onPressed: onAnalysisOpen,
+              icon: const Icon(Icons.auto_graph),
+              label: const Text('추천 분석으로 이동'),
+            ),
         ],
       ),
     );

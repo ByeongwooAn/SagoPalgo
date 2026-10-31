@@ -10,6 +10,7 @@ import '../widgets/score_progress.dart';
 import '../widgets/score_ring.dart';
 import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
+import '../widgets/responsive_layout.dart';
 
 /// 홈 대시보드 화면입니다.
 ///
@@ -23,6 +24,11 @@ class DashboardScreen extends StatelessWidget {
     required this.onCapitalSetupOpen,
     required this.onHoldingSetupOpen,
     this.onRefresh,
+    this.watchlistCount,
+    this.watchlistLoadFailed = false,
+    this.onWatchlistSetupOpen,
+    this.onAnalysisOpen,
+    this.onSettingsOpen,
   });
 
   /// Repository가 내려준 시장/추천/보유/알림 데이터 묶음입니다.
@@ -34,6 +40,11 @@ class DashboardScreen extends StatelessWidget {
   /// 보유 종목 추가 화면으로 이동하는 콜백입니다.
   final VoidCallback onHoldingSetupOpen;
   final VoidCallback? onRefresh;
+  final int? watchlistCount;
+  final bool watchlistLoadFailed;
+  final VoidCallback? onWatchlistSetupOpen;
+  final VoidCallback? onAnalysisOpen;
+  final VoidCallback? onSettingsOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -73,33 +84,34 @@ class DashboardScreen extends StatelessWidget {
             DashboardSetupCard(
               onCapitalTap: onCapitalSetupOpen,
               onHoldingTap: onHoldingSetupOpen,
+              capitalConfigured: summary.availableCapital > 0,
+              hasHoldings: snapshot.holdings.isNotEmpty,
+              watchlistCount: watchlistCount,
+              watchlistLoadFailed: watchlistLoadFailed,
+              analysisAvailable: recommendation != null,
+              onWatchlistTap: onWatchlistSetupOpen,
+              onAnalysisTap: onAnalysisOpen,
             ),
           ],
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: MetricCard(
-                  label: '코스피 흐름',
-                  value: summary.marketTrend,
-                  caption: summary.index?.value == null
-                      ? summary.index?.message ?? '시장 지수 미연동'
-                      : '${summary.index!.value!.toStringAsFixed(2)} · 전일 대비 ${formatSignedPercent(summary.index!.changeRate!)}',
-                  color: AppTheme.point,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: MetricCard(
-                  label: '뉴스 키워드',
-                  value: summary.newsSentiment,
-                  caption: summary.news == null
-                      ? '저장 뉴스 없음'
-                      : '${summary.news!.articleCount}건 · 긍정 ${summary.news!.positiveCount} · 부정 ${summary.news!.negativeCount}',
-                  color: AppTheme.sub,
-                ),
-              ),
-            ],
+          AdaptiveColumns(
+            breakpoint: 560,
+            first: MetricCard(
+              label: '코스피 흐름',
+              value: summary.marketTrend,
+              caption: summary.index?.value == null
+                  ? summary.index?.message ?? '시장 지수 미연동'
+                  : '${summary.index!.value!.toStringAsFixed(2)} · 전일 대비 ${formatSignedPercent(summary.index!.changeRate!)}',
+              color: AppTheme.point,
+            ),
+            second: MetricCard(
+              label: '뉴스 키워드',
+              value: summary.newsSentiment,
+              caption: summary.news == null
+                  ? '저장 뉴스 없음'
+                  : '${summary.news!.articleCount}건 · 긍정 ${summary.news!.positiveCount} · 부정 ${summary.news!.negativeCount}',
+              color: AppTheme.sub,
+            ),
           ),
           if (summary.news != null)
             Padding(
@@ -111,24 +123,29 @@ class DashboardScreen extends StatelessWidget {
               '최근 기사 발행 ${summary.news!.latestPublishedAt!.toLocal().toString().split('.').first}',
             ),
           const SizedBox(height: 12),
-          CandidateCard(
-            stockName: recommendation?.stockName,
-            score: recommendation?.score,
-            analysisLabel: recommendation == null
-                ? null
-                : recommendation.analysisContext == 'WATCHLIST'
-                ? '관심 종목 분석'
-                : '보유 종목 분석',
-            analyzedAt: recommendation?.createdAt,
-            reasonLine:
-                recommendation?.reasons
-                    .map((reason) => reason.label)
-                    .take(3)
-                    .join(' + ') ??
-                '',
+          AdaptiveColumns(
+            first: CandidateCard(
+              stockName: recommendation?.stockName,
+              score: recommendation?.score,
+              analysisLabel: recommendation == null
+                  ? null
+                  : recommendation.analysisContext == 'WATCHLIST'
+                  ? '관심 종목 분석'
+                  : '보유 종목 분석',
+              analyzedAt: recommendation?.createdAt,
+              reasonLine:
+                  recommendation?.reasons
+                      .map((reason) => reason.label)
+                      .take(3)
+                      .join(' + ') ??
+                  '',
+            ),
+            second: MarketBarsCard(
+              values: summary.marketBars,
+              index: summary.index,
+              onSettingsOpen: onSettingsOpen,
+            ),
           ),
-          const SizedBox(height: 12),
-          MarketBarsCard(values: summary.marketBars, index: summary.index),
           const SizedBox(height: 20),
         ],
       ),
@@ -137,7 +154,7 @@ class DashboardScreen extends StatelessWidget {
 
   bool get _needsSetup {
     return snapshot.marketSummary.availableCapital == 0 ||
-        snapshot.holdings.isEmpty ||
+        (snapshot.holdings.isEmpty && watchlistCount == 0) ||
         snapshot.recommendation == null;
   }
 }
@@ -152,10 +169,25 @@ class AppScrollView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-      physics: const BouncingScrollPhysics(),
-      child: child,
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          constraints.maxWidth < 600 ? 16 : 24,
+          10,
+          constraints.maxWidth < 600 ? 16 : 24,
+          24,
+        ),
+        physics: const BouncingScrollPhysics(),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: AppLayout.maxContentWidth,
+            ),
+            child: SizedBox(width: double.infinity, child: child),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -167,10 +199,24 @@ class DashboardSetupCard extends StatelessWidget {
     super.key,
     required this.onCapitalTap,
     required this.onHoldingTap,
+    this.capitalConfigured = false,
+    this.hasHoldings = false,
+    this.watchlistCount,
+    this.watchlistLoadFailed = false,
+    this.analysisAvailable = false,
+    this.onWatchlistTap,
+    this.onAnalysisTap,
   });
 
   final VoidCallback onCapitalTap;
   final VoidCallback onHoldingTap;
+  final bool capitalConfigured;
+  final bool hasHoldings;
+  final int? watchlistCount;
+  final bool watchlistLoadFailed;
+  final bool analysisAvailable;
+  final VoidCallback? onWatchlistTap;
+  final VoidCallback? onAnalysisTap;
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +236,7 @@ class DashboardSetupCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '자본금과 보유 종목을 입력하면 대시보드 수익률, 포트폴리오 손익, 추천 판단이 실제 계정 데이터로 채워집니다.',
+            '보유 주식 없이도 관심 종목으로 소식 수집과 분석을 시작할 수 있습니다. 자본금은 포트폴리오와 모의매매에 사용합니다.',
             style: TextStyle(
               color: palette.text,
               fontSize: 13,
@@ -199,23 +245,56 @@ class DashboardSetupCard extends StatelessWidget {
               letterSpacing: 0,
             ),
           ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: onCapitalTap,
-              icon: const Icon(Icons.savings_rounded),
-              label: const Text('자본금 설정하기'),
-            ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 16,
+            runSpacing: 6,
+            children: [
+              Text(capitalConfigured ? '✓ 자본금 설정됨' : '○ 자본금 미설정'),
+              Text(
+                hasHoldings
+                    ? '✓ 보유 종목 등록됨'
+                    : watchlistLoadFailed
+                    ? '관심 목록 조회 실패'
+                    : watchlistCount == null
+                    ? '관심 목록 확인 중'
+                    : watchlistCount! > 0
+                    ? '✓ 관심 $watchlistCount종목 등록됨'
+                    : '○ 등록 종목 없음',
+              ),
+              Text(analysisAvailable ? '✓ 저장 분석 있음' : '○ 분석 결과 없음'),
+            ],
           ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: onHoldingTap,
-              icon: const Icon(Icons.add_rounded),
-              label: const Text('보유 종목 추가하기'),
-            ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilledButton.icon(
+                onPressed: onCapitalTap,
+                icon: const Icon(Icons.savings_rounded),
+                label: Text(capitalConfigured ? '자본금 수정하기' : '자본금 설정하기'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onHoldingTap,
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('보유 종목 추가하기'),
+              ),
+              if (onWatchlistTap != null)
+                OutlinedButton.icon(
+                  onPressed: onWatchlistTap,
+                  icon: const Icon(Icons.star_border),
+                  label: const Text('관심 종목 등록'),
+                ),
+              if (onAnalysisTap != null)
+                OutlinedButton.icon(
+                  onPressed: hasHoldings || (watchlistCount ?? 0) > 0
+                      ? onAnalysisTap
+                      : null,
+                  icon: const Icon(Icons.auto_graph),
+                  label: const Text('추천에서 분석하기'),
+                ),
+            ],
           ),
         ],
       ),
@@ -461,11 +540,17 @@ class CandidateCard extends StatelessWidget {
 /// 시장 지표 막대 그래프를 카드 안에 담아 보여주는 위젯입니다.
 class MarketBarsCard extends StatelessWidget {
   /// 그래프로 표시할 시장 지표 값들을 받습니다.
-  const MarketBarsCard({super.key, required this.values, this.index});
+  const MarketBarsCard({
+    super.key,
+    required this.values,
+    this.index,
+    this.onSettingsOpen,
+  });
 
   /// 각 막대의 0~1 높이 값입니다.
   final List<double> values;
   final MarketIndexSummary? index;
+  final VoidCallback? onSettingsOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -475,9 +560,11 @@ class MarketBarsCard extends StatelessWidget {
       soft: true,
       child: Column(
         children: [
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 6,
             children: [
-              const Expanded(child: LabelText('코스피 · 최근 최대 20거래일 일봉')),
+              const LabelText('코스피 · 최근 최대 20거래일 일봉'),
               TextCaption(
                 index?.receivedAt == null
                     ? '시세 미확인'
@@ -517,6 +604,12 @@ class MarketBarsCard extends StatelessWidget {
               '${index!.points.first.date.toString().split(' ').first} ~ ${index!.points.last.date.toString().split(' ').first} · 구간 내 상대 높이(절대 지수 축 아님) · 당일은 진행값',
             ),
           ],
+          if (values.isEmpty && onSettingsOpen != null)
+            TextButton.icon(
+              onPressed: onSettingsOpen,
+              icon: const Icon(Icons.settings_outlined),
+              label: const Text('연동 설정 확인'),
+            ),
         ],
       ),
     );

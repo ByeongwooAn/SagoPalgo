@@ -12,6 +12,7 @@ import '../widgets/app_text.dart';
 import '../widgets/score_progress.dart';
 import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
+import '../widgets/responsive_layout.dart';
 import 'dashboard_screen.dart';
 import 'market_candle_screen.dart';
 import 'order_precheck_sheet.dart';
@@ -167,9 +168,12 @@ class _PortfolioContent extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-          CapitalRuleSummaryCard(
-            capital: portfolio.capital,
-            onEdit: () => _openCapitalEditor(context),
+          AdaptiveColumns(
+            first: CapitalRuleSummaryCard(
+              capital: portfolio.capital,
+              onEdit: () => _openCapitalEditor(context),
+            ),
+            second: ProfitCard(summary: portfolio.summary),
           ),
           if (repository is KbPortfolioImporter) ...[
             const SizedBox(height: 12),
@@ -194,7 +198,6 @@ class _PortfolioContent extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 12),
-          ProfitCard(summary: portfolio.summary),
           if (holdings.any((holding) => holding.priceFallback)) ...[
             const SizedBox(height: 8),
             const Text(
@@ -205,16 +208,20 @@ class _PortfolioContent extends StatelessWidget {
           if (holdings.isEmpty)
             EmptyHoldingsCard(onAdd: () => _openHoldingEditor(context))
           else
-            for (final holding in holdings) ...[
-              PortfolioRow(
-                holding: holding,
-                onChart: () => _openCandleChart(context, holding),
-                onOrderPrecheck: () => _openOrderPrecheck(context, holding),
-                onEdit: () => _openHoldingEditor(context, holding: holding),
-                onDelete: () => _confirmDeleteHolding(context, holding),
-              ),
-              const SizedBox(height: 10),
-            ],
+            AdaptiveCardGrid(
+              minCardWidth: 480,
+              children: [
+                for (final holding in holdings)
+                  PortfolioRow(
+                    holding: holding,
+                    onChart: () => _openCandleChart(context, holding),
+                    onOrderPrecheck: () => _openOrderPrecheck(context, holding),
+                    onEdit: () => _openHoldingEditor(context, holding: holding),
+                    onDelete: () => _confirmDeleteHolding(context, holding),
+                  ),
+              ],
+            ),
+          const SizedBox(height: 12),
           RiskRuleCard(riskUsageRate: portfolio.summary.riskUsageRate),
           const SizedBox(height: 20),
         ],

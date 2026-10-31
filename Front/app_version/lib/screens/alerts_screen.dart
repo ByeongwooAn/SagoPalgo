@@ -23,6 +23,7 @@ class AlertsScreen extends StatelessWidget {
     this.onAlertTap,
     this.fetchError,
     this.checkedAt,
+    this.onAnalysisOpen,
   });
 
   /// 최근 알림 데이터 목록입니다.
@@ -35,6 +36,7 @@ class AlertsScreen extends StatelessWidget {
   final ValueChanged<AppAlert>? onAlertTap;
   final String? fetchError;
   final DateTime? checkedAt;
+  final VoidCallback? onAnalysisOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +85,7 @@ class AlertsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           if (alerts.isEmpty && fetchError == null)
-            const _EmptyAlerts()
+            _EmptyAlerts(onAnalysisOpen: onAnalysisOpen)
           else if (alerts.isEmpty)
             const Text('알림 목록을 확인할 수 없습니다.')
           else
@@ -234,7 +236,8 @@ class AlertItem extends StatelessWidget {
 }
 
 class _EmptyAlerts extends StatelessWidget {
-  const _EmptyAlerts();
+  const _EmptyAlerts({this.onAnalysisOpen});
+  final VoidCallback? onAnalysisOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -259,6 +262,19 @@ class _EmptyAlerts extends StatelessWidget {
                 letterSpacing: 0,
               ),
             ),
+            const SizedBox(height: 8),
+            const Text(
+              '관심 종목의 알림을 켜고 분석을 실행하세요. 알림 조건을 만족하는 신호가 있을 때 표시됩니다.',
+              textAlign: TextAlign.center,
+            ),
+            if (onAnalysisOpen != null) ...[
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: onAnalysisOpen,
+                icon: const Icon(Icons.auto_graph),
+                label: const Text('추천에서 분석하기'),
+              ),
+            ],
           ],
         ),
       ),
