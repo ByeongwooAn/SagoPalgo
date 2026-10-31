@@ -19,6 +19,12 @@ abstract interface class ManualOrderReconciliationRepository {
   Future<void> confirmReconciliation(String id, String token);
 }
 
+/// 저장된 호출 종료 결과만 적용합니다. 주문을 전송하지 않습니다.
+abstract interface class ManualOrderDispatchRepository {
+  Future<Map<String, dynamic>> fetchDispatch(String id);
+  Future<Map<String, dynamic>> recoverDispatch(String id);
+}
+
 class ManualOrder {
   ManualOrder(this.data);
   final Map<String, dynamic> data;

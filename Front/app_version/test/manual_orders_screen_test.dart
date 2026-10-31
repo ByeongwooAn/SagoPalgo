@@ -279,6 +279,160 @@ void main() {
     },
   );
 
+  for (final phase in ['RESERVED', 'DISPATCHING', 'LEGACY_UNVERIFIED']) {
+    testWidgets(
+      '$phase dispatch cannot show recovery action even with live switch off',
+      (t) async {
+        final r = DispatchFake()
+          ..ready = false
+          ..phase = phase
+          ..recoverable = false;
+        await mount(t, r);
+        await t.ensureVisible(find.text('전송 기록 확인·복구'));
+        await t.tap(find.text('전송 기록 확인·복구'));
+        await t.pump(const Duration(milliseconds: 400));
+        expect(find.textContaining(phase), findsOneWidget);
+        expect(find.text('기록으로 결과 복구'), findsNothing);
+        expect(find.byType(CheckboxListTile), findsNothing);
+        await t.tap(find.text('닫기'));
+        await t.pumpAndSettle();
+        expect(r.recoveries, 0);
+        expect(r.submits, 0);
+        expect(r.changeSubmits, 0);
+      },
+    );
+  }
+
+  testWidgets(
+    'dispatch recovery needs checkbox and never transmits with live switch off',
+    (t) async {
+      final r = DispatchFake()..ready = false;
+      await mount(t, r);
+      await t.ensureVisible(find.text('전송 기록 확인·복구'));
+      await t.tap(find.text('전송 기록 확인·복구'));
+      await t.pump(const Duration(milliseconds: 400));
+      expect(
+        t
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, '기록으로 결과 복구'),
+            )
+            .onPressed,
+        isNull,
+      );
+      await t.tap(find.byType(CheckboxListTile));
+      await t.pump(const Duration(milliseconds: 100));
+      await t.tap(find.text('기록으로 결과 복구'));
+      await t.pumpAndSettle();
+      expect(r.recoveries, 1);
+      expect(r.submits, 0);
+      expect(r.changeSubmits, 0);
+      expect(find.textContaining('ACCEPTED'), findsOneWidget);
+      await t.ensureVisible(find.text('전송 기록'));
+      await t.tap(find.text('전송 기록'));
+      await t.pump(const Duration(milliseconds: 400));
+      expect(find.textContaining('2026-10-31T12:00:00'), findsOneWidget);
+      expect(find.text('기록으로 결과 복구'), findsNothing);
+      await t.tap(find.text('닫기'));
+      await t.pumpAndSettle();
+      expect(r.recoveries, 1);
+    },
+  );
+
+  testWidgets(
+    'lost recovery response rereads saved state without automatic repost',
+    (t) async {
+      final r = DispatchFake()..loseResponse = true;
+      await mount(t, r);
+      await t.ensureVisible(find.text('전송 기록 확인·복구'));
+      await t.tap(find.text('전송 기록 확인·복구'));
+      await t.pump(const Duration(milliseconds: 400));
+      await t.tap(find.byType(CheckboxListTile));
+      await t.pump(const Duration(milliseconds: 100));
+      await t.tap(find.text('기록으로 결과 복구'));
+      await t.pumpAndSettle();
+      await t.tap(find.byTooltip('주문 기록 새로고침'));
+      await t.pumpAndSettle();
+      expect(r.recoveries, 1);
+      expect(r.submits, 0);
+      expect(r.orders.single.status, 'ACCEPTED');
+      expect(
+        t
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, '안전 조건 검증 및 주문안 확인'),
+            )
+            .onPressed,
+        isNotNull,
+      );
+    },
+  );
+
+  testWidgets('unknown stored result recovery keeps new order blocked', (
+    t,
+  ) async {
+    final r = DispatchFake()..outcome = 'UNKNOWN';
+    await mount(t, r);
+    await t.ensureVisible(find.text('전송 기록 확인·복구'));
+    await t.tap(find.text('전송 기록 확인·복구'));
+    await t.pump(const Duration(milliseconds: 400));
+    await t.tap(find.byType(CheckboxListTile));
+    await t.pump(const Duration(milliseconds: 100));
+    await t.tap(find.text('기록으로 결과 복구'));
+    await t.pumpAndSettle();
+    expect(r.recoveries, 1);
+    expect(r.orders.single.status, 'UNKNOWN');
+    expect(
+      t
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, '안전 조건 검증 및 주문안 확인'),
+          )
+          .onPressed,
+      isNull,
+    );
+  });
+
+  test(
+    'HTTP recovery uses separate explicit acknowledgment and never retries',
+    () async {
+      final paths = <String>[];
+      final r = SpringOrderPrecheckRepository(
+        accessToken: '',
+        config: ApiConfig(baseUrl: 'http://localhost:8080'),
+        client: MockClient((request) async {
+          paths.add('${request.method} ${request.url.path}');
+          if (request.method == 'POST') {
+            expect(jsonDecode(request.body), {
+              'acknowledged': true,
+              'confirmation': '저장된 전송 결과 복구',
+            });
+            return http.Response(
+              jsonEncode({
+                'success': false,
+                'error': {'message': 'recovery result unavailable'},
+              }),
+              503,
+            );
+          }
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'data': {'phase': 'RETURNED'},
+            }),
+            200,
+          );
+        }),
+      );
+      await expectLater(
+        r.recoverDispatch('test'),
+        throwsA(isA<OrderPrecheckRepositoryException>()),
+      );
+      await r.fetchDispatch('test');
+      expect(paths, [
+        'POST /api/v1/orders/manual/test/dispatch/recover',
+        'GET /api/v1/orders/manual/test/dispatch',
+      ]);
+    },
+  );
+
   test(
     'HTTP submission does not retry on failure and history only GETs',
     () async {
@@ -397,6 +551,37 @@ class FakeRepository extends OrderPrecheckRepository
       'kind': 'CANCEL',
       'commandId': 'child',
     });
+  }
+}
+
+class DispatchFake extends FakeRepository
+    implements ManualOrderDispatchRepository {
+  DispatchFake() {
+    orders = [order('SENDING')];
+  }
+  String phase = 'RETURNED';
+  String outcome = 'ACCEPTED';
+  bool recoverable = true;
+  bool loseResponse = false;
+  int recoveries = 0;
+  @override
+  Future<Map<String, dynamic>> fetchDispatch(String id) async => {
+    'commandStatus': orders.single.status,
+    'phase': phase,
+    'recoverable': recoverable && orders.single.status == 'SENDING',
+    'recoveredAt': recoveries > 0 ? '2026-10-31T12:00:00' : null,
+    'receipt': {
+      'status': outcome,
+      'orderNo': outcome == 'ACCEPTED' ? '0040000638' : '',
+    },
+    'message': '저장 결과 확인',
+  };
+  @override
+  Future<Map<String, dynamic>> recoverDispatch(String id) async {
+    recoveries++;
+    orders = [order(outcome)];
+    if (loseResponse) throw TimeoutException('test lost recovery response');
+    return fetchDispatch(id);
   }
 }
 

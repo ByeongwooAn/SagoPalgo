@@ -27,6 +27,12 @@ public class OrderSimulationState {
         public String brokerOrderNo = "";
         public boolean changed;
         public int sendCount;
+        public String executionKey;
+        public String dispatchPhase;
+        public com.sagopalgo.api.order.service.OrderDispatchReceipt receipt;
+        public String startedAt;
+        public String returnedAt;
+        public String recoveredAt;
     }
 
     public static class BrokerOrder {

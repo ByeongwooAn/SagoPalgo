@@ -39,6 +39,10 @@ public class OrderSimulationController {
         @PathVariable String id,@PathVariable String orderNo,@Valid @RequestBody Fill request) {
         return ok(service.fill(user.userId(),id,orderNo,request.quantity()));
     }
+    @PostMapping("/{id}/commands/{commandId}/recover") public ApiResponse<Map<String,Object>> recover(
+        @PathVariable String id,@PathVariable String commandId,@Valid @RequestBody Submit request) {
+        return ok(service.recover(user.userId(),id,commandId,request.acknowledged(),request.confirmation()));
+    }
     private ApiResponse<Map<String,Object>> ok(Map<String,Object> data) { return ApiResponse.success(data,"SIMULATION 전용 결과. 실제 주문 전송 없음"); }
     public record Create(@NotNull @DecimalMin("0.01") @Digits(integer=10,fraction=2) BigDecimal cash) {}
     public record Quote(@NotBlank String stockCode,@NotBlank String market,@NotNull BigDecimal price) {}

@@ -18,24 +18,26 @@ import org.springframework.transaction.support.SimpleTransactionStatus;
 class ManualOrderStoreTest {
     ManualOrderMapper mapper=mock(ManualOrderMapper.class);
     OrderSubmissionGuardMapper guards=mock(OrderSubmissionGuardMapper.class);
+    ManualOrderDispatchMapper dispatch=mock(ManualOrderDispatchMapper.class);
     PlatformTransactionManager tx=mock(PlatformTransactionManager.class);
     ManualOrderStore store;
     @BeforeEach void setup() {
         when(tx.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
         when(mapper.lockUser(1L)).thenReturn(1L);
         when(guards.reserveOnce(eq(7L),eq(1L),eq("fingerprint"),any())).thenReturn(1);
-        ProxyFactory factory=new ProxyFactory(new ManualOrderStore(mapper,guards));
+        when(dispatch.reserve(any(),any(),any(),any())).thenReturn(1);
+        ProxyFactory factory=new ProxyFactory(new ManualOrderStore(mapper,guards,dispatch));
         factory.setProxyTargetClass(true);
         factory.addAdvice(new TransactionInterceptor(tx,new AnnotationTransactionAttributeSource()));
         store=(ManualOrderStore)factory.getProxy();
     }
     @Test void guardAndAuditCommitBeforeReturningToCaller() {
         store.claim(command("NEW"));
-        var order=inOrder(tx,mapper,guards);
+        var order=inOrder(tx,mapper,guards,dispatch);
         order.verify(tx).getTransaction(argThat(d->d.getPropagationBehavior()==TransactionDefinition.PROPAGATION_REQUIRES_NEW));
         order.verify(mapper).lockUser(1L);order.verify(mapper).pending(1L);
         order.verify(guards).reserveOnce(eq(7L),eq(1L),eq("fingerprint"),any());
-        order.verify(mapper).insert(any());order.verify(tx).commit(any());
+        order.verify(mapper).insert(any());order.verify(dispatch).reserve(any(),any(),any(),any());order.verify(tx).commit(any());
     }
     @Test void failedInsertRollsBackGuardAndThrowsBeforeHttpCouldStart() {
         when(mapper.insert(any())).thenThrow(new IllegalStateException("database"));

@@ -26,12 +26,14 @@ public class ManualOrderService {
     private final KbOrderExecutionService executions;
     private final KbSecuritiesAccountClient client;
     private final ManualOrderStore store;
+    private final ManualOrderDispatchService dispatch;
 
     public ManualOrderService(ManualOrderMapper mapper, OrderPrecheckMapper prechecks, OrderPrecheckService precheckService,
         OrderAccountBinding binding, OrderReadinessService readiness, KbOrderExecutionService executions,
-        KbSecuritiesAccountClient client, ManualOrderStore store) {
+        KbSecuritiesAccountClient client, ManualOrderStore store, ManualOrderDispatchService dispatch) {
         this.mapper=mapper;this.prechecks=prechecks;this.precheckService=precheckService;this.binding=binding;
         this.readiness=readiness;this.executions=executions;this.client=client;this.store=store;
+        this.dispatch=dispatch;
     }
 
     public List<ManualOrderResponse> history(Long user) {
@@ -125,15 +127,15 @@ public class ManualOrderService {
     }
 
     private ManualOrderResponse transmit(ManualOrderCommand c,KbLimitOrderContract.Request request) {
-        return OrderSubmissionWorkflow.execute(() -> store.claim(c), () -> {
+        String executionKey=UUID.randomUUID().toString();
+        return OrderSubmissionWorkflow.execute(() -> store.claim(c,executionKey), () -> {
             ready();
             if(!binding.matches(c.accountFingerprint())) throw new IllegalStateException("account changed");
+            dispatch.begin(c,executionKey);
             return client.sendOrderOnce(request);
         }, outcome -> {
-            if(mapper.finish(c.commandId(),c.userId(),outcome.status().name(),outcome.orderNumber(),safeCode(outcome.resultCode()),
-                safeCode(outcome.processCode()),LocalDateTime.now(KST))!=1) {
-                throw new ApiException(ErrorCode.INTERNAL_ERROR,"전송 결과 저장을 확인할 수 없습니다. 재전송하지 말고 주문 기록을 조회하세요.");
-            }
+            dispatch.recordOutcome(c,executionKey,outcome);
+            dispatch.complete(c.userId(),c.commandId());
         }, () -> get(c.userId(),c.commandId()));
     }
     private void validateFresh(Long user,OrderPrecheckRequest request) {
@@ -172,7 +174,6 @@ public class ManualOrderService {
     private void acknowledge(boolean acknowledged,String confirmation) {
         if(!acknowledged || !"실제 주문 전송".equals(confirmation)) throw new ApiException(ErrorCode.VALIDATION_ERROR,"실제 주문 전송 안내 확인이 필요합니다.");
     }
-    private String safeCode(String value) {return value!=null && value.matches("[A-Za-z0-9_-]{1,30}")?value:"";}
     private String today(){return LocalDate.now(KST).format(DateTimeFormatter.BASIC_ISO_DATE);}
     private String hash(String value) {
         return OrderWorkflowRules.hash(value);
