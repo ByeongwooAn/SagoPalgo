@@ -14,7 +14,8 @@ class SpringOrderPrecheckRepository
         ManualOrderRepository,
         ManualOrderReconciliationRepository,
         ManualOrderDispatchRepository,
-        ManualOrderDiagnosticRepository {
+        ManualOrderDiagnosticRepository,
+        UnknownOrderReviewRepository {
   SpringOrderPrecheckRepository({
     required this.accessToken,
     ApiConfig? config,
@@ -182,6 +183,35 @@ class SpringOrderPrecheckRepository
       },
     );
   }
+
+  @override
+  Future<Map<String, dynamic>> prepareUnknownReview(
+    String id,
+    String orderNo,
+  ) async =>
+      await _manual('manual/$id/reviews/prepare', body: {'orderNo': orderNo})
+          as Map<String, dynamic>;
+  @override
+  Future<void> confirmUnknownReview(
+    String id,
+    String reviewId,
+    String token,
+  ) async {
+    await _manual(
+      'manual/$id/reviews/confirm',
+      body: {
+        'reviewId': reviewId,
+        'token': token,
+        'acknowledged': true,
+        'confirmation': '잠금 유지 대조 저장',
+      },
+    );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> unknownReviewHistory(String id) async =>
+      (await _manual('manual/$id/reviews') as List)
+          .cast<Map<String, dynamic>>();
 
   Map<String, dynamic> _readData(http.Response response, String fallback) {
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;

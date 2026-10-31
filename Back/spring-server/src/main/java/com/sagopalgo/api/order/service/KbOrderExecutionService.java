@@ -44,6 +44,8 @@ public class KbOrderExecutionService {
         if (records == null || !records.isArray()) {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KB 주문 조회 응답의 Record1이 올바르지 않습니다.");
         }
+        String returnedDate=text(body,"ordr_dt");
+        if(!returnedDate.isEmpty() && !date.equals(returnedDate)) throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR,"KB 조회 응답의 주문일자가 요청과 다릅니다.");
 
         List<KbOrderExecutionItemResponse> items = new ArrayList<>();
         for (JsonNode record : records) {
@@ -138,7 +140,9 @@ public class KbOrderExecutionService {
             optionalDecimal(record, "ordr_uprc"),
             optionalDecimal(record, "ccls_uprc"),
             rejectionReason,
-            status(orderQuantity, filledQuantity, openQuantity, rejectionReason)
+            status(orderQuantity, filledQuantity, openQuantity, rejectionReason),
+            text(record,"orgn_ordr_no"),text(record,"crct_cncl_ccd"),
+            optionalQuantity(record,"crct_q"),optionalQuantity(record,"sor_cncl_q")
         );
     }
 
@@ -174,6 +178,9 @@ public class KbOrderExecutionService {
         } catch (NumberFormatException exception) {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KB 주문 조회 가격이 올바르지 않습니다: " + field);
         }
+    }
+    private BigDecimal optionalQuantity(JsonNode node,String field) {
+        return text(node,field).isEmpty()?null:quantity(node,field);
     }
 
     private String text(JsonNode node, String field) {

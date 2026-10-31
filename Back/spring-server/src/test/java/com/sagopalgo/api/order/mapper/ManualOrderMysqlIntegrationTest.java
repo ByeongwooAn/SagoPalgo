@@ -50,6 +50,9 @@ class ManualOrderMysqlIntegrationTest {
     private ManualOrderDiagnosticStore diagnosticStore;
     private ManualOrderDiagnosticService diagnosticService;
     private KbOrderExecutionService diagnosticExecutions;
+    private UnknownOrderReviewMapper reviewMapper;
+    private UnknownOrderReviewStore reviewStore;
+    private UnknownOrderReviewService reviewService;
     private ManualOrderReconciliationStore reconciliationStore;
     private DataSourceTransactionManager transactions;
     private OrderSimulationMapper simulations;
@@ -69,6 +72,8 @@ class ManualOrderMysqlIntegrationTest {
         try (var connection = dataSource.getConnection()) {
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/schema.sql"));
             // 016을 실제 업그레이드와 같은 테이블 부재 상태에서 검증합니다.
+            jdbc.execute("DROP TABLE IF EXISTS manual_order_reviews");
+            jdbc.execute("DROP TABLE IF EXISTS manual_order_review_preparations");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_diagnostics");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_dispatch_recoveries");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_dispatches");
@@ -91,11 +96,16 @@ class ManualOrderMysqlIntegrationTest {
             ScriptUtils.executeSqlScript(connection,new FileSystemResource("../database/migrations/020_manual_order_diagnostics.sql"));
             ScriptUtils.executeSqlScript(connection,new FileSystemResource("../database/migrations/020_manual_order_diagnostics.sql"));
         }
+        try(var connection=dataSource.getConnection()){
+            ScriptUtils.executeSqlScript(connection,new FileSystemResource("../database/migrations/021_unknown_order_reviews.sql"));
+            ScriptUtils.executeSqlScript(connection,new FileSystemResource("../database/migrations/021_unknown_order_reviews.sql"));
+        }
         var configuration = new Configuration();
         configuration.setMapUnderscoreToCamelCase(true);
         configuration.addMapper(ManualOrderMapper.class);
         configuration.addMapper(ManualOrderDispatchMapper.class);
         configuration.addMapper(ManualOrderDiagnosticMapper.class);
+        configuration.addMapper(UnknownOrderReviewMapper.class);
         configuration.addMapper(OrderSubmissionGuardMapper.class);
         configuration.addMapper(ManualOrderReconciliationMapper.class);
         configuration.addMapper(OrderSimulationMapper.class);
@@ -113,6 +123,9 @@ class ManualOrderMysqlIntegrationTest {
         diagnosticExecutions=mock(KbOrderExecutionService.class);
         diagnosticStore=proxy(new ManualOrderDiagnosticStore(commands,dispatches,diagnosticMapper,binding,new ObjectMapper()));
         diagnosticService=new ManualOrderDiagnosticService(commands,diagnosticMapper,diagnosticStore,diagnosticExecutions,new ObjectMapper());
+        reviewMapper=session.getMapper(UnknownOrderReviewMapper.class);
+        reviewStore=proxy(new UnknownOrderReviewStore(commands,reviewMapper,binding));
+        reviewService=new UnknownOrderReviewService(commands,reviewMapper,reviewStore,binding,diagnosticExecutions,new ObjectMapper());
         store = proxy(new ManualOrderStore(commands, session.getMapper(OrderSubmissionGuardMapper.class),dispatches));
         reconciliationStore = proxy(new ManualOrderReconciliationStore(commands, reconciliations));
         simulations = session.getMapper(OrderSimulationMapper.class);
@@ -133,7 +146,7 @@ class ManualOrderMysqlIntegrationTest {
         reset(diagnosticExecutions);
         // 같은 테이블의 부모 FK는 DELETE 전체 실행 순서에도 적용됩니다. 격리 fixture의 참조만 먼저 끊습니다.
         jdbc.update("UPDATE manual_order_commands SET parent_id=NULL");
-        for (String table : List.of("manual_order_diagnostics","manual_order_dispatch_recoveries","manual_order_dispatches","order_simulation_sessions", "manual_order_reconciliations", "manual_order_reconciliation_preparations",
+        for (String table : List.of("manual_order_reviews","manual_order_review_preparations","manual_order_diagnostics","manual_order_dispatch_recoveries","manual_order_dispatches","order_simulation_sessions", "manual_order_reconciliations", "manual_order_reconciliation_preparations",
             "manual_order_observations", "manual_order_commands", "order_submission_guards", "order_approvals", "order_prechecks")) {
             jdbc.update("DELETE FROM " + table);
         }
@@ -649,6 +662,140 @@ class ManualOrderMysqlIntegrationTest {
         assertThat(diagnosticService.history(1L,c.commandId())).hasSize(20);
         verify(diagnosticExecutions,times(22)).findByOrderNumber(c.orderDate(),"0040000638");
         assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+
+    @ParameterizedTest @ValueSource(strings={"OPEN","PARTIAL","AMEND","CANCEL"})
+    void unknownReviewsRequireFreshConfirmationAndPreserveAllOrderGuards(String mode) {
+        var c=reviewCandidate(List.of("AMEND","CANCEL").contains(mode)?mode:"NEW");var before=commands.find(c.commandId(),1L);
+        var journal=dispatches.find(c.commandId(),1L);
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,mode));
+        var prepared=reviewService.prepare(1L,c.commandId(),"0040000639");
+        assertThat(prepared.evidence().observation()).isEqualTo("NEW".equals(c.kind())?mode:"CHANGE_REFERENCE");
+        assertThat(reviewMapper.preparation(c.commandId(),1L).tokenHash()).isNotEqualTo(prepared.token());
+        assertThat(reviewService.history(1L,c.commandId())).isEmpty();
+        var result=reviewService.confirm(1L,c.commandId(),prepared.reviewId(),prepared.token(),true,"잠금 유지 대조 저장");
+        assertThat(result.lockMaintained()).isTrue();assertThat(reviewMapper.preparation(c.commandId(),1L)).isNull();
+        assertThat(commands.find(c.commandId(),1L)).isEqualTo(before);assertThat(dispatches.find(c.commandId(),1L)).isEqualTo(journal);
+        assertThat(commands.pending(1L)).isEqualTo(1);assertThat(reviewService.history(1L,c.commandId())).containsExactly(result);
+        assertThat(result.toString()).doesNotContain(FINGERPRINT,prepared.token(),"private-name");
+        assertThat(reviewService.confirm(1L,c.commandId(),prepared.reviewId(),prepared.token(),true,"잠금 유지 대조 저장")).isEqualTo(result);
+        verify(diagnosticExecutions,times(2)).findByOrderNumber(c.orderDate(),"0040000639");
+        assertThatThrownBy(()->store.claim(command(approval(),"SENDING"))).isInstanceOf(RuntimeException.class);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_reconciliations",Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM trade_records",Integer.class)).isZero();
+        if(!"NEW".equals(c.kind())) assertThat(commands.find(c.parentId(),1L).changeId()).isEqualTo(c.commandId());
+    }
+    @Test void changedFilledQuantityInvalidatesReviewWithoutConsumingToken() {
+        var c=reviewCandidate("NEW");when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,"OPEN"));
+        var p=reviewService.prepare(1L,c.commandId(),"0040000639");
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,"PARTIAL"));
+        assertThatThrownBy(()->reviewService.confirm(1L,c.commandId(),p.reviewId(),p.token(),true,"잠금 유지 대조 저장")).isInstanceOf(RuntimeException.class).hasMessageContaining("달라졌습니다");
+        assertThat(reviewMapper.preparation(c.commandId(),1L)).isNotNull();assertThat(reviewService.history(1L,c.commandId())).isEmpty();
+        assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+    @Test void expiredReplacedWrongTokenForeignUserAndAccountMismatchCannotConfirm() {
+        var c=reviewCandidate("NEW");when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,"OPEN"));
+        var old=reviewService.prepare(1L,c.commandId(),"0040000639");var current=reviewService.prepare(1L,c.commandId(),"0040000639");
+        assertThatThrownBy(()->reviewService.confirm(1L,c.commandId(),old.reviewId(),old.token(),true,"잠금 유지 대조 저장")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->reviewService.confirm(2L,c.commandId(),current.reviewId(),current.token(),true,"잠금 유지 대조 저장")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->reviewService.history(2L,c.commandId())).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->reviewService.confirm(1L,c.commandId(),current.reviewId(),"wrong",true,"잠금 유지 대조 저장")).isInstanceOf(RuntimeException.class);
+        when(binding.matches(FINGERPRINT)).thenReturn(false);
+        assertThatThrownBy(()->reviewService.confirm(1L,c.commandId(),current.reviewId(),current.token(),true,"잠금 유지 대조 저장")).isInstanceOf(RuntimeException.class);
+        when(binding.matches(FINGERPRINT)).thenReturn(true);
+        jdbc.update("UPDATE manual_order_review_preparations SET expires_at=? WHERE command_id=?",now().minusSeconds(1),c.commandId());
+        assertThatThrownBy(()->reviewService.confirm(1L,c.commandId(),current.reviewId(),current.token(),true,"잠금 유지 대조 저장")).isInstanceOf(RuntimeException.class);
+        verify(diagnosticExecutions,times(2)).findByOrderNumber(c.orderDate(),"0040000639");assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+    @Test void concurrentReviewConfirmationStoresOneAuditAndConsumesOnce() throws Exception {
+        var c=reviewCandidate("NEW");when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,"PARTIAL"));
+        var p=reviewService.prepare(1L,c.commandId(),"0040000639");
+        race(()->reviewService.confirm(1L,c.commandId(),p.reviewId(),p.token(),true,"잠금 유지 대조 저장"),
+            ()->reviewService.confirm(1L,c.commandId(),p.reviewId(),p.token(),true,"잠금 유지 대조 저장"));
+        assertThat(reviewService.history(1L,c.commandId())).hasSize(1);assertThat(reviewMapper.preparation(c.commandId(),1L)).isNull();
+        assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+    @Test void reviewInsertFailureRollsBackTokenConsumption() {
+        var c=reviewCandidate("NEW");when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,"OPEN"));
+        var p=reviewService.prepare(1L,c.commandId(),"0040000639");
+        jdbc.execute("CREATE TRIGGER reject_review_insert BEFORE INSERT ON manual_order_reviews FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='private database failure'");
+        try{assertThatThrownBy(()->reviewService.confirm(1L,c.commandId(),p.reviewId(),p.token(),true,"잠금 유지 대조 저장")).isInstanceOf(RuntimeException.class).hasMessageNotContaining("private database failure");}
+        finally{jdbc.execute("DROP TRIGGER reject_review_insert");}
+        assertThat(reviewMapper.preparation(c.commandId(),1L)).isNotNull();assertThat(reviewService.history(1L,c.commandId())).isEmpty();assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+    @Test void missing021BlocksOnlyNewReviewBeforeAnyBrokerRead() {
+        var c=reviewCandidate("NEW");jdbc.execute("RENAME TABLE manual_order_review_preparations TO isolated_reviews_hidden");
+        try{assertThatThrownBy(()->reviewService.prepare(1L,c.commandId(),"0040000639")).isInstanceOf(RuntimeException.class).hasMessageContaining("021");
+            assertThat(commands.verifyStorage()).isNotBlank();}
+        finally{jdbc.execute("RENAME TABLE isolated_reviews_hidden TO manual_order_review_preparations");}
+        verifyNoInteractions(diagnosticExecutions);
+    }
+    @Test void changingAccountDuringReviewLookupPreventsPreparation() {
+        var c=reviewCandidate("NEW");
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenAnswer(call->{when(binding.matches(FINGERPRINT)).thenReturn(false);return reviewLookup(c,"OPEN");});
+        assertThatThrownBy(()->reviewService.prepare(1L,c.commandId(),"0040000639")).isInstanceOf(RuntimeException.class);
+        assertThat(reviewMapper.preparation(c.commandId(),1L)).isNull();assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+    @ParameterizedTest @ValueSource(strings={"TIMEOUT_AFTER_OPEN","TIMEOUT_AFTER_PARTIAL"})
+    void simulationReviewsObserveRemainingQuantityWithoutSendingOrUnlocking(String scenario) {
+        String session=simSession("1000000");String id=simReady(session,simPlan("BUY","75000","2"),"NEW",null,scenario);
+        var before=simulationService.submit(1L,session,id,true,"모의 주문 전송");
+        var p=simulationService.prepareReview(1L,session,id,"0000000001");String review=(String)p.get("reviewId");String token=(String)p.get("token");
+        assertThat(before.toString()).doesNotContain("tokenHash","reviewPreparation");
+        var after=simulationService.confirmReview(1L,session,id,review,token,true,"잠금 유지 대조 저장");
+        simulationService.confirmReview(1L,session,id,review,token,true,"잠금 유지 대조 저장");
+        assertThat(simCommand(after,id)).containsEntry("status","UNKNOWN").containsEntry("sendCount",1);
+        assertThat((List<?>)simCommand(after,id).get("reviews")).hasSize(1);assertThat(after.get("blocked")).isEqualTo(true);
+        assertThat(after.get("cash")).isEqualTo(before.get("cash"));assertThat(after.get("positions")).isEqualTo(before.get("positions"));
+        assertThat(after.toString()).doesNotContain(token,"tokenHash","evidenceHash","reviewPreparation");
+    }
+    @ParameterizedTest @ValueSource(strings={"AMEND","CANCEL"})
+    void simulationChangeReviewsKeepParentClaimAndRecordOpaqueEvidence(String kind) {
+        String session=simSession("1000000");String parent=simReady(session,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+        simulationService.submit(1L,session,parent,true,"모의 주문 전송");
+        String child=simReady(session,simPlan("BUY","74000","2"),kind,parent,"TIMEOUT_AFTER_ACCEPT");
+        var before=simulationService.submit(1L,session,child,true,"모의 주문 전송");
+        var p=simulationService.prepareReview(1L,session,child,"0000000002");
+        var after=simulationService.confirmReview(1L,session,child,(String)p.get("reviewId"),(String)p.get("token"),true,"잠금 유지 대조 저장");
+        assertThat(simCommand(after,parent)).isEqualTo(simCommand(before,parent));assertThat(simCommand(after,child)).containsEntry("status","UNKNOWN").containsEntry("sendCount",1);
+        assertThat(after.get("availableCash")).isEqualTo(before.get("availableCash"));assertThat(after.get("blocked")).isEqualTo(true);
+    }
+    @Test void simulationReviewRejectsFillDriftAndExpiredToken() {
+        String session=simSession("1000000");String id=simReady(session,simPlan("BUY","75000","2"),"NEW",null,"TIMEOUT_AFTER_OPEN");
+        simulationService.submit(1L,session,id,true,"모의 주문 전송");var p=simulationService.prepareReview(1L,session,id,"0000000001");
+        simulationService.fill(1L,session,"0000000001",BigDecimal.ONE);
+        assertThatThrownBy(()->simulationService.confirmReview(1L,session,id,(String)p.get("reviewId"),(String)p.get("token"),true,"잠금 유지 대조 저장")).isInstanceOf(RuntimeException.class);
+        var q=simulationService.prepareReview(1L,session,id,"0000000001");
+        simulationStore.mutate(1L,session,state->{var c=state.commands.get(id);var r=c.reviewPreparation;c.reviewPreparation=new OrderSimulationState.ReviewPreparation(r.reviewId(),r.tokenHash(),r.evidenceHash(),now().minusSeconds(1).toString(),r.evidence());return null;});
+        assertThatThrownBy(()->simulationService.confirmReview(1L,session,id,(String)q.get("reviewId"),(String)q.get("token"),true,"잠금 유지 대조 저장")).isInstanceOf(RuntimeException.class);
+        assertThat(simulationService.get(1L,session).get("blocked")).isEqualTo(true);
+    }
+    @Test void preparationExpiringDuringFinalLookupCannotBeConsumedWithEarlierTimestamp() {
+        var c=reviewCandidate("NEW");when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,"OPEN"));
+        var p=reviewService.prepare(1L,c.commandId(),"0040000639");
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenAnswer(call->{
+            jdbc.update("UPDATE manual_order_review_preparations SET expires_at=? WHERE command_id=?",now().minusSeconds(1),c.commandId());return reviewLookup(c,"OPEN");});
+        assertThatThrownBy(()->reviewService.confirm(1L,c.commandId(),p.reviewId(),p.token(),true,"잠금 유지 대조 저장")).isInstanceOf(RuntimeException.class);
+        assertThat(reviewMapper.preparation(c.commandId(),1L)).isNotNull();assertThat(reviewService.history(1L,c.commandId())).isEmpty();
+    }
+
+    private ManualOrderCommand reviewCandidate(String kind) {
+        var t=now();var parent=new ManualOrderCommand(UUID.randomUUID().toString(),1L,approval(),null,"NEW","005930","삼성전자","KOSPI","BUY",
+            new BigDecimal("100"),new BigDecimal("2"),FINGERPRINT,null,t.plusSeconds(90),"SENDING",null,t.toLocalDate().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE),null,null,null,t,t);
+        store.claim(parent,"parent");dispatchService.begin(parent,"parent");
+        dispatchService.recordOutcome(parent,"parent","NEW".equals(kind)?unknown():accepted());dispatchService.complete(1L,parent.commandId());
+        if("NEW".equals(kind)) return commands.find(parent.commandId(),1L);
+        var child=new ManualOrderCommand(UUID.randomUUID().toString(),1L,null,parent.commandId(),kind,parent.stockCode(),parent.stockName(),parent.market(),parent.side(),
+            "AMEND".equals(kind)?new BigDecimal("99"):parent.price(),parent.quantity(),FINGERPRINT,"hash",t.plusSeconds(90),"PREPARED",null,parent.orderDate(),null,null,null,t,t);
+        commands.insert(child);store.claim(child,"child");dispatchService.begin(child,"child");dispatchService.recordOutcome(child,"child",unknown());dispatchService.complete(1L,child.commandId());
+        return commands.find(child.commandId(),1L);
+    }
+    private com.sagopalgo.api.order.dto.KbOrderLookupResponse reviewLookup(ManualOrderCommand c,String mode) {
+        boolean change=!"NEW".equals(c.kind());BigDecimal filled="PARTIAL".equals(mode)?BigDecimal.ONE:BigDecimal.ZERO;
+        BigDecimal open="CANCEL".equals(mode)?BigDecimal.ZERO:c.quantity().subtract(filled);
+        var row=new com.sagopalgo.api.order.dto.KbOrderExecutionItemResponse("0040000639",c.stockCode(),"private-name","매수",c.createdAt().format(java.time.format.DateTimeFormatter.ofPattern("HHmmss")),
+            c.quantity(),filled,open,c.price(),null,"","PARTIAL".equals(mode)?"PARTIAL":"OPEN",change?"0040000638":"",change?"9":"",change?c.quantity():BigDecimal.ZERO,BigDecimal.ZERO);
+        return new com.sagopalgo.api.order.dto.KbOrderLookupResponse(c.orderDate(),"0040000639",true,1,List.of(row));
     }
 
     private ManualOrderCommand diagnosticCandidate(String phase) {

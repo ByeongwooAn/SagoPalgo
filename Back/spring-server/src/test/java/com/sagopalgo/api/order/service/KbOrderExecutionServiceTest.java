@@ -51,6 +51,26 @@ class KbOrderExecutionServiceTest {
         assertThat(page.items().get(0).stockName()).isEqualTo("삼성전자");
     }
 
+    @Test void explicitBrokerDateMismatchCannotBecomeRequestedDateEvidence() throws Exception {
+        when(kbClient.fetchOrderExecutions("20260923","0","")).thenReturn(objectMapper.readTree("""
+            {"dataBody":{"ordr_dt":"20260924","Record1":[]}}
+            """));
+        assertThatThrownBy(()->service.page("20260923","0","")).isInstanceOf(ApiException.class);
+    }
+    @Test void retainsOfficialChangeFieldsAndRejectsMalformedOptionalQuantity() throws Exception {
+        when(kbClient.fetchOrderExecutions("20260923","0","")).thenReturn(response("","""
+            {"ordr_no":"0040000009","ordr_q":"2","tl_ccls_q":"0","nccls_q":"0",
+             "orgn_ordr_no":"0040000008","crct_cncl_ccd":"9","crct_q":"2","sor_cncl_q":"0"}
+            """));
+        var row=service.page("20260923","0","").items().get(0);
+        assertThat(row.originalOrderNo()).isEqualTo("0040000008");assertThat(row.changeCode()).isEqualTo("9");
+        assertThat(row.correctedQuantity()).isEqualByComparingTo("2");assertThat(row.status()).isEqualTo("UNKNOWN");
+        when(kbClient.fetchOrderExecutions("20260923","0","")).thenReturn(response("","""
+            {"ordr_no":"0040000009","ordr_q":"2","tl_ccls_q":"0","nccls_q":"2","crct_q":"-1"}
+            """));
+        assertThatThrownBy(()->service.page("20260923","0","")).isInstanceOf(ApiException.class);
+    }
+
     @Test
     void scansSubsequentPagesForOrderNumberAndReportsCompleteScan() throws Exception {
         when(kbClient.fetchOrderExecutions("20260923", "0", ""))

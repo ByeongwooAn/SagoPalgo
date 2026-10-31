@@ -15,6 +15,16 @@ public record KbOrderExecutionItemResponse(
     BigDecimal orderPrice,
     BigDecimal fillPrice,
     String rejectionReason,
-    String status
+    String status,
+    String originalOrderNo,
+    String changeCode,
+    BigDecimal correctedQuantity,
+    BigDecimal sorCancelledQuantity
 ) {
+    public KbOrderExecutionItemResponse(String orderNo,String stockCode,String stockName,String tradeTypeName,String orderTime,
+        BigDecimal orderQuantity,BigDecimal filledQuantity,BigDecimal openQuantity,BigDecimal orderPrice,BigDecimal fillPrice,
+        String rejectionReason,String status) {
+        this(orderNo,stockCode,stockName,tradeTypeName,orderTime,orderQuantity,filledQuantity,openQuantity,orderPrice,fillPrice,
+            rejectionReason,status,"","",null,null);
+    }
 }

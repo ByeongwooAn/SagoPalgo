@@ -116,7 +116,7 @@ public class ManualOrderReconciliationService {
             || command.price().compareTo(row.orderPrice()) != 0
             || command.quantity().compareTo(row.orderQuantity()) != 0
             || command.quantity().compareTo(row.filledQuantity()) != 0 || row.openQuantity().signum() != 0
-            || !timeMatches(command, row.orderTime())) {
+            || !timeMatches(command, row.orderTime()) || UnknownOrderReviewRules.hasChangeEvidence(row)) {
             throw mismatch();
         }
         var evidence = new ManualOrderReconciliationRecord(command.commandId(), command.userId(), command.accountFingerprint(),

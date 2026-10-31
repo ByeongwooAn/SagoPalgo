@@ -34,6 +34,12 @@ abstract interface class ManualOrderDiagnosticRepository {
   );
 }
 
+abstract interface class UnknownOrderReviewRepository {
+  Future<Map<String, dynamic>> prepareUnknownReview(String id, String orderNo);
+  Future<void> confirmUnknownReview(String id, String reviewId, String token);
+  Future<List<Map<String, dynamic>>> unknownReviewHistory(String id);
+}
+
 class ManualOrder {
   ManualOrder(this.data);
   final Map<String, dynamic> data;

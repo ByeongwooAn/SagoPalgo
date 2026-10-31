@@ -7,6 +7,7 @@ import 'package:app_version/repositories/order_precheck_repository.dart';
 import 'package:app_version/repositories/spring_order_precheck_repository.dart';
 import 'package:app_version/screens/manual_orders_screen.dart';
 import 'package:app_version/screens/order_diagnostics_screen.dart';
+import 'package:app_version/screens/unknown_order_review_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -32,6 +33,25 @@ void main() {
     await t.pump(const Duration(milliseconds: 400));
   }
 
+  testWidgets(
+    'unknown partial review opens while live switch is off and keeps main order blocked',
+    (t) async {
+      final r = ReviewNavigationFake()
+        ..ready = false
+        ..orders = [order('UNKNOWN')];
+      await mount(t, r);
+      await t.ensureVisible(find.text('미체결·부분체결 대조'));
+      await t.tap(find.text('미체결·부분체결 대조'));
+      await t.pumpAndSettle();
+      expect(find.byType(UnknownOrderReviewScreen), findsOneWidget);
+      expect(r.reads, 1);
+      expect(r.submits, 0);
+      expect(r.confirms, 0);
+      await t.pageBack();
+      await t.pumpAndSettle();
+      expect(r.orders.single.status, 'UNKNOWN');
+    },
+  );
   testWidgets('disabled readiness cannot prepare or submit', (t) async {
     final r = FakeRepository()..ready = false;
     await mount(t, r);
@@ -630,6 +650,30 @@ class DiagnosticNavigationFake extends DispatchFake
   ) async {
     diagnoses++;
     return {};
+  }
+}
+
+class ReviewNavigationFake extends FakeRepository
+    implements UnknownOrderReviewRepository {
+  int reads = 0;
+  @override
+  Future<List<Map<String, dynamic>>> unknownReviewHistory(String id) async {
+    reads++;
+    return [];
+  }
+
+  @override
+  Future<Map<String, dynamic>> prepareUnknownReview(
+    String id,
+    String orderNo,
+  ) async => {};
+  @override
+  Future<void> confirmUnknownReview(
+    String id,
+    String reviewId,
+    String token,
+  ) async {
+    confirms++;
   }
 }
 
