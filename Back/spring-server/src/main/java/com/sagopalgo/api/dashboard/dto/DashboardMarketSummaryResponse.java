@@ -14,6 +14,14 @@ public record DashboardMarketSummaryResponse(
     int marketScore,
     String newsSentiment,
     int positiveNewsCount,
-    List<BigDecimal> marketBars
+    List<BigDecimal> marketBars,
+    BigDecimal portfolioReturnRate,
+    java.time.Instant checkedAt,
+    com.sagopalgo.api.market.model.MarketIndexSnapshot index,
+    DashboardNewsSummary news
 ) {
+    public DashboardMarketSummaryResponse(BigDecimal capital, BigDecimal rate, String range, String trend,
+        int score, String sentiment, int positive, List<BigDecimal> bars) {
+        this(capital, rate, range, trend, score, sentiment, positive, bars, rate, null, null, null);
+    }
 }

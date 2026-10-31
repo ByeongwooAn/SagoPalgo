@@ -17,9 +17,10 @@ abstract class PaperTradingRepository {
 }
 
 class PaperTradingRepositoryException implements Exception {
-  const PaperTradingRepositoryException(this.message);
+  const PaperTradingRepositoryException(this.message, {this.code});
 
   final String message;
+  final String? code;
 
   @override
   String toString() => message;

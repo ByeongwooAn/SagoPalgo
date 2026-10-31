@@ -1,6 +1,7 @@
 package com.sagopalgo.api.alert.service;
 
 import com.sagopalgo.api.config.PersonalModeProperties;
+import com.sagopalgo.api.watchlist.mapper.WatchlistMapper;
 import com.sagopalgo.api.alert.model.PortfolioPosition;
 import com.sagopalgo.api.holding.model.Holding;
 import com.sagopalgo.api.holding.service.HoldingService;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Component;
     havingValue = "true"
 )
 public class AlertEvaluationScheduler {
+    private final WatchlistMapper watchlistMapper;
 
     private static final Logger log = LoggerFactory.getLogger(AlertEvaluationScheduler.class);
 
@@ -43,7 +45,8 @@ public class AlertEvaluationScheduler {
         MarketPriceService marketPriceService,
         EventAlertService eventAlertService,
         PortfolioRiskAlertService portfolioRiskAlertService,
-        PersonalModeProperties personalModeProperties
+        PersonalModeProperties personalModeProperties,
+        WatchlistMapper watchlistMapper
     ) {
         this.holdingService = holdingService;
         this.recommendationService = recommendationService;
@@ -51,6 +54,7 @@ public class AlertEvaluationScheduler {
         this.eventAlertService = eventAlertService;
         this.portfolioRiskAlertService = portfolioRiskAlertService;
         this.personalModeProperties = personalModeProperties;
+        this.watchlistMapper = watchlistMapper;
     }
 
     @Scheduled(
@@ -70,19 +74,30 @@ public class AlertEvaluationScheduler {
 
         try {
             List<PortfolioPosition> positions = new ArrayList<>();
+            java.util.Set<String> owned = new java.util.HashSet<>();
             for (Long holdingId : holdingService.findActiveIds(userId)) {
-                evaluateOne(userId, holdingId).ifPresent(positions::add);
+                evaluateOne(userId, holdingId, owned).ifPresent(positions::add);
             }
             evaluatePortfolio(userId, positions);
+            for (var item : watchlistMapper.findAllByUserId(userId)) {
+                if (!Boolean.TRUE.equals(item.getAlertEnabled())) continue;
+                if (owned.contains(stockKey(item.getStockCode(), item.getMarket()))) continue;
+                try {
+                    recommendationService.analyzeWatchlist(userId, item.getWatchlistId());
+                } catch (RuntimeException exception) {
+                    log.warn("관심 종목 알림 분석 실패. watchlistId={}", item.getWatchlistId());
+                }
+            }
         } finally {
             running.set(false);
         }
     }
 
-    private Optional<PortfolioPosition> evaluateOne(Long userId, Long holdingId) {
+    private Optional<PortfolioPosition> evaluateOne(Long userId, Long holdingId, java.util.Set<String> owned) {
         PortfolioPosition position = null;
         try {
             Holding holding = holdingService.findRecord(userId, holdingId);
+            owned.add(stockKey(holding.getStockCode(), holding.getMarket()));
             var quote = marketPriceService.quote(holding);
             position = new PortfolioPosition(holding, quote);
             eventAlertService.createPriceAlerts(holding, quote);
@@ -103,6 +118,10 @@ public class AlertEvaluationScheduler {
             );
         }
         return Optional.ofNullable(position);
+    }
+
+    private String stockKey(String code, String market) {
+        return code.trim() + ":" + market.trim().toUpperCase(java.util.Locale.ROOT);
     }
 
     private void evaluatePortfolio(Long userId, List<PortfolioPosition> positions) {

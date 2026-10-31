@@ -21,6 +21,7 @@ class InvestmentRecommendation {
     required this.aiSummary,
     required this.reasons,
     this.createdAt,
+    this.evidence,
   });
 
   /// 저장 추천 상세와 알림을 연결할 때 사용하는 PK입니다.
@@ -67,6 +68,7 @@ class InvestmentRecommendation {
 
   /// 서버가 분석 결과를 저장한 시각입니다.
   final DateTime? createdAt;
+  final AnalysisEvidence? evidence;
 
   /// 백엔드 대시보드 스냅샷의 `recommendation` JSON을 앱 모델로 변환합니다.
   factory InvestmentRecommendation.fromJson(Map<String, dynamic> json) {
@@ -76,7 +78,8 @@ class InvestmentRecommendation {
       stockCode: json['stockCode'] as String,
       market: json['market'] as String? ?? 'KOSPI',
       status: json['statusLabel'] as String? ?? json['status'] as String,
-      machineStatus: json['status'] as String?,
+      machineStatus:
+          json['machineStatus'] as String? ?? json['status'] as String?,
       recommendationType: json['recommendationType'] as String? ?? 'HOLD',
       analysisContext: json['analysisContext'] as String? ?? 'HOLDING',
       score: _readInt(json['score']),
@@ -93,8 +96,32 @@ class InvestmentRecommendation {
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
+      evidence: json['evidence'] is Map<String, dynamic>
+          ? AnalysisEvidence.fromJson(json['evidence'] as Map<String, dynamic>)
+          : null,
     );
   }
+}
+
+class AnalysisEvidence {
+  const AnalysisEvidence({
+    required this.modelVersion,
+    this.candleCount,
+    this.newsCount,
+    this.disclosureCount,
+  });
+  final String? modelVersion;
+  final int? candleCount;
+  final int? newsCount;
+  final int? disclosureCount;
+  bool get isFallback => modelVersion?.contains('FALLBACK') ?? false;
+  factory AnalysisEvidence.fromJson(Map<String, dynamic> json) =>
+      AnalysisEvidence(
+        modelVersion: json['modelVersion'] as String?,
+        candleCount: _readOptionalInt(json['candleCount']),
+        newsCount: _readOptionalInt(json['newsCount']),
+        disclosureCount: _readOptionalInt(json['disclosureCount']),
+      );
 }
 
 /// 추천 이력 API의 페이지 정보와 항목을 함께 보관합니다.

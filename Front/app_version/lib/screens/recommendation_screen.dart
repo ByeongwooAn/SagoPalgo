@@ -5,6 +5,9 @@ import '../models/recommendation.dart';
 import '../models/watchlist_item.dart';
 import '../repositories/recommendation_repository.dart';
 import '../repositories/watchlist_repository.dart';
+import '../repositories/research_feed_repository.dart';
+import '../models/research_feed.dart';
+import 'watchlist_setup_sheet.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_text.dart';
@@ -29,6 +32,7 @@ class RecommendationScreen extends StatefulWidget {
     required this.onRecommendationChanged,
     required this.onCapitalSetupOpen,
     required this.onHoldingSetupOpen,
+    this.researchFeedRepository,
   });
 
   /// Repository에서 받은 매수 추천 모델입니다.
@@ -51,6 +55,7 @@ class RecommendationScreen extends StatefulWidget {
 
   /// 보유 종목 추가 화면으로 이동하는 콜백입니다.
   final VoidCallback onHoldingSetupOpen;
+  final ResearchFeedRepository? researchFeedRepository;
 
   @override
   State<RecommendationScreen> createState() => _RecommendationScreenState();
@@ -68,6 +73,9 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   int _total = 0;
   Object? _historyError;
   final List<InvestmentRecommendation> _history = [];
+  InvestmentRecommendation? _lastAnalyzed;
+  bool _syncBeforeAnalysis = true;
+  int _historyVersion = 0;
 
   @override
   void initState() {
@@ -77,9 +85,20 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final recommendation = _history.isNotEmpty
+    var recommendation = _history.isNotEmpty
         ? _history.first
         : widget.recommendation;
+    if (_lastAnalyzed != null &&
+        recommendation != null &&
+        recommendation.recommendationId == _lastAnalyzed?.recommendationId) {
+      recommendation = _lastAnalyzed;
+    }
+    if (recommendation != null &&
+        recommendation.reasons.isEmpty &&
+        recommendation.recommendationId ==
+            widget.recommendation?.recommendationId) {
+      recommendation = widget.recommendation;
+    }
     if (recommendation == null && _loadingHistory) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -88,6 +107,9 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         onCapitalTap: widget.onCapitalSetupOpen,
         onHoldingTap: widget.onHoldingSetupOpen,
         onWatchlistTap: _openWatchlistPicker,
+        onWatchlistAdd: _addWatchlist,
+        historyError: _historyError,
+        onRetry: () => _loadHistory(reset: true),
       );
     }
 
@@ -107,6 +129,24 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             ),
           ),
           const SizedBox(height: 18),
+          OutlinedButton.icon(
+            onPressed: _addWatchlist,
+            icon: const Icon(Icons.add),
+            label: const Text('관심 종목 등록'),
+          ),
+          if (widget.researchFeedRepository != null)
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('분석 전에 뉴스·공시 수집'),
+              value: _syncBeforeAnalysis,
+              subtitle: const Text(
+                '실제 시세와 수집된 입력으로 분석합니다. 수집 실패·미설정은 별도로 안내합니다.',
+              ),
+              onChanged:
+                  _analyzingHoldingId != null || _analyzingWatchlistId != null
+                  ? null
+                  : (value) => setState(() => _syncBeforeAnalysis = value!),
+            ),
           _AnalysisActionCard(
             holdings: widget.holdings,
             analyzingHoldingId: _analyzingHoldingId,
@@ -135,6 +175,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             ),
             const SizedBox(height: 10),
             ScoreDetailCard(recommendation: recommendation),
+            AnalysisEvidenceCard(recommendation: recommendation),
             const SizedBox(height: 12),
             RecommendationReasonCard(reasons: recommendation.reasons),
             const SizedBox(height: 12),
@@ -142,7 +183,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CardTitle('AI 설명'),
+                  const CardTitle('분석 설명'),
                   const SizedBox(height: 8),
                   TextBody(recommendation.aiSummary),
                 ],
@@ -159,7 +200,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                     busy: _addingWatchlist,
                     onTap: _addingWatchlist || _enablingAlert
                         ? null
-                        : () => _addRecommendation(recommendation),
+                        : () => _addRecommendation(recommendation!),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -172,7 +213,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                     busy: _enablingAlert,
                     onTap: _addingWatchlist || _enablingAlert
                         ? null
-                        : () => _enableAlert(recommendation),
+                        : () => _enableAlert(recommendation!),
                   ),
                 ),
               ],
@@ -236,6 +277,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   }
 
   Future<void> _loadHistory({required bool reset}) async {
+    if (!reset && (_loadingMore || _loadingHistory)) return;
+    final version = reset ? ++_historyVersion : _historyVersion;
     if (reset) {
       setState(() {
         _loadingHistory = true;
@@ -249,7 +292,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       final page = await widget.recommendationRepository.fetchHistory(
         page: reset ? 0 : _nextPage,
       );
-      if (!mounted) return;
+      if (!mounted || version != _historyVersion) return;
       setState(() {
         if (reset) _history.clear();
         final knownIds = _history.map((item) => item.recommendationId).toSet();
@@ -265,9 +308,11 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         _historyError = null;
       });
     } catch (error) {
-      if (mounted) setState(() => _historyError = error);
+      if (mounted && version == _historyVersion) {
+        setState(() => _historyError = error);
+      }
     } finally {
-      if (mounted) {
+      if (mounted && version == _historyVersion) {
         setState(() {
           _loadingHistory = false;
           _loadingMore = false;
@@ -311,9 +356,11 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   Future<InvestmentRecommendation> _analyzeHolding(Holding holding) async {
     setState(() => _analyzingHoldingId = holding.holdingId);
     try {
+      await _prepareResearch(holding.stockCode, holding.stockName);
       final result = await widget.recommendationRepository.analyzeHolding(
         holding.holdingId,
       );
+      if (mounted) setState(() => _lastAnalyzed = result);
       await _loadHistory(reset: true);
       widget.onRecommendationChanged();
       if (mounted) _showMessage('${holding.stockName} 재분석이 완료되었습니다.');
@@ -337,7 +384,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     }
     if (!mounted) return;
     if (items.isEmpty) {
-      _showMessage('등록된 관심 종목이 없습니다.');
+      await _addWatchlist();
       return;
     }
     final selected = await showModalBottomSheet<WatchlistItem>(
@@ -362,18 +409,49 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       ),
     );
     if (selected == null || !mounted) return;
+    try {
+      await _analyzeWatchlist(selected);
+    } catch (error) {
+      if (mounted) _showMessage(error.toString());
+    }
+  }
+
+  Future<InvestmentRecommendation> _analyzeWatchlist(
+    WatchlistItem selected,
+  ) async {
     setState(() => _analyzingWatchlistId = selected.watchlistId);
     try {
-      await widget.recommendationRepository.analyzeWatchlist(
+      await _prepareResearch(selected.stockCode, selected.stockName);
+      final result = await widget.recommendationRepository.analyzeWatchlist(
         selected.watchlistId,
       );
+      if (mounted) setState(() => _lastAnalyzed = result);
       await _loadHistory(reset: true);
       widget.onRecommendationChanged();
       if (mounted) _showMessage('${selected.stockName} 분석이 완료되었습니다.');
-    } catch (error) {
-      if (mounted) _showMessage(error.toString());
+      return result;
     } finally {
       if (mounted) setState(() => _analyzingWatchlistId = null);
+    }
+  }
+
+  Future<void> _addWatchlist() async {
+    if (await showWatchlistSetup(context, widget.watchlistRepository)) {
+      widget.onRecommendationChanged();
+    }
+  }
+
+  Future<void> _prepareResearch(String code, String name) async {
+    final repository = widget.researchFeedRepository;
+    if (repository == null || !_syncBeforeAnalysis) return;
+    final feed = await repository.syncFeed(
+      ResearchStock(stockCode: code, stockName: name),
+    );
+    if (feed.providers.any((item) => item.status == 'FAILED') ||
+        !feed.providers.any((item) => item.status == 'SUCCESS')) {
+      if (mounted) {
+        _showMessage('뉴스·공시 일부가 미수집 상태입니다. 저장된 입력 범위로 분석하며 실제 입력 건수를 확인하세요.');
+      }
     }
   }
 
@@ -393,12 +471,27 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
           initialRecommendation: recommendation,
           recommendationRepository: widget.recommendationRepository,
           holding: selectedHolding,
-          onAnalyze: selectedHolding == null
+          onAnalyze: recommendation.analysisContext == 'WATCHLIST'
+              ? () => _reanalyzeWatchlist(recommendation)
+              : selectedHolding == null
               ? null
               : () => _analyzeHolding(selectedHolding),
         ),
       ),
     );
+  }
+
+  Future<InvestmentRecommendation> _reanalyzeWatchlist(
+    InvestmentRecommendation recommendation,
+  ) async {
+    final items = await widget.watchlistRepository.fetchWatchlist();
+    for (final item in items) {
+      if (item.stockCode == recommendation.stockCode &&
+          item.market == recommendation.market) {
+        return _analyzeWatchlist(item);
+      }
+    }
+    throw StateError('현재 관심 목록에 없는 종목입니다. 관심 종목 등록 상태를 확인하세요.');
   }
 
   Future<void> _addRecommendation(
@@ -430,6 +523,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         return;
       }
       _showMessage(result.message);
+      if (result.changed) widget.onRecommendationChanged();
     } catch (error) {
       if (!mounted) {
         return;
@@ -729,6 +823,7 @@ class _RecommendationDetailScreenState
                   ],
                   const SizedBox(height: 16),
                   ScoreDetailCard(recommendation: recommendation),
+                  AnalysisEvidenceCard(recommendation: recommendation),
                   const SizedBox(height: 12),
                   RecommendationReasonCard(reasons: recommendation.reasons),
                   const SizedBox(height: 12),
@@ -736,7 +831,7 @@ class _RecommendationDetailScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const CardTitle('AI 설명'),
+                        const CardTitle('분석 설명'),
                         const SizedBox(height: 8),
                         TextBody(recommendation.aiSummary),
                       ],
@@ -808,11 +903,17 @@ class _EmptyRecommendationState extends StatelessWidget {
     required this.onCapitalTap,
     required this.onHoldingTap,
     required this.onWatchlistTap,
+    required this.onWatchlistAdd,
+    this.historyError,
+    this.onRetry,
   });
 
   final VoidCallback onCapitalTap;
   final VoidCallback onHoldingTap;
   final VoidCallback onWatchlistTap;
+  final VoidCallback onWatchlistAdd;
+  final Object? historyError;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -828,6 +929,13 @@ class _EmptyRecommendationState extends StatelessWidget {
             action: StatusChip(label: '대기', icon: Icons.hourglass_empty),
           ),
           const SizedBox(height: 18),
+          if (historyError != null) _InlineError(onRetry: onRetry ?? () {}),
+          OutlinedButton.icon(
+            onPressed: onWatchlistAdd,
+            icon: const Icon(Icons.add),
+            label: const Text('관심 종목 등록'),
+          ),
+          const SizedBox(height: 8),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -891,6 +999,44 @@ class _EmptyRecommendationState extends StatelessWidget {
 }
 
 /// 추천 점수, 진입 가격, 손절 기준을 묶어서 보여주는 카드입니다.
+class AnalysisEvidenceCard extends StatelessWidget {
+  const AnalysisEvidenceCard({super.key, required this.recommendation});
+  final InvestmentRecommendation recommendation;
+  @override
+  Widget build(BuildContext context) {
+    final evidence = recommendation.evidence;
+    return AppCard(
+      soft: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            recommendation.analysisContext == 'WATCHLIST'
+                ? '관심 종목 분석'
+                : '보유 종목 분석',
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          if (evidence == null || evidence.modelVersion == null)
+            const Text('이 이력의 분석 모델·입력 건수 정보는 미제공입니다.')
+          else ...[
+            Text(
+              '${evidence.isFallback ? '대체 규칙 결과' : '분석 모델'} · ${evidence.modelVersion}',
+            ),
+            Text(
+              '저장 당시 입력 · 캔들 ${evidence.candleCount ?? '미제공'} · 뉴스 ${evidence.newsCount ?? '미제공'} · 공시 ${evidence.disclosureCount ?? '미제공'}',
+            ),
+          ],
+          if (recommendation.createdAt != null)
+            TextCaption(
+              '분석 저장 ${_formatDateTime(recommendation.createdAt!.toLocal())}',
+            ),
+          const TextCaption('저장 당시의 결과입니다. 현재 시세·수집 상태와 다를 수 있습니다.'),
+        ],
+      ),
+    );
+  }
+}
+
 class ScoreDetailCard extends StatelessWidget {
   /// 추천 모델을 받아 세부 지표를 표시합니다.
   const ScoreDetailCard({super.key, required this.recommendation});

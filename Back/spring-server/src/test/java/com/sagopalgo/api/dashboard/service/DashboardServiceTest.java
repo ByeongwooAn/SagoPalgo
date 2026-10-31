@@ -8,6 +8,8 @@ import com.sagopalgo.api.capital.service.CapitalService;
 import com.sagopalgo.api.alert.service.AlertService;
 import com.sagopalgo.api.dashboard.dto.DashboardSnapshotResponse;
 import com.sagopalgo.api.dashboard.dto.DashboardRecommendationResponse;
+import com.sagopalgo.api.dashboard.dto.DashboardNewsSummary;
+import com.sagopalgo.api.market.model.MarketIndexSnapshot;
 import com.sagopalgo.api.holding.dto.HoldingResponse;
 import com.sagopalgo.api.holding.dto.HoldingsListResponse;
 import com.sagopalgo.api.holding.dto.PortfolioSummaryResponse;
@@ -43,15 +45,17 @@ class DashboardServiceTest {
     private AlertService alertService;
 
     private DashboardService dashboardService;
-    private DashboardRecommendationEngine recommendationEngine;
+    @Mock
+    private DashboardBriefingService briefing;
 
     @BeforeEach
     void setUp() {
-        recommendationEngine = new DashboardRecommendationEngine();
+        when(briefing.index()).thenReturn(new MarketIndexSnapshot("DISABLED", "KIS", "설정 필요", null, null, null, List.of()));
+        when(briefing.news(org.mockito.ArgumentMatchers.any())).thenReturn(new DashboardNewsSummary("EMPTY", "저장 뉴스 없음", "키워드 분류", 0, 0, 0, null));
         dashboardService = new DashboardService(
             capitalService,
             holdingService,
-            recommendationEngine,
+            briefing,
             recommendationService,
             alertService
         );
@@ -82,10 +86,9 @@ class DashboardServiceTest {
         assertThat(response.marketSummary().availableCapital()).isEqualByComparingTo("3000000");
         assertThat(response.marketSummary().recommendedPositionRange()).isEqualTo("30~60만원");
         assertThat(response.marketSummary().monthlyReturnRate()).isEqualByComparingTo("4.2");
-        assertThat(response.marketSummary().marketTrend()).isEqualTo("데이터 없음");
-        assertThat(response.recommendation().stockName()).isEqualTo("삼성전자");
-        assertThat(response.recommendation().entryPrice()).isEqualByComparingTo("69100");
-        assertThat(response.recommendation().status()).isEqualTo("보유 유지");
+        assertThat(response.marketSummary().portfolioReturnRate()).isEqualByComparingTo("4.2");
+        assertThat(response.marketSummary().marketTrend()).isEqualTo("연동 설정 필요");
+        assertThat(response.recommendation()).isNull();
         assertThat(response.portfolioSummary()).isSameAs(summary);
         assertThat(response.holdings()).containsExactly(holding);
         assertThat(response.alerts()).isEmpty();
@@ -154,6 +157,29 @@ class DashboardServiceTest {
 
         assertThat(response.recommendation()).isSameAs(stored);
         assertThat(response.recommendation().recommendationId()).isEqualTo(99L);
+    }
+
+    @Test
+    void watchlistHeadlineWorksWithoutHoldingsAndIndexBarsUseActualOrderedCloses() {
+        when(capitalService.findByUserId(4L)).thenReturn(new CapitalResponse(BigDecimal.ZERO,
+            BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("0.02")));
+        when(holdingService.findAll(4L)).thenReturn(new HoldingsListResponse(new PortfolioSummaryResponse(
+            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO), List.of()));
+        var saved = new DashboardRecommendationResponse(25L, "관심 종목", "005930", "KOSPI", "매수 관찰", 65,
+            new BigDecimal("100"), null, "저장 분석", List.of(), "BUY", "WATCHLIST", "BUY_WATCH",
+            java.time.LocalDateTime.of(2026, 10, 31, 10, 0), null);
+        when(recommendationService.findLatestDashboardRecommendation(4L)).thenReturn(Optional.of(saved));
+        when(briefing.index()).thenReturn(new MarketIndexSnapshot("SUCCESS", "KIS", "KOSPI", new BigDecimal("3100"),
+            new BigDecimal("1.25"), java.time.Instant.now(), List.of(
+                new MarketIndexSnapshot.Point(LocalDate.of(2026, 10, 29), new BigDecimal("3000")),
+                new MarketIndexSnapshot.Point(LocalDate.of(2026, 10, 30), new BigDecimal("3100")))));
+        var response = dashboardService.getSnapshot(4L);
+        assertThat(response.recommendation()).isSameAs(saved);
+        assertThat(response.recommendation().analysisContext()).isEqualTo("WATCHLIST");
+        assertThat(response.marketSummary().marketTrend()).isEqualTo("상승");
+        assertThat(response.marketSummary().marketBars().get(0)).isEqualByComparingTo("0.15");
+        assertThat(response.marketSummary().marketBars().get(1)).isEqualByComparingTo("1");
+        assertThat(response.marketSummary().checkedAt()).isNotNull();
     }
 
     private HoldingResponse holding(String stockCode, String stockName, String market, String currentPrice) {

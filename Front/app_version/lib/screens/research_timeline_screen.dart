@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 
 import '../models/research_feed.dart';
 import '../repositories/research_feed_repository.dart';
+import '../repositories/watchlist_repository.dart';
+import 'watchlist_setup_sheet.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/section_header.dart';
@@ -21,12 +23,18 @@ class ResearchTimelineScreen extends StatefulWidget {
     required this.stocks,
     required this.active,
     required this.onHoldingSetupOpen,
+    this.watchlistRepository,
+    this.onStocksChanged,
+    this.onFeedChanged,
   });
 
   final ResearchFeedRepository repository;
   final List<ResearchStock> stocks;
   final bool active;
   final VoidCallback onHoldingSetupOpen;
+  final WatchlistRepository? watchlistRepository;
+  final VoidCallback? onStocksChanged;
+  final VoidCallback? onFeedChanged;
 
   @override
   State<ResearchTimelineScreen> createState() => _ResearchTimelineScreenState();
@@ -56,15 +64,20 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
     final matched = selected == null
         ? null
         : _findStock(widget.stocks, selected.stockCode);
-    if (matched == null && widget.stocks.isNotEmpty) {
-      _selectedStock = widget.stocks.first;
+    final changed = matched == null || matched.stockName != selected?.stockName;
+    if (matched == null) {
+      _selectedStock = widget.stocks.isEmpty ? null : widget.stocks.first;
       _feedFuture = null;
       _statusFuture = null;
-    } else if (matched != null) {
+    } else {
       _selectedStock = matched;
     }
 
-    if (widget.active && !oldWidget.active && _selectedStock != null) {
+    if (widget.active &&
+        (!oldWidget.active ||
+            changed ||
+            oldWidget.repository != widget.repository) &&
+        _selectedStock != null) {
       _feedFuture = widget.repository.fetchFeed(_selectedStock!);
       _statusFuture = widget.repository.fetchSyncStatus(_selectedStock!);
     }
@@ -86,6 +99,14 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
             ),
           ),
           const SizedBox(height: 16),
+          if (widget.watchlistRepository != null) ...[
+            OutlinedButton.icon(
+              onPressed: _syncing ? null : _addStock,
+              icon: const Icon(Icons.star_border),
+              label: const Text('관심 종목 등록'),
+            ),
+            const SizedBox(height: 12),
+          ],
           if (widget.stocks.isEmpty)
             _NoStockState(onHoldingSetupOpen: widget.onHoldingSetupOpen)
           else ...[
@@ -160,7 +181,7 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
             _ProviderStatusStrip(statuses: feed.providers),
             const SizedBox(height: 12),
             if (entries.isEmpty)
-              _EmptyFeedState(filter: _filter)
+              _EmptyFeedState(filter: _filter, providers: feed.providers)
             else
               for (var index = 0; index < entries.length; index++) ...[
                 _TimelineCard(entry: entries[index]),
@@ -207,22 +228,39 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
     try {
       final feed = await future;
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${stock.stockName} 뉴스 ${feed.news.length}건, 공시 ${feed.disclosures.length}건을 동기화했습니다.',
-          ),
-        ),
-      );
+      final failed = feed.providers
+          .where((item) => item.status == 'FAILED')
+          .length;
+      final succeeded = feed.providers
+          .where((item) => item.status == 'SUCCESS')
+          .length;
+      final message = failed > 0
+          ? '일부 또는 전체 수집에 실패했습니다. 저장된 데이터와 Provider 상태를 확인하세요.'
+          : succeeded == 0
+          ? '활성화된 수집 Provider가 없습니다. 서버 연동 설정을 확인하세요.'
+          : '${stock.stockName} 수집 완료 · 저장 뉴스 ${feed.news.length}건, 공시 ${feed.disclosures.length}건';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+      widget.onFeedChanged?.call();
     } catch (_) {
       // FutureBuilder의 오류 상태에서 재시도 동작과 상세 메시지를 제공합니다.
     } finally {
       if (mounted) {
         setState(() {
           _syncing = false;
-          _statusFuture = widget.repository.fetchSyncStatus(stock);
+          if (_selectedStock?.stockCode == stock.stockCode) {
+            _statusFuture = widget.repository.fetchSyncStatus(stock);
+          }
         });
       }
+    }
+  }
+
+  Future<void> _addStock() async {
+    final repository = widget.watchlistRepository;
+    if (repository != null && await showWatchlistSetup(context, repository)) {
+      widget.onStocksChanged?.call();
     }
   }
 }
@@ -731,18 +769,44 @@ class _TimelineErrorState extends StatelessWidget {
 }
 
 class _EmptyFeedState extends StatelessWidget {
-  const _EmptyFeedState({required this.filter});
+  const _EmptyFeedState({required this.filter, required this.providers});
 
   final ResearchTimelineFilter filter;
+  final List<ResearchProviderStatus> providers;
 
   @override
   Widget build(BuildContext context) {
     final palette = AppPalette.of(context);
-    final label = switch (filter) {
-      ResearchTimelineFilter.news => '저장된 뉴스가 없습니다',
-      ResearchTimelineFilter.disclosures => '저장된 공시가 없습니다',
-      ResearchTimelineFilter.all => '저장된 뉴스와 공시가 없습니다',
-    };
+    final relevant = providers
+        .where(
+          (provider) =>
+              filter == ResearchTimelineFilter.all ||
+              provider.dataType == 'CACHE' ||
+              provider.dataType ==
+                  (filter == ResearchTimelineFilter.news
+                      ? 'NEWS'
+                      : 'DISCLOSURE'),
+        )
+        .toList();
+    final failed = relevant.any((provider) => provider.status == 'FAILED');
+    final disabled =
+        relevant.isNotEmpty &&
+        relevant.every((provider) => provider.status == 'DISABLED');
+    final success = relevant.any(
+      (provider) =>
+          provider.status == 'SUCCESS' && provider.dataType != 'CACHE',
+    );
+    final label = failed
+        ? '수집 실패 · 저장된 결과 없음'
+        : disabled
+        ? '수집 연동 설정 필요'
+        : success
+        ? '조회 기간에 검색 결과가 없습니다'
+        : switch (filter) {
+            ResearchTimelineFilter.news => '저장된 뉴스가 없습니다',
+            ResearchTimelineFilter.disclosures => '저장된 공시가 없습니다',
+            ResearchTimelineFilter.all => '저장된 뉴스와 공시가 없습니다',
+          };
     return AppCard(
       soft: true,
       child: Column(
@@ -760,7 +824,13 @@ class _EmptyFeedState extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Text(
-            '상단 동기화 버튼을 눌러 최신 데이터를 가져오세요.',
+            failed
+                ? 'Provider 상태를 확인하고 동기화를 다시 시도하세요.'
+                : disabled
+                ? '서버에서 뉴스·공시 Provider 활성화와 인증 설정을 확인하세요.'
+                : success
+                ? '수집 요청은 성공했습니다. 종목명·조회 기간에 따라 결과가 없을 수 있습니다.'
+                : '상단 동기화 버튼을 눌러 최신 데이터를 가져오세요.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: palette.muted,
@@ -799,7 +869,7 @@ class _NoStockState extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '보유 종목을 추가하면 해당 종목의 뉴스와 공시를 모아볼 수 있습니다.',
+            '보유 종목 또는 관심 종목을 등록하면 해당 종목의 뉴스와 공시를 모아볼 수 있습니다.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: palette.muted,

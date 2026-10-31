@@ -23,6 +23,10 @@ public class RecommendationRecord {
     private String aiSummary;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String analysisEvidence;
+
+    public String getAnalysisEvidence() { return analysisEvidence; }
+    public void setAnalysisEvidence(String value) { analysisEvidence = value; }
 
     public Long getRecommendationId() {
         return recommendationId;

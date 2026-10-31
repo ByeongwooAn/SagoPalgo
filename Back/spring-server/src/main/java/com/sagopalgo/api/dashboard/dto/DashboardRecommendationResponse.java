@@ -16,6 +16,15 @@ public record DashboardRecommendationResponse(
     BigDecimal entryPrice,
     BigDecimal stopLossRate,
     String aiSummary,
-    List<DashboardRecommendationReasonResponse> reasons
+    List<DashboardRecommendationReasonResponse> reasons,
+    String recommendationType,
+    String analysisContext,
+    String machineStatus,
+    java.time.LocalDateTime createdAt,
+    com.sagopalgo.api.recommendation.dto.AnalysisEvidence evidence
 ) {
+    public DashboardRecommendationResponse(Long id, String name, String code, String market, String status,
+        int score, BigDecimal price, BigDecimal stop, String summary, List<DashboardRecommendationReasonResponse> reasons) {
+        this(id, name, code, market, status, score, price, stop, summary, reasons, "HOLD", "HOLDING", null, null, null);
+    }
 }

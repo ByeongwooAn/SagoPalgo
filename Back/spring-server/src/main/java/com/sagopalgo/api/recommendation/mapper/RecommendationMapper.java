@@ -15,6 +15,17 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface RecommendationMapper {
 
+    String EVIDENCE = """
+        (SELECT CASE WHEN JSON_VALID(a.raw_payload) THEN JSON_OBJECT(
+          'modelVersion', JSON_UNQUOTE(JSON_EXTRACT(a.raw_payload, '$.analysis.modelVersion')),
+          'candleCount', JSON_LENGTH(JSON_EXTRACT(a.raw_payload, '$.request.candles')),
+          'newsCount', JSON_LENGTH(JSON_EXTRACT(a.raw_payload, '$.request.news')),
+          'disclosureCount', JSON_LENGTH(JSON_EXTRACT(a.raw_payload, '$.request.disclosures'))
+        ) ELSE NULL END FROM analysis_snapshots a
+        WHERE a.recommendation_id = recommendations.recommendation_id
+          AND a.user_id = recommendations.user_id ORDER BY a.snapshot_id DESC LIMIT 1) AS analysis_evidence,
+        """;
+
     @Insert("""
         INSERT INTO recommendations (
           user_id, stock_code, stock_name, market, analysis_context, recommendation_type, status,
@@ -27,8 +38,8 @@ public interface RecommendationMapper {
     @Options(useGeneratedKeys = true, keyProperty = "recommendationId", keyColumn = "recommendation_id")
     int insert(RecommendationRecord record);
 
-    @Select("""
-        SELECT recommendation_id, user_id, stock_code, stock_name, market, analysis_context,
+    @Select("SELECT " + EVIDENCE + """
+        recommendation_id, user_id, stock_code, stock_name, market, analysis_context,
                recommendation_type, status, score, entry_price, stop_loss_rate,
                take_profit_rate, ai_summary, created_at, updated_at
         FROM recommendations
@@ -52,9 +63,24 @@ public interface RecommendationMapper {
         """)
     Optional<RecommendationRecord> findLatestByUserId(@Param("userId") Long userId);
 
-    @Select("""
-        <script>
-        SELECT recommendation_id, user_id, stock_code, stock_name, market, analysis_context,
+    @Select("SELECT " + EVIDENCE + """
+        recommendation_id, user_id, stock_code, stock_name, market, analysis_context,
+        recommendation_type, status, score, entry_price, stop_loss_rate,
+        take_profit_rate, ai_summary, created_at, updated_at
+        FROM recommendations
+        WHERE user_id = #{userId}
+          AND ((analysis_context = 'HOLDING' AND EXISTS (
+              SELECT 1 FROM holdings h WHERE h.user_id = recommendations.user_id
+                AND h.stock_code = recommendations.stock_code AND h.market = recommendations.market AND h.status != 'SOLD'))
+            OR (analysis_context = 'WATCHLIST' AND EXISTS (
+              SELECT 1 FROM watchlist w WHERE w.user_id = recommendations.user_id
+                AND w.stock_code = recommendations.stock_code AND w.market = recommendations.market)))
+        ORDER BY created_at DESC, recommendation_id DESC LIMIT 1
+        """)
+    Optional<RecommendationRecord> findLatestRelevantByUserId(@Param("userId") Long userId);
+
+    @Select("<script> SELECT " + EVIDENCE + """
+        recommendation_id, user_id, stock_code, stock_name, market, analysis_context,
                recommendation_type, status, score, entry_price, stop_loss_rate,
                take_profit_rate, ai_summary, created_at, updated_at
         FROM recommendations

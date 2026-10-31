@@ -283,7 +283,7 @@ class RecommendationServiceTest {
         assertThat(requestCaptor.getValue().buyPrice()).isNull();
         assertThat(requestCaptor.getValue().profitRate()).isNull();
         assertThat(requestCaptor.getValue().portfolioWeightRate()).isNull();
-        org.mockito.Mockito.verifyNoInteractions(alertService);
+        verify(alertService).createFromRecommendation(any());
     }
 
     @Test
@@ -336,6 +336,28 @@ class RecommendationServiceTest {
         assertThat(response.recommendationType()).isEqualTo("HOLD");
         assertThat(response.status()).isEqualTo("HOLD");
         assertThat(response.aiSummary()).doesNotContain("손절");
+    }
+
+    @Test
+    void storedEvidenceExposesTheModelAndInputCountsWithoutReturningRawPayload() {
+        RecommendationRecord record = new RecommendationRecord();
+        record.setRecommendationId(99L); record.setUserId(1L); record.setStatus("HOLD");
+        record.setAnalysisContext("WATCHLIST");
+        record.setAnalysisEvidence("{\"modelVersion\":\"WATCHLIST_SAFE_FALLBACK_V1\",\"candleCount\":0,\"newsCount\":2,\"disclosureCount\":1}");
+        when(recommendationStore.findById(1L, 99L)).thenReturn(Optional.of(new StoredRecommendation(record, List.of())));
+        var response = service.findOne(1L, 99L);
+        assertThat(response.evidence().modelVersion()).isEqualTo("WATCHLIST_SAFE_FALLBACK_V1");
+        assertThat(response.evidence().newsCount()).isEqualTo(2);
+        assertThat(response.evidence().candleCount()).isZero();
+    }
+
+    @Test
+    void malformedLegacyEvidenceRemainsUnknown() {
+        RecommendationRecord record = new RecommendationRecord();
+        record.setRecommendationId(99L); record.setUserId(1L); record.setStatus("HOLD");
+        record.setAnalysisContext("HOLDING"); record.setAnalysisEvidence("not-json");
+        when(recommendationStore.findById(1L, 99L)).thenReturn(Optional.of(new StoredRecommendation(record, List.of())));
+        assertThat(service.findOne(1L, 99L).evidence()).isNull();
     }
 
     private void stubStore() {

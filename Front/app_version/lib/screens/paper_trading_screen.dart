@@ -18,11 +18,15 @@ class PaperTradingScreen extends StatefulWidget {
     required this.repository,
     required this.recommendation,
     required this.active,
+    this.onCapitalSetupOpen,
+    this.availableCapital,
   });
 
   final PaperTradingRepository repository;
   final InvestmentRecommendation? recommendation;
   final bool active;
+  final VoidCallback? onCapitalSetupOpen;
+  final int? availableCapital;
 
   @override
   State<PaperTradingScreen> createState() => _PaperTradingScreenState();
@@ -44,7 +48,9 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
   void didUpdateWidget(covariant PaperTradingScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.active &&
-        (!oldWidget.active || oldWidget.repository != widget.repository)) {
+        (!oldWidget.active ||
+            oldWidget.repository != widget.repository ||
+            oldWidget.availableCapital != widget.availableCapital)) {
       _load();
     }
   }
@@ -72,6 +78,9 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
           return _PaperTradingError(
             message: _errorMessage(snapshot.error),
             onRetry: _load,
+            onCapitalSetupOpen: _capitalRequired(snapshot.error)
+                ? widget.onCapitalSetupOpen
+                : null,
           );
         }
         return _buildContent(snapshot.data!);
@@ -94,6 +103,10 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
           ),
           const SizedBox(height: 18),
           _SummaryCard(summary: snapshot.summary),
+          const SizedBox(height: 8),
+          const TextCaption(
+            '현재 설정 자본금 기준입니다. 자본금을 변경하면 모의 현금·수익률도 재산정되며 거래 기록은 유지됩니다.',
+          ),
           const SizedBox(height: 12),
           _RecommendationAction(
             recommendation: widget.recommendation,
@@ -370,7 +383,7 @@ class _SummaryCard extends StatelessWidget {
                   ),
                   _Metric(
                     width: width,
-                    label: '초기 자본',
+                    label: '설정 자본',
                     value: '${_formatMoney(summary.initialCapital)}원',
                   ),
                 ],
@@ -670,10 +683,15 @@ class _EmptyCard extends StatelessWidget {
 }
 
 class _PaperTradingError extends StatelessWidget {
-  const _PaperTradingError({required this.message, required this.onRetry});
+  const _PaperTradingError({
+    required this.message,
+    required this.onRetry,
+    this.onCapitalSetupOpen,
+  });
 
   final String message;
   final VoidCallback onRetry;
+  final VoidCallback? onCapitalSetupOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -691,6 +709,14 @@ class _PaperTradingError extends StatelessWidget {
             const SizedBox(height: 10),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 14),
+            if (onCapitalSetupOpen != null) ...[
+              FilledButton.icon(
+                onPressed: onCapitalSetupOpen,
+                icon: const Icon(Icons.savings),
+                label: const Text('자본금 설정하기'),
+              ),
+              const SizedBox(height: 8),
+            ],
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
@@ -735,3 +761,8 @@ String _errorMessage(Object? error) {
     _ => '모의매매 정보를 불러오지 못했습니다.',
   };
 }
+
+bool _capitalRequired(Object? error) =>
+    error is PaperTradingRepositoryException &&
+    (error.code == 'PAPER_CAPITAL_REQUIRED' ||
+        error.message.contains('투자 가능 자본금을 먼저 설정'));
