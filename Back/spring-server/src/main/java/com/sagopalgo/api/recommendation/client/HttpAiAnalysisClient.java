@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 /**
  * 로컬 Python 분석 서버를 호출하며, 장애 시 규칙 엔진 fallback을 위해 빈 결과를 반환합니다.
@@ -38,10 +39,13 @@ public class HttpAiAnalysisClient implements AiAnalysisGateway {
                 .body(AiInvestmentAnalysisResponse.class);
             return Optional.ofNullable(response);
         } catch (RuntimeException exception) {
+            String diagnostic = exception instanceof RestClientResponseException response
+                ? "httpStatus=" + response.getStatusCode().value()
+                : "type=" + exception.getClass().getSimpleName();
             log.warn(
-                "AI 분석 서버 호출 실패. stockCode={} message={}",
+                "AI 분석 서버 호출 실패. stockCode={} {}",
                 request.stockCode(),
-                exception.getMessage()
+                diagnostic
             );
             return Optional.empty();
         }

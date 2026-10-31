@@ -1,5 +1,6 @@
 package com.sagopalgo.api.recommendation.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +26,7 @@ public record AiInvestmentAnalysisRequest(
     BigDecimal maxCapitalWeightRate
 ) {
     public record CandleInput(
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         LocalDateTime dateTime,
         BigDecimal closePrice,
         BigDecimal volume
