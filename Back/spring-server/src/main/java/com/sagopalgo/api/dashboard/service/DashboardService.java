@@ -24,20 +24,20 @@ public class DashboardService {
 
     private final CapitalService capitalService;
     private final HoldingService holdingService;
-    private final DashboardRecommendationEngine recommendationEngine;
+    private final DashboardBriefingService briefing;
     private final RecommendationService recommendationService;
     private final AlertService alertService;
 
     public DashboardService(
         CapitalService capitalService,
         HoldingService holdingService,
-        DashboardRecommendationEngine recommendationEngine,
+        DashboardBriefingService briefing,
         RecommendationService recommendationService,
         AlertService alertService
     ) {
         this.capitalService = capitalService;
         this.holdingService = holdingService;
-        this.recommendationEngine = recommendationEngine;
+        this.briefing = briefing;
         this.recommendationService = recommendationService;
         this.alertService = alertService;
     }
@@ -46,17 +46,11 @@ public class DashboardService {
     public DashboardSnapshotResponse getSnapshot(Long userId) {
         CapitalResponse capital = capitalService.findByUserId(userId);
         HoldingsListResponse holdings = holdingService.findAll(userId);
-        DashboardRecommendationResponse recommendation = holdings.items().isEmpty()
-            ? null
-            : recommendationService.findLatestDashboardRecommendation(userId)
-                .filter(stored -> holdings.items().stream().anyMatch(
-                    holding -> holding.stockCode().equals(stored.stockCode())
-                        && holding.market().equalsIgnoreCase(stored.market())
-                ))
-                .orElseGet(() -> recommendationEngine.recommend(holdings.items()));
+        // 보유/관심 등록 상태에 맞는 저장 분석만 표시합니다. GET에서 가짜 AI 결과를 생성하지 않습니다.
+        DashboardRecommendationResponse recommendation = recommendationService.findLatestDashboardRecommendation(userId).orElse(null);
 
         return new DashboardSnapshotResponse(
-            marketSummary(capital, holdings),
+            marketSummary(userId, capital, holdings),
             recommendation,
             holdings.summary(),
             holdings.items(),
@@ -64,16 +58,32 @@ public class DashboardService {
         );
     }
 
-    private DashboardMarketSummaryResponse marketSummary(CapitalResponse capital, HoldingsListResponse holdings) {
+    private DashboardMarketSummaryResponse marketSummary(Long userId, CapitalResponse capital, HoldingsListResponse holdings) {
+        var index = briefing.index();
+        var news = briefing.news(userId);
+        boolean valid = "SUCCESS".equals(index.status());
+        String trend = valid ? (index.changeRate().signum() > 0 ? "상승" : index.changeRate().signum() < 0 ? "하락" : "보합")
+            : "DISABLED".equals(index.status()) ? "연동 설정 필요" : "조회 실패";
+        List<BigDecimal> bars = List.of();
+        if (valid && !index.points().isEmpty()) {
+            var closes = index.points().stream().map(point -> point.close()).toList();
+            BigDecimal min = closes.stream().min(BigDecimal::compareTo).orElseThrow();
+            BigDecimal max = closes.stream().max(BigDecimal::compareTo).orElseThrow();
+            bars = closes.stream().map(close -> max.compareTo(min) == 0 ? new BigDecimal("0.5") :
+                close.subtract(min).divide(max.subtract(min), 6, RoundingMode.HALF_UP)
+                    .multiply(new BigDecimal("0.85")).add(new BigDecimal("0.15"))).toList();
+        }
         return new DashboardMarketSummaryResponse(
             capital.availableCapital(),
-            holdings.summary().profitRate(),
+            holdings.summary().profitRate(), // 이전 앱용 숫자 별칭. 새 UI는 portfolioReturnRate를 '평가'로 표시합니다.
             positionRange(capital.recommendedMinPosition(), capital.recommendedMaxPosition()),
-            "데이터 없음",
+            trend,
             0,
-            "데이터 없음",
-            0,
-            List.of()
+            news.label(),
+            news.positiveCount(),
+            bars,
+            holdings.summary().profitRate(),
+            java.time.Instant.now(), index, news
         );
     }
 

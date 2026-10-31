@@ -196,6 +196,56 @@ class KisMarketPriceClientTest {
         assertThat(client.supports(holding("", "KOSPI"))).isFalse();
     }
 
+    @Test
+    void kospiUsesOfficialIndexContractSortsDatesAndCachesOneRequest() {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        var format = DateTimeFormatter.BASIC_ISO_DATE;
+        server.expect(requestTo("https://kis.test/oauth2/tokenP"))
+            .andRespond(withSuccess("{\"access_token\":\"index-token\",\"expires_in\":3600}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kis.test/uapi/domestic-stock/v1/quotations/inquire-daily-indexchartprice"
+            + "?FID_COND_MRKT_DIV_CODE=U&FID_INPUT_ISCD=0001&FID_INPUT_DATE_1=" + today.minusDays(45).format(format)
+            + "&FID_INPUT_DATE_2=" + today.format(format) + "&FID_PERIOD_DIV_CODE=D"))
+            .andExpect(method(HttpMethod.GET)).andExpect(header("tr_id", "FHKUP03500100"))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer index-token"))
+            .andRespond(withSuccess("""
+                {"rt_cd":"0","output1":{"bstp_nmix_prpr":"3,020.5","bstp_nmix_prdy_ctrt":"-0.25"},
+                 "output2":[{"stck_bsop_date":"%s","bstp_nmix_prpr":"3020"},
+                   {"stck_bsop_date":"%s","bstp_nmix_prpr":"3000"},
+                   {"stck_bsop_date":"","bstp_nmix_prpr":"0"}]}
+                """.formatted(today.minusDays(1).format(format), today.minusDays(2).format(format)), MediaType.APPLICATION_JSON));
+        var result = client.kospi();
+        assertThat(result.status()).isEqualTo("SUCCESS");
+        assertThat(result.value()).isEqualByComparingTo("3020.5");
+        assertThat(result.changeRate()).isEqualByComparingTo("-0.25");
+        assertThat(result.points()).hasSize(2);
+        assertThat(result.points().get(0).date()).isEqualTo(today.minusDays(2));
+        assertThat(result.receivedAt()).isNotNull();
+        assertThat(client.kospi()).isSameAs(result);
+        server.verify();
+    }
+
+    @Test
+    void indexApiFailureIsCachedWithoutFakePricesOrSecretErrorText() {
+        server.expect(requestTo("https://kis.test/oauth2/tokenP"))
+            .andRespond(withSuccess("{\"access_token\":\"index-token\",\"expires_in\":3600}", MediaType.APPLICATION_JSON));
+        server.expect(request -> assertThat(request.getURI().getPath()).endsWith("inquire-daily-indexchartprice"))
+            .andRespond(withSuccess("{\"rt_cd\":\"1\",\"msg1\":\"private-app-secret\"}", MediaType.APPLICATION_JSON));
+        var result = client.kospi();
+        assertThat(result.status()).isEqualTo("FAILED");
+        assertThat(result.value()).isNull();
+        assertThat(result.points()).isEmpty();
+        assertThat(result.toString()).doesNotContain("private-app-secret");
+        assertThat(client.kospi()).isSameAs(result);
+        server.verify();
+    }
+
+    @Test
+    void disabledIndexDoesNotIssueTokens() {
+        var disabled = new KisMarketPriceClient(new KisMarketProperties(), RestClient.create());
+        assertThat(disabled.kospi().status()).isEqualTo("DISABLED");
+        assertThat(disabled.kospi().receivedAt()).isNull();
+    }
+
     private KisMarketProperties kisProperties() {
         KisMarketProperties properties = new KisMarketProperties();
         properties.setEnabled(true);

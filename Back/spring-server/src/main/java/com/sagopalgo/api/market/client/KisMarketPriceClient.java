@@ -1,6 +1,8 @@
 package com.sagopalgo.api.market.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.sagopalgo.api.market.model.MarketIndexSnapshot;
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.config.KisMarketProperties;
@@ -38,6 +40,79 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 @Order(20)
 public class KisMarketPriceClient implements MarketDataProvider {
+
+    private volatile MarketIndexSnapshot cachedIndex;
+    private volatile Instant indexCheckedAt;
+
+    /** 공식 업종기간별시세 U/0001/D 계약. 호출 제한을 위해 성공/실패 모두 1분 캐시합니다. */
+    public synchronized MarketIndexSnapshot kospi() {
+        Instant now = Instant.now();
+        if (cachedIndex != null && indexCheckedAt != null && now.isBefore(indexCheckedAt.plusSeconds(60))) {
+            return cachedIndex;
+        }
+        try {
+            if (!properties.isEnabled() || !StringUtils.hasText(properties.getAppKey())
+                || !StringUtils.hasText(properties.getAppSecret())) {
+                cachedIndex = new MarketIndexSnapshot("DISABLED", "KIS", "KIS 활성화와 인증 설정을 확인하세요.",
+                    null, null, null, List.of());
+            } else {
+                cachedIndex = fetchKospi();
+            }
+        } catch (ApiException | RestClientException | IllegalArgumentException exception) {
+            // 이전 성공값을 새 시세로 가장하지 않습니다. 오류 원문/인증값도 응답에 넣지 않습니다.
+            cachedIndex = new MarketIndexSnapshot("FAILED", "KIS", "코스피 조회에 실패했습니다. KIS 설정·조회 권한을 확인하세요.",
+                null, null, null, List.of());
+        }
+        indexCheckedAt = now;
+        return cachedIndex;
+    }
+
+    private MarketIndexSnapshot fetchKospi() {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        URI uri = UriComponentsBuilder.fromUri(endpoint(properties.getIndexPath()))
+            .queryParam("FID_COND_MRKT_DIV_CODE", "U")
+            .queryParam("FID_INPUT_ISCD", "0001")
+            .queryParam("FID_INPUT_DATE_1", today.minusDays(45).format(DateTimeFormatter.BASIC_ISO_DATE))
+            .queryParam("FID_INPUT_DATE_2", today.format(DateTimeFormatter.BASIC_ISO_DATE))
+            .queryParam("FID_PERIOD_DIV_CODE", "D").build().encode().toUri();
+        JsonNode body = restClient.get().uri(uri).accept(MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken())
+            .header("appkey", properties.getAppKey()).header("appsecret", properties.getAppSecret())
+            .header("tr_id", properties.getIndexTransactionId()).header("custtype", properties.getCustomerType())
+            .retrieve().body(JsonNode.class);
+        if (body == null || !"0".equals(body.path("rt_cd").asText()) || !body.path("output2").isArray()) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "코스피 응답이 올바르지 않습니다.");
+        }
+        JsonNode summary = body.path("output1");
+        if (!summary.path("bstp_cls_code").asText().isBlank()
+            && !"0001".equals(summary.path("bstp_cls_code").asText())) {
+            throw new IllegalArgumentException("Unexpected index code");
+        }
+        BigDecimal value = indexNumber(summary, "bstp_nmix_prpr");
+        BigDecimal rate = indexNumber(summary, "bstp_nmix_prdy_ctrt");
+        if (value.signum() <= 0) throw new IllegalArgumentException("Invalid index value");
+        java.util.Map<LocalDate, BigDecimal> unique = new java.util.TreeMap<>();
+        for (JsonNode item : body.path("output2")) {
+            try {
+                LocalDate date = LocalDate.parse(item.path("stck_bsop_date").asText(), DateTimeFormatter.BASIC_ISO_DATE);
+                BigDecimal close = indexNumber(item, "bstp_nmix_prpr");
+                if (!date.isAfter(today) && close.signum() > 0) unique.put(date, close);
+            } catch (IllegalArgumentException | DateTimeParseException ignored) {
+                // 빈 날짜/잘못된 행을 0원 지수로 만들지 않습니다.
+            }
+        }
+        List<MarketIndexSnapshot.Point> points = unique.entrySet().stream()
+            .map(item -> new MarketIndexSnapshot.Point(item.getKey(), item.getValue())).toList();
+        if (points.isEmpty()) throw new IllegalArgumentException("Empty index history");
+        if (points.size() > 20) points = points.subList(points.size() - 20, points.size());
+        return new MarketIndexSnapshot("SUCCESS", "KIS", "KOSPI · 최근 최대 20거래일 일봉", value, rate, Instant.now(), points);
+    }
+
+    private BigDecimal indexNumber(JsonNode node, String field) {
+        String value = node.path(field).asText().trim().replace(",", "");
+        if (value.isEmpty()) throw new IllegalArgumentException("Missing index number");
+        return new BigDecimal(value);
+    }
 
     private static final String PROVIDER_CODE = "KIS";
     private static final Set<String> SUPPORTED_MARKETS = Set.of("KOSPI", "KOSDAQ", "KONEX");

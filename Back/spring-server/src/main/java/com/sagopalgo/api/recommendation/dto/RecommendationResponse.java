@@ -22,6 +22,12 @@ public record RecommendationResponse(
     String aiSummary,
     LocalDateTime createdAt,
     List<RecommendationReasonResponse> reasons,
-    String analysisContext
+    String analysisContext,
+    AnalysisEvidence evidence
 ) {
+    public RecommendationResponse(Long id, String code, String name, String market, String type,
+        String status, String label, int score, BigDecimal price, BigDecimal stop, BigDecimal take,
+        String summary, LocalDateTime at, List<RecommendationReasonResponse> reasons, String context) {
+        this(id, code, name, market, type, status, label, score, price, stop, take, summary, at, reasons, context, null);
+    }
 }

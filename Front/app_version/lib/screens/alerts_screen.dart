@@ -21,6 +21,8 @@ class AlertsScreen extends StatelessWidget {
     this.deliveryStatus,
     this.onRefresh,
     this.onAlertTap,
+    this.fetchError,
+    this.checkedAt,
   });
 
   /// 최근 알림 데이터 목록입니다.
@@ -31,6 +33,8 @@ class AlertsScreen extends StatelessWidget {
   final Future<void> Function()? onRefresh;
 
   final ValueChanged<AppAlert>? onAlertTap;
+  final String? fetchError;
+  final DateTime? checkedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -63,8 +67,25 @@ class AlertsScreen extends StatelessWidget {
             _DeliveryStatusLine(status: deliveryStatus!),
           ],
           const SizedBox(height: 18),
-          if (alerts.isEmpty)
+          if (fetchError != null) ...[
+            Text(
+              fetchError!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (checkedAt != null)
+            TextCaption(
+              '알림 목록 조회 ${checkedAt!.toLocal().toString().split('.').first}',
+            ),
+          const TextCaption(
+            '추천 알림은 관심 종목의 알림 설정과 분석 결과 조건을 따릅니다. 전달 상태는 알림 목록 조회 상태와 별도입니다.',
+          ),
+          const SizedBox(height: 12),
+          if (alerts.isEmpty && fetchError == null)
             const _EmptyAlerts()
+          else if (alerts.isEmpty)
+            const Text('알림 목록을 확인할 수 없습니다.')
           else
             for (final alert in alerts) ...[
               AlertItem(alert: alert, onTap: () => onAlertTap?.call(alert)),

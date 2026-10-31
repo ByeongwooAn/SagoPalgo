@@ -14,6 +14,20 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface ResearchNewsMapper {
 
+    @Select("""
+        SELECT n.news_id, n.provider, n.content_key, n.stock_code, n.stock_name, n.title, n.link,
+               n.summary, n.published_at, n.created_at, n.updated_at
+        FROM research_news n
+        WHERE n.published_at >= #{from} AND n.published_at <= #{to}
+          AND (EXISTS (SELECT 1 FROM holdings h WHERE h.user_id = #{userId}
+                       AND h.stock_code = n.stock_code AND h.status != 'SOLD')
+            OR EXISTS (SELECT 1 FROM watchlist w WHERE w.user_id = #{userId} AND w.stock_code = n.stock_code))
+        ORDER BY n.published_at DESC, n.news_id DESC
+        LIMIT 200
+        """)
+    List<ResearchNewsRecord> findRecentForUser(@Param("userId") Long userId,
+        @Param("from") java.time.Instant from, @Param("to") java.time.Instant to);
+
     @Insert("""
         INSERT INTO research_news (
           provider, content_key, stock_code, stock_name, title, link, summary, published_at

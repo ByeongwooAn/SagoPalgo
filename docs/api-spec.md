@@ -524,7 +524,7 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 `POST /api/v1/recommendations/analyze/watchlist/{watchlistId}`
 
-서버는 요청 사용자의 관심 종목 ID를 확인하고, KB/KIS/Toss 우선순위로 실제 현재가를 조회합니다. `FALLBACK` 또는 0원 시세에서는 분석을 거절합니다. Python 요청의 `analysisType=WATCHLIST`에서는 `buyPrice`, `profitRate`, `stopLossRate`, `takeProfitRate`가 `null`이며, 비보유 종목에 손절·익절 판정을 적용하지 않습니다. 응답과 추천 이력의 `analysisContext=WATCHLIST`는 보유 종목의 `HOLDING`과 구분됩니다. 관심 종목의 `RISK`는 매도가 아니라 신규 진입 보류(`recommendationType=HOLD`)입니다. AI 서버가 비보유 종목에 `SELL` 또는 손절·익절 상태를 돌려주면 해당 결과를 사용하지 않고 중립 fallback으로 저장합니다. 관심 종목 수동 분석은 보유 종목 추천 알림을 만들지 않고, 대시보드 대표 추천에도 포함되지 않습니다. 실제 주문은 전송하지 않습니다.
+서버는 요청 사용자의 관심 종목 ID를 확인하고, KB/KIS/Toss 우선순위로 실제 현재가를 조회합니다. `FALLBACK` 또는 0원 시세에서는 분석을 거절합니다. Python 요청의 `analysisType=WATCHLIST`에서는 `buyPrice`, `profitRate`, `stopLossRate`, `takeProfitRate`가 `null`이며, 비보유 종목에 손절·익절 판정을 적용하지 않습니다. 응답과 추천 이력의 `analysisContext=WATCHLIST`는 보유 종목의 `HOLDING`과 구분됩니다. 관심 종목의 `RISK`는 매도가 아니라 신규 진입 보류(`recommendationType=HOLD`)입니다. AI 서버가 비보유 종목에 `SELL` 또는 손절·익절 상태를 돌려주면 해당 결과를 사용하지 않고 중립 fallback으로 저장합니다. 관심 종목 분석은 종목의 알림 설정과 신호 조건에 따라 알림을 만들며, 현재 등록 상태에 맞으면 홈 대표 분석에도 포함됩니다. 보유/관심 분석 유형은 구분해서 표시합니다. 실제 주문은 전송하지 않습니다.
 
 기존 MySQL에는 AI 서버를 함께 배포한 뒤 `Back/database/migrations/013_watchlist_recommendation_context.sql`을 적용합니다. 기존 추천은 `HOLDING`으로 보존됩니다. 새 볼륨은 `schema.sql`에 포함됩니다.
 
@@ -800,7 +800,67 @@ KB `SSQM2341`을 호출합니다. `orderDate`를 생략하면 한국 시간의 �
 
 목록과 합계는 같은 현재가를 사용합니다. 대체 매수가는 등록 건별로 적용하고 `priceFallback=true`, `priceReceivedAt=null`로 반환합니다. KB 보유분의 일반 수정은 거절하며, 변경은 KB 가져오기로 수행합니다. 수동 등록/수정에서 같은 국내 종목의 KB 보유분이 있으면 중복 계산을 막기 위해 거절합니다.
 
-## 17. 다음 구현 순서
+## 17. 뉴스·분석·홈·알림·모의매매 연결 (B 묶음)
+
+추가 DB 마이그레이션 없이 기존 015까지의 스키마를 사용합니다. 신규 응답과 화면을 사용하려면 새 백엔드와 Windows 앱을 배포합니다.
+
+### 17.1 관심 종목과 수집·분석
+
+기존 `POST /api/v1/watchlist`에 종목코드·종목명·시장·`alertEnabled`만 보내 직접 등록하는 UI를 추가합니다. 가짜 추천·매수가를 만들어 관심 종목 등록 요청에 사용하지 않습니다. 추천·소식 탭에서 등록할 수 있고 소식 탭의 조회 대상은 보유·관심·최근 대표 분석 종목을 합칩니다.
+
+분석 화면은 선택한 경우 기존 `POST /api/v1/research/feed/sync`를 먼저 호출한 뒤 보유/관심 종목 분석 API를 호출합니다. Provider 부분/전체 실패·비활성은 결과 없음과 구분해 안내합니다. 수집 자체가 실패 응답이면 분석까지 성공했다고 표시하지 않습니다. 기본 조회 기간과 분석 입력 기간은 한국 날짜를 사용합니다.
+
+추천 목록·상세와 대표 분석에 `evidence`를 추가합니다. 기존 `analysis_snapshots.raw_payload`에서 저장 모델과 실제 입력 건수를 읽으며 원문은 응답에 포함하지 않습니다.
+
+```json
+{
+  "evidence": {
+    "modelVersion": "WEIGHTED_SIGNAL_V1",
+    "candleCount": 20,
+    "newsCount": 2,
+    "disclosureCount": 1
+  }
+}
+```
+
+이전/잘못된 원본은 `evidence=null`로 유지합니다. `FALLBACK` 모델은 화면에서 대체 규칙 결과로 표시하며 현재 시세·뉴스의 품질을 보증하는 값으로 쓰지 않습니다. 실제 가격이 없으면 분석을 저장하지 않는 기존 차단 조건은 유지합니다.
+
+### 17.2 홈 요약 응답
+
+`GET /api/v1/dashboard/snapshot`의 `marketSummary`에 다음 정보를 추가합니다.
+
+| 필드 | 의미 |
+|---|---|
+| `portfolioReturnRate` | 현재 보유분의 평가 수익률. 월간 수익률 아님 |
+| `checkedAt` | 이번 화면 응답 조합 시각 |
+| `index.status` | `SUCCESS`, `DISABLED`, `FAILED` |
+| `index.provider`, `message` | 지수 출처와 조회/설정 안내 |
+| `index.value`, `changeRate` | 코스피 지수와 전일 대비율. 미확인 시 null |
+| `index.receivedAt` | 외부 지수 응답 수신 시각. 미확인 시 null |
+| `index.points` | 날짜/종가(`date`, `close`), 오래된 순서의 최대 20거래일 |
+| `news.status`, `label`, `method` | 저장 뉴스의 `SUCCESS`/`EMPTY`/`FAILED`, 표시값·분류 범위 |
+| `news.articleCount`, `positiveCount`, `negativeCount` | 중복 제거 후 기사·긍정·부정 건수 |
+| `news.latestPublishedAt` | 포함 기사 중 가장 최근 발행 시각. 수집 시각과 다름 |
+
+KIS 지수는 [공식 업종기간별시세 예제](https://github.com/koreainvestment/open-trading-api/blob/main/examples_llm/domestic_stock/inquire_daily_indexchartprice/inquire_daily_indexchartprice.py)의 `U/0001/D`, `FHKUP03500100` 계약으로 조회합니다. 기존 KIS 활성화·인증 설정을 사용하고 성공·실패 모두 1분 캐시합니다. 일봉은 최근 45일 범위에서 유효한 최대 20거래일을 선택하며 날짜·양수 가격을 검사합니다. 미설정·조회 실패에 임의의 지수를 반환하지 않습니다.
+
+기존 `marketBars`는 실제 종가를 구간 내 0.15~1.0 상대 높이로 정규화한 값입니다. 평탄한 구간은 0.5입니다. 절대 지수 축이나 전체 이력 조회로 주장하지 않으며 실제 값·거래일은 `index.points`를 사용합니다. 당일 일봉은 확정 종가가 아닌 진행값일 수 있습니다.
+
+뉴스는 사용자 보유·관심 종목의 최근 7일 저장 기사 최대 200행에서 Provider/링크 중복을 제거합니다. 제목·요약의 공개된 긍정/부정 키워드를 기사당 분류하며 혼합 표현은 중립입니다. 이는 AI 감성 결과·시장 전체 뉴스가 아닙니다. 분류 목록은 [개발 진척도 B 묶음](development-progress.md#b-묶음-구현과-검증-범위-2026-10-31)에 기록합니다.
+
+`monthlyReturnRate`는 이전 앱의 숫자 형식 호환용 평가 수익률 별칭으로 남깁니다. 새 앱은 `portfolioReturnRate`를 읽고 `평가`로 표시합니다. 실제 월간 수익률은 산정하지 않습니다. 기존 `marketScore`는 호환 필드 0으로 유지하고 새 앱은 실제 지수·전일 대비율을 표시합니다.
+
+대표 분석은 현재 활성 보유분 또는 등록 관심 종목과 일치하는 최신 저장 결과를 선택합니다. `recommendationType`, `analysisContext`, `machineStatus`, `createdAt`, `evidence`를 함께 반환합니다. GET에서 새 추천을 생성하지 않습니다. 삭제/매도 완료된 대상의 결과는 대표 분석에서 제외되지만 사용자 추천 이력은 유지됩니다.
+
+### 17.3 알림과 모의매매
+
+관심 종목 수동 분석도 기존 `AlertService`를 거쳐 종목 알림 설정·신호 유형·중복 제한을 검사합니다. 기존 주기 분석 스위치가 켜져 있으면 알림 ON 관심 종목을 추가로 순회합니다. 동일 종목이 보유분에 있으면 관심 분석을 중복 실행하지 않으며 한 종목의 실패가 다음 종목을 막지 않습니다.
+
+앱은 분석/관심 설정 변경 뒤 알림 목록·전달 대기를 갱신합니다. 목록 조회 실패는 기존 목록을 보존하면서 별도 안내하고, 읽음 기록 실패는 읽음으로 확정하지 않습니다. 전달 상태의 정상 표시는 실제 알림 발생·OS 표시의 증명이 아닙니다.
+
+모의 자본금 미설정은 `409 PAPER_CAPITAL_REQUIRED`를 반환합니다. 새 앱은 자본금 설정으로 이동하는 CTA를 표시하며 이전 서버의 동일 안내 문구도 지원합니다. 가상 매수·매도는 사용자 행 잠금으로 자본금 수정과 직렬화합니다. 모의매매는 현재 설정 자본금 기준이므로 설정 변경 시 현금·수익률은 재산정되지만 PAPER 기록은 유지합니다. 실주문을 호출하지 않습니다.
+
+## 18. 다음 구현 순서
 
 Flutter 추천 이력 목록·상세 화면, 보유 종목 수동 재분석과 관심 종목 직접 분석 액션까지 연결되었습니다.
 
@@ -814,8 +874,7 @@ AI 신호 기반 모의매매와 수익률·승률·최대 손실·회전율 지
 
 작업 묶음은 [개발 진척도](development-progress.md#화면-기준-실행-계획)를 기준으로 진행합니다.
 
-1. A(1~3): KB 데이터 대조·앱 반영·현재가/손익 검증
-2. B(4~8): 뉴스·공시, 추천, 홈 요약, 알림, 모의매매
-3. C(9): 데스크톱 레이아웃과 초기 설정·빈 상태 개선
-4. D(10): 실주문 전송·감사 기록·체결·정정·취소 검증
-5. E(11): 운영 검증 후 제한적 자동매매 착수 여부 결정
+1. A/B 운영 확인: 새 버전 배포 후 사용자가 선택한 종목으로 계좌·수집·분석·홈·알림·모의매매 대조
+2. C(9): 데스크톱 레이아웃과 초기 설정·빈 상태 개선
+3. D(10): 실주문 전송·감사 기록·체결·정정·취소 검증
+4. E(11): 운영 검증 후 제한적 자동매매 착수 여부 결정

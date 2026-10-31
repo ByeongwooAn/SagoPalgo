@@ -19,6 +19,13 @@ public class KisMarketProperties {
     private String candlePath = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
     private String candleTransactionId = "FHKST03010100";
     private String customerType = "P";
+    private String indexPath = "/uapi/domestic-stock/v1/quotations/inquire-daily-indexchartprice";
+    private String indexTransactionId = "FHKUP03500100";
+
+    public String getIndexPath() { return indexPath; }
+    public void setIndexPath(String value) { indexPath = value; }
+    public String getIndexTransactionId() { return indexTransactionId; }
+    public void setIndexTransactionId(String value) { indexTransactionId = value; }
 
     public boolean isEnabled() {
         return enabled;

@@ -8,6 +8,34 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
+  test(
+    'manual registration posts identity and explicit notification preference without invented prices',
+    () async {
+      final repository = SpringWatchlistRepository(
+        accessToken: '',
+        config: ApiConfig(baseUrl: 'http://localhost:8080'),
+        client: MockClient((request) async {
+          expect(request.method, 'POST');
+          expect(request.url.path, '/api/v1/watchlist');
+          expect(request.headers.containsKey('Authorization'), isFalse);
+          expect(jsonDecode(request.body), {
+            'stockCode': '005930',
+            'stockName': '삼성전자',
+            'market': 'KOSPI',
+            'alertEnabled': true,
+          });
+          return _success({'watchlistId': 12});
+        }),
+      );
+      await repository.addStock(
+        stockCode: '005930',
+        stockName: '삼성전자',
+        market: 'KOSPI',
+        alertEnabled: true,
+      );
+    },
+  );
+
   test('fetchWatchlist maps provider price and change rate', () async {
     final repository = SpringWatchlistRepository(
       accessToken: 'access-token',

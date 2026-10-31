@@ -14,6 +14,9 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface PaperTradeMapper {
 
+    @Select("SELECT user_id FROM users WHERE user_id = #{userId} FOR UPDATE")
+    Long lockUser(@Param("userId") Long userId);
+
     @Insert("""
         INSERT INTO trade_records (
           user_id, recommendation_id, stock_code, stock_name, market,

@@ -77,7 +77,7 @@ public class ResearchFeedService {
 
     private ResearchRequest request(String stockCode, String stockName, LocalDate fromDate, LocalDate toDate) {
         validate(stockCode, stockName);
-        LocalDate normalizedToDate = toDate == null ? LocalDate.now() : toDate;
+        LocalDate normalizedToDate = toDate == null ? LocalDate.now(java.time.ZoneId.of("Asia/Seoul")) : toDate;
         LocalDate normalizedFromDate = fromDate == null
             ? normalizedToDate.minusDays(Math.max(1, properties.getOpenDart().getDefaultLookbackDays()))
             : fromDate;

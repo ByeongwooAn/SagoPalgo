@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/investment_snapshot.dart';
+import '../models/market_summary.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_text.dart';
@@ -21,6 +22,7 @@ class DashboardScreen extends StatelessWidget {
     required this.snapshot,
     required this.onCapitalSetupOpen,
     required this.onHoldingSetupOpen,
+    this.onRefresh,
   });
 
   /// Repository가 내려준 시장/추천/보유/알림 데이터 묶음입니다.
@@ -31,6 +33,7 @@ class DashboardScreen extends StatelessWidget {
 
   /// 보유 종목 추가 화면으로 이동하는 콜백입니다.
   final VoidCallback onHoldingSetupOpen;
+  final VoidCallback? onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -45,13 +48,17 @@ class DashboardScreen extends StatelessWidget {
           SectionHeader(
             eyebrow: '사고팔고',
             title: palette.isDark ? 'AI 시장 관제' : '오늘의 투자 브리핑',
-            action: const StatusChip(
-              label: 'AI 분석중',
-              icon: Icons.auto_awesome_rounded,
-              gradient: AppGradients.main,
+            action: IconButton(
+              onPressed: onRefresh,
+              tooltip: '대시보드 새로고침',
+              icon: const Icon(Icons.refresh),
             ),
           ),
           const SizedBox(height: 18),
+          if (summary.checkedAt != null)
+            TextCaption(
+              '화면 데이터 조회 ${summary.checkedAt!.toLocal().toString().split('.').first}',
+            ),
           CapitalCard(
             capital: summary.availableCapital,
             monthlyReturnRate: summary.monthlyReturnRate,
@@ -75,25 +82,44 @@ class DashboardScreen extends StatelessWidget {
                 child: MetricCard(
                   label: '코스피 흐름',
                   value: summary.marketTrend,
-                  caption: '시장 점수 ${summary.marketScore}',
+                  caption: summary.index?.value == null
+                      ? summary.index?.message ?? '시장 지수 미연동'
+                      : '${summary.index!.value!.toStringAsFixed(2)} · 전일 대비 ${formatSignedPercent(summary.index!.changeRate!)}',
                   color: AppTheme.point,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: MetricCard(
-                  label: '뉴스 감성',
+                  label: '뉴스 키워드',
                   value: summary.newsSentiment,
-                  caption: '호재 ${summary.positiveNewsCount}건',
+                  caption: summary.news == null
+                      ? '저장 뉴스 없음'
+                      : '${summary.news!.articleCount}건 · 긍정 ${summary.news!.positiveCount} · 부정 ${summary.news!.negativeCount}',
                   color: AppTheme.sub,
                 ),
               ),
             ],
           ),
+          if (summary.news != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: TextCaption(summary.news!.method),
+            ),
+          if (summary.news?.latestPublishedAt != null)
+            TextCaption(
+              '최근 기사 발행 ${summary.news!.latestPublishedAt!.toLocal().toString().split('.').first}',
+            ),
           const SizedBox(height: 12),
           CandidateCard(
             stockName: recommendation?.stockName,
             score: recommendation?.score,
+            analysisLabel: recommendation == null
+                ? null
+                : recommendation.analysisContext == 'WATCHLIST'
+                ? '관심 종목 분석'
+                : '보유 종목 분석',
+            analyzedAt: recommendation?.createdAt,
             reasonLine:
                 recommendation?.reasons
                     .map((reason) => reason.label)
@@ -102,7 +128,7 @@ class DashboardScreen extends StatelessWidget {
                 '',
           ),
           const SizedBox(height: 12),
-          MarketBarsCard(values: summary.marketBars),
+          MarketBarsCard(values: summary.marketBars, index: summary.index),
           const SizedBox(height: 20),
         ],
       ),
@@ -258,7 +284,7 @@ class CapitalCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  '월간 ${formatSignedPercent(monthlyReturnRate)}',
+                  '평가 ${formatSignedPercent(monthlyReturnRate)}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -366,6 +392,8 @@ class CandidateCard extends StatelessWidget {
     required this.stockName,
     required this.score,
     required this.reasonLine,
+    this.analysisLabel,
+    this.analyzedAt,
   });
 
   /// 대표 추천 후보 종목명입니다.
@@ -376,6 +404,8 @@ class CandidateCard extends StatelessWidget {
 
   /// 대표 추천 후보를 만든 핵심 근거 요약입니다.
   final String reasonLine;
+  final String? analysisLabel;
+  final DateTime? analyzedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -392,7 +422,7 @@ class CandidateCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const LabelText('실시간 후보'),
+                    const LabelText('최근 저장 분석'),
                     const SizedBox(height: 8),
                     CardTitle(stockName ?? '추천 데이터 없음', fontSize: 24),
                   ],
@@ -416,6 +446,12 @@ class CandidateCard extends StatelessWidget {
               letterSpacing: 0,
             ),
           ),
+          if (analysisLabel != null) ...[
+            const SizedBox(height: 8),
+            TextCaption(
+              '$analysisLabel · ${analyzedAt == null ? '저장 시각 미제공' : analyzedAt!.toLocal().toString().split('.').first}',
+            ),
+          ],
         ],
       ),
     );
@@ -425,10 +461,11 @@ class CandidateCard extends StatelessWidget {
 /// 시장 지표 막대 그래프를 카드 안에 담아 보여주는 위젯입니다.
 class MarketBarsCard extends StatelessWidget {
   /// 그래프로 표시할 시장 지표 값들을 받습니다.
-  const MarketBarsCard({super.key, required this.values});
+  const MarketBarsCard({super.key, required this.values, this.index});
 
   /// 각 막대의 0~1 높이 값입니다.
   final List<double> values;
+  final MarketIndexSummary? index;
 
   @override
   Widget build(BuildContext context) {
@@ -438,10 +475,14 @@ class MarketBarsCard extends StatelessWidget {
       soft: true,
       child: Column(
         children: [
-          const Row(
+          Row(
             children: [
-              Expanded(child: LabelText('시장 지표')),
-              TextCaption('1분 전 업데이트'),
+              const Expanded(child: LabelText('코스피 · 최근 최대 20거래일 일봉')),
+              TextCaption(
+                index?.receivedAt == null
+                    ? '시세 미확인'
+                    : '${index!.provider} 조회 ${index!.receivedAt!.toLocal().toString().split('.').first}',
+              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -450,7 +491,7 @@ class MarketBarsCard extends StatelessWidget {
               height: 112,
               child: Center(
                 child: Text(
-                  '연동된 시장 지표가 없습니다',
+                  index?.message ?? '연동된 시장 지표가 없습니다',
                   style: TextStyle(
                     color: palette.muted,
                     fontSize: 13,
@@ -461,7 +502,21 @@ class MarketBarsCard extends StatelessWidget {
               ),
             )
           else
-            MarketBars(values: values),
+            MarketBars(
+              values: values,
+              labels: index?.points
+                  .map(
+                    (point) =>
+                        '${point.date.toString().split(' ').first} · ${point.close.toStringAsFixed(2)}',
+                  )
+                  .toList(),
+            ),
+          if (index != null && index!.points.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            TextCaption(
+              '${index!.points.first.date.toString().split(' ').first} ~ ${index!.points.last.date.toString().split(' ').first} · 구간 내 상대 높이(절대 지수 축 아님) · 당일은 진행값',
+            ),
+          ],
         ],
       ),
     );

@@ -13,12 +13,15 @@ class MarketSummary {
     required this.newsSentiment,
     required this.positiveNewsCount,
     required this.marketBars,
+    this.index,
+    this.news,
+    this.checkedAt,
   });
 
   /// 사용자가 설정한 투자 가능 자본금입니다.
   final int availableCapital;
 
-  /// 이번 달 전체 포트폴리오 수익률입니다.
+  /// 호환 필드. 실제 값은 보유 종목의 평가 수익률이며 월간 수익률이 아닙니다.
   final double monthlyReturnRate;
 
   /// 기획서의 리스크 관리 기준인 종목당 권장 투자금 범위입니다.
@@ -38,12 +41,17 @@ class MarketSummary {
 
   /// 대시보드 막대 그래프에 사용할 0~1 사이의 시장 지표 값들입니다.
   final List<double> marketBars;
+  final MarketIndexSummary? index;
+  final NewsSummary? news;
+  final DateTime? checkedAt;
 
   /// 백엔드 대시보드 스냅샷의 `marketSummary` JSON을 앱 모델로 변환합니다.
   factory MarketSummary.fromJson(Map<String, dynamic> json) {
     return MarketSummary(
       availableCapital: _readInt(json['availableCapital']),
-      monthlyReturnRate: _readDouble(json['monthlyReturnRate']),
+      monthlyReturnRate: _readDouble(
+        json['portfolioReturnRate'] ?? json['monthlyReturnRate'] ?? 0,
+      ),
       recommendedPositionRange: json['recommendedPositionRange'] as String,
       marketTrend: json['marketTrend'] as String,
       marketScore: _readInt(json['marketScore']),
@@ -52,8 +60,86 @@ class MarketSummary {
       marketBars: (json['marketBars'] as List<dynamic>)
           .map(_readDouble)
           .toList(),
+      index: json['index'] is Map<String, dynamic>
+          ? MarketIndexSummary.fromJson(json['index'] as Map<String, dynamic>)
+          : null,
+      news: json['news'] is Map<String, dynamic>
+          ? NewsSummary.fromJson(json['news'] as Map<String, dynamic>)
+          : null,
+      checkedAt: DateTime.tryParse(json['checkedAt'] as String? ?? ''),
     );
   }
+}
+
+class MarketIndexSummary {
+  const MarketIndexSummary({
+    required this.status,
+    required this.provider,
+    required this.message,
+    required this.value,
+    required this.changeRate,
+    required this.receivedAt,
+    required this.points,
+  });
+  final String status;
+  final String provider;
+  final String message;
+  final double? value;
+  final double? changeRate;
+  final DateTime? receivedAt;
+  final List<MarketIndexPoint> points;
+  factory MarketIndexSummary.fromJson(Map<String, dynamic> json) =>
+      MarketIndexSummary(
+        status: json['status'] as String,
+        provider: json['provider'] as String,
+        message: json['message'] as String,
+        value: json['value'] == null ? null : _readDouble(json['value']),
+        changeRate: json['changeRate'] == null
+            ? null
+            : _readDouble(json['changeRate']),
+        receivedAt: DateTime.tryParse(json['receivedAt'] as String? ?? ''),
+        points: (json['points'] as List<dynamic>? ?? [])
+            .map(
+              (point) => MarketIndexPoint(
+                DateTime.parse(point['date'] as String),
+                _readDouble(point['close']),
+              ),
+            )
+            .toList(),
+      );
+}
+
+class MarketIndexPoint {
+  const MarketIndexPoint(this.date, this.close);
+  final DateTime date;
+  final double close;
+}
+
+class NewsSummary {
+  const NewsSummary({
+    required this.status,
+    required this.method,
+    required this.articleCount,
+    required this.positiveCount,
+    required this.negativeCount,
+    required this.latestPublishedAt,
+  });
+  final String status;
+  final String method;
+  final int articleCount;
+  final int positiveCount;
+  final int negativeCount;
+  final DateTime? latestPublishedAt;
+  factory NewsSummary.fromJson(Map<String, dynamic> json) => NewsSummary(
+    status: json['status'] as String,
+    method: json['method'] as String,
+    articleCount: _readInt(json['articleCount']),
+    positiveCount: _readInt(json['positiveCount']),
+    negativeCount: _readInt(json['negativeCount']),
+    latestPublishedAt: DateTime.tryParse(
+      json['latestPublishedAt'] as String? ?? '',
+    ),
+  );
 }
 
 int _readInt(Object? value) {

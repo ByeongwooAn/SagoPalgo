@@ -176,6 +176,39 @@ class PaperTradingServiceTest {
         assertThat(records).hasSize(1);
     }
 
+    @Test
+    void recordedTradesSurviveServiceRestartAndCapitalChangeDoesNotRewriteThem() {
+        when(recommendationService.findOne(1L, 11L)).thenReturn(recommendation("BUY"));
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("100"));
+        service.buyFromRecommendation(1L, 11L, new PaperBuyRequest(new BigDecimal("3")));
+        when(marketPriceService.quoteMarket(any())).thenReturn(quote("110"));
+        service.sell(1L, new PaperSellRequest("005930", "KOSPI", BigDecimal.ONE));
+
+        var restarted = new PaperTradingService(tradeMapper, capitalService, recommendationService, marketPriceService);
+        var restored = restarted.getSnapshot(1L);
+        assertThat(restored.trades()).hasSize(2);
+        assertThat(restored.summary().cashBalance()).isEqualByComparingTo("999810");
+        assertThat(restored.summary().totalProfit()).isEqualByComparingTo("30");
+        assertThat(records).allSatisfy(record -> assertThat(record.getExecutionMode()).isEqualTo("PAPER"));
+
+        when(capitalService.findByUserId(1L)).thenReturn(new CapitalResponse(
+            new BigDecimal("2000000"), new BigDecimal("200000"), new BigDecimal("400000"), new BigDecimal("0.02")));
+        var revalued = restarted.getSnapshot(1L);
+        assertThat(revalued.summary().cashBalance()).isEqualByComparingTo("1999810");
+        assertThat(revalued.trades()).hasSize(2);
+        assertThat(records.get(0).getTradePrice()).isEqualByComparingTo("100");
+    }
+
+    @Test
+    void unsetCapitalReturnsAnActionableCodeWithoutDeletingPaperRecords() {
+        records.add(buyRecord());
+        when(capitalService.findByUserId(1L)).thenReturn(new CapitalResponse(
+            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("0.02")));
+        assertThatThrownBy(() -> service.getSnapshot(1L)).isInstanceOf(ApiException.class)
+            .extracting("errorCode").isEqualTo(com.sagopalgo.api.common.exception.ErrorCode.PAPER_CAPITAL_REQUIRED);
+        assertThat(records).hasSize(1);
+    }
+
     private RecommendationResponse recommendation(String recommendationType) {
         return new RecommendationResponse(
             11L,

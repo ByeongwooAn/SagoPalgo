@@ -68,6 +68,7 @@ public class PaperTradingService {
         Long recommendationId,
         PaperBuyRequest request
     ) {
+        tradeMapper.lockUser(userId);
         RecommendationResponse recommendation = recommendationService.findOne(userId, recommendationId);
         if (!"BUY".equalsIgnoreCase(recommendation.recommendationType())) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "매수 AI 신호만 모의매수할 수 있습니다.");
@@ -101,6 +102,7 @@ public class PaperTradingService {
 
     @Transactional
     public PaperTradingSnapshotResponse sell(Long userId, PaperSellRequest request) {
+        tradeMapper.lockUser(userId);
         String stockCode = request.stockCode().trim();
         String market = request.market().trim().toUpperCase(Locale.ROOT);
         BigDecimal quantity = normalizeQuantity(request.quantity());
@@ -304,7 +306,7 @@ public class PaperTradingService {
     private BigDecimal initialCapital(Long userId) {
         BigDecimal capital = capitalService.findByUserId(userId).availableCapital();
         if (capital == null || capital.signum() <= 0) {
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, "모의매매를 시작하려면 투자 가능 자본금을 먼저 설정하세요.");
+            throw new ApiException(ErrorCode.PAPER_CAPITAL_REQUIRED);
         }
         return capital;
     }

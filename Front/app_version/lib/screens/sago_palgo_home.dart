@@ -128,6 +128,11 @@ class SagoPalgoHome extends StatefulWidget {
 }
 
 class _SagoPalgoHomeState extends State<SagoPalgoHome> {
+  InvestmentSnapshot? _lastInvestment;
+  String? _alertsFetchError;
+  DateTime? _alertsCheckedAt;
+  final Set<int> _readingAlertIds = {};
+
   /// 현재 선택된 하단 탭 인덱스입니다.
   int _selectedIndex = 0;
 
@@ -206,14 +211,20 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
         child: FutureBuilder<InvestmentSnapshot>(
           future: _snapshotFuture,
           builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
+            if (snapshot.connectionState != ConnectionState.done &&
+                !snapshot.hasData &&
+                _lastInvestment == null) {
               return const LoadingState();
             }
-            if (snapshot.hasError || !snapshot.hasData) {
+            if (!snapshot.hasData && _lastInvestment == null) {
               return ErrorState(onRetry: _reloadSnapshot);
             }
 
-            final investment = snapshot.data!;
+            final investment = snapshot.data ?? _lastInvestment!;
+            if (snapshot.hasData &&
+                snapshot.connectionState == ConnectionState.done) {
+              _lastInvestment = investment;
+            }
             if (_isMiniMode) {
               return FutureBuilder<List<WatchlistItem>>(
                 future: _watchlistFuture,
@@ -237,10 +248,19 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
                     onThemeToggle: () =>
                         widget.onThemeToggle(Theme.of(context).brightness),
                   ),
+                  if (snapshot.hasError)
+                    TextButton.icon(
+                      onPressed: _reloadAllInvestmentData,
+                      icon: const Icon(Icons.sync_problem),
+                      label: const Text('최근 투자 데이터 갱신 실패 · 이전 표시 유지 · 다시 조회'),
+                    ),
                   Expanded(
                     child: _TabContent(
                       selectedIndex: _selectedIndex,
                       snapshot: investment,
+                      watchlistFuture: _watchlistFuture,
+                      alertsFetchError: _alertsFetchError,
+                      alertsCheckedAt: _alertsCheckedAt,
                       watchlistRepository: widget.watchlistRepository,
                       portfolioRepository: widget.portfolioRepository,
                       kbAccountRepository: widget.kbAccountRepository,
@@ -334,6 +354,7 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
       _portfolioFuture = widget.portfolioRepository.fetchPortfolio();
       _watchlistFuture = widget.watchlistRepository.fetchWatchlist();
     });
+    unawaited(_refreshAlertsAndDelivery());
   }
 
   /// 포트폴리오 탭에서 최신 자본금/보유 종목만 다시 요청합니다.
@@ -397,31 +418,56 @@ class _SagoPalgoHomeState extends State<SagoPalgoHome> {
     try {
       final alerts = await repository.fetchAlerts();
       if (mounted) {
-        setState(() => _alerts = alerts);
+        setState(() {
+          _alerts = alerts;
+          _alertsFetchError = null;
+          _alertsCheckedAt = DateTime.now();
+        });
       }
     } catch (_) {
-      // 마지막으로 조회한 목록을 유지하고 다음 주기에서 다시 시도합니다.
+      if (mounted) {
+        setState(
+          () => _alertsFetchError =
+              '알림 목록을 불러오지 못했습니다. 기존 목록이 있으면 유지합니다. 새로고침을 다시 시도하세요.',
+        );
+      }
     }
   }
 
   Future<void> _markAlertRead(AppAlert alert) async {
     final repository = widget.alertRepository;
     final alertId = alert.alertId;
-    if (repository == null || alertId == null || alert.isRead) {
+    if (repository == null ||
+        alertId == null ||
+        alert.isRead ||
+        !_readingAlertIds.add(alertId)) {
       return;
     }
-    await repository.markRead(alertId);
-    if (!mounted || _alerts == null) {
-      return;
+    try {
+      await repository.markRead(alertId);
+      if (!mounted) return;
+      if (_alerts == null) {
+        await _refreshAlerts();
+      } else {
+        setState(
+          () => _alerts = _alerts!
+              .map(
+                (item) => item.alertId == alertId
+                    ? item.copyWith(isRead: true)
+                    : item,
+              )
+              .toList(),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('알림 읽음 처리에 실패했습니다. 다시 눌러 주세요.')),
+        );
+      }
+    } finally {
+      _readingAlertIds.remove(alertId);
     }
-    setState(() {
-      _alerts = _alerts!
-          .map(
-            (item) =>
-                item.alertId == alertId ? item.copyWith(isRead: true) : item,
-          )
-          .toList();
-    });
   }
 }
 
@@ -620,6 +666,9 @@ class _TabContent extends StatelessWidget {
   const _TabContent({
     required this.selectedIndex,
     required this.snapshot,
+    required this.watchlistFuture,
+    required this.alertsFetchError,
+    required this.alertsCheckedAt,
     required this.watchlistRepository,
     required this.portfolioRepository,
     required this.kbAccountRepository,
@@ -652,6 +701,9 @@ class _TabContent extends StatelessWidget {
 
   /// 모든 화면에 나눠 전달할 투자 데이터 묶음입니다.
   final InvestmentSnapshot snapshot;
+  final Future<List<WatchlistItem>> watchlistFuture;
+  final String? alertsFetchError;
+  final DateTime? alertsCheckedAt;
 
   /// 추천 화면 관심 종목 액션을 처리하는 Repository입니다.
   final WatchlistRepository watchlistRepository;
@@ -729,6 +781,7 @@ class _TabContent extends StatelessWidget {
           snapshot: snapshot,
           onCapitalSetupOpen: onCapitalSetupOpen,
           onHoldingSetupOpen: onHoldingSetupOpen,
+          onRefresh: onPortfolioChanged,
         ),
         RecommendationScreen(
           recommendation: snapshot.recommendation,
@@ -738,6 +791,7 @@ class _TabContent extends StatelessWidget {
           onRecommendationChanged: onPortfolioChanged,
           onCapitalSetupOpen: onCapitalSetupOpen,
           onHoldingSetupOpen: onHoldingSetupOpen,
+          researchFeedRepository: researchFeedRepository,
         ),
         PortfolioScreen(
           capital: CapitalSettings(
@@ -757,22 +811,44 @@ class _TabContent extends StatelessWidget {
           onChanged: onPortfolioChanged,
           onPendingSetupActionConsumed: onPendingPortfolioSetupActionConsumed,
         ),
-        ResearchTimelineScreen(
-          repository: researchFeedRepository,
-          stocks: _researchStocks(snapshot),
-          active: selectedIndex == 3,
-          onHoldingSetupOpen: onHoldingSetupOpen,
+        FutureBuilder<List<WatchlistItem>>(
+          future: watchlistFuture,
+          builder: (context, state) => Column(
+            children: [
+              if (state.hasError)
+                TextButton(
+                  onPressed: onPortfolioChanged,
+                  child: const Text('관심 종목 조회 실패 · 다시 조회'),
+                ),
+              Expanded(
+                key: const ValueKey('research-panel'),
+                child: ResearchTimelineScreen(
+                  repository: researchFeedRepository,
+                  stocks: _researchStocks(snapshot, state.data ?? const []),
+                  active: selectedIndex == 3,
+                  onHoldingSetupOpen: onHoldingSetupOpen,
+                  watchlistRepository: watchlistRepository,
+                  onStocksChanged: onPortfolioChanged,
+                  onFeedChanged: onPortfolioChanged,
+                ),
+              ),
+            ],
+          ),
         ),
         AlertsScreen(
           alerts: alerts,
           deliveryStatus: deliveryStatus,
           onRefresh: onAlertsRefresh,
           onAlertTap: onAlertRead,
+          fetchError: alertsFetchError,
+          checkedAt: alertsCheckedAt,
         ),
         PaperTradingScreen(
           repository: paperTradingRepository,
           recommendation: snapshot.recommendation,
           active: selectedIndex == 5,
+          availableCapital: snapshot.marketSummary.availableCapital,
+          onCapitalSetupOpen: onCapitalSetupOpen,
         ),
         SettingsScreen(
           providerSettingsFuture: providerSettingsFuture,
@@ -788,12 +864,21 @@ class _TabContent extends StatelessWidget {
   }
 }
 
-List<ResearchStock> _researchStocks(InvestmentSnapshot snapshot) {
+List<ResearchStock> _researchStocks(
+  InvestmentSnapshot snapshot,
+  List<WatchlistItem> watchlist,
+) {
   final stocks = <String, ResearchStock>{};
   for (final holding in snapshot.holdings) {
     stocks[holding.stockCode] = ResearchStock(
       stockCode: holding.stockCode,
       stockName: holding.stockName,
+    );
+  }
+  for (final item in watchlist) {
+    stocks.putIfAbsent(
+      item.stockCode,
+      () => ResearchStock(stockCode: item.stockCode, stockName: item.stockName),
     );
   }
   final recommendation = snapshot.recommendation;

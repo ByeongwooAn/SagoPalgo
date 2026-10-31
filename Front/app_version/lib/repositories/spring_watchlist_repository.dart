@@ -6,9 +6,11 @@ import '../config/api_config.dart';
 import '../models/recommendation.dart';
 import '../models/watchlist_item.dart';
 import 'watchlist_repository.dart';
+import 'watchlist_editor.dart';
 
 /// Spring Boot 관심 종목 API와 통신하는 Repository입니다.
-class SpringWatchlistRepository implements WatchlistRepository {
+class SpringWatchlistRepository
+    implements WatchlistRepository, WatchlistEditor {
   /// 개인용 모드의 선택 access token, API 설정, HTTP 클라이언트를 주입받습니다.
   SpringWatchlistRepository({
     required this.accessToken,
@@ -25,6 +27,26 @@ class SpringWatchlistRepository implements WatchlistRepository {
 
   /// HTTP 요청을 실제로 보내는 클라이언트입니다.
   final http.Client client;
+
+  @override
+  Future<void> addStock({
+    required String stockCode,
+    required String stockName,
+    required String market,
+    required bool alertEnabled,
+  }) async {
+    final response = await client.post(
+      Uri.parse(config.watchlistBaseUrl),
+      headers: _headers(contentType: true),
+      body: jsonEncode({
+        'stockCode': stockCode,
+        'stockName': stockName,
+        'market': market,
+        'alertEnabled': alertEnabled,
+      }),
+    );
+    _decodeResponse(response);
+  }
 
   @override
   Future<List<WatchlistItem>> fetchWatchlist() async {
@@ -100,17 +122,12 @@ class SpringWatchlistRepository implements WatchlistRepository {
     InvestmentRecommendation recommendation, {
     required bool alertEnabled,
   }) async {
-    final response = await client.post(
-      Uri.parse(config.watchlistBaseUrl),
-      headers: _headers(contentType: true),
-      body: jsonEncode({
-        'stockCode': recommendation.stockCode,
-        'stockName': recommendation.stockName,
-        'market': recommendation.market,
-        'alertEnabled': alertEnabled,
-      }),
+    await addStock(
+      stockCode: recommendation.stockCode,
+      stockName: recommendation.stockName,
+      market: recommendation.market,
+      alertEnabled: alertEnabled,
     );
-    _decodeResponse(response);
   }
 
   Future<void> _updateAlert(

@@ -25,6 +25,7 @@ import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisResponse;
 import com.sagopalgo.api.recommendation.dto.RecommendationListResponse;
 import com.sagopalgo.api.recommendation.dto.RecommendationReasonResponse;
 import com.sagopalgo.api.recommendation.dto.RecommendationResponse;
+import com.sagopalgo.api.recommendation.dto.AnalysisEvidence;
 import com.sagopalgo.api.recommendation.model.AnalysisSnapshotRecord;
 import com.sagopalgo.api.recommendation.model.RecommendationReasonRecord;
 import com.sagopalgo.api.recommendation.model.RecommendationRecord;
@@ -143,6 +144,7 @@ public class RecommendationService {
             reasonRecords(analysis),
             snapshotRecord(userId, analysis, request)
         );
+        alertService.createFromRecommendation(stored);
         return response(stored);
     }
 
@@ -186,7 +188,7 @@ public class RecommendationService {
     }
 
     public Optional<DashboardRecommendationResponse> findLatestDashboardRecommendation(Long userId) {
-        return recommendationStore.findLatest(userId).map(this::dashboardResponse);
+        return recommendationStore.findLatestRelevant(userId).map(this::dashboardResponse);
     }
 
     private AiInvestmentAnalysisRequest analysisRequest(
@@ -212,7 +214,7 @@ public class RecommendationService {
         String analysisType,
         PortfolioCostExposure exposure
     ) {
-        LocalDate toDate = LocalDate.now();
+        LocalDate toDate = LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
         LocalDate fromDate = toDate.minusDays(Math.max(1, properties.getLookbackDays()));
         StoredResearchFeed research = researchFeedStore.find(new ResearchRequest(
             stockCode,
@@ -435,7 +437,8 @@ public class RecommendationService {
                     reason.getScore()
                 ))
                 .toList(),
-            item.getAnalysisContext()
+            item.getAnalysisContext(),
+            evidence(item)
         );
     }
 
@@ -458,8 +461,18 @@ public class RecommendationService {
                     reason.getReasonType(),
                     reason.getScore()
                 ))
-                .toList()
+                .toList(),
+            item.getRecommendationType(), item.getAnalysisContext(), item.getStatus(), item.getCreatedAt(), evidence(item)
         );
+    }
+
+    private AnalysisEvidence evidence(RecommendationRecord record) {
+        if (record.getAnalysisEvidence() == null || record.getAnalysisEvidence().isBlank()) return null;
+        try {
+            return objectMapper.readValue(record.getAnalysisEvidence(), AnalysisEvidence.class);
+        } catch (JsonProcessingException exception) {
+            return null; // 이전/손상된 이력의 출처를 임의로 추정하지 않습니다.
+        }
     }
 
     private String normalizeStatus(String status) {

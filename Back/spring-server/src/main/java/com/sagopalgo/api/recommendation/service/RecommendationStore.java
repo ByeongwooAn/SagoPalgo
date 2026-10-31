@@ -62,6 +62,11 @@ public class RecommendationStore {
     }
 
     @Transactional(readOnly = true)
+    public Optional<StoredRecommendation> findLatestRelevant(Long userId) {
+        return recommendationMapper.findLatestRelevantByUserId(userId).map(record -> stored(record, true));
+    }
+
+    @Transactional(readOnly = true)
     public List<StoredRecommendation> findPage(
         Long userId,
         String status,

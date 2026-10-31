@@ -72,6 +72,7 @@ class SpringPaperTradingRepository implements PaperTradingRepository {
     final error = decoded['error'] as Map<String, dynamic>?;
     throw PaperTradingRepositoryException(
       error?['message'] as String? ?? '모의매매 요청에 실패했습니다.',
+      code: error?['code'] as String?,
     );
   }
 
