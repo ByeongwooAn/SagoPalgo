@@ -212,6 +212,16 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                                     : () => _observations(c, true),
                                 child: const Text('KB 체결 조회'),
                               ),
+                            if (c.status != 'PREPARED' &&
+                                widget.manual is ManualOrderDispatchRepository)
+                              TextButton(
+                                onPressed: _busy ? null : () => _dispatch(c),
+                                child: Text(
+                                  c.status == 'SENDING'
+                                      ? '전송 기록 확인·복구'
+                                      : '전송 기록',
+                                ),
+                              ),
                             if (c.status == 'UNKNOWN' &&
                                 c.kind == 'NEW' &&
                                 !c.reconciled &&
@@ -253,6 +263,77 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
       ),
     ),
   );
+
+  Future<void> _dispatch(ManualOrder command) async {
+    final repository = widget.manual as ManualOrderDispatchRepository;
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    try {
+      final record = await repository.fetchDispatch(command.id);
+      if (!mounted) return;
+      bool checked = false;
+      final confirmed =
+          await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => StatefulBuilder(
+              builder: (context, update) => AlertDialog(
+                title: const Text('전송 기록 확인'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SelectableText(
+                        '${command.summary}\n단계 ${record['phase']} · 상태 ${record['commandStatus']}\n'
+                        '시작 ${record['startedAt'] ?? '기록 없음'}\n종료 ${record['returnedAt'] ?? '기록 없음'}\n'
+                        '수동 복구 ${record['recoveredAt'] ?? '기록 없음'}\n'
+                        '저장 결과 ${record['receipt'] ?? '없음'}\n${record['message']}',
+                      ),
+                      if (record['recoverable'] == true)
+                        CheckboxListTile(
+                          value: checked,
+                          onChanged: (v) => update(() => checked = v ?? false),
+                          title: const Text('추가 주문 전송 없이 저장 결과만 복구함을 확인했습니다.'),
+                        ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('닫기'),
+                  ),
+                  if (record['recoverable'] == true)
+                    FilledButton(
+                      onPressed: checked
+                          ? () => Navigator.pop(context, true)
+                          : null,
+                      child: const Text('기록으로 결과 복구'),
+                    ),
+                ],
+              ),
+            ),
+          ) ??
+          false;
+      if (confirmed) {
+        await repository.recoverDispatch(command.id);
+        if (mounted) {
+          setState(() => _message = '저장 결과를 복구했습니다. 추가 주문은 전송하지 않았습니다.');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(
+          () =>
+              _message = '${_safeError(e)}\n복구 요청을 자동 반복하지 않습니다. 기록을 새로고침하세요.',
+        );
+      }
+    } finally {
+      if (mounted) await _refresh();
+    }
+  }
 
   Future<void> _reconcile(ManualOrder command) async {
     var orderNo = '';

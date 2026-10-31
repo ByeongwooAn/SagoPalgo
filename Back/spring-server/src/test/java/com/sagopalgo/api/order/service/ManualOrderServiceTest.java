@@ -26,7 +26,8 @@ class ManualOrderServiceTest {
     KbOrderExecutionService executions=mock(KbOrderExecutionService.class);
     KbSecuritiesAccountClient client=mock(KbSecuritiesAccountClient.class);
     ManualOrderStore store=mock(ManualOrderStore.class);
-    ManualOrderService service=new ManualOrderService(mapper,prechecks,precheck,binding,readiness,executions,client,store);
+    ManualOrderDispatchService dispatch=mock(ManualOrderDispatchService.class);
+    ManualOrderService service=new ManualOrderService(mapper,prechecks,precheck,binding,readiness,executions,client,store,dispatch);
     @BeforeEach void setup() {
         when(readiness.status()).thenReturn(new OrderReadinessResponse(true,List.of()));
         when(binding.requireFingerprint()).thenReturn("fingerprint");when(binding.matches("fingerprint")).thenReturn(true);
@@ -36,13 +37,14 @@ class ManualOrderServiceTest {
         OrderPrecheckResponse check=mock(OrderPrecheckResponse.class);
         when(check.eligible()).thenReturn(true);when(check.checks()).thenReturn(List.of());when(precheck.precheck(eq(1L),any())).thenReturn(check);
         when(mapper.finish(anyString(),eq(1L),anyString(),anyString(),anyString(),anyString(),any())).thenReturn(1);
-        doAnswer(invocation -> {ManualOrderCommand c=invocation.getArgument(0);when(mapper.find(c.commandId(),1L)).thenReturn(c);return null;}).when(store).claim(any());
+        doAnswer(invocation -> {ManualOrderCommand c=invocation.getArgument(0);when(mapper.find(c.commandId(),1L)).thenReturn(c);return null;}).when(store).claim(any(),anyString());
     }
     @Test void commitsClaimBeforeSingleBrokerCallAndNeverExposesRawMessage() {
         when(client.sendOrderOnce(any())).thenReturn(new KbLimitOrderContract.Outcome(KbLimitOrderContract.Status.ACCEPTED,"0040000638","200","OK","private-account"));
         service.submit(1L,7L,true,"실제 주문 전송");
-        var order=inOrder(store,client,mapper);order.verify(store).claim(any());order.verify(client).sendOrderOnce(any());
-        order.verify(mapper).finish(anyString(),eq(1L),eq("ACCEPTED"),eq("0040000638"),eq("200"),eq("OK"),any());
+        var order=inOrder(store,client,dispatch);order.verify(store).claim(any(),anyString());order.verify(dispatch).begin(any(),anyString());order.verify(client).sendOrderOnce(any());
+        order.verify(dispatch).recordOutcome(any(),anyString(),argThat(o->o.status()==KbLimitOrderContract.Status.ACCEPTED));
+        order.verify(dispatch).complete(eq(1L),anyString());
         verify(client,times(1)).sendOrderOnce(any());
         assertThat(service.history(1L)).isEmpty();
     }
@@ -85,21 +87,35 @@ class ManualOrderServiceTest {
         verifyNoInteractions(client,store);
     }
     @Test void failedDurableClaimNeverCallsTransport() {
-        doThrow(new ApiException(ErrorCode.DUPLICATE_RESOURCE)).when(store).claim(any());
+        doThrow(new ApiException(ErrorCode.DUPLICATE_RESOURCE)).when(store).claim(any(),anyString());
         assertThatThrownBy(()->service.submit(1L,7L,true,"실제 주문 전송")).isInstanceOf(ApiException.class);
         verifyNoInteractions(client);
     }
     @Test void timeoutPersistsUnknownAndDoesNotRetry() {
         when(client.sendOrderOnce(any())).thenThrow(new IllegalStateException("secret-timeout"));
         service.submit(1L,7L,true,"실제 주문 전송");
-        verify(mapper).finish(anyString(),eq(1L),eq("UNKNOWN"),eq(""),eq(""),eq(""),any());
+        verify(dispatch).recordOutcome(any(),anyString(),argThat(o->o.status()==KbLimitOrderContract.Status.UNKNOWN));
         verify(client,times(1)).sendOrderOnce(any());
+    }
+    @Test void failedDispatchStartNeverCallsBrokerAndPersistsConservativeUnknown() {
+        doThrow(new IllegalStateException("start commit failed")).when(dispatch).begin(any(),anyString());
+        service.submit(1L,7L,true,"실제 주문 전송");
+        verifyNoInteractions(client);
+        verify(dispatch).recordOutcome(any(),anyString(),argThat(o->o.status()==KbLimitOrderContract.Status.UNKNOWN));
+    }
+    @Test void receiptCommitFailureLeavesCommandUnappliedAndNeverResends() {
+        when(client.sendOrderOnce(any())).thenReturn(new KbLimitOrderContract.Outcome(KbLimitOrderContract.Status.ACCEPTED,"0040000638","200","A",""));
+        doThrow(new IllegalStateException("journal commit failed")).when(dispatch).recordOutcome(any(),anyString(),any());
+        assertThatThrownBy(()->service.submit(1L,7L,true,"실제 주문 전송")).isInstanceOf(IllegalStateException.class);
+        verify(dispatch,never()).complete(any(),any());
+        verify(client,times(1)).sendOrderOnce(any());
+        verify(store,times(1)).claim(any(),anyString());
     }
     @Test void resultPersistenceFailureDoesNotResendOrReleaseClaim() {
         when(client.sendOrderOnce(any())).thenReturn(new KbLimitOrderContract.Outcome(KbLimitOrderContract.Status.ACCEPTED,"0040000638","200","",""));
-        when(mapper.finish(anyString(),eq(1L),anyString(),anyString(),anyString(),anyString(),any())).thenReturn(0);
+        doThrow(new ApiException(ErrorCode.INTERNAL_ERROR)).when(dispatch).complete(eq(1L),anyString());
         assertThatThrownBy(()->service.submit(1L,7L,true,"실제 주문 전송")).isInstanceOf(ApiException.class);
-        verify(client,times(1)).sendOrderOnce(any());verify(store,times(1)).claim(any());
+        verify(client,times(1)).sendOrderOnce(any());verify(store,times(1)).claim(any(),anyString());
     }
     @Test void syncNeedsCompleteUniqueExactMatchAndKeepsOriginalSubmission() {
         ManualOrderCommand c=command("NEW","ACCEPTED");when(mapper.find("parent",1L)).thenReturn(c);

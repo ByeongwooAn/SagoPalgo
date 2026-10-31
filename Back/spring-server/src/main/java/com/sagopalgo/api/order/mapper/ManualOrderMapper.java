@@ -12,7 +12,9 @@ public interface ManualOrderMapper {
         SELECT c.command_id FROM manual_order_commands c
         LEFT JOIN manual_order_observations o ON o.command_id=c.command_id
         LEFT JOIN manual_order_reconciliations r ON r.command_id=c.command_id
-        LEFT JOIN manual_order_reconciliation_preparations p ON p.command_id=c.command_id LIMIT 1
+        LEFT JOIN manual_order_reconciliation_preparations p ON p.command_id=c.command_id
+        LEFT JOIN manual_order_dispatches d ON d.command_id=c.command_id
+        LEFT JOIN manual_order_dispatch_recoveries dr ON dr.command_id=c.command_id LIMIT 1
         """)
     String verifyStorage();
 

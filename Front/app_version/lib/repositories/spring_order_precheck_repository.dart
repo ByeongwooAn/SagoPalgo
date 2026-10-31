@@ -12,7 +12,8 @@ class SpringOrderPrecheckRepository
     implements
         OrderPrecheckRepository,
         ManualOrderRepository,
-        ManualOrderReconciliationRepository {
+        ManualOrderReconciliationRepository,
+        ManualOrderDispatchRepository {
   SpringOrderPrecheckRepository({
     required this.accessToken,
     ApiConfig? config,
@@ -193,4 +194,16 @@ class SpringOrderPrecheckRepository
       error?['message'] as String? ?? fallback,
     );
   }
+
+  @override
+  Future<Map<String, dynamic>> fetchDispatch(String id) async =>
+      await _manual('manual/$id/dispatch') as Map<String, dynamic>;
+
+  @override
+  Future<Map<String, dynamic>> recoverDispatch(String id) async =>
+      await _manual(
+            'manual/$id/dispatch/recover',
+            body: {'acknowledged': true, 'confirmation': '저장된 전송 결과 복구'},
+          )
+          as Map<String, dynamic>;
 }

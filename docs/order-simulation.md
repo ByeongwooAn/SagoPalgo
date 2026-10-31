@@ -31,11 +31,13 @@
 | 명시적 거절 | REJECTED | 접수·체결·자원 예약 없음 |
 | 접수 전 응답 유실 | UNKNOWN | 증권사 주문 없음. 가상 현금은 유지하지만 신규 전송 차단 |
 | 접수 후 응답 유실 | UNKNOWN | 신규/정정은 전량 체결, 취소는 취소 처리. 클라이언트 결과는 미확정으로 유지 |
-| 접수 후 결과 저장 실패 | SENDING | 증권사 접수 상태를 저장한 뒤 결과 저장 단계에서 의도적 오류. 가드·접수/예약 기록 유지 |
+| 전송 예약 직후 중단 | SENDING/RESERVED | 전송 0회. 잠금 유지·복구 불가 |
+| 접수 후 반환 기록 실패 | SENDING/DISPATCHING | 전송 1회·증권사 접수. 종료 근거 없음·복구 불가 |
+| 접수 후 결과 저장 실패 | SENDING/RETURNED | 증권사 접수 상태를 저장한 뒤 결과 저장 단계에서 의도적 오류. 반환 결과 RETURNED 별도 보존. 명시적 기록 복구 가능 |
 
 응답 유실은 실제 네트워크 장애를 일으키지 않고 예외로 재현합니다. 저장 실패도 운영 DB를 손상시키지 않고 결과 저장 단계에서 의도적 오류를 반환합니다. 가상 증권사의 상태는 시험을 위한 정답 데이터로 별도 보여줍니다. 실주문에서 응답을 잃었는데도 같은 정보가 제공된다는 뜻이 아닙니다.
 
-`SENDING/UNKNOWN`이 있는 세션은 새 전송을 막습니다. 새로고침은 GET만 수행합니다. 화면 재진입·서비스 객체 재생성 후에도 DB의 동일 상태와 전송 횟수가 유지됩니다. 다른 시나리오는 새 세션에서 실행합니다. 이번 작업은 이러한 상태를 해제하거나 재전송하는 복구 기능을 추가하지 않습니다.
+`SENDING/UNKNOWN`이 있는 세션은 새 전송을 막습니다. 새로고침은 GET만 수행합니다. 화면 재진입·서비스 객체 재생성 후에도 DB의 동일 상태와 전송 횟수가 유지됩니다. 다른 시나리오는 새 세션에서 실행합니다. 후속 019에서는 RETURNED 결과가 남은 SENDING만 명시적으로 복구합니다. UNKNOWN, RESERVED, DISPATCHING 및 기존 증거 없는 SENDING은 차단을 유지합니다. [복구 화면·배포 절차](order-dispatch-recovery.md)를 참고합니다.
 
 ## 체결·정정·취소 확인 예시
 
@@ -80,14 +82,17 @@ docker compose --env-file .env up -d --build --no-deps spring-api
 | POST `/{sessionId}/commands/prepare` | `{plan,kind,parentId,scenario}` 검증 및 승인 준비 |
 | POST `/{sessionId}/commands/{id}/confirm` | `{token,acknowledged:true}` 승인 기록 |
 | POST `/{sessionId}/commands/{id}/submit` | `{acknowledged:true,confirmation:"모의 주문 전송"}` 모의 단일 전송 |
+| POST `/{sessionId}/commands/{id}/recover` | `{acknowledged:true,confirmation:"저장된 전송 결과 복구"}` 저장 결과만 반영. 추가 전송 없음 |
 | POST `/{sessionId}/orders/{orderNo}/fill` | `{quantity}` 남은 가상 주문의 수동 체결 단계 |
 
 세션 JSON은 내부 토큰 해시를 보관하지만 API 상태에는 해시를 반환하지 않습니다. 세션 행 잠금·revision 검증과 독립 트랜잭션으로 동시 승인·제출·체결을 직렬화합니다. 진짜 계좌처럼 보이는 가짜 API 키를 만들거나 실제 인증 경로를 우회하지 않습니다.
 
 ## 자동 검증 범위
 
-격리 MySQL 8.4에서 018 적용/재적용, JSON 상태 매핑, 현금/주식 예약과 매수·매도, 동시 같은 명령/다른 명령 제출, 7개 응답 시나리오, 만료·시세 변경·자원 부족 차단, 정정/취소·부분체결 제한, 서비스 객체 재생성 후 기록 유지 및 실제 주문/PAPER 원장 무변경을 검증합니다. 기존 016·017 통합 테스트도 함께 실행합니다.
+격리 MySQL 8.4에서 018 적용/재적용, JSON 상태 매핑, 현금/주식 예약과 매수·매도, 동시 같은 명령/다른 명령 제출, 9개 응답/중단 시나리오, 만료·시세 변경·자원 부족 차단, 정정/취소·부분체결 제한, 서비스 객체 재생성 후 기록 유지 및 실제 주문/PAPER 원장 무변경을 검증합니다. 기존 016·017 통합 테스트도 함께 실행합니다.
 
-백엔드 전체 305건(실제 MySQL 통합 23건), Flutter 전체 143건 통과, Dart 분석 이슈 없음 및 Windows Release 빌드 성공을 확인했습니다. 테스트용 컨테이너·네트워크는 검증 후 정리했습니다.
+019 후속 포함 백엔드 전체 326건(실제 MySQL 통합 40건), Flutter 전체 155건 통과, Dart 분석 이슈 없음 및 Windows Release 빌드 성공을 확인했습니다. 테스트용 컨테이너·네트워크는 검증 후 정리했습니다.
 
-재현은 [격리 MySQL 테스트 실행 절차](kb-manual-orders.md#격리-mysql-통합-검증-재현)를 따릅니다. 이 작업에서 실제 KB 주문·장애 유발·실제 계좌 대조는 수행하지 않습니다. 10번의 SENDING/부분체결/변경 주문 복구 및 11번 자동매매는 후속 범위입니다.
+재현은 [격리 MySQL 테스트 실행 절차](kb-manual-orders.md#격리-mysql-통합-검증-재현)를 따릅니다. 이 작업에서 실제 KB 주문·장애 유발·실제 계좌 대조는 수행하지 않습니다. RETURNED가 없는 SENDING과 UNKNOWN 부분체결/변경 주문 대조 및 11번 자동매매는 후속 범위입니다.
+
+019 후속 변경은 [SENDING 기록 복구](order-dispatch-recovery.md)에 정리했습니다. SAVE_FAILURE의 반환 결과를 적용해도 모의 전송 횟수·가상 증권사·현금·보유분은 변하지 않습니다. 이전 JSON 세션의 필드가 없으면 LEGACY_UNVERIFIED로 조회하며 복구를 열지 않습니다. 내부 실행 UUID와 토큰 해시는 API에서 제외합니다.

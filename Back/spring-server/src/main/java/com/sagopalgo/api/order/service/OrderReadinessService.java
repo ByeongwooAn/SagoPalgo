@@ -38,7 +38,7 @@ public class OrderReadinessService {
             check("ORDER_TOKEN_ENDPOINT", "/oauth2/token".equals(kb.getTokenPath()), "실주문 인증 경로를 확인하세요."),
             check("ORDER_IP", validIp(kb.getOrderIpAddress()), "운영 주문 IP 주소가 누락되었거나 올바르지 않습니다."),
             check("ORDER_MAC", validMac(kb.getOrderMacAddress()), "운영 주문 MAC 주소가 누락되었거나 올바르지 않습니다."),
-            check("SUBMISSION_TRANSPORT", storageReady(), "주문 저장소를 확인할 수 없습니다. DB 마이그레이션 016·017과 연결 상태를 확인하세요.")
+            check("SUBMISSION_TRANSPORT", storageReady(), "주문 저장소를 확인할 수 없습니다. DB 마이그레이션 016·017·019와 연결 상태를 확인하세요.")
         );
         return new OrderReadinessResponse(checks.stream().allMatch(OrderReadinessCheckResponse::passed), checks);
     }

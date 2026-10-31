@@ -20,6 +20,7 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
   String _scenario = 'WAIT';
   bool _busy = false;
   bool _uncertainRequest = false;
+  String? _awaitingCommandId;
   String? _message;
   Map<String, dynamic>? _state;
   List<Map<String, dynamic>> _sessions = [];
@@ -31,6 +32,8 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
     'TIMEOUT_BEFORE_ACCEPT': '접수 전 응답 유실',
     'TIMEOUT_AFTER_ACCEPT': '접수 후 응답 유실',
     'SAVE_FAILURE': '접수 후 결과 저장 실패',
+    'STOP_BEFORE_SEND': '전송 예약 직후 중단',
+    'JOURNAL_FAILURE': '접수 후 반환 기록 실패',
   };
   @override
   void initState() {
@@ -63,6 +66,15 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
         setState(() {
           _sessions = sessions;
           _state = state;
+          final resolved = (state?['commands'] as List? ?? []).any(
+            (c) =>
+                c['id'] == _awaitingCommandId &&
+                ['ACCEPTED', 'REJECTED'].contains(c['status']),
+          );
+          if (resolved) {
+            _uncertainRequest = false;
+            _awaitingCommandId = null;
+          }
         });
       }
     } catch (e) {
@@ -109,6 +121,7 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
         setState(() {
           _state = state;
           _uncertainRequest = false;
+          _awaitingCommandId = null;
         });
       }
       await _load();
@@ -202,6 +215,7 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                                       setState(() {
                                         _state = loaded;
                                         _uncertainRequest = false;
+                                        _awaitingCommandId = null;
                                       });
                                     }
                                   } catch (e) {
@@ -316,9 +330,24 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                               '${c['kind']} · ${c['status']}${c['expired'] == true ? ' (승인 만료)' : ''} · ${scenarios[c['scenario']]}\n${_summary(c['plan'] as Map<String, dynamic>)}\n'
                               '모의 전송 ${c['sendCount']}회 · 가상 증권사 ${c['brokerStatus']} · 번호 ${c['brokerOrderNo']}\n체결 ${c['filledQuantity']}주 / 미체결 ${c['openQuantity']}주',
                             ),
+                            Text(
+                              '전송 단계 ${c['dispatchPhase'] ?? 'LEGACY_UNVERIFIED'} · 저장 결과 ${c['receipt'] ?? '없음'}',
+                            ),
+                            if (c['recoveredAt'] != null)
+                              Text('기록 복구 ${c['recoveredAt']}'),
+                            if (c['status'] == 'SENDING' &&
+                                c['recoverable'] != true)
+                              const Text(
+                                '호출 종료 결과가 없어 차단을 유지합니다. 시간이 지나도 자동 해제하지 않습니다.',
+                              ),
                             Wrap(
                               spacing: 8,
                               children: [
+                                if (c['recoverable'] == true)
+                                  TextButton(
+                                    onPressed: _busy ? null : () => _recover(c),
+                                    child: const Text('기록으로 결과 복구'),
+                                  ),
                                 if (num.parse('${c['openQuantity']}') > 0) ...[
                                   TextButton(
                                     onPressed: _busy ? null : () => _fill(c, 1),
@@ -423,6 +452,30 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
       {'quantity': quantity},
     ),
   );
+  Future<void> _recover(Map<String, dynamic> command) async {
+    setState(() => _busy = true);
+    try {
+      final confirmed = await _review(
+        '모의 전송 결과 복구',
+        '${_summary(command['plan'] as Map<String, dynamic>)}\n저장 결과 ${command['receipt']}\n추가 전송·가상 체결 없이 상태만 복구합니다. UNKNOWN은 계속 차단됩니다.',
+        finalStep: true,
+        actionLabel: '기록으로 결과 복구',
+        acknowledgement: '추가 주문 전송 없이 저장 결과만 복구함을 확인했습니다.',
+      );
+      if (confirmed && mounted) {
+        await _mutation(
+          () => widget.repository.simulationAction(
+            _id,
+            'commands/${command['id']}/recover',
+            {'acknowledged': true, 'confirmation': '저장된 전송 결과 복구'},
+          ),
+        );
+      }
+    } finally {
+      if (mounted) await _load();
+    }
+  }
+
   Future<void> _mutation(Future<Map<String, dynamic>> Function() action) async {
     setState(() {
       _busy = true;
@@ -444,6 +497,8 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
     String title,
     String text, {
     bool finalStep = false,
+    String? actionLabel,
+    String? acknowledgement,
   }) async {
     if (!mounted) return false;
     bool checked = false;
@@ -462,7 +517,9 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                       CheckboxListTile(
                         value: checked,
                         onChanged: (v) => update(() => checked = v ?? false),
-                        title: const Text('가상 계좌의 모의 전송임을 확인했습니다.'),
+                        title: Text(
+                          acknowledgement ?? '가상 계좌의 모의 전송임을 확인했습니다.',
+                        ),
                       ),
                   ],
                 ),
@@ -476,7 +533,9 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                   onPressed: !finalStep || checked
                       ? () => Navigator.pop(context, true)
                       : null,
-                  child: Text(finalStep ? '모의 주문 전송' : '모의 승인 기록 저장'),
+                  child: Text(
+                    actionLabel ?? (finalStep ? '모의 주문 전송' : '모의 승인 기록 저장'),
+                  ),
                 ),
               ],
             ),
@@ -557,6 +616,7 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
         return;
       }
       _uncertainRequest = true;
+      _awaitingCommandId = commandId;
       final result = await widget.repository.simulationAction(
         _id,
         'commands/$commandId/submit',
@@ -566,6 +626,7 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
         setState(() {
           _state = result;
           _uncertainRequest = false;
+          _awaitingCommandId = null;
         });
       }
     } catch (e) {

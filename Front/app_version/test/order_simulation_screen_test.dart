@@ -189,6 +189,90 @@ void main() {
     );
   });
 
+  testWidgets(
+    'stored receipt recovery is checked and clears lost submit marker after reload',
+    (t) async {
+      final r = FakeSimulation()..failResult = true;
+      await mount(t, r);
+      await prepare(t);
+      await approve(t);
+      await transmit(t);
+      await t.pumpAndSettle();
+      await t.ensureVisible(find.text('기록으로 결과 복구'));
+      await t.tap(find.text('기록으로 결과 복구'));
+      await t.pump(const Duration(milliseconds: 400));
+      expect(
+        t
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, '기록으로 결과 복구'),
+            )
+            .onPressed,
+        isNull,
+      );
+      await t.tap(find.byType(CheckboxListTile));
+      await t.pump(const Duration(milliseconds: 100));
+      await t.tap(find.widgetWithText(FilledButton, '기록으로 결과 복구'));
+      await t.pumpAndSettle();
+      expect(r.actions.where((a) => a.endsWith('/recover')).length, 1);
+      expect(r.actions.where((a) => a.endsWith('/submit')).length, 1);
+      expect(r.commands.last['sendCount'], 1);
+      expect(
+        t
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, '모의 주문 검증·승인'),
+            )
+            .onPressed,
+        isNotNull,
+      );
+    },
+  );
+
+  testWidgets(
+    'lost recovery response uses GET proof to clear submit marker without repost',
+    (t) async {
+      final r = FakeSimulation()
+        ..failResult = true
+        ..loseRecoveryResponse = true;
+      await mount(t, r);
+      await prepare(t);
+      await approve(t);
+      await transmit(t);
+      await t.pumpAndSettle();
+      await t.ensureVisible(find.text('기록으로 결과 복구'));
+      await t.tap(find.text('기록으로 결과 복구'));
+      await t.pump(const Duration(milliseconds: 400));
+      await t.tap(find.byType(CheckboxListTile));
+      await t.pump(const Duration(milliseconds: 100));
+      await t.tap(find.widgetWithText(FilledButton, '기록으로 결과 복구'));
+      await t.pumpAndSettle();
+      expect(r.actions.where((a) => a.endsWith('/recover')).length, 1);
+      expect(r.commands.last['status'], 'ACCEPTED');
+      expect(
+        t
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, '모의 주문 검증·승인'),
+            )
+            .onPressed,
+        isNotNull,
+      );
+    },
+  );
+
+  for (final phase in ['RESERVED', 'DISPATCHING', 'LEGACY_UNVERIFIED']) {
+    testWidgets('$phase simulation remains blocked without recovery button', (
+      t,
+    ) async {
+      final r = FakeSimulation();
+      r.commands.add(command('c1', 'SENDING')..['dispatchPhase'] = phase);
+      r.state['blocked'] = true;
+      await mount(t, r);
+      await t.drag(find.byType(ListView), const Offset(0, -400));
+      await t.pumpAndSettle();
+      expect(find.text('기록으로 결과 복구'), findsNothing);
+      expect(r.actions, isEmpty);
+    });
+  }
+
   testWidgets('manual fill and cancel use only the selected simulated order', (
     t,
   ) async {
@@ -272,6 +356,7 @@ class FakeSimulation
     implements OrderSimulationRepository, PaperTradingRepository {
   bool exists = true;
   bool failResult = false;
+  bool loseRecoveryResponse = false;
   num? createdCash;
   final actions = <String>[];
   Map<String, dynamic>? lastPreparation;
@@ -332,11 +417,24 @@ class FakeSimulation
       commands.last['sendCount'] = 1;
       if (failResult) {
         commands.last['status'] = 'SENDING';
+        commands.last['dispatchPhase'] = 'RETURNED';
+        commands.last['recoverable'] = true;
+        commands.last['receipt'] = {
+          'status': 'ACCEPTED',
+          'orderNo': '0000000001',
+        };
         state['blocked'] = true;
         throw Exception('SIMULATION result failure');
       }
       if (pending != null) return pending!.future;
       commands.last['status'] = 'ACCEPTED';
+    }
+    if (path.endsWith('/recover')) {
+      expect(body, {'acknowledged': true, 'confirmation': '저장된 전송 결과 복구'});
+      commands.last['status'] = 'ACCEPTED';
+      commands.last['recoverable'] = false;
+      state['blocked'] = false;
+      if (loseRecoveryResponse) throw TimeoutException('test lost response');
     }
     return snapshot();
   }

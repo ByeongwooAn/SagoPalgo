@@ -1,6 +1,6 @@
 # KB 수동 주문: 구현 범위와 배포 확인
 
-2026-10-31 D(10) 제한 범위 구현입니다. 사용자가 운영 DB의 016 두 테이블·제약조건 생성을 확인했습니다. 에이전트는 실제 주문·운영 DB 변경을 실행하지 않았습니다. 후속 대조 기능은 별도 017 적용이 필요합니다.
+2026-10-31 D(10) 제한 범위 구현입니다. 사용자가 운영 DB의 016 두 테이블·제약조건 생성을 확인했습니다. 에이전트는 실제 주문·운영 DB 변경을 실행하지 않았습니다. 후속 대조 기능은 별도 017, 전송 결과 기록/복구는 019 적용이 필요합니다.
 
 ## 지원 범위
 
@@ -82,7 +82,7 @@ docker compose --env-file .env exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSW
 docker compose --env-file .env up -d --build --no-deps spring-api
 ```
 
-016·017 저장소를 사용할 수 없으면 주문 화면은 `ORDER_STORAGE_UNAVAILABLE`(503)로 안내하고 전송을 막습니다. 준비 상태는 네 주문 테이블 접근 가능 여부도 검사합니다. 공식 주문 URL은 `https://developer.kbsec.com:32484`, 토큰 경로는 `/oauth2/token`으로 제한합니다. IP/MAC 형식 충족만으로 KB 운영 승인을 받았다고 간주하지 않습니다. 계좌·사전검증·별도 실주문 스위치를 포함한 모든 설정이 충족되어야 `canSubmit=true`입니다.
+016·017·019 저장소를 사용할 수 없으면 주문 화면은 `ORDER_STORAGE_UNAVAILABLE`(503)로 안내하고 전송을 막습니다. 준비 상태는 전송 단계/복구 감사를 포함한 여섯 주문 테이블 접근 가능 여부도 검사합니다. 공식 주문 URL은 `https://developer.kbsec.com:32484`, 토큰 경로는 `/oauth2/token`으로 제한합니다. IP/MAC 형식 충족만으로 KB 운영 승인을 받았다고 간주하지 않습니다. 계좌·사전검증·별도 실주문 스위치를 포함한 모든 설정이 충족되어야 `canSubmit=true`입니다.
 
 016 적용을 마친 기존 DB는 아래처럼 **별도 백업 후 017**을 적용합니다. 위의 016 절차를 대체하지 않으며 실주문 스위치는 OFF로 유지합니다.
 
@@ -96,13 +96,13 @@ docker compose --env-file .env exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSW
 docker compose --env-file .env up -d --build --no-deps spring-api
 ```
 
-새 EXE 경로는 `Front/app_version/build/windows/x64/runner/Release/SagoPalgo.exe`입니다. 이 배포에는 DB 016·017·백엔드·새 EXE가 모두 필요합니다. 이번 작업은 운영 환경변수·실계좌 주문·운영 DB를 변경하지 않았습니다.
+새 EXE 경로는 `Front/app_version/build/windows/x64/runner/Release/SagoPalgo.exe`입니다. 현재 배포에는 DB 016·017·019·백엔드·새 EXE가 필요합니다. 시뮬레이터에는 별도 018이 필요합니다. 이번 작업은 운영 환경변수·실계좌 주문·운영 DB를 변경하지 않았습니다.
 
 ## 남은 검증
 
 후속 백엔드 290건에는 실제 MySQL 8.4 통합 8건이 포함됩니다. 격리된 임시 DB에서 016·017 적용/재적용, 실제 MyBatis record 매핑·제약조건, 같은/다른 승인 동시 제출, 실제 가드 롤백·만료, 동시 확정의 단일 소비, KB 주문번호 재사용 실패 시 토큰 롤백을 검증했습니다. 외부 KB 응답과 화면 테스트는 모의 응답 기반입니다. 운영 DB에서의 경쟁 실행이나 실제 KB 결과 대조를 했다는 뜻은 아닙니다.
 
-실제 소액 주문·체결·정정·취소는 사용자의 별도 승인 아래 검증해야 합니다. `SENDING`과 미체결/변경 주문의 미확정 복구, 미지원 변경 범위가 남아 있어 D 전체 완료나 E 자동매매 착수로 처리하지 않습니다.
+실제 소액 주문·체결·정정·취소는 사용자의 별도 승인 아래 검증해야 합니다. RETURNED가 없는 `SENDING`과 미체결/변경 주문의 미확정 대조, 미지원 변경 범위가 남아 있어 D 전체 완료나 E 자동매매 착수로 처리하지 않습니다.
 
 ## 격리 MySQL 통합 검증 재현
 
@@ -122,3 +122,9 @@ try {
 ```
 
 기본 테스트 실행에서는 MySQL 통합 테스트 묶음을 건너뜁니다. 위 플래그와 임시 DB를 준비하고 `--rerun-tasks`로 실행해야 실제 MySQL 검증을 포함합니다. 이후 [주문 시뮬레이터](order-simulation.md)의 018·가상 계좌·상태 전이 검증도 같은 격리 DB에서 실행합니다. 테스트 자격증명은 임시 DB 전용 고정값이며 운영 설정에 사용하지 않습니다.
+
+## 후속 019: 저장 결과가 남은 SENDING 복구
+
+[SENDING 기록/복구의 상세 기준·화면 확인·019 백업/적용](order-dispatch-recovery.md)을 따릅니다. 신규·정정·취소의 종료된 호출 결과를 별도 커밋하며, SENDING 카드의 `전송 기록 확인·복구`에서 유효한 RETURNED만 명시적 확인 후 반영합니다. 자동 재전송·가드 초기화는 없고 UNKNOWN은 차단을 유지합니다. 기존/진행 중/종료 기록 없는 SENDING을 해제하지 않습니다. 위의 전량 체결 대조는 계속 UNKNOWN 신규 주문에만 적용됩니다.
+
+GET `/manual/{id}/dispatch`는 단계·반환 결과·복구 가능 여부를 조회하고, POST `/manual/{id}/dispatch/recover`는 `{acknowledged:true,confirmation:"저장된 전송 결과 복구"}`로 상태만 적용합니다. 두 경로 모두 KB를 호출하지 않습니다. 019가 없으면 새 백엔드는 주문 저장소 사용을 차단하므로 재배포 전에 별도 백업 후 적용합니다.

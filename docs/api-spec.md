@@ -748,7 +748,7 @@ KB `SSQM2341`을 호출합니다. `orderDate`를 생략하면 한국 시간의 �
 
 `GET /api/v1/orders/readiness`는 KB 계좌·사전검증·별도 실주문 스위치, API 키, 계좌번호, HTTPS 엔드포인트, 운영 주문 IP/MAC 형식 및 전송 어댑터 연결 여부를 `checks`로 반환합니다. IP/MAC과 비밀값 원문은 반환하지 않습니다. `SAGOPALGO_KB_LIVE_ORDER_ENABLED`는 기본 `false`이며 `SAGOPALGO_KB_ORDER_IP_ADDRESS`와 `SAGOPALGO_KB_ORDER_MAC_ADDRESS`는 기본 빈 값입니다. 형식 통과는 KB의 운영 승인이나 해당 서버가 실제 주문 발신지라는 증명이 아닙니다. [KB 개발 가이드](https://openapi.kbsec.com/guide_b2c)의 주문 요청 예시에는 `ipAddr`·`macAddr`가 있지만, 실제 사용 값은 계좌·운영 환경에서 검증해야 합니다.
 
-D 묶음에서 전송 어댑터를 연결했습니다. `SUBMISSION_TRANSPORT`는 016·017의 네 주문 테이블 접근 여부를 확인합니다. 별도로 `OFFICIAL_ORDER_ENDPOINT`와 `ORDER_TOKEN_ENDPOINT`를 검사하며 전체 설정 통과 시에만 `canSubmit=true`입니다. 이 값은 설정 충족이며 주문 권한·실계좌 운영 검증 완료를 뜻하지 않습니다. 기본 실주문 스위치는 계속 OFF이고 기존 계좌 조회 요청의 헤더는 바꾸지 않습니다.
+D 묶음에서 전송 어댑터를 연결했습니다. `SUBMISSION_TRANSPORT`는 016·017·019의 여섯 주문 테이블 접근 여부를 확인합니다. 별도로 `OFFICIAL_ORDER_ENDPOINT`와 `ORDER_TOKEN_ENDPOINT`를 검사하며 전체 설정 통과 시에만 `canSubmit=true`입니다. 이 값은 설정 충족이며 주문 권한·실계좌 운영 검증 완료를 뜻하지 않습니다. 기본 실주문 스위치는 계속 OFF이고 기존 계좌 조회 요청의 헤더는 바꾸지 않습니다.
 
 `POST /api/v1/orders/readiness/probe`는 사용자가 Flutter 설정 화면의 "조회 권한 점검"을 누를 때만 실행합니다. 서버는 오늘(한국 시간)의 KB `SSQM2341` 전체 구분 첫 페이지를 **읽기 전용으로 한 번** 조회합니다. 계좌 조회 스위치·인증값·계좌번호·HTTPS 설정이 빠졌다면 KB를 호출하지 않고 `CONFIGURATION_BLOCKED`를 반환합니다. 조회 응답 형식까지 확인되면 `VERIFIED`, 권한·네트워크·응답 오류가 있으면 `UNVERIFIED`입니다. 응답은 `status`, `orderDate`, `checkedAt`, `readOnly=true`, 일반 안내 문구만 포함하며 주문 행·계좌번호·인증값·원본 오류는 포함하지 않습니다. `VERIFIED`는 이 조회 API의 응답 확인일 뿐 주문 제출 권한, 운영 IP/MAC 승인, 실주문 가능 상태를 증명하지 않습니다. 이 진단은 가드나 승인 상태를 변경하지 않습니다.
 
@@ -921,7 +921,7 @@ AI 신호 기반 모의매매와 수익률·승률·최대 손실·회전율 지
 작업 묶음은 [개발 진척도](development-progress.md#화면-기준-실행-계획)를 기준으로 진행합니다.
 
 1. A/B/C 운영 확인: 새 Windows 앱의 창 크기·배율·초기 동선 및 사용자 선택 종목의 계좌·수집·분석·홈·알림·모의매매 대조. C(9)의 반응형 레이아웃·초기 동선 구현은 완료했으며 API 변경은 없음
-2. D(10): 017 적용 여부 확인·018 배포 후 주문 시뮬레이션 화면 대조. 다음은 SENDING·부분체결/변경 주문의 미확정 복구와 추가 변경 보강, 별도 승인된 실제 계좌 검증
+2. D(10): 017/018 적용 여부 확인·019 배포 후 SENDING 기록 복구 화면 대조. 다음은 종료 결과 없는 SENDING 확인 절차·UNKNOWN 부분체결/변경 주문 대조와 추가 변경 보강, 별도 승인된 실제 계좌 검증
 3. E(11): 운영 검증 후 제한적 자동매매 착수 여부 결정
 
 ## 19. 주문 시뮬레이션
@@ -931,3 +931,11 @@ AI 신호 기반 모의매매와 수익률·승률·최대 손실·회전율 지
 가상 세션은 현재 사용자 소유 UUID와 별도 018 JSON 테이블에 저장합니다. 실주문 계약·토큰·검증 계산·단일 제출 코어를 공유하지만 KB 클라이언트·실제 설정·계좌·실주문 가드·기존 PAPER 원장을 참조하지 않습니다. `confirmation="모의 주문 전송"`만 허용하며 실제 전송 확인 문구를 받지 않습니다. 응답에는 `mode="SIMULATION"`, 클라이언트 결과와 가상 증권사 상태, 모의 전송 횟수·예약 제외 현금·가상 보유·이벤트를 구분합니다. 토큰 해시는 노출하지 않습니다.
 
 018 저장소 접근 실패는 `SIMULATION_STORAGE_UNAVAILABLE`(503)입니다. `SAVE_FAILURE` 시나리오는 가상 접수 커밋 후 `SIMULATION_RESULT_FAILURE`(503)를 의도적으로 반환하며 SENDING 기록을 남깁니다. 두 모의 API 오류는 실주문 설정을 켜거나 다른 전송 경로로 재시도하는 근거가 아닙니다.
+
+## 20. SENDING 전송 결과 기록과 복구
+
+[019 스키마·트랜잭션·확인 본문·응답 및 화면 절차](order-dispatch-recovery.md)를 참고합니다. GET `/api/v1/orders/manual/{id}/dispatch`, POST `/api/v1/orders/manual/{id}/dispatch/recover`와 POST `/api/v1/orders/simulations/{sessionId}/commands/{id}/recover`를 추가합니다. 복구 POST 확인 문구는 `저장된 전송 결과 복구`입니다. 신규 주문 POST를 호출하지 않습니다.
+
+실주문 응답은 `commandId,commandStatus,phase,receipt,reservedAt,startedAt,returnedAt,recoveredAt,recoverable,message`이며 receipt는 정규화한 `status,orderNo,resultCode,processCode`입니다. SENDING+RETURNED+유효한 결과+현재 계좌 지문을 모두 확인합니다. ACCEPTED/REJECTED/UNKNOWN을 그대로 적용하며 UNKNOWN은 차단을 유지합니다. RESERVED/DISPATCHING/LEGACY_UNVERIFIED는 시간 경과로 해제하지 않습니다. 정상 완료·동시 복구는 동일 결과의 중복 적용을 막고 복구 감사 기록과 상태 변경을 원자적으로 저장합니다.
+
+시뮬레이터는 STOP_BEFORE_SEND(RESERVED,0회)·JOURNAL_FAILURE(DISPATCHING,1회)를 추가하고 SAVE_FAILURE는 RETURNED 후 최종 상태 저장 실패를 재현합니다. 기존 JSON 필드 누락은 증거 없는 기록으로 취급합니다. 내부 실행 UUID·토큰 해시·계좌 지문·증권사 원문 메시지는 API에 노출하지 않습니다. 복구와 GET은 실주문 스위치 OFF에서도 가능하며 외부 호출이 없습니다.

@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.*;
 import com.sagopalgo.api.order.model.ManualOrderCommand;
 import com.sagopalgo.api.order.model.ManualOrderReconciliationPreparation;
 import com.sagopalgo.api.order.model.ManualOrderReconciliationRecord;
-import com.sagopalgo.api.order.service.ManualOrderStore;
+import com.sagopalgo.api.order.service.*;
+import com.sagopalgo.api.order.client.KbLimitOrderContract;
+import static org.mockito.Mockito.*;
 import com.sagopalgo.api.order.service.ManualOrderReconciliationStore;
 import com.sagopalgo.api.order.simulation.*;
 import com.sagopalgo.api.order.dto.OrderPrecheckRequest;
@@ -41,6 +43,9 @@ class ManualOrderMysqlIntegrationTest {
     private ManualOrderMapper commands;
     private ManualOrderReconciliationMapper reconciliations;
     private ManualOrderStore store;
+    private ManualOrderDispatchMapper dispatches;
+    private ManualOrderDispatchService dispatchService;
+    private OrderAccountBinding binding;
     private ManualOrderReconciliationStore reconciliationStore;
     private DataSourceTransactionManager transactions;
     private OrderSimulationMapper simulations;
@@ -60,6 +65,8 @@ class ManualOrderMysqlIntegrationTest {
         try (var connection = dataSource.getConnection()) {
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/schema.sql"));
             // 016을 실제 업그레이드와 같은 테이블 부재 상태에서 검증합니다.
+            jdbc.execute("DROP TABLE IF EXISTS manual_order_dispatch_recoveries");
+            jdbc.execute("DROP TABLE IF EXISTS manual_order_dispatches");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_reconciliations");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_reconciliation_preparations");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_observations");
@@ -72,10 +79,13 @@ class ManualOrderMysqlIntegrationTest {
             // 재적용도 안전한 CREATE IF NOT EXISTS인지 검증합니다.
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/016_manual_order_commands.sql"));
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/017_manual_order_reconciliations.sql"));
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/019_manual_order_dispatch_journal.sql"));
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/019_manual_order_dispatch_journal.sql"));
         }
         var configuration = new Configuration();
         configuration.setMapUnderscoreToCamelCase(true);
         configuration.addMapper(ManualOrderMapper.class);
+        configuration.addMapper(ManualOrderDispatchMapper.class);
         configuration.addMapper(OrderSubmissionGuardMapper.class);
         configuration.addMapper(ManualOrderReconciliationMapper.class);
         configuration.addMapper(OrderSimulationMapper.class);
@@ -86,7 +96,10 @@ class ManualOrderMysqlIntegrationTest {
         commands = session.getMapper(ManualOrderMapper.class);
         reconciliations = session.getMapper(ManualOrderReconciliationMapper.class);
         transactions = new DataSourceTransactionManager(dataSource);
-        store = proxy(new ManualOrderStore(commands, session.getMapper(OrderSubmissionGuardMapper.class)));
+        dispatches=session.getMapper(ManualOrderDispatchMapper.class);
+        binding=mock(OrderAccountBinding.class);
+        dispatchService=proxy(new ManualOrderDispatchService(commands,dispatches,binding));
+        store = proxy(new ManualOrderStore(commands, session.getMapper(OrderSubmissionGuardMapper.class),dispatches));
         reconciliationStore = proxy(new ManualOrderReconciliationStore(commands, reconciliations));
         simulations = session.getMapper(OrderSimulationMapper.class);
         simulationStore = new OrderSimulationStore(simulations, new ObjectMapper(), transactions);
@@ -102,7 +115,10 @@ class ManualOrderMysqlIntegrationTest {
     }
 
     @BeforeEach void resetOnlyIsolatedOrderTables() {
-        for (String table : List.of("order_simulation_sessions", "manual_order_reconciliations", "manual_order_reconciliation_preparations",
+        when(binding.matches(FINGERPRINT)).thenReturn(true);
+        // 같은 테이블의 부모 FK는 DELETE 전체 실행 순서에도 적용됩니다. 격리 fixture의 참조만 먼저 끊습니다.
+        jdbc.update("UPDATE manual_order_commands SET parent_id=NULL");
+        for (String table : List.of("manual_order_dispatch_recoveries","manual_order_dispatches","order_simulation_sessions", "manual_order_reconciliations", "manual_order_reconciliation_preparations",
             "manual_order_observations", "manual_order_commands", "order_submission_guards", "order_approvals", "order_prechecks")) {
             jdbc.update("DELETE FROM " + table);
         }
@@ -311,6 +327,175 @@ class ManualOrderMysqlIntegrationTest {
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_commands",Integer.class)).isZero();
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM order_approvals",Integer.class)).isZero();
     }
+
+    @Test void receiptCommitsBeforeFailedFinalUpdateAndCanBeRecoveredAfterRestart() {
+        var c=command(approval(),"SENDING"); String key=UUID.randomUUID().toString(); store.claim(c,key);
+        dispatchService.begin(c,key);
+        dispatchService.recordOutcome(c,key,accepted());
+        // 실제 상태 UPDATE가 DB에서 실패해도 이미 커밋한 반환 결과는 보존됩니다.
+        jdbc.execute("CREATE TRIGGER reject_dispatch_finish BEFORE UPDATE ON manual_order_commands FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='test finish failure'");
+        try { assertThatThrownBy(()->dispatchService.complete(1L,c.commandId())).isInstanceOf(RuntimeException.class); }
+        finally { jdbc.execute("DROP TRIGGER reject_dispatch_finish"); }
+        assertThat(commands.find(c.commandId(),1L).status()).isEqualTo("SENDING");
+        var restarted=proxy(new ManualOrderDispatchService(commands,dispatches,binding));
+        assertThat(restarted.status(1L,c.commandId()).recoverable()).isTrue();
+        assertThat(restarted.status(1L,c.commandId()).receipt().toString()).doesNotContain("private message");
+        restarted.recover(1L,c.commandId(),true,"저장된 전송 결과 복구");
+        restarted.recover(1L,c.commandId(),true,"저장된 전송 결과 복구");
+        assertThat(commands.find(c.commandId(),1L).status()).isEqualTo("ACCEPTED");
+        assertThat(commands.pending(1L)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_dispatch_recoveries",Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT status FROM order_submission_guards WHERE order_approval_id=?",String.class,c.approvalId())).isEqualTo("RESERVED");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM trade_records",Integer.class)).isZero();
+    }
+
+    @Test void activeMissingAndLegacyJournalsStayBlockedRegardlessOfAge() {
+        var c=command(approval(),"SENDING"); String key="execution";store.claim(c,key);
+        jdbc.update("UPDATE manual_order_dispatches SET reserved_at=? WHERE command_id=?",now().minusDays(2),c.commandId());
+        assertThat(dispatchService.status(1L,c.commandId()).phase()).isEqualTo("RESERVED");
+        assertThatThrownBy(()->dispatchService.recover(1L,c.commandId(),true,"저장된 전송 결과 복구")).isInstanceOf(RuntimeException.class);
+        dispatchService.begin(c,key);
+        assertThat(dispatchService.status(1L,c.commandId()).phase()).isEqualTo("DISPATCHING");
+        assertThatThrownBy(()->dispatchService.recover(1L,c.commandId(),true,"저장된 전송 결과 복구")).isInstanceOf(RuntimeException.class);
+        jdbc.update("DELETE FROM manual_order_dispatches WHERE command_id=?",c.commandId());
+        assertThat(dispatchService.status(1L,c.commandId()).phase()).isEqualTo("LEGACY_UNVERIFIED");
+        assertThatThrownBy(()->dispatchService.recover(1L,c.commandId(),true,"저장된 전송 결과 복구")).isInstanceOf(RuntimeException.class);
+        assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+
+    @Test void wrongExecutionKeyCannotStartOrOverwriteImmutableReturnReceipt() {
+        var c=command(approval(),"SENDING");store.claim(c,"owner");
+        assertThatThrownBy(()->dispatchService.begin(c,"late-worker")).isInstanceOf(RuntimeException.class);
+        dispatchService.begin(c,"owner");
+        assertThatThrownBy(()->dispatchService.recordOutcome(c,"late-worker",accepted())).isInstanceOf(RuntimeException.class);
+        dispatchService.recordOutcome(c,"owner",accepted());
+        dispatchService.recordOutcome(c,"owner",accepted());
+        assertThatThrownBy(()->dispatchService.recordOutcome(c,"owner",unknown())).isInstanceOf(RuntimeException.class);
+        assertThat(dispatches.find(c.commandId(),1L).receipt().status()).isEqualTo("ACCEPTED");
+    }
+
+    @Test void recoveryRequiresOwnerCurrentAccountAndExplicitAcknowledgment() {
+        var c=command(approval(),"SENDING");store.claim(c,"owner");dispatchService.begin(c,"owner");dispatchService.recordOutcome(c,"owner",accepted());
+        assertThatThrownBy(()->dispatchService.recover(2L,c.commandId(),true,"저장된 전송 결과 복구")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->dispatchService.status(2L,c.commandId())).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->dispatchService.recover(1L,c.commandId(),false,"저장된 전송 결과 복구")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->dispatchService.recover(1L,c.commandId(),true,"실제 주문 전송")).isInstanceOf(RuntimeException.class);
+        when(binding.matches(FINGERPRINT)).thenReturn(false);
+        assertThat(dispatchService.status(1L,c.commandId()).recoverable()).isFalse();
+        assertThatThrownBy(()->dispatchService.recover(1L,c.commandId(),true,"저장된 전송 결과 복구")).isInstanceOf(RuntimeException.class);
+        assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+
+    @Test void unknownReceiptRecoveryKeepsPendingGuardAndNeverInventsOrderNumber() {
+        var c=command(approval(),"SENDING");store.claim(c,"owner");dispatchService.begin(c,"owner");dispatchService.recordOutcome(c,"owner",unknown());
+        dispatchService.recover(1L,c.commandId(),true,"저장된 전송 결과 복구");
+        assertThat(commands.find(c.commandId(),1L).status()).isEqualTo("UNKNOWN");
+        assertThat(commands.find(c.commandId(),1L).orderNo()).isEmpty();
+        assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+
+    @Test void resultApplicationAndConcurrentRecoveryAreIdempotent() throws Exception {
+        var c=command(approval(),"SENDING");store.claim(c,"owner");dispatchService.begin(c,"owner");dispatchService.recordOutcome(c,"owner",accepted());
+        assertThat(race(()->dispatchService.recover(1L,c.commandId(),true,"저장된 전송 결과 복구"),
+            ()->dispatchService.recover(1L,c.commandId(),true,"저장된 전송 결과 복구"))).containsOnly(true);
+        dispatchService.complete(1L,c.commandId());
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_dispatch_recoveries",Integer.class)).isEqualTo(1);
+        assertThat(commands.find(c.commandId(),1L).status()).isEqualTo("ACCEPTED");
+    }
+
+    @Test void normalCompletionRacingRecoveryAppliesExactlyOnce() throws Exception {
+        var c=command(approval(),"SENDING");store.claim(c,"owner");dispatchService.begin(c,"owner");dispatchService.recordOutcome(c,"owner",accepted());
+        assertThat(race(()->dispatchService.complete(1L,c.commandId()),
+            ()->dispatchService.recover(1L,c.commandId(),true,"저장된 전송 결과 복구"))).containsOnly(true);
+        assertThat(commands.find(c.commandId(),1L).status()).isEqualTo("ACCEPTED");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_dispatch_recoveries",Integer.class)).isBetween(0,1);
+    }
+
+    @Test void failedRecoveryAuditRollsBackMainStateWithoutLosingReceipt() {
+        var c=command(approval(),"SENDING");store.claim(c,"owner");dispatchService.begin(c,"owner");dispatchService.recordOutcome(c,"owner",accepted());
+        jdbc.execute("CREATE TRIGGER reject_recovery_audit BEFORE INSERT ON manual_order_dispatch_recoveries FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='test audit failure'");
+        try {assertThatThrownBy(()->dispatchService.recover(1L,c.commandId(),true,"저장된 전송 결과 복구")).isInstanceOf(RuntimeException.class);}
+        finally {jdbc.execute("DROP TRIGGER reject_recovery_audit");}
+        assertThat(commands.find(c.commandId(),1L).status()).isEqualTo("SENDING");
+        assertThat(dispatchService.status(1L,c.commandId()).recoverable()).isTrue();
+    }
+
+    @Test void failedDispatchReservationRollsBackGuardAndCommand() {
+        var c=command(approval(),"SENDING");
+        jdbc.execute("CREATE TRIGGER reject_dispatch_reservation BEFORE INSERT ON manual_order_dispatches FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='test reservation failure'");
+        try {assertThatThrownBy(()->store.claim(c,"owner")).isInstanceOf(RuntimeException.class);}
+        finally {jdbc.execute("DROP TRIGGER reject_dispatch_reservation");}
+        assertThat(commands.find(c.commandId(),1L)).isNull();
+        assertThat(jdbc.queryForObject("SELECT status FROM order_submission_guards WHERE order_approval_id=?",String.class,c.approvalId())).isEqualTo("READY");
+    }
+
+    @Test void simulationSaveFailureRecoveryPreservesBrokerSendCountCashAndPositions() throws Exception {
+        String id=simSession("1000000");String c=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"SAVE_FAILURE");
+        assertThatThrownBy(()->simulationService.submit(1L,id,c,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+        var before=simulationService.get(1L,id);
+        assertThat(simCommand(before,c)).containsEntry("dispatchPhase","RETURNED").containsEntry("recoverable",true);
+        assertThat(before.toString()).doesNotContain("executionKey","tokenHash");
+        assertThatThrownBy(()->simulationService.recover(1L,id,c,false,"저장된 전송 결과 복구")).isInstanceOf(RuntimeException.class);
+        assertThat(race(()->simulationService.recover(1L,id,c,true,"저장된 전송 결과 복구"),
+            ()->simulationService.recover(1L,id,c,true,"저장된 전송 결과 복구"))).containsOnly(true);
+        var after=simulationService.get(1L,id);
+        assertThat(simCommand(after,c)).containsEntry("status","ACCEPTED").containsEntry("sendCount",1).containsEntry("recoverable",false);
+        assertThat(after.get("blocked")).isEqualTo(false);
+        assertThat(after.get("cash")).isEqualTo(before.get("cash"));
+        assertThat(after.get("positions")).isEqualTo(before.get("positions"));
+        assertThat(((List<?>)after.get("events")).stream().filter(e->e.toString().contains("복구. 추가 전송")).count()).isEqualTo(1);
+    }
+
+    @ParameterizedTest @ValueSource(strings={"STOP_BEFORE_SEND","JOURNAL_FAILURE"})
+    void simulationWithoutReturnedReceiptCannotRecoverOrResubmit(String scenario) {
+        String id=simSession("1000000");String c=simReady(id,simPlan("BUY","75000","2"),"NEW",null,scenario);
+        assertThatThrownBy(()->simulationService.submit(1L,id,c,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+        int sends="STOP_BEFORE_SEND".equals(scenario)?0:1;
+        assertThat(simCommand(simulationService.get(1L,id),c)).containsEntry("status","SENDING").containsEntry("recoverable",false).containsEntry("sendCount",sends);
+        assertThatThrownBy(()->simulationService.recover(1L,id,c,true,"저장된 전송 결과 복구")).isInstanceOf(RuntimeException.class);
+        simulationService.submit(1L,id,c,true,"모의 주문 전송");
+        assertThat(simCommand(simulationService.get(1L,id),c)).containsEntry("sendCount",sends);
+        assertThat(simulationService.get(1L,id).get("blocked")).isEqualTo(true);
+    }
+
+    @Test void legacySimulationJsonDoesNotInventRecoveryEvidence() {
+        String id=simSession("1000000");String c=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"SAVE_FAILURE");
+        simulationStore.mutate(1L,id,state->{state.commands.get(c).status="SENDING";return null;});
+        assertThat(simCommand(simulationService.get(1L,id),c)).containsEntry("dispatchPhase","LEGACY_UNVERIFIED").containsEntry("recoverable",false);
+        assertThatThrownBy(()->simulationService.recover(1L,id,c,true,"저장된 전송 결과 복구")).isInstanceOf(RuntimeException.class);
+    }
+
+    @ParameterizedTest @ValueSource(strings={"AMEND","CANCEL"})
+    void changeReceiptRecoveryDoesNotReleaseOriginalChangeGuard(String kind) {
+        var parent=command(approval(),"SENDING");store.claim(parent,"parent-worker");
+        commands.finish(parent.commandId(),1L,"ACCEPTED","0040000638","200","A",now());
+        var t=now();
+        var child=new ManualOrderCommand(UUID.randomUUID().toString(),1L,null,parent.commandId(),kind,parent.stockCode(),parent.stockName(),
+            parent.market(),parent.side(),new BigDecimal("99.00"),parent.quantity(),FINGERPRINT,"hash",t.plusSeconds(90),"PREPARED",null,parent.orderDate(),null,null,null,t,t);
+        commands.insert(child);store.claim(child,"child-worker");dispatchService.begin(child,"child-worker");dispatchService.recordOutcome(child,"child-worker",accepted());
+        dispatchService.recover(1L,child.commandId(),true,"저장된 전송 결과 복구");
+        assertThat(commands.find(child.commandId(),1L).status()).isEqualTo("ACCEPTED");
+        assertThat(commands.find(parent.commandId(),1L).changeId()).isEqualTo(child.commandId());
+        assertThat(commands.find(parent.commandId(),1L).status()).isEqualTo("ACCEPTED");
+    }
+
+    @ParameterizedTest @ValueSource(strings={"AMEND","CANCEL"})
+    void simulationChangeRecoveryAppliesReceiptWithoutChangingVirtualBrokerAgain(String kind) {
+        String id=simSession("1000000");String parent=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+        simulationService.submit(1L,id,parent,true,"모의 주문 전송");
+        String child=simReady(id,simPlan("BUY","74000","2"),kind,parent,"SAVE_FAILURE");
+        assertThatThrownBy(()->simulationService.submit(1L,id,child,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+        var before=simulationService.get(1L,id);
+        var after=simulationService.recover(1L,id,child,true,"저장된 전송 결과 복구");
+        assertThat(simCommand(after,child)).containsEntry("status","ACCEPTED").containsEntry("sendCount",1);
+        assertThat(simCommand(after,parent)).isEqualTo(simCommand(before,parent));
+        assertThat(after.get("availableCash")).isEqualTo(before.get("availableCash"));
+        assertThat(after.get("cash")).isEqualTo(before.get("cash"));
+        assertThatThrownBy(()->simReady(id,simPlan("BUY","74000","2"),kind,parent,"WAIT")).isInstanceOf(RuntimeException.class);
+    }
+
+    private KbLimitOrderContract.Outcome accepted() {return new KbLimitOrderContract.Outcome(KbLimitOrderContract.Status.ACCEPTED,"0040000638","200","A","private message");}
+    private KbLimitOrderContract.Outcome unknown() {return new KbLimitOrderContract.Outcome(KbLimitOrderContract.Status.UNKNOWN,"","","","");}
 
     private String simSession(String cash) {return (String)simulationService.create(1L,new BigDecimal(cash)).get("sessionId");}
     private OrderPrecheckRequest simPlan(String side,String price,String quantity) {

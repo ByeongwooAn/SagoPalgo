@@ -6,6 +6,7 @@ import com.sagopalgo.api.order.client.KbLimitOrderContract;
 import com.sagopalgo.api.order.dto.OrderPrecheckRequest;
 import com.sagopalgo.api.order.service.OrderSubmissionWorkflow;
 import com.sagopalgo.api.order.service.OrderWorkflowRules;
+import com.sagopalgo.api.order.service.OrderDispatchReceipt;
 import com.sagopalgo.api.order.simulation.OrderSimulationState.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderSimulationService {
     public static final Set<String> SCENARIOS = Set.of("WAIT", "PARTIAL_FILL", "FULL_FILL", "REJECT",
-        "TIMEOUT_BEFORE_ACCEPT", "TIMEOUT_AFTER_ACCEPT", "SAVE_FAILURE");
+        "TIMEOUT_BEFORE_ACCEPT", "TIMEOUT_AFTER_ACCEPT", "SAVE_FAILURE", "STOP_BEFORE_SEND", "JOURNAL_FAILURE");
     private static final BigDecimal MAX_AMOUNT = new BigDecimal("1000000");
     private final OrderSimulationMapper mapper;
     private final OrderSimulationStore store;
@@ -116,11 +117,21 @@ public class OrderSimulationService {
         if (!acknowledged || !"모의 주문 전송".equals(confirmation)) throw invalid("모의 주문 최종 확인이 필요합니다.");
         var existing = command(readState(userId, id), commandId);
         if (Set.of("SENDING", "ACCEPTED", "REJECTED", "UNKNOWN").contains(existing.status)) return get(userId, id);
-        return OrderSubmissionWorkflow.execute(() -> claim(userId, id, commandId),
-            () -> gateway(userId, id, commandId), outcome -> persist(userId, id, commandId, outcome), () -> get(userId, id));
+        String executionKey=UUID.randomUUID().toString();
+        return OrderSubmissionWorkflow.execute(() -> {
+            claim(userId,id,commandId,executionKey);
+            if("STOP_BEFORE_SEND".equals(existing.scenario)) throw new ApiException(ErrorCode.SIMULATION_RESULT_FAILURE);
+        }, () -> {
+            store.mutate(userId,id,state -> {
+                var c=command(state,commandId);
+                if(!executionKey.equals(c.executionKey) || !"RESERVED".equals(c.dispatchPhase)) throw invalid("전송 소유권이 다릅니다.");
+                c.dispatchPhase="DISPATCHING"; c.startedAt=OrderSimulationStore.now().toString(); return null;
+            });
+            return gateway(userId,id,commandId);
+        }, outcome -> persist(userId,id,commandId,executionKey,outcome), () -> get(userId,id));
     }
 
-    private void claim(Long userId, String id, String commandId) {
+    private void claim(Long userId, String id, String commandId, String executionKey) {
         store.mutate(userId, id, state -> {
             var c = command(state, commandId);
             if (!"READY".equals(c.status) || !LocalDateTime.parse(c.expiresAt).isAfter(OrderSimulationStore.now())) throw invalid("모의 제출 승인이 만료·사용되었습니다.");
@@ -132,6 +143,7 @@ public class OrderSimulationService {
             else KbLimitOrderContract.encodeChange(c.plan, c.kind, command(state, c.parentId).brokerOrderNo);
             if (!"NEW".equals(c.kind)) changeable(state, c.parentId).changed = true;
             c.status = "SENDING";
+            c.executionKey=executionKey; c.dispatchPhase="RESERVED";
             event(state, commandId, "SENDING: 제출 가드 커밋, 재전송 금지"); return null;
         });
     }
@@ -171,15 +183,39 @@ public class OrderSimulationService {
         return outcome;
     }
 
-    private void persist(Long userId, String id, String commandId, KbLimitOrderContract.Outcome outcome) {
+    private void persist(Long userId, String id, String commandId, String executionKey, KbLimitOrderContract.Outcome outcome) {
         var c = command(readState(userId, id), commandId);
+        if ("JOURNAL_FAILURE".equals(c.scenario)) throw new ApiException(ErrorCode.SIMULATION_RESULT_FAILURE);
+        var receipt=OrderDispatchReceipt.from(outcome);
+        store.mutate(userId,id,state -> {
+            var current=command(state,commandId);
+            if(!executionKey.equals(current.executionKey) || !Set.of("RESERVED","DISPATCHING").contains(current.dispatchPhase)) {
+                throw invalid("전송 결과 기록 소유권이 다릅니다.");
+            }
+            if("RESERVED".equals(current.dispatchPhase) && !"UNKNOWN".equals(receipt.status())) throw invalid("전송 시작 기록이 없습니다.");
+            current.receipt=receipt; current.dispatchPhase="RETURNED"; current.returnedAt=OrderSimulationStore.now().toString();
+            event(state,commandId,"RETURNED: 호출 종료 결과 별도 저장 · " + receipt.status()); return null;
+        });
         if ("SAVE_FAILURE".equals(c.scenario)) throw new ApiException(ErrorCode.SIMULATION_RESULT_FAILURE);
         store.mutate(userId, id, state -> {
             var current = command(state, commandId);
-            if (!"SENDING".equals(current.status)) throw invalid("이미 처리된 모의 전송입니다.");
-            current.status = outcome.status().name();
+            if(receipt.status().equals(current.status)) return null;
+            OrderDispatchReceipt.requireReplayable(current.status,current.dispatchPhase,current.receipt);
+            current.status = receipt.status();
             event(state, commandId, "클라이언트 결과 " + current.status); return null;
         });
+    }
+
+    public Map<String,Object> recover(Long userId,String id,String commandId,boolean acknowledged,String confirmation) {
+        if(!acknowledged || !"저장된 전송 결과 복구".equals(confirmation)) throw invalid("추가 전송 없는 기록 복구임을 확인하세요.");
+        store.mutate(userId,id,state -> {
+            var c=command(state,commandId);
+            if(c.receipt!=null && c.receipt.valid() && "RETURNED".equals(c.dispatchPhase) && c.receipt.status().equals(c.status)) return null;
+            OrderDispatchReceipt.requireReplayable(c.status,c.dispatchPhase,c.receipt);
+            c.status=c.receipt.status(); c.recoveredAt=OrderSimulationStore.now().toString();
+            event(state,commandId,"저장 결과로 " + c.status + " 복구. 추가 전송·가상 체결 없음"); return null;
+        });
+        return get(userId,id);
     }
 
     public Map<String, Object> fill(Long userId, String id, String orderNo, BigDecimal quantity) {
@@ -254,6 +290,9 @@ public class OrderSimulationService {
             item.put("scenario", c.scenario); item.put("status", c.status); item.put("expiresAt", c.expiresAt);
             item.put("expired", Set.of("PREPARED", "READY").contains(c.status) && !LocalDateTime.parse(c.expiresAt).isAfter(OrderSimulationStore.now()));
             item.put("createdAt", c.createdAt); item.put("changed", c.changed); item.put("sendCount", c.sendCount);
+            item.put("dispatchPhase",c.dispatchPhase==null?"LEGACY_UNVERIFIED":c.dispatchPhase);
+            item.put("receipt",c.receipt); item.put("startedAt",c.startedAt); item.put("returnedAt",c.returnedAt); item.put("recoveredAt",c.recoveredAt);
+            item.put("recoverable","SENDING".equals(c.status) && "RETURNED".equals(c.dispatchPhase) && c.receipt!=null && c.receipt.valid());
             item.put("brokerOrderNo", c.brokerOrderNo); item.put("brokerStatus", broker == null ? "NONE" : broker.status);
             item.put("filledQuantity", broker == null ? BigDecimal.ZERO : broker.filled);
             item.put("openQuantity", broker == null ? BigDecimal.ZERO : broker.openQuantity()); commands.add(item);
