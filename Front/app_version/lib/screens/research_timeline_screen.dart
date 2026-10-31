@@ -101,15 +101,21 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
           ),
           const SizedBox(height: 16),
           if (widget.watchlistRepository != null) ...[
-            OutlinedButton.icon(
-              onPressed: _syncing ? null : _addStock,
-              icon: const Icon(Icons.star_border),
-              label: const Text('관심 종목 등록'),
-            ),
-            OutlinedButton.icon(
-              onPressed: _syncing ? null : _manageStocks,
-              icon: const Icon(Icons.edit_note),
-              label: const Text('관심 목록 관리'),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _syncing ? null : _addStock,
+                  icon: const Icon(Icons.star_border),
+                  label: const Text('관심 종목 등록'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _syncing ? null : _manageStocks,
+                  icon: const Icon(Icons.edit_note),
+                  label: const Text('관심 목록 관리'),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
           ],

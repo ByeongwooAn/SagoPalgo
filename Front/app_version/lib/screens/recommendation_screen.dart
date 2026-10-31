@@ -16,6 +16,7 @@ import '../widgets/gradient_action_button.dart';
 import '../widgets/score_ring.dart';
 import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
+import '../widgets/responsive_layout.dart';
 import 'dashboard_screen.dart';
 
 /// 매수 추천 상세 화면입니다.
@@ -131,15 +132,21 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          OutlinedButton.icon(
-            onPressed: _addWatchlist,
-            icon: const Icon(Icons.add),
-            label: const Text('관심 종목 등록'),
-          ),
-          OutlinedButton.icon(
-            onPressed: _manageWatchlist,
-            icon: const Icon(Icons.edit_note),
-            label: const Text('관심 목록 관리'),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: _addWatchlist,
+                icon: const Icon(Icons.add),
+                label: const Text('관심 종목 등록'),
+              ),
+              OutlinedButton.icon(
+                onPressed: _manageWatchlist,
+                icon: const Icon(Icons.edit_note),
+                label: const Text('관심 목록 관리'),
+              ),
+            ],
           ),
           if (widget.researchFeedRepository != null)
             CheckboxListTile(
@@ -154,15 +161,16 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                   ? null
                   : (value) => setState(() => _syncBeforeAnalysis = value!),
             ),
-          _AnalysisActionCard(
-            holdings: widget.holdings,
-            analyzingHoldingId: _analyzingHoldingId,
-            onAnalyzeTap: _openHoldingPicker,
-          ),
-          const SizedBox(height: 12),
-          _WatchlistAnalysisActionCard(
-            busy: _loadingWatchlist || _analyzingWatchlistId != null,
-            onAnalyzeTap: _openWatchlistPicker,
+          AdaptiveColumns(
+            first: _AnalysisActionCard(
+              holdings: widget.holdings,
+              analyzingHoldingId: _analyzingHoldingId,
+              onAnalyzeTap: _openHoldingPicker,
+            ),
+            second: _WatchlistAnalysisActionCard(
+              busy: _loadingWatchlist || _analyzingWatchlistId != null,
+              onAnalyzeTap: _openWatchlistPicker,
+            ),
           ),
           if (recommendation != null) ...[
             const SizedBox(height: 12),
@@ -939,22 +947,31 @@ class _EmptyRecommendationState extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(
+          SectionHeader(
             eyebrow: '매수 추천',
-            title: '추천 데이터 없음',
-            action: StatusChip(label: '대기', icon: Icons.hourglass_empty),
+            title: historyError == null ? '추천 데이터 없음' : '추천 이력 조회 실패',
+            action: StatusChip(
+              label: historyError == null ? '대기' : '재조회 필요',
+              icon: Icons.hourglass_empty,
+            ),
           ),
           const SizedBox(height: 18),
           if (historyError != null) _InlineError(onRetry: onRetry ?? () {}),
-          OutlinedButton.icon(
-            onPressed: onWatchlistAdd,
-            icon: const Icon(Icons.add),
-            label: const Text('관심 종목 등록'),
-          ),
-          OutlinedButton.icon(
-            onPressed: onWatchlistManage,
-            icon: const Icon(Icons.edit_note),
-            label: const Text('관심 목록 관리'),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: onWatchlistAdd,
+                icon: const Icon(Icons.add),
+                label: const Text('관심 종목 등록'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onWatchlistManage,
+                icon: const Icon(Icons.edit_note),
+                label: const Text('관심 목록 관리'),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           AppCard(
@@ -971,7 +988,9 @@ class _EmptyRecommendationState extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        '저장된 추천 결과가 없습니다.',
+                        historyError == null
+                            ? '저장된 추천 결과가 없습니다. 보유 주식 없이도 관심 종목을 등록해 분석할 수 있습니다.'
+                            : '추천 이력을 불러오지 못했습니다. 다시 조회하거나 등록된 종목을 분석하세요.',
                         style: TextStyle(
                           color: palette.text,
                           fontSize: 14,

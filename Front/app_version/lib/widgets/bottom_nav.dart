@@ -2,6 +2,54 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
+const appDestinations = [
+  (label: '홈', icon: Icons.home_rounded),
+  (label: '추천', icon: Icons.auto_graph_rounded),
+  (label: '보유', icon: Icons.pie_chart_rounded),
+  (label: '소식', icon: Icons.dynamic_feed_rounded),
+  (label: '알림', icon: Icons.notifications_rounded),
+  (label: '모의', icon: Icons.science_rounded),
+  (label: '설정', icon: Icons.settings_rounded),
+];
+
+class DesktopNav extends StatelessWidget {
+  const DesktopNav({
+    super.key,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    return NavigationRail(
+      extended: true,
+      minExtendedWidth: 184,
+      scrollable: true,
+      backgroundColor: palette.surface.withValues(alpha: .8),
+      indicatorColor: AppTheme.main.withValues(alpha: .16),
+      selectedIndex: selectedIndex,
+      onDestinationSelected: onSelected,
+      selectedIconTheme: const IconThemeData(color: AppTheme.main),
+      selectedLabelTextStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+        color: AppTheme.main,
+        fontWeight: FontWeight.w900,
+      ),
+      unselectedLabelTextStyle: Theme.of(context).textTheme.labelLarge
+          ?.copyWith(color: palette.text, fontWeight: FontWeight.w700),
+      destinations: [
+        for (final destination in appDestinations)
+          NavigationRailDestination(
+            icon: Icon(destination.icon),
+            label: Text(destination.label),
+          ),
+      ],
+    );
+  }
+}
+
 /// 앱 하단의 주요 탭 네비게이션입니다.
 ///
 /// 홈, 추천, 보유, 소식, 알림, 모의매매는 개인 투자 흐름의 핵심이므로
@@ -45,48 +93,13 @@ class BottomNav extends StatelessWidget {
         ),
         child: Row(
           children: [
-            _NavItem(
-              label: '홈',
-              icon: Icons.home_rounded,
-              active: selectedIndex == 0,
-              onTap: () => onSelected(0),
-            ),
-            _NavItem(
-              label: '추천',
-              icon: Icons.auto_graph_rounded,
-              active: selectedIndex == 1,
-              onTap: () => onSelected(1),
-            ),
-            _NavItem(
-              label: '보유',
-              icon: Icons.pie_chart_rounded,
-              active: selectedIndex == 2,
-              onTap: () => onSelected(2),
-            ),
-            _NavItem(
-              label: '소식',
-              icon: Icons.dynamic_feed_rounded,
-              active: selectedIndex == 3,
-              onTap: () => onSelected(3),
-            ),
-            _NavItem(
-              label: '알림',
-              icon: Icons.notifications_rounded,
-              active: selectedIndex == 4,
-              onTap: () => onSelected(4),
-            ),
-            _NavItem(
-              label: '모의',
-              icon: Icons.science_rounded,
-              active: selectedIndex == 5,
-              onTap: () => onSelected(5),
-            ),
-            _NavItem(
-              label: '설정',
-              icon: Icons.settings_rounded,
-              active: selectedIndex == 6,
-              onTap: () => onSelected(6),
-            ),
+            for (final (index, destination) in appDestinations.indexed)
+              _NavItem(
+                label: destination.label,
+                icon: destination.icon,
+                active: selectedIndex == index,
+                onTap: () => onSelected(index),
+              ),
           ],
         ),
       ),

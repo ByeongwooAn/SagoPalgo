@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
+import '../widgets/responsive_layout.dart';
 import 'dashboard_screen.dart';
 import 'kb_holdings_detail_dialog.dart';
 
@@ -152,15 +153,15 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
               ],
-              ...providers.map(
-                (provider) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _ProviderCard(
-                    provider: provider,
-                    marketDataPriority: settings.marketDataFallbackOrder
-                        .indexOf(provider.code),
-                  ),
-                ),
+              AdaptiveCardGrid(
+                children: [
+                  for (final provider in providers)
+                    _ProviderCard(
+                      provider: provider,
+                      marketDataPriority: settings.marketDataFallbackOrder
+                          .indexOf(provider.code),
+                    ),
+                ],
               ),
               if (kbProvider != null) ...[
                 const SizedBox(height: 2),
@@ -1048,7 +1049,8 @@ class _KbAccountSectionState extends State<_KbAccountSection> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.provider.accountEnabled || !widget.provider.accountQueryConfigured) {
+    if (!widget.provider.accountEnabled ||
+        !widget.provider.accountQueryConfigured) {
       return const _KbAccountDisabledCard();
     }
 
@@ -1088,7 +1090,8 @@ class _KbAccountSectionState extends State<_KbAccountSection> {
   }
 
   bool get _shouldFetch {
-    return widget.provider.accountEnabled && widget.provider.accountQueryConfigured;
+    return widget.provider.accountEnabled &&
+        widget.provider.accountQueryConfigured;
   }
 }
 
