@@ -25,6 +25,8 @@ import java.util.Locale;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.core.annotation.Order;
@@ -40,6 +42,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 @Order(20)
 public class KisMarketPriceClient implements MarketDataProvider {
+
+    private static final Logger log = LoggerFactory.getLogger(KisMarketPriceClient.class);
 
     private volatile MarketIndexSnapshot cachedIndex;
     private volatile Instant indexCheckedAt;
@@ -59,6 +63,10 @@ public class KisMarketPriceClient implements MarketDataProvider {
                 cachedIndex = fetchKospi();
             }
         } catch (ApiException | RestClientException | IllegalArgumentException exception) {
+            String diagnostic = exception instanceof RestClientException restException
+                ? KisApiErrors.requestFailure("INDEX", "코스피", restException).getMessage()
+                : exception instanceof ApiException ? exception.getMessage() : "코스피 응답 형식 오류 [stage=INDEX kind=INVALID_RESPONSE]";
+            log.warn("KIS 코스피 조회 실패. message={}", diagnostic);
             // 이전 성공값을 새 시세로 가장하지 않습니다. 오류 원문/인증값도 응답에 넣지 않습니다.
             cachedIndex = new MarketIndexSnapshot("FAILED", "KIS", "코스피 조회에 실패했습니다. KIS 설정·조회 권한을 확인하세요.",
                 null, null, null, List.of());
@@ -80,7 +88,10 @@ public class KisMarketPriceClient implements MarketDataProvider {
             .header("appkey", properties.getAppKey()).header("appsecret", properties.getAppSecret())
             .header("tr_id", properties.getIndexTransactionId()).header("custtype", properties.getCustomerType())
             .retrieve().body(JsonNode.class);
-        if (body == null || !"0".equals(body.path("rt_cd").asText()) || !body.path("output2").isArray()) {
+        if (body != null && !"0".equals(body.path("rt_cd").asText())) {
+            throw KisApiErrors.responseFailure("INDEX", "코스피", body.path("rt_cd").asText(), body.path("msg_cd").asText());
+        }
+        if (body == null || !body.path("output2").isArray()) {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "코스피 응답이 올바르지 않습니다.");
         }
         JsonNode summary = body.path("output1");
@@ -168,7 +179,7 @@ public class KisMarketPriceClient implements MarketDataProvider {
                 .retrieve()
                 .body(KisPriceResponse.class);
         } catch (RestClientException exception) {
-            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 현재가 API 호출에 실패했습니다.");
+            throw KisApiErrors.requestFailure("QUOTE", "현재가", exception);
         }
 
         return parseQuote(request, response);
@@ -192,15 +203,14 @@ public class KisMarketPriceClient implements MarketDataProvider {
                 .retrieve()
                 .body(KisCandleResponse.class);
         } catch (RestClientException exception) {
-            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 기간별 시세 API 호출에 실패했습니다.");
+            throw KisApiErrors.requestFailure("CANDLES", "기간별 시세", exception);
         }
 
         if (response == null) {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 기간별 시세 응답이 비어 있습니다.");
         }
         if (StringUtils.hasText(response.resultCode()) && !"0".equals(response.resultCode())) {
-            String message = StringUtils.hasText(response.message()) ? response.message() : "조회에 실패했습니다.";
-            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 기간별 시세 조회 실패: " + message);
+            throw KisApiErrors.responseFailure("CANDLES", "기간별 시세", response.resultCode(), response.messageCode());
         }
         if (response.output2() == null) {
             return List.of();
@@ -241,7 +251,7 @@ public class KisMarketPriceClient implements MarketDataProvider {
                 .retrieve()
                 .body(KisTokenResponse.class);
         } catch (RestClientException exception) {
-            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 access token 발급에 실패했습니다.");
+            throw KisApiErrors.requestFailure("TOKEN", "access token 발급", exception);
         }
 
         if (response == null || !StringUtils.hasText(response.accessToken())) {
@@ -256,7 +266,7 @@ public class KisMarketPriceClient implements MarketDataProvider {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 현재가 응답이 비어 있습니다.");
         }
         if (StringUtils.hasText(response.resultCode()) && !"0".equals(response.resultCode())) {
-            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, failureMessage(response));
+            throw KisApiErrors.responseFailure("QUOTE", "현재가", response.resultCode(), response.messageCode());
         }
         if (response.output() == null || !StringUtils.hasText(response.output().currentPrice())) {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 현재가 응답에 현재가가 없습니다.");
@@ -278,13 +288,6 @@ public class KisMarketPriceClient implements MarketDataProvider {
             decimal(output.previousClose()),
             Instant.now()
         );
-    }
-
-    private String failureMessage(KisPriceResponse response) {
-        if (StringUtils.hasText(response.message())) {
-            return "한국투자증권 현재가 조회 실패: " + response.message();
-        }
-        return "한국투자증권 현재가 조회에 실패했습니다.";
     }
 
     private Instant tokenExpiresAt(KisTokenResponse response) {
@@ -460,6 +463,9 @@ public class KisMarketPriceClient implements MarketDataProvider {
         @JsonProperty("msg1")
         String message,
 
+        @JsonProperty("msg_cd")
+        String messageCode,
+
         Output output
     ) {
     }
@@ -470,6 +476,9 @@ public class KisMarketPriceClient implements MarketDataProvider {
 
         @JsonProperty("msg1")
         String message,
+
+        @JsonProperty("msg_cd")
+        String messageCode,
 
         List<CandleOutput> output2
     ) {
