@@ -52,6 +52,8 @@ SAGOPALGO_TOSS_APP_KEY=
 SAGOPALGO_TOSS_APP_SECRET=
 
 SAGOPALGO_NAVER_NEWS_ENABLED=false
+SAGOPALGO_NAVER_NEWS_BASE_URL=https://naverapihub.apigw.ntruss.com
+SAGOPALGO_NAVER_NEWS_SEARCH_PATH=/search/v1/news
 SAGOPALGO_NAVER_NEWS_CLIENT_ID=
 SAGOPALGO_NAVER_NEWS_CLIENT_SECRET=
 
@@ -623,3 +625,33 @@ curl --fail-with-body 'http://서버주소:포트/api/v1/market/stocks/000660/id
 ```
 
 예시 코드는 조회 대상을 설명하기 위한 것이며 관심 등록은 하지 않습니다. 자동화 테스트는 모의 응답 기반이고 운영 관심 종목 추가·삭제와 실제 외부 종목정보 대조는 별도 확인 항목입니다.
+
+## 10. NAVER API HUB 뉴스 검색 설정 확인
+
+기존 코드의 개발자센터 주소·인증 헤더와 API HUB 키가 맞지 않는 문제를 수정했습니다. [공통 인증 안내](https://api.ncloud-docs.com/docs/naver-api-hub-overview)에 따라 네이버 클라우드 콘솔 → NAVER API HUB → Application → 해당 Application → 인증 정보에서 Client ID와 Client Secret을 확인합니다. 해당 Application에서 뉴스 검색 API를 선택해야 합니다.
+
+Ubuntu 프로젝트 루트의 기존 `.env`에서 다음 값을 확인합니다. 이미 API HUB의 Client ID/Secret이 들어 있다면 해당 두 값은 그대로 유지하며 예시 파일로 전체 환경을 덮어쓰지 않습니다.
+
+```dotenv
+SAGOPALGO_NAVER_NEWS_ENABLED=true
+SAGOPALGO_NAVER_NEWS_BASE_URL=https://naverapihub.apigw.ntruss.com
+SAGOPALGO_NAVER_NEWS_SEARCH_PATH=/search/v1/news
+SAGOPALGO_NAVER_NEWS_CLIENT_ID=API_HUB_Application의_Client_ID
+SAGOPALGO_NAVER_NEWS_CLIENT_SECRET=API_HUB_Application의_Client_Secret
+```
+
+클라우드 뉴스 API는 [공식 뉴스 검색 명세](https://api.ncloud-docs.com/docs/naver-api-hub-search-news)의 GET `/search/v1/news`를 사용합니다. 헤더 전환은 코드 수정이므로 `.env` 키만 바꾸거나 기존 컨테이너만 restart해서 적용되지는 않습니다. PR 병합 후 새 백엔드를 빌드해 컨테이너를 교체합니다.
+
+```bash
+git switch develop
+git pull --ff-only origin develop
+docker compose --env-file .env up -d --build --no-deps spring-api
+```
+
+기존 Windows 앱에서 소식 탭 → 사용자 등록 종목 → `외부 뉴스·공시 동기화`를 한 번 실행합니다. NAVER_NEWS가 성공으로 표시되고 뉴스/원문이 조회되는지 확인합니다. 정상 0건과 실패는 별개이며 공시 상태도 독립적으로 확인합니다. 실패하면 다음 명령으로 해당 시각의 `httpStatus`, `naverCode`, `kind`를 확인합니다.
+
+```bash
+docker compose --env-file .env logs --since 5m --tail 100 spring-api
+```
+
+401은 API HUB 인증정보·API 권한, 403은 HTTPS·권한·요청 설정, 429는 호출 한도를 점검합니다. 실제 원인은 함께 표시된 코드로 좁히며 HTTP 상태만으로 하나로 단정하지 않습니다. `naverCode=UNAVAILABLE`은 코드가 없거나 안전하게 판독되지 않은 경우입니다. 키·토큰·응답 본문을 로그에 추가하지 않습니다. 추가 DB 마이그레이션이나 EXE 재빌드는 없습니다.

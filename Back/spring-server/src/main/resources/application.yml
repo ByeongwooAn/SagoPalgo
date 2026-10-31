@@ -128,8 +128,8 @@ sagopalgo:
   research:
     naver-news:
       enabled: ${SAGOPALGO_NAVER_NEWS_ENABLED:false}
-      base-url: ${SAGOPALGO_NAVER_NEWS_BASE_URL:https://openapi.naver.com}
-      search-path: ${SAGOPALGO_NAVER_NEWS_SEARCH_PATH:/v1/search/news.json}
+      base-url: ${SAGOPALGO_NAVER_NEWS_BASE_URL:https://naverapihub.apigw.ntruss.com}
+      search-path: ${SAGOPALGO_NAVER_NEWS_SEARCH_PATH:/search/v1/news}
       client-id: ${SAGOPALGO_NAVER_NEWS_CLIENT_ID:}
       client-secret: ${SAGOPALGO_NAVER_NEWS_CLIENT_SECRET:}
       display: ${SAGOPALGO_NAVER_NEWS_DISPLAY:10}
