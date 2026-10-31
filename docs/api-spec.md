@@ -880,6 +880,22 @@ KIS 지수는 [공식 업종기간별시세 예제](https://github.com/koreainve
 - Flutter 등록 시 코드 입력 후 400ms 동안 변경이 없으면 조회합니다. 조회된 이름·시장은 자동 입력되며 코드 변경 시 즉시 초기화하고 이전 응답을 무시합니다. 조회 실패 시 재시도 또는 명시적인 `종목명·시장 직접 입력`을 선택합니다. 기존 `POST /api/v1/watchlist` 계약은 유지하며 확인된 값과 알림 선택을 보냅니다.
 - 추천·소식 탭의 `관심 목록 관리`에서 기존 `DELETE /api/v1/watchlist/{watchlistId}`를 호출합니다. 확인 취소는 요청을 보내지 않고, 실패는 행을 유지하며, 완료 전 닫기·중복 요청을 막습니다. 삭제된 관심 행과 그 알림 설정만 제거하고 보유분·뉴스·추천·기존 알림 이력은 보존합니다. 관리 창을 닫을 때 변경이 있으면 루트 데이터를 다시 조회합니다.
 
+### 17.5 NAVER API HUB 뉴스 검색 전환
+
+뉴스 수집은 [NAVER API HUB 공통 규격](https://api.ncloud-docs.com/docs/naver-api-hub-overview)과 [뉴스 검색 규격](https://api.ncloud-docs.com/docs/naver-api-hub-search-news)을 사용합니다. Client ID/Secret 변수명은 유지하고 요청 주소·헤더를 클라우드 방식으로 변경합니다.
+
+| 항목 | 설정 |
+|---|---|
+| 기본 주소 | `https://naverapihub.apigw.ntruss.com` |
+| 뉴스 경로 | `/search/v1/news` |
+| 인증 헤더 | `X-NCP-APIGW-API-KEY-ID`, `X-NCP-APIGW-API-KEY` |
+| 키 출처 | NAVER API HUB Application 인증 정보의 Client ID/Client Secret |
+| 쿼리 | UTF-8 종목명, `display=1~100`, `start=1`, `sort=date`, `format=json` |
+
+`SAGOPALGO_NAVER_NEWS_CLIENT_ID/CLIENT_SECRET`을 새 헤더에 매핑합니다. Spring 기본값과 Compose 전달값에 `SAGOPALGO_NAVER_NEWS_BASE_URL/SEARCH_PATH`를 반영합니다. 기존 `/api/v1/research/feed/sync`와 `NAVER_NEWS` 식별자, 기사 저장·부분 성공 계약은 유지합니다.
+
+실패 메시지는 `stage=NEWS_SEARCH`, `httpStatus`와 `naverCode` 또는 `kind=DNS/TIMEOUT/TLS/CONNECT/NETWORK/CLIENT`를 포함합니다. Gateway의 `error.errorCode`와 검색 API의 `errorCode`를 검사하며 코드 형식이 잘못됐거나 비 JSON 응답이면 `UNAVAILABLE`입니다. 원문 메시지·본문·인증값·URL은 로그와 Provider 상태에 복사하지 않습니다. 정상 빈 배열은 성공 0건으로 유지합니다.
+
 ## 18. 다음 구현 순서
 
 Flutter 추천 이력 목록·상세 화면, 보유 종목 수동 재분석과 관심 종목 직접 분석 액션까지 연결되었습니다.

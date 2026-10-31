@@ -38,8 +38,8 @@ public class ResearchProviderProperties {
 
     public static class NaverNews {
         private boolean enabled = false;
-        private String baseUrl = "https://openapi.naver.com";
-        private String searchPath = "/v1/search/news.json";
+        private String baseUrl = "https://naverapihub.apigw.ntruss.com";
+        private String searchPath = "/search/v1/news";
         private String clientId = "";
         private String clientSecret = "";
         private int display = 10;
