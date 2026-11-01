@@ -324,3 +324,7 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 12. `order_prechecks`
 
 `trade_records`는 모의매매 API에서 사용하고 `order_prechecks`는 주문 전 검증 결과만 저장하며, 어느 테이블도 실제 증권사 주문을 수행했다는 의미가 아닙니다. `device_tokens`는 설계에는 포함되어 있지만 실제 API는 외부 푸시가 필요해질 때 붙입니다. `recommendations`, `recommendation_reasons`, `analysis_snapshots`는 통합 분석 실행 시 함께 저장합니다.
+
+## 022. 전송 전 예약 중단 감사
+
+`manual_order_reservation_aborts`는 command_id PK/전송기록 FK, user_id FK, execution_key, account_fingerprint, aborted_at(DATETIME(6))을 저장합니다. `manual_order_dispatches.phase` CHECK에 ABORTED를 추가하며 원본 주문과 가드는 변경하지 않습니다. 실제 pending 제외는 감사와 전송 기록의 소유권·키·계좌·시각·미시작 조건 일치를 요구합니다. 기존 DB는 [022 백업·적용](reserved-order-abort.md)이 필요하고 신규 schema.sql에도 포함됩니다. 메인 PC 021까지 점검 이후 022 운영 적용은 미실행입니다.

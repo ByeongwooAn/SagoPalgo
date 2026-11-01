@@ -21,6 +21,21 @@ public interface ManualOrderDispatchMapper {
         @Param("executionKey") String executionKey, @Param("now") LocalDateTime now);
 
     @Update("""
+        UPDATE manual_order_dispatches SET phase='ABORTED'
+        WHERE command_id=#{commandId} AND user_id=#{userId} AND execution_key=#{executionKey} AND phase='RESERVED'
+          AND started_at IS NULL AND returned_at IS NULL AND outcome_status IS NULL
+          AND order_no IS NULL AND result_code IS NULL AND process_code IS NULL
+        """)
+    int abortReserved(@Param("commandId") String commandId,@Param("userId") Long userId,@Param("executionKey") String executionKey);
+
+    @Insert("""
+        INSERT INTO manual_order_reservation_aborts(command_id,user_id,execution_key,account_fingerprint,aborted_at)
+        VALUES(#{commandId},#{userId},#{executionKey},#{fingerprint},#{now})
+        """)
+    int auditAbort(@Param("commandId") String commandId,@Param("userId") Long userId,@Param("executionKey") String executionKey,
+        @Param("fingerprint") String fingerprint,@Param("now") LocalDateTime now);
+
+    @Update("""
         UPDATE manual_order_dispatches SET phase='RETURNED',outcome_status=#{status},order_no=#{orderNo},
           result_code=#{resultCode},process_code=#{processCode},returned_at=#{now}
         WHERE command_id=#{commandId} AND user_id=#{userId} AND execution_key=#{executionKey}

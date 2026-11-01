@@ -14,7 +14,8 @@ public interface ManualOrderMapper {
         LEFT JOIN manual_order_reconciliations r ON r.command_id=c.command_id
         LEFT JOIN manual_order_reconciliation_preparations p ON p.command_id=c.command_id
         LEFT JOIN manual_order_dispatches d ON d.command_id=c.command_id
-        LEFT JOIN manual_order_dispatch_recoveries dr ON dr.command_id=c.command_id LIMIT 1
+        LEFT JOIN manual_order_dispatch_recoveries dr ON dr.command_id=c.command_id
+        LEFT JOIN manual_order_reservation_aborts a ON a.command_id=c.command_id LIMIT 1
         """)
     String verifyStorage();
 
@@ -24,12 +25,30 @@ public interface ManualOrderMapper {
 
     @Select("""
         SELECT COUNT(*) FROM manual_order_commands c
-        WHERE c.user_id=#{userId} AND (c.status='SENDING' OR (c.status='UNKNOWN' AND NOT EXISTS (
+        WHERE c.user_id=#{userId} AND ((c.status='SENDING' AND NOT EXISTS (
+          SELECT 1 FROM manual_order_dispatches d JOIN manual_order_reservation_aborts a ON a.command_id=d.command_id
+          WHERE d.command_id=c.command_id AND d.user_id=c.user_id AND a.user_id=c.user_id
+            AND a.execution_key=d.execution_key AND d.execution_key<>'' AND a.account_fingerprint=c.account_fingerprint
+            AND d.phase='ABORTED' AND d.started_at IS NULL AND d.returned_at IS NULL AND d.outcome_status IS NULL
+            AND d.order_no IS NULL AND d.result_code IS NULL AND d.process_code IS NULL AND c.order_no IS NULL
+            AND a.aborted_at>=d.reserved_at
+        )) OR (c.status='UNKNOWN' AND NOT EXISTS (
           SELECT 1 FROM manual_order_reconciliations r
           WHERE r.command_id=c.command_id AND r.user_id=c.user_id AND c.kind='NEW'
         )))
         """)
     int pending(Long userId);
+
+    @Select("""
+        SELECT a.aborted_at FROM manual_order_commands c
+        JOIN manual_order_dispatches d ON d.command_id=c.command_id AND d.user_id=c.user_id
+        JOIN manual_order_reservation_aborts a ON a.command_id=c.command_id AND a.user_id=c.user_id
+        WHERE c.command_id=#{id} AND c.user_id=#{userId} AND c.status='SENDING' AND c.order_no IS NULL
+          AND a.execution_key=d.execution_key AND d.execution_key<>'' AND a.account_fingerprint=c.account_fingerprint
+          AND d.phase='ABORTED' AND d.started_at IS NULL AND d.returned_at IS NULL AND d.outcome_status IS NULL
+          AND d.order_no IS NULL AND d.result_code IS NULL AND d.process_code IS NULL AND a.aborted_at>=d.reserved_at
+        """)
+    LocalDateTime abortedAt(@Param("id") String id,@Param("userId") Long userId);
 
     @Select("SELECT * FROM manual_order_commands WHERE command_id=#{id} AND user_id=#{userId} FOR UPDATE")
     ManualOrderCommand lockCommand(@Param("id") String id, @Param("userId") Long userId);

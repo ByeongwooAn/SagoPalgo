@@ -572,6 +572,53 @@ void main() {
     expect(find.textContaining('선택한 가격·수량·원주문과 다릅니다'), findsOneWidget);
   });
 
+  for (final source in [
+    'SIMULATION_BEFORE_DISPATCH',
+    'LOCAL_BEFORE_DISPATCH',
+  ]) {
+    testWidgets(
+      'lost reservation abort response uses GET for $source and never reposts original',
+      (t) async {
+        final r = AbortSimulationFake(source);
+        await mount(t, r);
+        await prepare(t);
+        await approve(t);
+        await transmit(t);
+        await t.pumpAndSettle();
+        expect(r.actions.where((x) => x.endsWith('/submit')), hasLength(1));
+        await t.ensureVisible(find.text('전송 전 가상 예약 중단'));
+        await t.tap(find.text('전송 전 가상 예약 중단'));
+        await t.pump(const Duration(milliseconds: 400));
+        expect(
+          t
+              .widget<FilledButton>(
+                find.widgetWithText(FilledButton, '전송 전 예약 중단'),
+              )
+              .onPressed,
+          isNull,
+        );
+        await t.tap(find.byType(CheckboxListTile));
+        await t.pump();
+        await t.tap(find.text('전송 전 예약 중단'));
+        await t.pumpAndSettle();
+        expect(
+          r.actions.where((x) => x.endsWith('/abort-reservation')),
+          hasLength(1),
+        );
+        expect(r.actions.where((x) => x.endsWith('/submit')), hasLength(1));
+        final button = t.widget<FilledButton>(
+          find.widgetWithText(FilledButton, '모의 주문 검증·승인'),
+        );
+        expect(
+          button.onPressed,
+          source == 'SIMULATION_BEFORE_DISPATCH' ? isNotNull : isNull,
+        );
+        expect(r.commands.single['status'], 'SENDING');
+        expect(r.commands.single['sendCount'], 0);
+      },
+    );
+  }
+
   test(
     'HTTP simulation route stays separate and never retries failed POST',
     () async {
@@ -679,6 +726,46 @@ class CompletionFakeSimulation extends FakeSimulation {
       };
       state['blocked'] = false;
       throw TimeoutException('lost completion response');
+    }
+    return super.simulationAction(id, path, body);
+  }
+}
+
+class AbortSimulationFake extends FakeSimulation {
+  AbortSimulationFake(this.source);
+  final String source;
+  @override
+  Future<Map<String, dynamic>> simulationAction(
+    String id,
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    if (path.endsWith('/submit')) {
+      actions.add(path);
+      commands.last.addAll({
+        'status': 'SENDING',
+        'dispatchPhase': 'RESERVED',
+        'sendCount': 0,
+        'abortable': true,
+      });
+      state['blocked'] = true;
+      throw TimeoutException('original submission lost');
+    }
+    if (path.endsWith('/abort-reservation')) {
+      actions.add(path);
+      expect(body, {'acknowledged': true, 'confirmation': '전송 전 예약 중단'});
+      commands.last.addAll({
+        'status': 'SENDING',
+        'dispatchPhase': 'ABORTED',
+        'sendCount': 0,
+        'abortable': false,
+        'reservationAbort': {
+          'source': source,
+          'abortedAt': '2026-11-01T12:00:00',
+        },
+      });
+      state['blocked'] = false;
+      throw TimeoutException('abort response lost');
     }
     return super.simulationAction(id, path, body);
   }

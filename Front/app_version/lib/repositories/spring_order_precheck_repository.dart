@@ -14,6 +14,7 @@ class SpringOrderPrecheckRepository
         ManualOrderRepository,
         ManualOrderReconciliationRepository,
         ManualOrderDispatchRepository,
+        ManualOrderReservationAbortRepository,
         ManualOrderDiagnosticRepository,
         UnknownOrderReviewRepository {
   SpringOrderPrecheckRepository({
@@ -229,6 +230,14 @@ class SpringOrderPrecheckRepository
   @override
   Future<Map<String, dynamic>> fetchDispatch(String id) async =>
       await _manual('manual/$id/dispatch') as Map<String, dynamic>;
+
+  @override
+  Future<Map<String, dynamic>> abortReservation(String id) async =>
+      await _manual(
+            'manual/$id/dispatch/abort-reservation',
+            body: {'acknowledged': true, 'confirmation': '전송 전 예약 중단'},
+          )
+          as Map<String, dynamic>;
 
   @override
   Future<List<Map<String, dynamic>>> diagnosticHistory(String id) async =>

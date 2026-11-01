@@ -42,7 +42,7 @@ public class ManualOrderService {
     public ManualOrderResponse get(Long user,String id) { return response(user,require(user,id)); }
 
     private ManualOrderResponse response(Long user,ManualOrderCommand command) {
-        return ManualOrderResponse.from(command,mapper.reconciliation(command.commandId(),user));
+        return ManualOrderResponse.from(command,mapper.reconciliation(command.commandId(),user),mapper.abortedAt(command.commandId(),user));
     }
 
     public ManualOrderResponse submit(Long user,Long approvalId,boolean acknowledged,String confirmation) {
@@ -97,7 +97,7 @@ public class ManualOrderService {
         // 소비된 요청의 재조회도 토큰 검증을 먼저 수행합니다.
         if(token==null || !MessageDigest.isEqual(hash(token).getBytes(StandardCharsets.US_ASCII),
             child.tokenHash().getBytes(StandardCharsets.US_ASCII))) throw new ApiException(ErrorCode.VALIDATION_ERROR);
-        if(!"PREPARED".equals(child.status())) return ManualOrderResponse.from(child);
+        if(!"PREPARED".equals(child.status())) return response(user,child);
         ready();
         ManualOrderCommand parent=require(user,child.parentId());
         requireChangeable(parent);

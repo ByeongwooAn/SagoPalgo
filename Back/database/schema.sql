@@ -531,7 +531,7 @@ CREATE TABLE IF NOT EXISTS manual_order_dispatches (
   returned_at DATETIME(6) NULL,
   CONSTRAINT fk_manual_dispatch_command FOREIGN KEY (command_id) REFERENCES manual_order_commands(command_id),
   CONSTRAINT fk_manual_dispatch_user FOREIGN KEY (user_id) REFERENCES users(user_id),
-  CONSTRAINT chk_manual_dispatch_phase CHECK (phase IN ('RESERVED','DISPATCHING','RETURNED')),
+  CONSTRAINT chk_manual_dispatch_phase CHECK (phase IN ('RESERVED','DISPATCHING','RETURNED','ABORTED')),
   CONSTRAINT chk_manual_dispatch_outcome CHECK (outcome_status IS NULL OR outcome_status IN ('ACCEPTED','REJECTED','UNKNOWN'))
 ) ENGINE=InnoDB COMMENT='실제 전송 시작과 반환 결과의 독립 커밋 기록';
 
@@ -589,3 +589,13 @@ CREATE TABLE IF NOT EXISTS manual_order_reviews (
   CONSTRAINT fk_manual_review_command FOREIGN KEY(command_id) REFERENCES manual_order_commands(command_id),
   CONSTRAINT fk_manual_review_user FOREIGN KEY(user_id) REFERENCES users(user_id)
 ) ENGINE=InnoDB COMMENT='사용자 확인한 UNKNOWN 대조 관찰. 잠금 해제 근거가 아님';
+
+CREATE TABLE IF NOT EXISTS manual_order_reservation_aborts (
+  command_id CHAR(36) NOT NULL PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  execution_key CHAR(36) NOT NULL,
+  account_fingerprint CHAR(64) NOT NULL,
+  aborted_at DATETIME(6) NOT NULL,
+  CONSTRAINT fk_manual_abort_dispatch FOREIGN KEY(command_id) REFERENCES manual_order_dispatches(command_id),
+  CONSTRAINT fk_manual_abort_user FOREIGN KEY(user_id) REFERENCES users(user_id)
+) ENGINE=InnoDB COMMENT='전송 시작과 경쟁해 먼저 확정된 로컬 예약 중단 감사';

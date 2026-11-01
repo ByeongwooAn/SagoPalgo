@@ -43,6 +43,10 @@ public class OrderSimulationController {
         @PathVariable String id,@PathVariable String commandId,@Valid @RequestBody Submit request) {
         return ok(service.recover(user.userId(),id,commandId,request.acknowledged(),request.confirmation()));
     }
+    @PostMapping("/{id}/commands/{commandId}/abort-reservation") public ApiResponse<Map<String,Object>> abortReservation(
+        @PathVariable String id,@PathVariable String commandId,@Valid @RequestBody Submit request) {
+        return ok(service.abortReservation(user.userId(),id,commandId,request.acknowledged(),request.confirmation()));
+    }
     @PostMapping("/{id}/commands/{commandId}/diagnostics") public ApiResponse<OrderSimulationState.Diagnostic> diagnose(
         @PathVariable String id,@PathVariable String commandId,@Valid @RequestBody Diagnostic request) {
         return ApiResponse.success(service.diagnose(user.userId(),id,commandId,request.diagnosticId(),request.orderNo(),request.acknowledged(),request.confirmation()),"SIMULATION 잠금 유지 진단. 실제 조회·주문 없음");

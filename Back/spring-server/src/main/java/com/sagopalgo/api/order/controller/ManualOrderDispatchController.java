@@ -24,4 +24,9 @@ public class ManualOrderDispatchController {
         return ApiResponse.success(service.status(user.userId(),id),"저장 결과 복구. 추가 주문 전송 없음");
     }
     public record Confirm(boolean acknowledged,@NotBlank String confirmation){}
+    @PostMapping("/abort-reservation") public ApiResponse<ManualOrderDispatchService.Status> abort(
+        @PathVariable String id,@Valid @RequestBody Confirm request) {
+        service.abortReserved(user.userId(),id,request.acknowledged(),request.confirmation());
+        return ApiResponse.success(service.status(user.userId(),id),"전송 시작 전 로컬 예약 중단. KB 호출 없음");
+    }
 }

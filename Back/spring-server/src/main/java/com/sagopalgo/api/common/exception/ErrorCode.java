@@ -15,7 +15,7 @@ public enum ErrorCode {
     EXTERNAL_DATA_ERROR(HttpStatus.BAD_GATEWAY, "EXTERNAL_DATA_ERROR", "외부 데이터 조회 중 오류가 발생했습니다."),
     PAPER_CAPITAL_REQUIRED(HttpStatus.CONFLICT, "PAPER_CAPITAL_REQUIRED", "모의매매를 시작하려면 투자 가능 자본금을 먼저 설정하세요."),
     ORDER_STORAGE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "ORDER_STORAGE_UNAVAILABLE",
-        "주문 저장소를 사용할 수 없습니다. DB 마이그레이션 016·017·019와 연결 상태를 확인하세요."),
+        "주문 저장소를 사용할 수 없습니다. DB 마이그레이션 016·017·019·022와 연결 상태를 확인하세요."),
     DIAGNOSTIC_STORAGE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "DIAGNOSTIC_STORAGE_UNAVAILABLE",
         "진단 기록 저장소를 사용할 수 없습니다. DB 마이그레이션 020과 연결 상태를 확인하고 저장 이력을 새로고침하세요. 진단 요청을 자동 반복하지 않습니다."),
     REVIEW_STORAGE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE,"REVIEW_STORAGE_UNAVAILABLE",

@@ -11,6 +11,7 @@ import com.sagopalgo.api.order.service.OrderSendingDiagnosticRules;
 import com.sagopalgo.api.order.service.UnknownOrderReviewRules;
 import com.sagopalgo.api.order.service.OrderParentEvidence;
 import com.sagopalgo.api.order.service.OrderReservationBudget;
+import com.sagopalgo.api.order.service.ReservedOrderAbortRules;
 import com.sagopalgo.api.order.dto.KbOrderExecutionItemResponse;
 import com.sagopalgo.api.order.dto.KbOrderLookupResponse;
 import com.sagopalgo.api.order.simulation.OrderSimulationState.*;
@@ -214,6 +215,7 @@ public class OrderSimulationService {
 
     private void persist(Long userId, String id, String commandId, String executionKey, KbLimitOrderContract.Outcome outcome) {
         var c = command(readState(userId, id), commandId);
+        if(aborted(c)) return;
         if ("JOURNAL_FAILURE".equals(c.scenario)) throw new ApiException(ErrorCode.SIMULATION_RESULT_FAILURE);
         var receipt=OrderDispatchReceipt.from(outcome);
         store.mutate(userId,id,state -> {
@@ -239,12 +241,36 @@ public class OrderSimulationService {
         if(!acknowledged || !"저장된 전송 결과 복구".equals(confirmation)) throw invalid("추가 전송 없는 기록 복구임을 확인하세요.");
         store.mutate(userId,id,state -> {
             var c=command(state,commandId);
+            if(aborted(c)) return null;
             if(c.receipt!=null && c.receipt.valid() && "RETURNED".equals(c.dispatchPhase) && c.receipt.status().equals(c.status)) return null;
             OrderDispatchReceipt.requireReplayable(c.status,c.dispatchPhase,c.receipt);
             c.status=c.receipt.status(); c.recoveredAt=OrderSimulationStore.now().toString();
             event(state,commandId,"저장 결과로 " + c.status + " 복구. 추가 전송·가상 체결 없음"); return null;
         });
         return get(userId,id);
+    }
+
+    public Map<String,Object> abortReservation(Long user,String session,String commandId,boolean acknowledged,String confirmation){
+        ReservedOrderAbortRules.acknowledge(acknowledged,confirmation);
+        store.mutate(user,session,state->{
+            var c=command(state,commandId);if(aborted(c))return null;
+            if(!abortable(state,c)) throw invalid("전송 시작 전 가상 예약 소유권을 확인하지 못했습니다. 차단을 유지합니다.");
+            c.dispatchPhase="ABORTED";c.reservationAbort=new ReservationAbort("SIMULATION_BEFORE_DISPATCH",c.executionKey,OrderSimulationStore.now().toString());
+            event(state,c.id,"전송 전 가상 예약 중단 · 원본 SENDING·제출/변경 가드·자원 보존, 뒤늦은 전송 차단");return null;
+        });return get(user,session);
+    }
+    private static boolean reserved(Command c){return "SENDING".equals(c.status) && "RESERVED".equals(c.dispatchPhase)
+        && c.executionKey!=null && !c.executionKey.isBlank() && c.sendCount==0 && c.startedAt==null && c.returnedAt==null
+        && c.receipt==null && (c.brokerOrderNo==null || c.brokerOrderNo.isEmpty());}
+    private static boolean abortable(OrderSimulationState state,Command c){return reserved(c)
+        && state.brokerOrders.values().stream().noneMatch(b->c.id.equals(b.commandId));}
+    private static boolean aborted(Command c){
+        var a=c.reservationAbort;
+        if(a==null || !"SIMULATION_BEFORE_DISPATCH".equals(a.source()) || !"ABORTED".equals(c.dispatchPhase)
+            || !"SENDING".equals(c.status) || c.executionKey==null || c.executionKey.isBlank() || !c.executionKey.equals(a.executionKey())
+            || c.sendCount!=0 || c.startedAt!=null || c.returnedAt!=null || c.receipt!=null
+            || (c.brokerOrderNo!=null && !c.brokerOrderNo.isEmpty())) return false;
+        try{return !LocalDateTime.parse(a.abortedAt()).isBefore(LocalDateTime.parse(c.createdAt));}catch(RuntimeException e){return false;}
     }
 
     public Map<String, Object> fill(Long userId, String id, String orderNo, BigDecimal quantity) {
@@ -372,7 +398,7 @@ public class OrderSimulationService {
         });
         return get(user,session);
     }
-    private static boolean pending(Command c){return "SENDING".equals(c.status) || ("UNKNOWN".equals(c.status) && !SimulationCompletionRules.resolved(c));}
+    private static boolean pending(Command c){return ("SENDING".equals(c.status) && !aborted(c)) || ("UNKNOWN".equals(c.status) && !SimulationCompletionRules.resolved(c));}
 
     private void fill(OrderSimulationState state, BrokerOrder order, BigDecimal quantity) {
         if (quantity == null || quantity.signum() <= 0 || quantity.stripTrailingZeros().scale() > 0
@@ -457,6 +483,8 @@ public class OrderSimulationService {
             item.put("dispatchPhase",c.dispatchPhase==null?"LEGACY_UNVERIFIED":c.dispatchPhase);
             item.put("receipt",c.receipt); item.put("startedAt",c.startedAt); item.put("returnedAt",c.returnedAt); item.put("recoveredAt",c.recoveredAt);
             item.put("recoverable","SENDING".equals(c.status) && "RETURNED".equals(c.dispatchPhase) && c.receipt!=null && c.receipt.valid());
+            item.put("abortable",abortable(state,c));
+            item.put("reservationAbort",aborted(c)?Map.of("source","SIMULATION_BEFORE_DISPATCH","abortedAt",c.reservationAbort.abortedAt()):null);
             item.put("diagnostics",List.copyOf(c.diagnostics));
             item.put("reviews",c.reviews.stream().map(r->Map.of("reviewId",r.reviewId(),"evidence",r.evidence(),
                 "confirmedAt",r.confirmedAt(),"lockMaintained",true,"message",UnknownOrderReviewRules.MESSAGE)).toList());

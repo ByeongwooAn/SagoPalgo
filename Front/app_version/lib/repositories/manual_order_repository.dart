@@ -25,6 +25,10 @@ abstract interface class ManualOrderDispatchRepository {
   Future<Map<String, dynamic>> recoverDispatch(String id);
 }
 
+abstract interface class ManualOrderReservationAbortRepository {
+  Future<Map<String, dynamic>> abortReservation(String id);
+}
+
 abstract interface class ManualOrderDiagnosticRepository {
   Future<List<Map<String, dynamic>>> diagnosticHistory(String id);
   Future<Map<String, dynamic>> diagnoseSending(
@@ -56,8 +60,15 @@ class ManualOrder {
   Map<String, dynamic>? get reconciliation =>
       data['reconciliation'] as Map<String, dynamic>?;
   bool get reconciled => reconciliation != null;
+  bool get abortedBeforeDispatch =>
+      status == 'SENDING' &&
+      orderNo.isEmpty &&
+      data['reservationAbort'] is Map &&
+      data['reservationAbort']['source'] == 'LOCAL_BEFORE_DISPATCH' &&
+      data['reservationAbort']['abortedAt'] is String;
   bool get unresolved =>
-      status == 'SENDING' || (status == 'UNKNOWN' && !reconciled);
+      (status == 'SENDING' && !abortedBeforeDispatch) ||
+      (status == 'UNKNOWN' && !reconciled);
   String get message => data['message'] as String;
   String get summary =>
       '$stockName ($stockCode) · ${side == 'BUY' ? '매수' : '매도'}\n'
