@@ -155,6 +155,35 @@ class ManualOrderMysqlIntegrationTest {
         }
     }
 
+    @Test void partialChangeClaimsCannotConsumeParentTwice() throws Exception {
+        var initial=command(approval(),"ACCEPTED");commands.insert(initial);
+        jdbc.update("UPDATE manual_order_commands SET quantity=5 WHERE command_id=?",initial.commandId());
+        var p=commands.find(initial.commandId(),1L);
+        var t=now();
+        var a=new ManualOrderCommand(UUID.randomUUID().toString(),1L,null,p.commandId(),"AMEND",p.stockCode(),p.stockName(),p.market(),p.side(),
+            new BigDecimal("99"),BigDecimal.ONE,FINGERPRINT,"hash",t.plusSeconds(90),"PREPARED",null,p.orderDate(),null,null,null,t,t);
+        var b=new ManualOrderCommand(UUID.randomUUID().toString(),1L,null,p.commandId(),"CANCEL",p.stockCode(),p.stockName(),p.market(),p.side(),
+            p.price(),BigDecimal.ONE,FINGERPRINT,"hash",t.plusSeconds(90),"PREPARED",null,p.orderDate(),null,null,null,t,t);
+        commands.insert(a);commands.insert(b);
+        assertThat(race(()->store.claim(a,"partial-a"),()->store.claim(b,"partial-b"))).containsExactlyInAnyOrder(true,false);
+        var parent=commands.find(p.commandId(),1L);assertThat(parent.changeId()).isIn(a.commandId(),b.commandId());
+        assertThat(commands.find(parent.changeId(),1L).quantity()).isEqualByComparingTo("1");
+        assertThat(parent.quantity()).isEqualByComparingTo(p.quantity());
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_dispatches",Integer.class)).isEqualTo(1);
+    }
+    @ParameterizedTest @ValueSource(strings={"AMEND","CANCEL"})
+    void partialUnknownReviewOnlyRecordsEvidenceAndKeepsPending(String kind) {
+        var original=reviewCandidate(kind);
+        jdbc.update("UPDATE manual_order_commands SET quantity=1 WHERE command_id=?",original.commandId());
+        var c=commands.find(original.commandId(),1L);var parent=commands.find(c.parentId(),1L);
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,"CHANGE"));
+        when(diagnosticExecutions.findByOrderNumber(parent.orderDate(),parent.orderNo())).thenReturn(parentLookup(c,BigDecimal.ZERO));
+        var prepared=reviewService.prepare(1L,c.commandId(),"0040000639");
+        var saved=reviewService.confirm(1L,c.commandId(),prepared.reviewId(),prepared.token(),true,"잠금 유지 대조 저장");
+        assertThat(saved.lockMaintained()).isTrue();assertThat(saved.evidence().quantity()).isEqualByComparingTo("1");
+        assertThat(commands.pending(1L)).isEqualTo(1);assertThat(commands.find(c.commandId(),1L).status()).isEqualTo("UNKNOWN");
+        assertThat(commands.find(parent.commandId(),1L).changeId()).isEqualTo(c.commandId());
+    }
     @Test void schemaConstraintsAndRecordMappingAreRealMysqlCompatible() {
         var command = command(approval(), "SENDING");
         store.claim(command);

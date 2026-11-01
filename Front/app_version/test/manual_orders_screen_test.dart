@@ -251,6 +251,132 @@ void main() {
     expect(r.orders.single.price, 100);
   });
 
+  for (final kind in ['AMEND', 'CANCEL']) {
+    testWidgets('selected live $kind quantity needs separate final consent', (
+      t,
+    ) async {
+      final r = QuantityChangeFake();
+      await mount(t, r);
+      await t.ensureVisible(find.text(kind == 'AMEND' ? '지정가 변경' : '수량 취소'));
+      await t.tap(find.text(kind == 'AMEND' ? '지정가 변경' : '수량 취소'));
+      await t.pumpAndSettle();
+      if (kind == 'AMEND') {
+        await t.enterText(
+          find.widgetWithText(TextFormField, '새 지정가 (원)'),
+          '99',
+        );
+      }
+      await t.enterText(
+        find.widgetWithText(TextFormField, '정정/취소할 수량 (주)'),
+        '2',
+      );
+      await t.tap(find.text('주문안 조회'));
+      await t.pump(const Duration(milliseconds: 400));
+      expect(r.selected, 2);
+      expect(find.textContaining('기존 가격에 남을 예정 3주'), findsOneWidget);
+      expect(
+        t
+            .widget<FilledButton>(find.widgetWithText(FilledButton, '실제 주문 전송'))
+            .onPressed,
+        isNull,
+      );
+      expect(r.changeSubmits, 0);
+      await t.tap(find.byType(CheckboxListTile));
+      await t.pump();
+      await t.tap(find.text('실제 주문 전송'));
+      await t.pumpAndSettle();
+      expect(r.changeSubmits, 1);
+      expect(r.orders.first.quantity, 5);
+    });
+  }
+  for (final mismatch in ['quantity', 'parentId', 'stockCode', 'price']) {
+    testWidgets(
+      'mismatched server $mismatch never approves selected quantity',
+      (t) async {
+        final r = QuantityChangeFake()..mismatch = mismatch;
+        await mount(t, r);
+        await t.ensureVisible(find.text('수량 취소'));
+        await t.tap(find.text('수량 취소'));
+        await t.pumpAndSettle();
+        await t.enterText(
+          find.widgetWithText(TextFormField, '정정/취소할 수량 (주)'),
+          '2',
+        );
+        await t.tap(find.text('주문안 조회'));
+        await t.pumpAndSettle();
+        expect(find.textContaining('서버 주문안이 선택한'), findsOneWidget);
+        expect(r.changeSubmits, 0);
+        expect(find.byType(CheckboxListTile), findsNothing);
+      },
+    );
+  }
+  testWidgets('lost selected change response never repeats and keeps pending', (
+    t,
+  ) async {
+    final r = QuantityChangeFake()..loseChangeResponse = true;
+    await mount(t, r);
+    await t.ensureVisible(find.text('수량 취소'));
+    await t.tap(find.text('수량 취소'));
+    await t.pumpAndSettle();
+    await t.enterText(find.widgetWithText(TextFormField, '정정/취소할 수량 (주)'), '2');
+    await t.tap(find.text('주문안 조회'));
+    await t.pump(const Duration(milliseconds: 400));
+    await t.tap(find.byType(CheckboxListTile));
+    await t.pump();
+    await t.tap(find.text('실제 주문 전송'));
+    await t.pumpAndSettle();
+    expect(r.changeSubmits, 1);
+    expect(find.textContaining('같은 정정·취소를 반복하지 말고'), findsOneWidget);
+    await t.tap(find.byTooltip('주문 기록 새로고침'));
+    await t.pumpAndSettle();
+    expect(r.changeSubmits, 1);
+    expect(r.orders.last.unresolved, true);
+    expect(
+      t
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, '안전 조건 검증 및 주문안 확인'),
+          )
+          .onPressed,
+      isNull,
+    );
+  });
+  testWidgets('out of range selected quantity does not prepare', (t) async {
+    final r = QuantityChangeFake();
+    await mount(t, r);
+    await t.ensureVisible(find.text('수량 취소'));
+    await t.tap(find.text('수량 취소'));
+    await t.pumpAndSettle();
+    await t.enterText(find.widgetWithText(TextFormField, '정정/취소할 수량 (주)'), '6');
+    await t.tap(find.text('주문안 조회'));
+    await t.pumpAndSettle();
+    expect(r.selected, isNull);
+    expect(r.changeSubmits, 0);
+  });
+  test(
+    'HTTP selected quantity is explicit and reservation reuse remains off',
+    () async {
+      var calls = 0;
+      final repository = SpringOrderPrecheckRepository(
+        accessToken: '',
+        config: ApiConfig(baseUrl: 'http://localhost:8080'),
+        client: MockClient((request) async {
+          calls++;
+          expect(
+            request.url.path,
+            '/api/v1/orders/manual/test/changes/prepare',
+          );
+          expect(jsonDecode(request.body), {
+            'kind': 'CANCEL',
+            'quantity': 2,
+            'reuseReservation': false,
+          });
+          return http.Response(jsonEncode({'success': true, 'data': {}}), 200);
+        }),
+      );
+      await repository.prepareQuantityChange('test', 'CANCEL', null, 2);
+      expect(calls, 1);
+    },
+  );
   testWidgets('reserved abort requires separate consent with live switch off', (
     t,
   ) async {
@@ -797,6 +923,67 @@ class FakeRepository extends OrderPrecheckRepository
       if (changedPrice != null) 'price': changedPrice,
       'commandId': 'child',
     });
+  }
+}
+
+class QuantityChangeFake extends FakeRepository
+    implements ManualOrderQuantityChangeRepository {
+  QuantityChangeFake() {
+    orders = [
+      ManualOrder({
+        ...order('ACCEPTED').data,
+        'market': 'KOSPI',
+        'quantity': 5,
+      }),
+    ];
+  }
+  int? selected;
+  String? mismatch;
+  bool loseChangeResponse = false;
+  @override
+  Future<ManualOrder> submitManualChange(String id, String token) async {
+    if (!loseChangeResponse) return super.submitManualChange(id, token);
+    changeSubmits++;
+    orders = [
+      orders.first,
+      ManualOrder({
+        ...orders.first.data,
+        'commandId': 'child',
+        'kind': 'CANCEL',
+        'quantity': selected,
+        'status': 'SENDING',
+        'orderNo': '',
+      }),
+    ];
+    throw TimeoutException('selected change response lost');
+  }
+
+  @override
+  Future<Map<String, dynamic>> prepareQuantityChange(
+    String id,
+    String kind,
+    int? price,
+    int quantity,
+  ) async {
+    selected = quantity;
+    changedKind = kind;
+    changedPrice = price;
+    return {
+      'token': 'change-token',
+      'command': {
+        ...orders.first.data,
+        'commandId': 'child',
+        'parentId': id,
+        'kind': kind,
+        'status': 'PREPARED',
+        'quantity': quantity,
+        'price': price ?? orders.first.price,
+        if (mismatch == 'quantity') 'quantity': 5,
+        if (mismatch == 'parentId') 'parentId': 'wrong-parent',
+        if (mismatch == 'stockCode') 'stockCode': '000660',
+        if (mismatch == 'price') 'price': 101,
+      },
+    };
   }
 }
 

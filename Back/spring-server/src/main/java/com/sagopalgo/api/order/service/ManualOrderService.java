@@ -70,8 +70,10 @@ public class ManualOrderService {
     public ChangePreparation prepareChange(Long user,String parentId,String kind,BigDecimal price,BigDecimal quantity,boolean reuseReservation) {
         ready();
         ManualOrderCommand parent=require(user,parentId);
-        if(reuseReservation || (quantity!=null && quantity.compareTo(parent.quantity())!=0)) throw new ApiException(ErrorCode.VALIDATION_ERROR,
-            "실제 KB의 일부 수량 변경·예약금 재사용 계약은 미확인입니다. 주문을 준비하지 않았습니다. 시뮬레이터에서 먼저 검증하세요.");
+        if(reuseReservation) throw new ApiException(ErrorCode.VALIDATION_ERROR,
+            "실제 KB의 예약금 재사용 계약은 미확인입니다. 주문을 준비하지 않았습니다.");
+        BigDecimal selected=quantity==null?parent.quantity():quantity;
+        requireChangeQuantity(selected,parent.quantity());
         requireChangeable(parent);
         ManualOrderObservation observation=sync(user,parentId);
         if(!"OPEN".equals(observation.status())) throw new ApiException(ErrorCode.VALIDATION_ERROR,
@@ -79,7 +81,7 @@ public class ManualOrderService {
         if(!Set.of("AMEND","CANCEL").contains(kind)) throw new ApiException(ErrorCode.VALIDATION_ERROR);
         BigDecimal newPrice="AMEND".equals(kind)?price:parent.price();
         OrderPrecheckRequest request=new OrderPrecheckRequest(parent.stockCode(),parent.stockName(),parent.market(),
-            parent.side(),newPrice,parent.quantity());
+            parent.side(),newPrice,selected);
         KbLimitOrderContract.requireSupported(request);
         // 매수 증액에는 기존 예약금 반환을 가정하지 않는 별도 현금 검증을 적용합니다.
         if("AMEND".equals(kind)) validateAmend(user,request,parent);
@@ -101,11 +103,12 @@ public class ManualOrderService {
         ready();
         ManualOrderCommand parent=require(user,child.parentId());
         requireChangeable(parent);
+        requireChangeQuantity(child.quantity(),parent.quantity());
         if(!binding.matches(child.accountFingerprint()) || !"OPEN".equals(sync(user,parent.commandId()).status())) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR,"주문 상태 또는 계좌 설정이 바뀌었습니다. 다시 확인하세요.");
         }
         if("AMEND".equals(child.kind())) validateAmend(user,request(child),parent);
-        return transmit(child,KbLimitOrderContract.encodeChange(request(child),child.kind(),parent.orderNo()));
+        return transmit(child,KbLimitOrderContract.encodeChange(request(child),child.kind(),parent.orderNo(),parent.quantity()));
     }
 
     public ManualOrderObservation sync(Long user,String id) {
@@ -116,13 +119,17 @@ public class ManualOrderService {
         if((!"ACCEPTED".equals(c.status()) && reconciliation==null) || knownOrderNo==null) throw new ApiException(ErrorCode.VALIDATION_ERROR,
             "알려진 KB 접수 주문번호가 필요합니다. 불명확한 전송은 KB 앱과 기존 수동 대조에서 확인하세요.");
         KbOrderLookupResponse lookup=executions.findByOrderNumber(c.orderDate(),knownOrderNo);
-        KbOrderExecutionItemResponse row=lookup.completeScan() && lookup.matches().size()==1?lookup.matches().get(0):null;
+        KbOrderExecutionItemResponse row=lookup!=null && lookup.completeScan() && lookup.matches()!=null && lookup.matches().size()==1
+            && c.orderDate().equals(lookup.orderDate()) && knownOrderNo.equals(lookup.orderNo())?lookup.matches().get(0):null;
         boolean matches=row!=null && c.stockCode().equals(row.stockCode())
-            && c.quantity().compareTo(row.orderQuantity())==0 && row.orderPrice()!=null
+            && knownOrderNo.equals(row.orderNo()) && row.orderQuantity()!=null && c.quantity().compareTo(row.orderQuantity())==0 && row.orderPrice()!=null
             && c.price().compareTo(row.orderPrice())==0
             && ("BUY".equals(c.side())?"매수":"매도").equals(row.tradeTypeName());
-        String status=matches && !"CANCEL".equals(c.kind())?row.status():"UNKNOWN";
-        ManualOrderObservation observation=new ManualOrderObservation(id,status,lookup.completeScan(),
+        boolean unchangedOpen=matches && "OPEN".equals(row.status()) && row.filledQuantity()!=null && row.filledQuantity().signum()==0
+            && row.openQuantity()!=null && c.quantity().compareTo(row.openQuantity())==0
+            && row.rejectionReason()!=null && row.rejectionReason().isBlank() && !UnknownOrderReviewRules.hasChangeEvidence(row);
+        String status=matches && !"CANCEL".equals(c.kind()) && (!"OPEN".equals(row.status()) || unchangedOpen)?row.status():"UNKNOWN";
+        ManualOrderObservation observation=new ManualOrderObservation(id,status,lookup!=null && lookup.completeScan(),
             matches?row.filledQuantity():null,matches?row.openQuantity():null,LocalDateTime.now(KST));
         mapper.observe(observation);
         return observation;
@@ -162,6 +169,10 @@ public class ManualOrderService {
     }
     private void requireChangeable(ManualOrderCommand c) {
         OrderWorkflowRules.requireChangeable(c.kind(),c.status(),c.changeId()!=null,today().equals(c.orderDate()));
+    }
+    private void requireChangeQuantity(BigDecimal selected,BigDecimal total) {
+        if(selected==null || selected.signum()<=0 || selected.stripTrailingZeros().scale()>0 || selected.compareTo(total)>0)
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,"변경 수량은 원주문 수량 이내의 양수 정수여야 합니다. 수량 증가는 신규 주문으로 진행하세요.");
     }
     private OrderPrecheckRequest request(ManualOrderCommand c) {return new OrderPrecheckRequest(c.stockCode(),c.stockName(),c.market(),c.side(),c.price(),c.quantity());}
     private ManualOrderCommand command(Long user,Long approval,String parent,String kind,OrderPrecheckRequest r,String fingerprint,String token,String status) {

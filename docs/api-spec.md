@@ -987,3 +987,9 @@ POST `/api/v1/orders/manual/{id}/reviews/prepare`, `/confirm`와 GET 기본 revi
 POST `/api/v1/orders/manual/{id}/dispatch/abort-reservation` 및 `/api/v1/orders/simulations/{sessionId}/commands/{id}/abort-reservation`은 `{acknowledged:true,confirmation:"전송 전 예약 중단"}`을 요구합니다. 전송 시작과 원자적으로 경쟁해 RESERVED만 ABORTED로 전환합니다. 실제 GET dispatch에 `abortable,reservationAbort`, 주문 이력에 선택적 `reservationAbort={source:"LOCAL_BEFORE_DISPATCH",abortedAt}`를 추가합니다. 가상 출처는 `SIMULATION_BEFORE_DISPATCH`이며 서로 대체할 수 없습니다. 실행 키·계좌 지문은 응답에 제외합니다.
 
 원본 SENDING·제출/변경 가드 보존, 검증된 감사 명령만 pending 제외, 중복 감사 한 건, 응답 유실 GET 확인을 적용합니다. DISPATCHING/이전 기록/UNKNOWN은 이 경로로 해제하지 않습니다. 실제 저장소는 022가 필요하며 누락 시 ORDER_STORAGE_UNAVAILABLE로 차단합니다. [전체 검증·배포 계약](reserved-order-abort.md)을 따릅니다.
+
+## 27. 실제 첫 일부 수량 정정·취소
+
+2026-11-02부터 실제 changes/prepare의 quantity를 당일 전량 미체결 NEW의 첫 변경 수량으로 지원합니다. 앞선 24/25절의 실제 동일 수량 제한은 이 후속 범위에서 확장됩니다. 누락은 원수량, 양수 정수이며 원수량 이내여야 하고 reuseReservation=true는 계속 거절합니다. 선택 수량<원수량이면 crct_clsf=1, 같으면 2이며 ordr_q는 선택 수량입니다. 원수량·원주문 변경 가드는 보존하고 추가 변경은 허용하지 않습니다.
+
+매수 증액은 선택 수량의 새 지정가×수량 전체 금액을 별도 주문가능현금으로 검사합니다. 준비·제출의 정확한 일자/번호·전량 미체결 재검사·토큰·동의를 유지합니다. UNKNOWN 부분 변경은 관찰만 가능하며 종결하지 않습니다. 추가 스키마 변경 없이 기존 016~022와 새 백엔드/앱을 사용합니다. [정책·공식 근거·배포 점검](manual-partial-order-changes.md)을 따릅니다.

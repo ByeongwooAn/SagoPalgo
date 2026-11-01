@@ -328,3 +328,5 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 ## 022. 전송 전 예약 중단 감사
 
 `manual_order_reservation_aborts`는 command_id PK/전송기록 FK, user_id FK, execution_key, account_fingerprint, aborted_at(DATETIME(6))을 저장합니다. `manual_order_dispatches.phase` CHECK에 ABORTED를 추가하며 원본 주문과 가드는 변경하지 않습니다. 실제 pending 제외는 감사와 전송 기록의 소유권·키·계좌·시각·미시작 조건 일치를 요구합니다. 기존 DB는 [022 백업·적용](reserved-order-abort.md)이 필요하고 신규 schema.sql에도 포함됩니다. 메인 PC 021까지 점검 이후 022 운영 적용은 미실행입니다.
+
+2026-11-02 메인 PC에서 백업 후 022 적용과 필수 컬럼·PK/FK·ABORTED 단계 CHECK를 확인했습니다. 읽기 전용 배포 점검은 [실제 일부 변경 후속 문서](manual-partial-order-changes.md)를 따릅니다. Ubuntu 별도 DB의 상태와 실제 주문 결과 검증을 의미하지 않습니다.

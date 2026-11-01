@@ -82,3 +82,5 @@ EXE는 `Front/app_version/build/windows/x64/runner/Release/SagoPalgo.exe`로 동
 ## 자동 검증 결과
 
 백엔드 462건(실제 격리 MySQL 87건), Flutter 182건 통과, Dart 정적 분석 이슈 없음, Windows Release 빌드 성공입니다. 부모 단독 변화/조회 실패·기존 JSON, 가상 종결 소유권·잘못된 출처·부분체결 차단·잔량 체결 후 종결, 만료/토큰 교체·동시 확인·저장 실패 롤백·다른 SENDING 차단과 응답 유실 GET 복구를 확인했습니다. 전용 MySQL 테스트 컨테이너·네트워크는 정리했습니다. 실제 KB의 코드 의미·운영 계좌 응답·실주문 성공을 검증한 것은 아닙니다.
+
+2026-11-02 재조사에서도 SSQM2341의 crct_cncl_ccd/crct_q/sor_cncl_q 설명은 null로 확인했습니다. 요청 구분의 공식 일부/전부 정의를 이용한 [첫 일부 수량 변경](manual-partial-order-changes.md)은 지원하지만 실제 완료 코드·추가 변경 계보·예약금 재사용 계약을 대체하지 않습니다. 메인 PC는 이후 022 적용·새 백엔드/앱 빌드·DB/GET 점검을 완료했으며 실제 주문 결과 대조는 별도입니다.

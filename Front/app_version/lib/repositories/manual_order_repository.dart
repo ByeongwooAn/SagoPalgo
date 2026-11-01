@@ -13,6 +13,16 @@ abstract interface class ManualOrderRepository {
   Future<ManualOrder> submitManualChange(String id, String token);
 }
 
+/// 선택 수량은 정정/취소할 수량이며 새 총 주문수량이 아닙니다.
+abstract interface class ManualOrderQuantityChangeRepository {
+  Future<Map<String, dynamic>> prepareQuantityChange(
+    String id,
+    String kind,
+    int? price,
+    int quantity,
+  );
+}
+
 /// 미확정 전송 대조는 실제 주문 전송 기능과 분리합니다.
 abstract interface class ManualOrderReconciliationRepository {
   Future<Map<String, dynamic>> prepareReconciliation(String id, String orderNo);

@@ -51,7 +51,8 @@ public class UnknownOrderReviewStore {
             || !c.orderDate().equals(parent.orderDate()) || !c.stockCode().equals(parent.stockCode()) || !c.side().equals(parent.side())
             || !c.market().equals(parent.market()) || ("CANCEL".equals(c.kind()) && c.price().compareTo(parent.price())!=0)
             || ("AMEND".equals(c.kind()) && c.price().compareTo(parent.price())==0)
-            || c.quantity().compareTo(parent.quantity())!=0) throw invalid();
+            || c.quantity()==null || c.quantity().signum()<=0 || c.quantity().stripTrailingZeros().scale()>0
+            || c.quantity().compareTo(parent.quantity())>0) throw invalid();
         UnknownOrderReviewRules.number(parent.orderNo());return parent.orderNo();
     }
     static boolean sameToken(String a,String b){return a!=null && b!=null && MessageDigest.isEqual(a.getBytes(StandardCharsets.US_ASCII),b.getBytes(StandardCharsets.US_ASCII));}
