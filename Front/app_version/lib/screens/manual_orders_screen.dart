@@ -66,7 +66,8 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                     (_awaitingCommand != null && c.id == _awaitingCommand)) &&
                 (c.status == 'ACCEPTED' ||
                     c.status == 'REJECTED' ||
-                    c.reconciled),
+                    c.reconciled ||
+                    c.abortedBeforeDispatch),
           );
           if (resolved) {
             _awaitingApproval = null;
@@ -198,6 +199,10 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                             '전량 체결 대조 확정 · KB 주문번호 ${c.reconciliation!['orderNo']}\n'
                             '확정 ${c.reconciliation!['confirmedAt']} · 최초 전송 결과는 보존됩니다.',
                           ),
+                        if (c.abortedBeforeDispatch)
+                          Text(
+                            '전송 전 예약 중단 · 원본 SENDING 보존 · ${c.data['reservationAbort']['abortedAt']}',
+                          ),
                         Wrap(
                           spacing: 8,
                           children: [
@@ -305,6 +310,10 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
       if (!mounted) return;
       bool checked = false;
       bool openDiagnosis = false;
+      bool abortSelected = false;
+      final canAbort =
+          record['abortable'] == true &&
+          widget.manual is ManualOrderReservationAbortRepository;
       final confirmed =
           await showDialog<bool>(
             context: context,
@@ -322,11 +331,15 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                         '수동 복구 ${record['recoveredAt'] ?? '기록 없음'}\n'
                         '저장 결과 ${record['receipt'] ?? '없음'}\n${record['message']}',
                       ),
-                      if (record['recoverable'] == true)
+                      if (record['recoverable'] == true || canAbort)
                         CheckboxListTile(
                           value: checked,
                           onChanged: (v) => update(() => checked = v ?? false),
-                          title: const Text('추가 주문 전송 없이 저장 결과만 복구함을 확인했습니다.'),
+                          title: Text(
+                            canAbort
+                                ? '전송 시작 전 예약을 중단하고 뒤늦은 전송을 막는 것에 동의합니다. 원본·제출/변경 가드는 유지합니다.'
+                                : '추가 주문 전송 없이 저장 결과만 복구함을 확인했습니다.',
+                          ),
                         ),
                     ],
                   ),
@@ -337,7 +350,11 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                     child: const Text('닫기'),
                   ),
                   if (record['commandStatus'] == 'SENDING' &&
-                      record['phase'] != 'RETURNED' &&
+                      [
+                        'RESERVED',
+                        'DISPATCHING',
+                        'LEGACY_UNVERIFIED',
+                      ].contains(record['phase']) &&
                       widget.manual is ManualOrderDiagnosticRepository)
                     OutlinedButton(
                       onPressed: () {
@@ -353,15 +370,34 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                           : null,
                       child: const Text('기록으로 결과 복구'),
                     ),
+                  if (canAbort)
+                    FilledButton(
+                      onPressed: checked
+                          ? () {
+                              abortSelected = true;
+                              Navigator.pop(context, true);
+                            }
+                          : null,
+                      child: const Text('전송 전 예약 중단'),
+                    ),
                 ],
               ),
             ),
           ) ??
           false;
       if (confirmed) {
-        await repository.recoverDispatch(command.id);
+        if (abortSelected) {
+          await (widget.manual as ManualOrderReservationAbortRepository)
+              .abortReservation(command.id);
+        } else {
+          await repository.recoverDispatch(command.id);
+        }
         if (mounted) {
-          setState(() => _message = '저장 결과를 복구했습니다. 추가 주문은 전송하지 않았습니다.');
+          setState(
+            () => _message = abortSelected
+                ? '전송 전 예약을 중단했습니다. KB 주문을 보내지 않았습니다.'
+                : '저장 결과를 복구했습니다. 추가 주문은 전송하지 않았습니다.',
+          );
         }
       }
       if (openDiagnosis && mounted) await _openDiagnostics(command, true);

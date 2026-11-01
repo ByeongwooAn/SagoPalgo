@@ -981,3 +981,9 @@ POST `/api/v1/orders/manual/{id}/reviews/prepare`, `/confirm`와 GET 기본 revi
 세션 GET에 `changePolicy:"OWNED_RESERVATION_V1"`, 명령에 `changeable,removedQuantity,changeBudget`을 추가합니다. changeBudget은 `selectedQuantity,remainingQuantity,reusedCash,newReservedCash,additionalCash,releasedCash,scope`입니다. 가상 추가 필요 현금은 선택 수량의 새/기존 예약액 차이의 양수 부분만 사용합니다. 내부 changeSnapshot·실행 키·토큰 해시는 제외합니다. 부분/추가 정정의 종결 evidence에는 선택적 allocation(`source:"SIMULATION_ALLOCATION",parentQuantity,parentRemoved,allocatedQuantity`)을 추가하며 이전 이력의 누락은 null입니다.
 
 실제 `/orders/manual/{id}/changes/prepare`는 선택적 `quantity,reuseReservation`을 읽습니다. 기존과 다른 수량 또는 reuseReservation=true는 VALIDATION_ERROR(400)로 거절하며 KB 조회/승인/전송을 시작하지 않습니다. 누락·동일 수량/false는 기존 정책을 따릅니다. 시뮬레이터와 실제 API 사이에서 source/모드 플래그를 전달해 조건을 우회하지 않습니다. 새 스키마·마이그레이션 없이 018 JSON을 확장하며 [전체 규칙·공식 근거·배포](order-partial-changes.md)를 따릅니다.
+
+## 26. 전송 시작 전 예약 중단
+
+POST `/api/v1/orders/manual/{id}/dispatch/abort-reservation` 및 `/api/v1/orders/simulations/{sessionId}/commands/{id}/abort-reservation`은 `{acknowledged:true,confirmation:"전송 전 예약 중단"}`을 요구합니다. 전송 시작과 원자적으로 경쟁해 RESERVED만 ABORTED로 전환합니다. 실제 GET dispatch에 `abortable,reservationAbort`, 주문 이력에 선택적 `reservationAbort={source:"LOCAL_BEFORE_DISPATCH",abortedAt}`를 추가합니다. 가상 출처는 `SIMULATION_BEFORE_DISPATCH`이며 서로 대체할 수 없습니다. 실행 키·계좌 지문은 응답에 제외합니다.
+
+원본 SENDING·제출/변경 가드 보존, 검증된 감사 명령만 pending 제외, 중복 감사 한 건, 응답 유실 GET 확인을 적용합니다. DISPATCHING/이전 기록/UNKNOWN은 이 경로로 해제하지 않습니다. 실제 저장소는 022가 필요하며 누락 시 ORDER_STORAGE_UNAVAILABLE로 차단합니다. [전체 검증·배포 계약](reserved-order-abort.md)을 따릅니다.

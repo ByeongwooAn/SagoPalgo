@@ -6,7 +6,8 @@
 
 | 기록 단계 | 의미 | 수동 복구 |
 |---|---|---|
-| RESERVED | 주문 예약·제출 가드와 같은 트랜잭션에서 기록 | 불가. 실행자가 뒤늦게 전송을 진행할 수 있음 |
+| RESERVED | 주문 예약·제출 가드와 같은 트랜잭션에서 기록 | 결과 복구 불가. 022의 별도 전송 전 예약 중단 가능 |
+| ABORTED | 전송 시작과 경쟁해 먼저 확정한 로컬 예약 중단 | 감사 일치 시 해당 명령만 차단 집계에서 제외. 원본/가드 보존 |
 | DISPATCHING | 외부 호출 직전에 시작 기록을 독립 커밋 | 불가. 호출 진행 중·프로세스 종료·반환 기록 실패를 구분할 수 없음 |
 | RETURNED | 호출 종료 후 정규화된 결과를 독립 커밋 | 주문이 SENDING이고 결과·현재 계좌 지문이 유효한 경우만 가능 |
 | LEGACY_UNVERIFIED | 이전 기록에 전송 단계 증거가 없음 | 불가. 기존 SENDING을 자동 이관하거나 해제하지 않음 |
@@ -81,3 +82,7 @@ docker compose --env-file .env up -d --build --no-deps spring-api
 ## 후속 020: 잠금 유지 진단
 
 RETURNED가 없는 SENDING에는 [수동 진단 화면·이력](sending-manual-diagnostics.md)을 연결했습니다. 전송 기록 창에서 주문번호로 읽기 전용 관찰을 보관하며, FIELDS_MATCH·NOT_FOUND를 포함해 어떤 진단도 상태/잠금을 변경하지 않습니다. REQUESTED를 먼저 커밋해 같은 ID의 중복 KB 조회를 막습니다. 진단 이력에는 별도 020이 필요하며 기존 019 복구 기준은 유지합니다.
+
+## 후속: 전송 전 예약 중단과 022
+
+결과 복구와 별도로 RESERVED의 `전송 전 예약 중단`을 추가했습니다. 전송 시작과 경쟁해 먼저 확정된 경우만 ABORTED/별도 감사로 바꾸고 원본 SENDING·제출/변경 가드는 보존합니다. 검증된 감사 명령만 pending에서 제외하며 DISPATCHING/LEGACY_UNVERIFIED/UNKNOWN은 이 경로로 해제하지 않습니다. dispatch 응답에 abortable/reservationAbort를 추가했습니다. [022 백업/적용·API·화면 확인](reserved-order-abort.md)을 따릅니다. 앞선 운영 미확인 문구는 당시 기록이며 메인 PC는 이후 021까지 구조 점검·사용자 구동 확인, 이번 022는 미적용입니다.

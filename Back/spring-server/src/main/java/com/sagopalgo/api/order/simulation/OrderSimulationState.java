@@ -40,6 +40,7 @@ public class OrderSimulationState {
         public List<StoredReview> reviews = new ArrayList<>();
         public CompletionPreparation completionPreparation;
         public StoredCompletion completion;
+        public ReservationAbort reservationAbort;
     }
 
     public record Diagnostic(String diagnosticId,String commandId,String orderNo,String phaseBefore,String state,
@@ -51,6 +52,7 @@ public class OrderSimulationState {
     public record StoredCompletion(String resolutionId,String tokenHash,SimulationCompletionRules.Evidence evidence,String confirmedAt){}
     public record ChangeSnapshot(String parentOrderNo,BigDecimal filledQuantity,BigDecimal removedQuantity,
         BigDecimal openQuantity,long revision,String previousChangeId){}
+    public record ReservationAbort(String source,String executionKey,String abortedAt){}
 
     public static class BrokerOrder {
         public String orderNo;

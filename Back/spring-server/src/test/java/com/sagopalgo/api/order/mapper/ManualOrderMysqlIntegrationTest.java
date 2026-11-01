@@ -75,6 +75,7 @@ class ManualOrderMysqlIntegrationTest {
             jdbc.execute("DROP TABLE IF EXISTS manual_order_reviews");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_review_preparations");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_diagnostics");
+            jdbc.execute("DROP TABLE IF EXISTS manual_order_reservation_aborts");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_dispatch_recoveries");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_dispatches");
             jdbc.execute("DROP TABLE IF EXISTS manual_order_reconciliations");
@@ -91,6 +92,8 @@ class ManualOrderMysqlIntegrationTest {
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/017_manual_order_reconciliations.sql"));
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/019_manual_order_dispatch_journal.sql"));
             ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/019_manual_order_dispatch_journal.sql"));
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/022_reserved_order_aborts.sql"));
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource("../database/migrations/022_reserved_order_aborts.sql"));
         }
         try(var connection=dataSource.getConnection()) {
             ScriptUtils.executeSqlScript(connection,new FileSystemResource("../database/migrations/020_manual_order_diagnostics.sql"));
@@ -146,7 +149,7 @@ class ManualOrderMysqlIntegrationTest {
         reset(diagnosticExecutions);
         // 같은 테이블의 부모 FK는 DELETE 전체 실행 순서에도 적용됩니다. 격리 fixture의 참조만 먼저 끊습니다.
         jdbc.update("UPDATE manual_order_commands SET parent_id=NULL");
-        for (String table : List.of("manual_order_reviews","manual_order_review_preparations","manual_order_diagnostics","manual_order_dispatch_recoveries","manual_order_dispatches","order_simulation_sessions", "manual_order_reconciliations", "manual_order_reconciliation_preparations",
+        for (String table : List.of("manual_order_reviews","manual_order_review_preparations","manual_order_diagnostics","manual_order_reservation_aborts","manual_order_dispatch_recoveries","manual_order_dispatches","order_simulation_sessions", "manual_order_reconciliations", "manual_order_reconciliation_preparations",
             "manual_order_observations", "manual_order_commands", "order_submission_guards", "order_approvals", "order_prechecks")) {
             jdbc.update("DELETE FROM " + table);
         }
@@ -160,6 +163,153 @@ class ManualOrderMysqlIntegrationTest {
         assertThatThrownBy(() -> jdbc.update("UPDATE manual_order_commands SET kind='INVALID' WHERE command_id=?", command.commandId()))
             .isInstanceOf(org.springframework.dao.DataAccessException.class);
         assertThat(commands.verifyStorage()).isNotBlank();
+    }
+
+    @Test void reservedAbortFencesLateExecutionPreservesOriginalAndAllowsFreshApproval() {
+        var c=command(approval(),"SENDING");store.claim(c,"worker");
+        assertThat(dispatchService.status(1L,c.commandId()).abortable()).isTrue();
+        dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단");
+        var status=dispatchService.status(1L,c.commandId());
+        assertThat(status.phase()).isEqualTo("ABORTED");assertThat(status.commandStatus()).isEqualTo("SENDING");
+        assertThat(status.reservationAbort().source()).isEqualTo("LOCAL_BEFORE_DISPATCH");assertThat(status.receipt()).isNull();
+        assertThat(commands.find(c.commandId(),1L)).isEqualTo(c);assertThat(commands.pending(1L)).isZero();
+        assertThat(jdbc.queryForObject("SELECT status FROM order_submission_guards WHERE order_approval_id=?",String.class,c.approvalId())).isEqualTo("RESERVED");
+        assertThatThrownBy(()->dispatchService.begin(c,"worker")).isInstanceOf(RuntimeException.class);
+        dispatchService.recordOutcome(c,"worker",unknown());dispatchService.complete(1L,c.commandId());
+        dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단");
+        assertThat(dispatchService.status(1L,c.commandId()).phase()).isEqualTo("ABORTED");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_reservation_aborts",Integer.class)).isEqualTo(1);
+        store.claim(command(approval(),"SENDING"),"fresh");
+    }
+    @Test void executorPausedAfterClaimNeverReachesTransportAfterUserAborts() throws Exception {
+        var c=command(approval(),"SENDING");var claimed=new CountDownLatch(1);var resume=new CountDownLatch(1);
+        var calls=new java.util.concurrent.atomic.AtomicInteger();var executor=Executors.newSingleThreadExecutor();
+        try {
+            var worker=executor.submit(()->OrderSubmissionWorkflow.execute(()->{
+                store.claim(c,"paused");claimed.countDown();
+                try{if(!resume.await(15,TimeUnit.SECONDS))throw new IllegalStateException("timeout");}catch(InterruptedException e){throw new RuntimeException(e);}
+            },()->{dispatchService.begin(c,"paused");calls.incrementAndGet();return accepted();},
+                o->{dispatchService.recordOutcome(c,"paused",o);dispatchService.complete(1L,c.commandId());},()->commands.find(c.commandId(),1L)));
+            assertThat(claimed.await(10,TimeUnit.SECONDS)).isTrue();
+            dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단");resume.countDown();
+            assertThat(worker.get(15,TimeUnit.SECONDS).status()).isEqualTo("SENDING");
+            assertThat(calls.get()).isZero();assertThat(commands.pending(1L)).isZero();
+            assertThat(dispatchService.status(1L,c.commandId()).reservationAbort()).isNotNull();
+        } finally {resume.countDown();executor.shutdownNow();}
+    }
+    @Test void beginAndAbortHaveExactlyOneWinnerInRealMysql() throws Exception {
+        var c=command(approval(),"SENDING");store.claim(c,"worker");
+        assertThat(race(()->dispatchService.begin(c,"worker"),()->dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단")))
+            .containsExactlyInAnyOrder(true,false);
+        var phase=dispatches.find(c.commandId(),1L).phase();
+        assertThat(phase).isIn("DISPATCHING","ABORTED");
+        assertThat(commands.pending(1L)).isEqualTo("ABORTED".equals(phase)?0:1);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_reservation_aborts",Integer.class)).isEqualTo("ABORTED".equals(phase)?1:0);
+    }
+    @Test void concurrentReservationAbortsAuditOnce() throws Exception {
+        var c=command(approval(),"SENDING");store.claim(c,"worker");
+        assertThat(race(()->dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단"),
+            ()->dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단"))).containsOnly(true);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_reservation_aborts",Integer.class)).isEqualTo(1);
+    }
+    @ParameterizedTest @ValueSource(strings={"DISPATCHING","RETURNED","LEGACY_UNVERIFIED","UNKNOWN"})
+    void onlyProvenUnstartedSendingCanAbort(String phase) {
+        var c=command(approval(),"SENDING");store.claim(c,"worker");
+        switch(phase){case "DISPATCHING"->dispatchService.begin(c,"worker");
+            case "RETURNED"->{dispatchService.begin(c,"worker");dispatchService.recordOutcome(c,"worker",accepted());}
+            case "LEGACY_UNVERIFIED"->jdbc.update("DELETE FROM manual_order_dispatches WHERE command_id=?",c.commandId());
+            case "UNKNOWN"->{dispatchService.recordOutcome(c,"worker",unknown());dispatchService.complete(1L,c.commandId());}default->throw new AssertionError(phase);}
+        assertThatThrownBy(()->dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단")).isInstanceOf(RuntimeException.class);
+        assertThat(commands.pending(1L)).isEqualTo(1);assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM manual_order_reservation_aborts",Integer.class)).isZero();
+    }
+    @Test void abortRequiresOwnerAccountAndSeparateConsent() {
+        var c=command(approval(),"SENDING");store.claim(c,"worker");
+        assertThatThrownBy(()->dispatchService.abortReserved(2L,c.commandId(),true,"전송 전 예약 중단")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->dispatchService.abortReserved(1L,c.commandId(),false,"전송 전 예약 중단")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->dispatchService.abortReserved(1L,c.commandId(),true,"실제 주문 전송")).isInstanceOf(RuntimeException.class);
+        when(binding.matches(FINGERPRINT)).thenReturn(false);
+        assertThatThrownBy(()->dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단")).isInstanceOf(RuntimeException.class);
+        assertThat(dispatches.find(c.commandId(),1L).phase()).isEqualTo("RESERVED");assertThat(commands.pending(1L)).isEqualTo(1);
+    }
+    @Test void failedAbortAuditRollsBackFenceAndDoesNotLoseOriginalReservation() {
+        var c=command(approval(),"SENDING");store.claim(c,"worker");
+        jdbc.execute("CREATE TRIGGER reject_reserved_abort BEFORE INSERT ON manual_order_reservation_aborts FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='test audit failure'");
+        try{assertThatThrownBy(()->dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단")).isInstanceOf(RuntimeException.class);}
+        finally{jdbc.execute("DROP TRIGGER reject_reserved_abort");}
+        assertThat(dispatches.find(c.commandId(),1L).phase()).isEqualTo("RESERVED");assertThat(commands.pending(1L)).isEqualTo(1);
+        dispatchService.begin(c,"worker");assertThat(dispatches.find(c.commandId(),1L).phase()).isEqualTo("DISPATCHING");
+    }
+    @ParameterizedTest @ValueSource(strings={"owner","account","started","timestamp"})
+    void invalidAbortProofCannotExcludePendingCommand(String mismatch) {
+        var c=command(approval(),"SENDING");store.claim(c,"worker");dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단");
+        switch(mismatch){case "owner"->jdbc.update("UPDATE manual_order_reservation_aborts SET execution_key='other' WHERE command_id=?",c.commandId());
+            case "account"->jdbc.update("UPDATE manual_order_reservation_aborts SET account_fingerprint=? WHERE command_id=?","a".repeat(64),c.commandId());
+            case "started"->jdbc.update("UPDATE manual_order_dispatches SET started_at=? WHERE command_id=?",now(),c.commandId());
+            case "timestamp"->jdbc.update("UPDATE manual_order_reservation_aborts SET aborted_at=? WHERE command_id=?",now().minusDays(1),c.commandId());default->throw new AssertionError(mismatch);}
+        assertThat(commands.abortedAt(c.commandId(),1L)).isNull();assertThat(commands.pending(1L)).isEqualTo(1);
+        assertThat(dispatchService.status(1L,c.commandId()).reservationAbort()).isNull();
+    }
+    @Test void missing022IsReportedBeforeAbortAndNeverCallsBegin() throws Exception {
+        var c=command(approval(),"SENDING");store.claim(c,"worker");jdbc.execute("DROP TABLE manual_order_reservation_aborts");
+        try{assertThatThrownBy(()->dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단")).hasMessageContaining("022");}
+        finally{try(var connection=jdbc.getDataSource().getConnection()){ScriptUtils.executeSqlScript(connection,new FileSystemResource("../database/migrations/022_reserved_order_aborts.sql"));}}
+        assertThat(dispatches.find(c.commandId(),1L).phase()).isEqualTo("RESERVED");
+    }
+    @Test void abortedOneCommandDoesNotClearOtherPendingOrApprovalGuard() {
+        var c=command(approval(),"SENDING");store.claim(c,"worker");
+        commands.insert(command(approval(),"UNKNOWN"));dispatchService.abortReserved(1L,c.commandId(),true,"전송 전 예약 중단");
+        assertThat(commands.pending(1L)).isEqualTo(1);
+        assertThatThrownBy(()->store.claim(command(approval(),"SENDING"),"fresh")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->store.claim(c,"retry")).isInstanceOf(RuntimeException.class);
+    }
+    @Test void abortingUnstartedChangeKeepsParentsConsumedChangeGuard() {
+        var p=command(approval(),"SENDING");store.claim(p,"p");dispatchService.begin(p,"p");dispatchService.recordOutcome(p,"p",accepted());dispatchService.complete(1L,p.commandId());
+        var child=new ManualOrderCommand(UUID.randomUUID().toString(),1L,null,p.commandId(),"CANCEL",p.stockCode(),p.stockName(),p.market(),p.side(),p.price(),p.quantity(),
+            FINGERPRINT,"token",now().plusSeconds(90),"PREPARED",null,p.orderDate(),null,null,null,now(),now());
+        commands.insert(child);store.claim(child,"child");dispatchService.abortReserved(1L,child.commandId(),true,"전송 전 예약 중단");
+        assertThat(commands.find(p.commandId(),1L).changeId()).isEqualTo(child.commandId());assertThat(commands.pending(1L)).isZero();
+        assertThat(commands.find(child.commandId(),1L).status()).isEqualTo("SENDING");
+    }
+    @Test void simulationAbortBeforeDispatchPreservesZeroSendAndResourcesThenAllowsNewCommand() {
+        String session=simSession("1000000");String c=simReady(session,simPlan("BUY","75000","2"),"NEW",null,"STOP_BEFORE_SEND");
+        assertThatThrownBy(()->simulationService.submit(1L,session,c,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+        var before=simulationService.get(1L,session);assertThat(simCommand(before,c)).containsEntry("abortable",true);
+        var aborted=simulationService.abortReservation(1L,session,c,true,"전송 전 예약 중단");
+        assertThat(simCommand(aborted,c)).containsEntry("status","SENDING").containsEntry("dispatchPhase","ABORTED").containsEntry("sendCount",0);
+        assertThat(aborted.get("blocked")).isEqualTo(false);assertThat(aborted.get("cash")).isEqualTo(before.get("cash"));
+        assertThat(aborted.get("positions")).isEqualTo(before.get("positions"));assertThat(aborted.toString()).doesNotContain("executionKey","tokenHash");
+        simulationService.abortReservation(1L,session,c,true,"전송 전 예약 중단");simulationService.submit(1L,session,c,true,"모의 주문 전송");
+        var after=simulationService.get(1L,session);assertThat(simCommand(after,c)).containsEntry("sendCount",0);
+        assertThat(((List<?>)after.get("events")).stream().filter(e->e.toString().contains("전송 전 가상 예약 중단 ·")).count()).isEqualTo(1);
+        simSend(session,"BUY","75000","1","NEW",null,"WAIT");
+    }
+    @ParameterizedTest @ValueSource(strings={"JOURNAL_FAILURE","SAVE_FAILURE","TIMEOUT_BEFORE_ACCEPT","TIMEOUT_AFTER_ACCEPT"})
+    void simulationStartedAndUnknownCallsNeverBecomeLocalAbort(String scenario) {
+        String session=simSession("1000000"),c=simReady(session,simPlan("BUY","75000","2"),"NEW",null,scenario);
+        try{simulationService.submit(1L,session,c,true,"모의 주문 전송");}catch(RuntimeException expected){}
+        assertThatThrownBy(()->simulationService.abortReservation(1L,session,c,true,"전송 전 예약 중단")).isInstanceOf(RuntimeException.class);
+        assertThat(simulationService.get(1L,session).get("blocked")).isEqualTo(true);
+    }
+    @Test void simulationAbortRequiresSeparateConsentAndUserAndAuditsOnceUnderConcurrency() throws Exception {
+        String session=simSession("1000000"),c=simReady(session,simPlan("BUY","75000","2"),"NEW",null,"STOP_BEFORE_SEND");
+        try{simulationService.submit(1L,session,c,true,"모의 주문 전송");}catch(RuntimeException expected){}
+        assertThatThrownBy(()->simulationService.abortReservation(1L,session,c,false,"전송 전 예약 중단")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->simulationService.abortReservation(1L,session,c,true,"실제 주문 전송")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(()->simulationService.abortReservation(2L,session,c,true,"전송 전 예약 중단")).isInstanceOf(RuntimeException.class);
+        assertThat(race(()->simulationService.abortReservation(1L,session,c,true,"전송 전 예약 중단"),
+            ()->simulationService.abortReservation(1L,session,c,true,"전송 전 예약 중단"))).containsOnly(true);
+        assertThat(((List<?>)simulationService.get(1L,session).get("events")).stream().filter(e->e.toString().contains("전송 전 가상 예약 중단 ·")).count()).isEqualTo(1);
+    }
+    @ParameterizedTest @ValueSource(strings={"source","owner","count","missing"})
+    void malformedSimulationAbortAuditNeverUnlocksSending(String mode) {
+        String session=simSession("1000000"),id=simReady(session,simPlan("BUY","75000","2"),"NEW",null,"STOP_BEFORE_SEND");
+        try{simulationService.submit(1L,session,id,true,"모의 주문 전송");}catch(RuntimeException expected){}
+        simulationService.abortReservation(1L,session,id,true,"전송 전 예약 중단");
+        simulationStore.mutate(1L,session,s->{var c=s.commands.get(id);var a=c.reservationAbort;
+            switch(mode){case "source"->c.reservationAbort=new OrderSimulationState.ReservationAbort("LOCAL_BEFORE_DISPATCH",a.executionKey(),a.abortedAt());
+                case "owner"->c.reservationAbort=new OrderSimulationState.ReservationAbort(a.source(),"other",a.abortedAt());
+                case "count"->c.sendCount=1;case "missing"->c.reservationAbort=null;default->throw new AssertionError(mode);}return null;});
+        var result=simulationService.get(1L,session);assertThat(result.get("blocked")).isEqualTo(true);assertThat(simCommand(result,id).get("reservationAbort")).isNull();
     }
 
     @Test void simultaneousSameApprovalReservesExactlyOneCommand() throws Exception {

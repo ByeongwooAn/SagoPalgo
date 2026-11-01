@@ -251,6 +251,120 @@ void main() {
     expect(r.orders.single.price, 100);
   });
 
+  testWidgets('reserved abort requires separate consent with live switch off', (
+    t,
+  ) async {
+    final r = AbortDispatchFake()..ready = false;
+    await mount(t, r);
+    await t.ensureVisible(find.text('전송 기록 확인·복구'));
+    await t.tap(find.text('전송 기록 확인·복구'));
+    await t.pump(const Duration(milliseconds: 400));
+    expect(
+      t
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '전송 전 예약 중단'))
+          .onPressed,
+      isNull,
+    );
+    expect(r.aborts, 0);
+    await t.tap(find.text('닫기'));
+    await t.pumpAndSettle();
+    expect(r.aborts, 0);
+    await t.ensureVisible(find.text('전송 기록 확인·복구'));
+    await t.tap(find.text('전송 기록 확인·복구'));
+    await t.pump(const Duration(milliseconds: 400));
+    await t.tap(find.byType(CheckboxListTile));
+    await t.pump();
+    await t.tap(find.text('전송 전 예약 중단'));
+    await t.pumpAndSettle();
+    expect(r.aborts, 1);
+    expect(r.submits, 0);
+    expect(r.orders.single.status, 'SENDING');
+    expect(r.orders.single.unresolved, false);
+    expect(find.textContaining('전송 전 예약 중단 · 원본 SENDING 보존'), findsOneWidget);
+  });
+  testWidgets(
+    'lost abort response confirms via history without repeating abort or original submit',
+    (t) async {
+      final r = AbortDispatchFake()
+        ..orders = []
+        ..pending = Completer<ManualOrder>()
+        ..loseAbortResponse = true;
+      await mount(t, r);
+      await start(t);
+      await t.tap(find.text('승인 기록 저장'));
+      await t.pump(const Duration(milliseconds: 400));
+      await t.tap(find.byType(CheckboxListTile));
+      await t.pump();
+      await t.tap(find.text('실제 주문 전송'));
+      await t.pump();
+      r.orders = [
+        ManualOrder({...order('SENDING').data, 'approvalId': 7}),
+      ];
+      r.pending!.completeError(TimeoutException('lost original result'));
+      await t.pumpAndSettle();
+      await t.ensureVisible(find.text('전송 기록 확인·복구'));
+      await t.pumpAndSettle();
+      await t.tap(find.text('전송 기록 확인·복구'));
+      await t.pump(const Duration(milliseconds: 400));
+      await t.tap(find.byType(CheckboxListTile));
+      await t.pump();
+      await t.tap(find.text('전송 전 예약 중단'));
+      await t.pumpAndSettle();
+      expect(r.aborts, 1);
+      expect(r.submits, 1);
+      expect(
+        t
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, '안전 조건 검증 및 주문안 확인'),
+            )
+            .onPressed,
+        isNotNull,
+      );
+      await t.tap(find.byTooltip('주문 기록 새로고침'));
+      await t.pumpAndSettle();
+      expect(r.aborts, 1);
+      expect(r.submits, 1);
+    },
+  );
+  test(
+    'HTTP reservation abort posts explicit consent once without retry',
+    () async {
+      var calls = 0;
+      final repository = SpringOrderPrecheckRepository(
+        accessToken: '',
+        config: ApiConfig(baseUrl: 'http://localhost:8080'),
+        client: MockClient((request) async {
+          calls++;
+          expect(request.method, 'POST');
+          expect(
+            request.url.path,
+            '/api/v1/orders/manual/test/dispatch/abort-reservation',
+          );
+          expect(jsonDecode(request.body), {
+            'acknowledged': true,
+            'confirmation': '전송 전 예약 중단',
+          });
+          throw TimeoutException('response lost');
+        }),
+      );
+      await expectLater(
+        repository.abortReservation('test'),
+        throwsA(isA<Exception>()),
+      );
+      expect(calls, 1);
+    },
+  );
+  test('simulation abort source never clears actual pending model', () {
+    final forged = ManualOrder({
+      ...order('SENDING').data,
+      'reservationAbort': {
+        'source': 'SIMULATION_BEFORE_DISPATCH',
+        'abortedAt': '2026-11-01T12:00:00',
+      },
+    });
+    expect(forged.unresolved, true);
+  });
+
   Future<void> openReconciliation(WidgetTester t, ReconciliationFake r) async {
     await mount(t, r);
     await t.ensureVisible(find.text('KB 주문번호로 전량 체결 대조'));
@@ -735,6 +849,38 @@ class DiagnosticNavigationFake extends DispatchFake
   ) async {
     diagnoses++;
     return {};
+  }
+}
+
+class AbortDispatchFake extends DispatchFake
+    implements ManualOrderReservationAbortRepository {
+  AbortDispatchFake() {
+    phase = 'RESERVED';
+    recoverable = false;
+  }
+  int aborts = 0;
+  bool loseAbortResponse = false;
+  @override
+  Future<Map<String, dynamic>> fetchDispatch(String id) async => {
+    ...await super.fetchDispatch(id),
+    'abortable': phase == 'RESERVED',
+    'reservationAbort': orders.single.data['reservationAbort'],
+  };
+  @override
+  Future<Map<String, dynamic>> abortReservation(String id) async {
+    aborts++;
+    phase = 'ABORTED';
+    orders = [
+      ManualOrder({
+        ...orders.single.data,
+        'reservationAbort': {
+          'source': 'LOCAL_BEFORE_DISPATCH',
+          'abortedAt': '2026-11-01T12:00:00',
+        },
+      }),
+    ];
+    if (loseAbortResponse) throw TimeoutException('lost abort response');
+    return fetchDispatch(id);
   }
 }
 

@@ -13,6 +13,13 @@ class OrderSimulationScreen extends StatefulWidget {
 }
 
 class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
+  bool _abortedReservation(Map c) =>
+      c['status'] == 'SENDING' &&
+      c['dispatchPhase'] == 'ABORTED' &&
+      num.tryParse('${c['sendCount']}') == 0 &&
+      c['reservationAbort'] is Map &&
+      c['reservationAbort']['source'] == 'SIMULATION_BEFORE_DISPATCH' &&
+      c['reservationAbort']['abortedAt'] is String;
   final _code = TextEditingController(text: '005930');
   final _name = TextEditingController(text: '삼성전자');
   final _price = TextEditingController(text: '75000');
@@ -76,7 +83,8 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                 (['ACCEPTED', 'REJECTED'].contains(c['status']) ||
                     (c['resolved'] == true &&
                         c['completion'] is Map &&
-                        c['completion']['source'] == 'SIMULATION')),
+                        c['completion']['source'] == 'SIMULATION') ||
+                    _abortedReservation(c)),
           );
           if (resolved) {
             _uncertainRequest = false;
@@ -347,7 +355,12 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                             ),
                             if (c['recoveredAt'] != null)
                               Text('기록 복구 ${c['recoveredAt']}'),
+                            if (_abortedReservation(c))
+                              Text(
+                                '전송 전 가상 예약 중단 · 원본 SENDING·전송 0회 보존 · ${c['reservationAbort']['abortedAt']}',
+                              ),
                             if (c['status'] == 'SENDING' &&
+                                !_abortedReservation(c) &&
                                 c['recoverable'] != true)
                               const Text(
                                 '호출 종료 결과가 없어 차단을 유지합니다. 시간이 지나도 자동 해제하지 않습니다.',
@@ -355,6 +368,13 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                             Wrap(
                               spacing: 8,
                               children: [
+                                if (c['abortable'] == true)
+                                  TextButton(
+                                    onPressed: _busy
+                                        ? null
+                                        : () => _abortReservation(c),
+                                    child: const Text('전송 전 가상 예약 중단'),
+                                  ),
                                 if (c['status'] == 'UNKNOWN' &&
                                     c['resolved'] != true)
                                   TextButton(
@@ -399,7 +419,12 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                                     child: const Text('기록으로 결과 복구'),
                                   ),
                                 if (c['status'] == 'SENDING' &&
-                                    c['dispatchPhase'] != 'RETURNED')
+                                    [
+                                      'RESERVED',
+                                      'DISPATCHING',
+                                      'LEGACY_UNVERIFIED',
+                                      null,
+                                    ].contains(c['dispatchPhase']))
                                   TextButton(
                                     onPressed: _busy
                                         ? null
@@ -645,6 +670,26 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
     } finally {
       if (mounted) await _load();
     }
+  }
+
+  Future<void> _abortReservation(Map<String, dynamic> command) async {
+    if (!await _review(
+          '전송 전 가상 예약 중단',
+          '전송 시작 전 예약만 중단합니다. 늦게 실행돼도 전송하지 못하게 차단합니다. 원본 SENDING·제출/변경 가드·가상 자원은 유지합니다. 실제 KB 주문 취소가 아닙니다.',
+          finalStep: true,
+          actionLabel: '전송 전 예약 중단',
+        ) ||
+        !mounted) {
+      return;
+    }
+    await _mutation(
+      () => widget.repository.simulationAction(
+        _id,
+        'commands/${command['id']}/abort-reservation',
+        {'acknowledged': true, 'confirmation': '전송 전 예약 중단'},
+      ),
+    );
+    if (mounted) await _load();
   }
 
   Future<void> _mutation(Future<Map<String, dynamic>> Function() action) async {
