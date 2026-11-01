@@ -339,6 +339,9 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                             ),
                             if (c['resolved'] == true)
                               const Text('가상 종결 확인 · UNKNOWN 원본 보존'),
+                            if (num.tryParse('${c['removedQuantity']}')
+                                case final removed? when removed > 0)
+                              Text('정정·취소로 배분한 수량 $removed주 · 체결 수량과 구분합니다.'),
                             Text(
                               '전송 단계 ${c['dispatchPhase'] ?? 'LEGACY_UNVERIFIED'} · 저장 결과 ${c['receipt'] ?? '없음'}',
                             ),
@@ -426,9 +429,11 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                                     child: const Text('잔량 가상 체결'),
                                   ),
                                 ],
-                                if (c['status'] == 'ACCEPTED' &&
-                                    c['kind'] == 'NEW' &&
-                                    c['changed'] != true) ...[
+                                if (c['changeable'] == true ||
+                                    (c['changeable'] == null &&
+                                        c['kind'] == 'NEW' &&
+                                        c['status'] == 'ACCEPTED' &&
+                                        c['changed'] != true)) ...[
                                   TextButton(
                                     onPressed: _busy || blocked
                                         ? null
@@ -441,7 +446,7 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                                         ? null
                                         : () =>
                                               _order(parent: c, kind: 'CANCEL'),
-                                    child: const Text('전부 취소 검토'),
+                                    child: const Text('수량 취소 검토'),
                                   ),
                                 ],
                               ],
@@ -714,33 +719,52 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
     Map<String, dynamic>? parent,
     String kind = 'NEW',
   }) async {
+    if (parent != null && _state?['changePolicy'] != 'OWNED_RESERVATION_V1') {
+      setState(
+        () => _message = '서버 업데이트가 필요합니다. 수량 변경·예약금 재사용 요청을 준비하지 않았습니다.',
+      );
+      return;
+    }
     Map<String, dynamic> plan;
     try {
       plan = parent == null
           ? _plan()
           : Map<String, dynamic>.from(parent['plan'] as Map);
-      if (kind == 'AMEND') {
+      if (parent != null) {
         var input = '${plan['limitPrice']}';
-        final value = await showDialog<String>(
+        var quantityInput = '${parent['openQuantity'] ?? plan['quantity']}';
+        final values = await showDialog<List<String>>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('모의 새 지정가'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '기존 지정가 ${plan['limitPrice']}원 · 수량 ${plan['quantity']}주 유지',
-                ),
-                const Text(
-                  '매수 증액은 기존 예약금을 합산하지 않고 새 주문 전체 금액 이상의 가용 가상 현금이 필요합니다.',
-                ),
-                TextFormField(
-                  initialValue: input,
-                  onChanged: (v) => input = v,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                ),
-              ],
+            title: Text(kind == 'AMEND' ? '모의 지정가·정정 수량' : '모의 취소 수량'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('기존 지정가 ${plan['limitPrice']}원 · 현재 잔량 $quantityInput주'),
+                  const Text(
+                    '선택한 수량만 정정하거나 취소합니다. 일부 정정은 나머지를 기존 가격에 남깁니다. 가상 예약금은 선택한 수량만 재사용하고 증액 차액을 확인합니다.',
+                  ),
+                  if (kind == 'AMEND')
+                    TextFormField(
+                      key: const Key('simulation-change-price'),
+                      decoration: const InputDecoration(labelText: '새 지정가'),
+                      initialValue: input,
+                      onChanged: (v) => input = v,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    ),
+                  TextFormField(
+                    key: const Key('simulation-change-quantity'),
+                    decoration: InputDecoration(
+                      labelText: kind == 'AMEND' ? '정정할 수량' : '취소할 수량',
+                    ),
+                    initialValue: quantityInput,
+                    onChanged: (v) => quantityInput = v,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -748,19 +772,29 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
                 child: const Text('취소'),
               ),
               FilledButton(
-                onPressed: () => Navigator.pop(context, input),
+                onPressed: () => Navigator.pop(context, [input, quantityInput]),
                 child: const Text('검증'),
               ),
             ],
           ),
         );
-        if (value == null || !mounted) return;
-        final amended = num.parse(value);
-        if (amended <= 0 || amended == plan['limitPrice']) {
+        if (values == null || !mounted) return;
+        final amended = num.parse(values[0]);
+        final selected = num.parse(values[1]);
+        final remaining = num.parse(
+          '${parent['openQuantity'] ?? plan['quantity']}',
+        );
+        if (selected <= 0 || selected > remaining) {
+          setState(() => _message = '변경 수량은 현재 잔량 이내의 양수 정수여야 합니다.');
+          return;
+        }
+        if (kind == 'AMEND' &&
+            (amended <= 0 || amended == plan['limitPrice'])) {
           setState(() => _message = '새 지정가는 기존과 다른 양수 가격이어야 합니다.');
           return;
         }
         plan['limitPrice'] = amended;
+        plan['quantity'] = selected;
       }
     } catch (_) {
       setState(() => _message = '종목·시장·방향·정수 지정가와 수량을 확인하세요.');
@@ -783,11 +817,37 @@ class _OrderSimulationScreenState extends State<OrderSimulationScreen> {
         },
       );
       final commandId = prepared['commandId'] as String;
+      final preparedCommands = (prepared['snapshot']['commands'] as List)
+          .cast<Map<String, dynamic>>();
+      final preparedCommand = preparedCommands.firstWhere(
+        (c) => c['id'] == commandId,
+      );
+      final serverPlan = preparedCommand['plan'] as Map;
+      if (preparedCommand['kind'] != kind ||
+          preparedCommand['parentId'] != parent?['id'] ||
+          [
+            'stockCode',
+            'market',
+            'side',
+          ].any((key) => serverPlan[key] != plan[key]) ||
+          ['limitPrice', 'quantity'].any(
+            (key) =>
+                num.tryParse('${serverPlan[key]}') !=
+                num.tryParse('${plan[key]}'),
+          ) ||
+          (parent != null &&
+              prepared['snapshot']['changePolicy'] != 'OWNED_RESERVATION_V1')) {
+        throw StateError('서버가 반환한 주문안이 선택한 가격·수량·원주문과 다릅니다. 승인·전송하지 않았습니다.');
+      }
       if (mounted) {
         setState(() => _state = prepared['snapshot'] as Map<String, dynamic>);
       }
+      final budget = preparedCommand['changeBudget'] as Map?;
+      final budgetText = budget == null
+          ? ''
+          : '\n가상 예약금 재사용 ${budget['reusedCash']}원 · 추가 필요 ${budget['additionalCash']}원 · 해제 예정 ${budget['releasedCash']}원';
       final summary =
-          '${_summary(plan)}\n${kind == 'AMEND' ? '지정가 ${parent!['plan']['limitPrice']}원 → ${plan['limitPrice']}원\n' : ''}$kind · ${scenarios[_scenario]}\n90초 안에 승인하세요. 실제 계좌에는 전송하지 않습니다.';
+          '${_summary(plan)}\n${kind == 'AMEND' ? '지정가 ${parent!['plan']['limitPrice']}원 → ${plan['limitPrice']}원\n' : ''}${parent == null ? '' : '현재 잔량 ${parent['openQuantity'] ?? parent['plan']['quantity']}주 중 ${plan['quantity']}주만 ${kind == 'AMEND' ? '정정' : '취소'}합니다.\n'}$kind · ${scenarios[_scenario]}$budgetText\n90초 안에 승인하세요. 실제 계좌에는 전송하지 않습니다.';
       if (!await _review('모의 주문안 승인', summary) || !mounted) return;
       final confirmed = await widget.repository.simulationAction(
         _id,

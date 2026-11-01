@@ -29,12 +29,13 @@ public class ManualOrderController {
     }
     @PostMapping("/{id}/changes/prepare") public ApiResponse<ManualOrderService.ChangePreparation> prepare(
         @PathVariable String id,@Valid @RequestBody Change request){
-        return ApiResponse.success(service.prepareChange(user.userId(),id,request.kind(),request.price()),"정정·취소 준비");
+        return ApiResponse.success(service.prepareChange(user.userId(),id,request.kind(),request.price(),request.quantity(),request.reuseReservation()),"정정·취소 준비");
     }
     @PostMapping("/{id}/submit") public ApiResponse<ManualOrderResponse> change(@PathVariable String id,@Valid @RequestBody Confirm request){
         return ApiResponse.success(service.submitChange(user.userId(),id,request.token(),request.acknowledged(),request.confirmation()),"수동 전송 결과");
     }
     public record Submit(@NotNull @Positive Long approvalId,boolean acknowledged,@NotBlank String confirmation){}
-    public record Change(@NotBlank @Pattern(regexp="AMEND|CANCEL") String kind,@Digits(integer=9,fraction=0) BigDecimal price){}
+    public record Change(@NotBlank @Pattern(regexp="AMEND|CANCEL") String kind,@Digits(integer=9,fraction=0) BigDecimal price,
+        @Positive @Digits(integer=10,fraction=0) BigDecimal quantity,boolean reuseReservation){}
     public record Confirm(@NotBlank @Size(max=200) String token,boolean acknowledged,@NotBlank String confirmation){}
 }

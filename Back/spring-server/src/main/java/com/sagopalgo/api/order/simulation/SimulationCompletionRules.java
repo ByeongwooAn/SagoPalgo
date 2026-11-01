@@ -20,11 +20,23 @@ public final class SimulationCompletionRules {
         if(child==null || !number.equals(c.brokerOrderNo) || !number.equals(child.orderNo) || !c.id.equals(child.commandId)
             || !c.kind.equals(child.changeKind) || !plan(c.plan,child.plan)) throw invalid();
         String outcome,parentNo="",parentState="";BigDecimal parentFilled=null,parentOpen=null;
+        AllocationProof allocation=null;
         if("NEW".equals(c.kind)) {
             if(c.parentId!=null || c.changed || !filled(child)) throw invalid();
             outcome="FILLED";
         } else {
             var parent=state.commands.get(c.parentId);
+            if(c.changeSnapshot!=null) {
+                var original=parent==null?null:state.brokerOrders.get(parent.brokerOrderNo);
+                if(parent==null || !"ACCEPTED".equals(parent.status) || !c.id.equals(parent.latestChangeId)
+                    || !SimulationChangeRules.linked(state,c)) throw invalid();
+                parentNo=original.orderNo;parentState=original.status;parentFilled=norm(original.filled);parentOpen=norm(original.openQuantity());
+                allocation=new AllocationProof("SIMULATION_ALLOCATION",norm(original.plan.quantity()),norm(original.removed),norm(original.changeAllocations.get(c.id)));
+                if("AMEND".equals(c.kind) && filled(child)) outcome="AMEND_FILLED";
+                else if("CANCEL".equals(c.kind) && "CANCELLED".equals(child.status) && zero(child.filled) && zero(child.openQuantity())
+                    && same(c.plan.limitPrice(),parent.plan.limitPrice())) outcome="CANCELLED";
+                else throw invalid();
+            } else {
             if(parent==null || !"NEW".equals(parent.kind) || !"ACCEPTED".equals(parent.status) || !parent.changed) throw invalid();
             var original=state.brokerOrders.get(parent.brokerOrderNo);
             if(original==null || !parent.id.equals(original.commandId) || !"NEW".equals(original.changeKind)
@@ -42,9 +54,10 @@ public final class SimulationCompletionRules {
                     || !zero(child.openQuantity()) || !same(c.plan.limitPrice(),parent.plan.limitPrice())) throw invalid();
                 outcome="CANCELLED";
             } else throw invalid();
+            }
         }
         return new Evidence("SIMULATION",c.id,c.kind,outcome,number,parentNo,c.plan.stockCode(),c.plan.market(),c.plan.side(),
-            norm(c.plan.limitPrice()),norm(c.plan.quantity()),norm(child.filled),norm(child.openQuantity()),parentState,parentFilled,parentOpen);
+            norm(c.plan.limitPrice()),norm(c.plan.quantity()),norm(child.filled),norm(child.openQuantity()),parentState,parentFilled,parentOpen,allocation);
     }
     public static boolean resolved(Command c){
         var r=c.completion;
@@ -57,6 +70,19 @@ public final class SimulationCompletionRules {
             || !same(c.plan.limitPrice(),e.price()) || !same(c.plan.quantity(),e.quantity()) || !"UNKNOWN".equals(c.status)) return false;
         try{LocalDateTime.parse(r.confirmedAt());}catch(RuntimeException exception){return false;}
         if(!zero(e.openQuantity()) || e.quantity()==null || e.quantity().signum()<=0 || e.quantity().stripTrailingZeros().scale()>0) return false;
+        if(e.allocation()!=null) {
+            var a=e.allocation();
+            if(c.changeSnapshot==null || !java.util.Objects.equals(e.parentOrderNo(),c.changeSnapshot.parentOrderNo())
+                || c.changeSnapshot.openQuantity().compareTo(e.quantity())<0
+                || !"SIMULATION_ALLOCATION".equals(a.source()) || !same(a.allocatedQuantity(),e.quantity())
+                || !OrderReservationBudget.whole(a.parentQuantity()) || !OrderReservationBudget.whole(a.parentRemoved())
+                || !OrderReservationBudget.whole(e.parentFilled()) || !OrderReservationBudget.whole(e.parentOpen())
+                || a.parentRemoved().compareTo(a.allocatedQuantity())<0
+                || !same(a.parentQuantity(),a.parentRemoved().add(e.parentFilled()).add(e.parentOpen()))
+                || c.parentId==null || e.parentOrderNo()==null || e.parentOrderNo().isBlank()) return false;
+            return "AMEND".equals(c.kind)?"AMEND_FILLED".equals(e.outcome()) && same(e.quantity(),e.filledQuantity())
+                :"CANCEL".equals(c.kind) && "CANCELLED".equals(e.outcome()) && zero(e.filledQuantity());
+        }
         return switch(c.kind){
             case "NEW"->"FILLED".equals(e.outcome()) && c.parentId==null && same(e.quantity(),e.filledQuantity());
             case "AMEND"->"AMEND_FILLED".equals(e.outcome()) && c.parentId!=null && "REPLACED".equals(e.parentState())
@@ -74,6 +100,12 @@ public final class SimulationCompletionRules {
     private static boolean plan(OrderPrecheckRequest a,OrderPrecheckRequest b){return a!=null && b!=null && a.stockCode().equals(b.stockCode())
         && a.market().equals(b.market()) && a.side().equals(b.side()) && same(a.limitPrice(),b.limitPrice()) && same(a.quantity(),b.quantity());}
     private static ApiException invalid(){return new ApiException(ErrorCode.VALIDATION_ERROR,"[SIMULATION] 종료된 UNKNOWN 호출·가상 주문 소유권·전량 체결 또는 명시적 취소/대체를 확인하지 못했습니다. 차단은 유지됩니다.");}
+    public record AllocationProof(String source,BigDecimal parentQuantity,BigDecimal parentRemoved,BigDecimal allocatedQuantity){}
     public record Evidence(String source,String commandId,String kind,String outcome,String orderNo,String parentOrderNo,String stockCode,String market,String side,
-        BigDecimal price,BigDecimal quantity,BigDecimal filledQuantity,BigDecimal openQuantity,String parentState,BigDecimal parentFilled,BigDecimal parentOpen){}
+        BigDecimal price,BigDecimal quantity,BigDecimal filledQuantity,BigDecimal openQuantity,String parentState,BigDecimal parentFilled,BigDecimal parentOpen,AllocationProof allocation){
+        public Evidence(String source,String commandId,String kind,String outcome,String orderNo,String parentOrderNo,String stockCode,String market,String side,
+            BigDecimal price,BigDecimal quantity,BigDecimal filledQuantity,BigDecimal openQuantity,String parentState,BigDecimal parentFilled,BigDecimal parentOpen){
+            this(source,commandId,kind,outcome,orderNo,parentOrderNo,stockCode,market,side,price,quantity,filledQuantity,openQuantity,parentState,parentFilled,parentOpen,null);
+        }
+    }
 }

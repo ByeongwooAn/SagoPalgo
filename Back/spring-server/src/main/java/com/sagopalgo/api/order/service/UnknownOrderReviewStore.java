@@ -50,7 +50,7 @@ public class UnknownOrderReviewStore {
             || !c.commandId().equals(parent.changeId()) || !c.accountFingerprint().equals(parent.accountFingerprint())
             || !c.orderDate().equals(parent.orderDate()) || !c.stockCode().equals(parent.stockCode()) || !c.side().equals(parent.side())
             || !c.market().equals(parent.market()) || ("CANCEL".equals(c.kind()) && c.price().compareTo(parent.price())!=0)
-            || ("AMEND".equals(c.kind()) && c.price().compareTo(parent.price())>=0)
+            || ("AMEND".equals(c.kind()) && c.price().compareTo(parent.price())==0)
             || c.quantity().compareTo(parent.quantity())!=0) throw invalid();
         UnknownOrderReviewRules.number(parent.orderNo());return parent.orderNo();
     }
