@@ -279,7 +279,12 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                                 onPressed: _busy || !_ready || _pending
                                     ? null
                                     : () => _change(c, 'CANCEL'),
-                                child: const Text('전부 취소'),
+                                child: Text(
+                                  widget.manual
+                                          is ManualOrderQuantityChangeRepository
+                                      ? '수량 취소'
+                                      : '전부 취소',
+                                ),
                               ),
                             ],
                           ],
@@ -290,7 +295,7 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
                 ),
               const Text(
                 '정정·취소는 당일 신규 접수 주문의 전량 미체결을 확인한 뒤 한 차례 지원합니다. '
-                '가격 증액·부분체결·추가 정정은 KB 앱에서 처리하세요. 체결 조회는 앱 보유 목록·자본금을 자동 변경하지 않습니다.',
+                '선택 수량만 다른 가격으로 옮기거나 취소할 수 있습니다. 추가 정정·부분체결 후 변경·예약금 재사용은 KB 앱에서 처리하세요. 체결 조회는 앱 보유 목록·자본금을 자동 변경하지 않습니다.',
               ),
             ],
           ),
@@ -721,26 +726,45 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
 
   Future<void> _change(ManualOrder c, String kind) async {
     int? price;
-    if (kind == 'AMEND') {
+    int selected = c.quantity.toInt();
+    final quantitySupported =
+        widget.manual is ManualOrderQuantityChangeRepository;
+    if (kind == 'AMEND' || quantitySupported) {
       var input = c.price.toInt().toString();
+      var quantityInput = selected.toString();
       final text = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('새 지정가'),
+          title: Text(kind == 'AMEND' ? '새 지정가' : '취소할 수량'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('기존 지정가 ${c.price}원 · 수량 ${c.quantity}주 유지'),
-              const Text(
-                '매수 증액은 기존 예약금을 합산하지 않고 새 주문 전체 금액 이상의 주문가능현금이 필요합니다.',
-              ),
-              TextFormField(
-                initialValue: input,
-                onChanged: (v) => input = v,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                keyboardType: TextInputType.number,
-              ),
+              Text('기존 지정가 ${c.price}원 · 원주문 ${c.quantity}주'),
+              if (quantitySupported)
+                const Text(
+                  '입력 수량만 정정/취소합니다. 일부 정정 후 나머지는 기존 가격에 남습니다. 변경 후 추가 변경은 지원하지 않습니다.',
+                ),
+              if (kind == 'AMEND') ...[
+                const Text(
+                  '매수 증액은 기존 예약금을 합산하지 않고 새 주문 전체 금액 이상의 주문가능현금이 필요합니다.',
+                ),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: '새 지정가 (원)'),
+                  initialValue: input,
+                  onChanged: (v) => input = v,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+              if (quantitySupported)
+                TextFormField(
+                  decoration: const InputDecoration(labelText: '정정/취소할 수량 (주)'),
+                  initialValue: quantityInput,
+                  onChanged: (v) => quantityInput = v,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  keyboardType: TextInputType.number,
+                ),
             ],
           ),
           actions: [
@@ -749,15 +773,23 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
               child: const Text('취소'),
             ),
             FilledButton(
-              onPressed: () => Navigator.pop(context, input),
+              onPressed: () {
+                selected = int.tryParse(quantityInput) ?? 0;
+                Navigator.pop(context, input);
+              },
               child: const Text('주문안 조회'),
             ),
           ],
         ),
       );
       if (text == null || !mounted) return;
-      price = int.tryParse(text);
-      if (price == null || price <= 0 || price == c.price) {
+      if (selected <= 0 || selected > c.quantity) {
+        setState(() => _message = '변경 수량은 원주문 수량 이내의 양수 정수여야 합니다.');
+        return;
+      }
+      price = kind == 'AMEND' ? int.tryParse(text) : null;
+      if (kind == 'AMEND' &&
+          (price == null || price <= 0 || price == c.price)) {
         setState(() => _message = '새 지정가는 기존과 다른 양수 가격이어야 합니다.');
         return;
       }
@@ -769,15 +801,31 @@ class _ManualOrdersScreenState extends State<ManualOrdersScreen> {
     });
     bool attempted = false;
     try {
-      final preparation = await widget.manual.prepareManualChange(
-        c.id,
-        kind,
-        price,
-      );
+      final preparation = quantitySupported
+          ? await (widget.manual as ManualOrderQuantityChangeRepository)
+                .prepareQuantityChange(c.id, kind, price, selected)
+          : await widget.manual.prepareManualChange(c.id, kind, price);
       final child = ManualOrder(preparation['command'] as Map<String, dynamic>);
+      if (quantitySupported &&
+          (child.kind != kind ||
+              child.data['parentId'] != c.id ||
+              child.stockCode != c.stockCode ||
+              child.side != c.side ||
+              child.data['market'] != c.data['market'] ||
+              child.quantity != selected ||
+              child.price != (kind == 'AMEND' ? price : c.price) ||
+              child.status != 'PREPARED')) {
+        throw const OrderPrecheckRepositoryException(
+          '서버 주문안이 선택한 원주문·수량·가격과 다릅니다. 전송하지 않았습니다.',
+        );
+      }
       if (!await _review(
-            kind == 'AMEND' ? '실제 지정가 변경' : '실제 전부 취소',
-            '원주문 ${c.orderNo}\n${kind == 'AMEND' ? '지정가 ${c.price}원 → ${child.price}원\n' : ''}${child.summary}\n90초 이내 확인 · 전량 미체결을 다시 조회합니다.${kind == 'AMEND' && c.side == 'BUY' && child.price > c.price ? '\n매수 증액의 새 주문 전체 금액과 현재 주문가능현금을 전송 직전에 다시 확인합니다.' : ''}',
+            kind == 'AMEND'
+                ? '실제 지정가 변경'
+                : selected < c.quantity
+                ? '실제 일부 취소'
+                : '실제 전부 취소',
+            '원주문 ${c.orderNo}\n${kind == 'AMEND' ? '지정가 ${c.price}원 → ${child.price}원\n' : ''}${child.summary}\n선택 $selected주 · 기존 가격에 남을 예정 ${c.quantity - selected}주\n90초 이내 확인 · 전량 미체결을 다시 조회합니다.${kind == 'AMEND' && c.side == 'BUY' && child.price > c.price ? '\n매수 증액의 새 주문 전체 금액과 현재 주문가능현금을 전송 직전에 다시 확인합니다.' : ''}',
             actual: true,
           ) ||
           !mounted) {

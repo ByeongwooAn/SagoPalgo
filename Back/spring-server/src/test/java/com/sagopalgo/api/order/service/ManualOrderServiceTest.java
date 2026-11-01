@@ -216,7 +216,7 @@ class ManualOrderServiceTest {
     @Test void liveQuantityAndReservationRequestsCannotBeSilentlyIgnored() {
         when(mapper.find("parent",1L)).thenReturn(command("NEW","ACCEPTED"));
         assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"),new BigDecimal("2"),false))
-            .isInstanceOf(ApiException.class).hasMessageContaining("미확인");
+            .isInstanceOf(ApiException.class).hasMessageContaining("변경 수량");
         assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"),BigDecimal.ONE,true))
             .isInstanceOf(ApiException.class).hasMessageContaining("미확인");
         verify(mapper,never()).insert(any());verifyNoInteractions(client,store,precheck,executions);
@@ -246,6 +246,71 @@ class ManualOrderServiceTest {
         assertThat(prepared.command().quantity()).isEqualByComparingTo("1");assertThat(prepared.command().price()).isEqualByComparingTo("101");
         verifyNoInteractions(client,store);
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"AMEND,BUY,99,1","AMEND,BUY,101,1","AMEND,SELL,101,1","CANCEL,BUY,100,1","CANCEL,SELL,100,1","CANCEL,BUY,100,5"})
+    void selectedQuantityUsesOfficialScopeAndPreservesOriginal(String kind,String side,String price,String quantity) {
+        var p=parentFive(side);when(mapper.find("parent",1L)).thenReturn(p);
+        when(executions.findByOrderNumber(p.orderDate(),p.orderNo())).thenReturn(lookup(true,openFive(side)));
+        var check=amendCheck("1000",true);when(precheck.precheck(eq(1L),any())).thenReturn(check);
+        var prepared=service.prepareChange(1L,"parent",kind,new BigDecimal(price),new BigDecimal(quantity),false);
+        var child=captureChild();when(mapper.find(child.commandId(),1L)).thenReturn(child);
+        when(client.sendOrderOnce(any())).thenReturn(new KbLimitOrderContract.Outcome(KbLimitOrderContract.Status.ACCEPTED,"0040000639","200","",""));
+        service.submitChange(1L,child.commandId(),prepared.token(),true,"실제 주문 전송");
+        var sent=ArgumentCaptor.forClass(KbLimitOrderContract.Request.class);verify(client,times(1)).sendOrderOnce(sent.capture());
+        assertThat(sent.getValue().dataBody()).containsEntry("crct_clsf",quantity.equals("5")?"2":"1")
+            .containsEntry("ordr_q",quantity).containsEntry("orgn_ordr_no",p.orderNo());
+        assertThat(child.quantity()).isEqualByComparingTo(quantity);assertThat(p.quantity()).isEqualByComparingTo("5");
+        verify(executions,times(2)).findByOrderNumber(p.orderDate(),p.orderNo());
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"0","-1","0.5","6"})
+    void invalidSelectedQuantityNeverStartsReadsOrApproval(String quantity) {
+        when(mapper.find("parent",1L)).thenReturn(parentFive("BUY"));
+        assertThatThrownBy(()->service.prepareChange(1L,"parent","CANCEL",null,new BigDecimal(quantity),false)).isInstanceOf(ApiException.class);
+        verify(mapper,never()).insert(any());verifyNoInteractions(client,store,executions,precheck);
+    }
+    @Test void partialIncreaseRequiresSelectedNewAmountAtBothChecks() {
+        var p=parentFive("BUY");when(mapper.find("parent",1L)).thenReturn(p);
+        when(executions.findByOrderNumber(p.orderDate(),p.orderNo())).thenReturn(lookup(true,openFive("BUY")));
+        var enough=amendCheck("101",true);var insufficient=amendCheck("100",true);
+        when(precheck.precheck(eq(1L),any())).thenReturn(enough,insufficient);
+        var prepared=service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"),BigDecimal.ONE,false);
+        var c=captureChild();when(mapper.find(c.commandId(),1L)).thenReturn(c);
+        assertThatThrownBy(()->service.submitChange(1L,c.commandId(),prepared.token(),true,"실제 주문 전송")).isInstanceOf(ApiException.class);
+        verifyNoInteractions(client,store);
+        verify(precheck,times(2)).precheck(eq(1L),argThat(r->r.quantity().compareTo(BigDecimal.ONE)==0));
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"date","lookupNumber","rowNumber","filled","open","rejection","change"})
+    void falseOpenOrWrongScopeCannotPreparePartialChange(String mismatch) {
+        var p=parentFive("BUY");when(mapper.find("parent",1L)).thenReturn(p);
+        var row=new KbOrderExecutionItemResponse(mismatch.equals("rowNumber")?"0040000639":p.orderNo(),p.stockCode(),p.stockName(),"매수","090000",p.quantity(),
+            mismatch.equals("filled")?BigDecimal.ONE:BigDecimal.ZERO,mismatch.equals("open")?BigDecimal.ONE:p.quantity(),p.price(),null,
+            mismatch.equals("rejection")?"거절":"","OPEN",mismatch.equals("change")?"0040000001":"","",BigDecimal.ZERO,BigDecimal.ZERO);
+        when(executions.findByOrderNumber(p.orderDate(),p.orderNo())).thenReturn(new KbOrderLookupResponse(
+            mismatch.equals("date")?"19990101":p.orderDate(),mismatch.equals("lookupNumber")?"0040000639":p.orderNo(),true,1,List.of(row)));
+        assertThatThrownBy(()->service.prepareChange(1L,"parent","CANCEL",null,BigDecimal.ONE,false)).isInstanceOf(ApiException.class);
+        verifyNoInteractions(client,store);verify(mapper,never()).insert(any());
+    }
+    @Test void partialHttpPreparationKeepsSelectedQuantity() throws Exception {
+        var p=parentFive("BUY");when(mapper.find("parent",1L)).thenReturn(p);
+        when(executions.findByOrderNumber(p.orderDate(),p.orderNo())).thenReturn(lookup(true,openFive("BUY")));
+        var user=mock(com.sagopalgo.api.user.service.LocalUserContext.class);when(user.userId()).thenReturn(1L);
+        var mvc=org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup(new com.sagopalgo.api.order.controller.ManualOrderController(service,user))
+            .setControllerAdvice(new GlobalExceptionHandler()).build();
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/orders/manual/parent/changes/prepare")
+            .contentType(org.springframework.http.MediaType.APPLICATION_JSON).content("{\"kind\":\"CANCEL\",\"quantity\":2}"))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.data.command.quantity").value(2));
+        verifyNoInteractions(client,store);
+    }
+    private ManualOrderCommand parentFive(String side) {
+        var p=command("NEW","ACCEPTED",side);
+        return new ManualOrderCommand(p.commandId(),p.userId(),p.approvalId(),null,p.kind(),p.stockCode(),p.stockName(),p.market(),side,p.price(),
+            new BigDecimal("5"),p.accountFingerprint(),p.tokenHash(),p.expiresAt(),p.status(),p.orderNo(),p.orderDate(),p.resultCode(),p.processCode(),null,p.createdAt(),p.updatedAt());
+    }
+    private KbOrderExecutionItemResponse openFive(String side){return new KbOrderExecutionItemResponse("0040000638","005930","삼성전자",side.equals("BUY")?"매수":"매도","090000",new BigDecimal("5"),
+        BigDecimal.ZERO,new BigDecimal("5"),new BigDecimal("100"),null,"","OPEN");}
     private OrderPrecheckResponse amendCheck(String cash,boolean buyingPower) {
         var check=mock(OrderPrecheckResponse.class);when(check.orderAvailableCash()).thenReturn(cash==null?null:new BigDecimal(cash));
         when(check.checks()).thenReturn(List.of(new OrderSafetyCheckResponse("REAL_PRICE","현재가",true,"확인"),
@@ -289,5 +354,5 @@ class ManualOrderServiceTest {
     }
     private KbOrderExecutionItemResponse row(){return new KbOrderExecutionItemResponse("0040000638","005930","삼성전자","매수","090000",BigDecimal.ONE,
         BigDecimal.ZERO,BigDecimal.ONE,new BigDecimal("100"),null,"","OPEN");}
-    private KbOrderLookupResponse lookup(boolean complete,KbOrderExecutionItemResponse... rows){return new KbOrderLookupResponse("20261031","0040000638",complete,1,List.of(rows));}
+    private KbOrderLookupResponse lookup(boolean complete,KbOrderExecutionItemResponse... rows){return new KbOrderLookupResponse(LocalDate.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.BASIC_ISO_DATE),"0040000638",complete,1,List.of(rows));}
 }

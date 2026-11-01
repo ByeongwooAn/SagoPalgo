@@ -12,6 +12,7 @@ class SpringOrderPrecheckRepository
     implements
         OrderPrecheckRepository,
         ManualOrderRepository,
+        ManualOrderQuantityChangeRepository,
         ManualOrderReconciliationRepository,
         ManualOrderDispatchRepository,
         ManualOrderReservationAbortRepository,
@@ -146,6 +147,23 @@ class SpringOrderPrecheckRepository
       await _manual(
             'manual/$id/changes/prepare',
             body: {'kind': kind, 'price': ?price},
+          )
+          as Map<String, dynamic>;
+  @override
+  Future<Map<String, dynamic>> prepareQuantityChange(
+    String id,
+    String kind,
+    int? price,
+    int quantity,
+  ) async =>
+      await _manual(
+            'manual/$id/changes/prepare',
+            body: {
+              'kind': kind,
+              'price': ?price,
+              'quantity': quantity,
+              'reuseReservation': false,
+            },
           )
           as Map<String, dynamic>;
   @override
