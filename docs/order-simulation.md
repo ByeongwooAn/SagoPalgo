@@ -128,3 +128,5 @@ UNKNOWN은 기본적으로 계속 차단합니다. 새 `가상 주문 종결 대
 ## 후속: 전송 시작 전 예약 중단
 
 [전송 전 예약 중단](reserved-order-abort.md)을 추가했습니다. `전송 예약 직후 중단`의 SENDING/RESERVED·0회 명령만 별도 동의로 ABORTED 처리하며 원본·제출/변경 가드·현금/보유를 보존합니다. 검증된 SIMULATION_BEFORE_DISPATCH 감사만 해당 pending에서 제외합니다. DISPATCHING·UNKNOWN·이전 JSON의 증거 누락은 이 기능으로 해제하지 않습니다. 가상 중단은 기존 018 JSON을 사용하고 실제 수동 주문은 022가 필요합니다.
+
+2026-11-02 [Windows 네이티브 주문 흐름 통합 검증](order-lifecycle-acceptance.md)을 완료했습니다. 제품 화면·repository·실제 테스트 API·MySQL 및 JVM/앱 재시작을 연결한 17개 검증과 14개 저장 세션 보존을 확인했습니다. 가상 기능의 통합 검증 완료이며 실제 KB 주문 계약·성공을 입증하지 않습니다.
