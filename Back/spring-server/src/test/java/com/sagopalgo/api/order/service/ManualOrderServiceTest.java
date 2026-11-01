@@ -213,6 +213,28 @@ class ManualOrderServiceTest {
         assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"))).isInstanceOf(ApiException.class);
         verify(mapper,never()).insert(any());verifyNoInteractions(client,store);
     }
+    @Test void liveQuantityAndReservationRequestsCannotBeSilentlyIgnored() {
+        when(mapper.find("parent",1L)).thenReturn(command("NEW","ACCEPTED"));
+        assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"),new BigDecimal("2"),false))
+            .isInstanceOf(ApiException.class).hasMessageContaining("미확인");
+        assertThatThrownBy(()->service.prepareChange(1L,"parent","AMEND",new BigDecimal("101"),BigDecimal.ONE,true))
+            .isInstanceOf(ApiException.class).hasMessageContaining("미확인");
+        verify(mapper,never()).insert(any());verifyNoInteractions(client,store,precheck,executions);
+    }
+    @Test void liveHttpRequestsPreserveQuantityAndReuseIntentInsteadOfSubmittingWholeOrder() throws Exception {
+        when(mapper.find("parent",1L)).thenReturn(command("NEW","ACCEPTED"));
+        var user=mock(com.sagopalgo.api.user.service.LocalUserContext.class);when(user.userId()).thenReturn(1L);
+        var mvc=org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup(
+            new com.sagopalgo.api.order.controller.ManualOrderController(service,user))
+            .setControllerAdvice(new GlobalExceptionHandler()).build();
+        for(String payload:List.of("{\"kind\":\"AMEND\",\"price\":101,\"quantity\":2}",
+            "{\"kind\":\"CANCEL\",\"quantity\":2}","{\"kind\":\"AMEND\",\"price\":101,\"reuseReservation\":true}")) {
+            mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/orders/manual/parent/changes/prepare")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON).content(payload))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
+        }
+        verify(mapper,never()).insert(any());verifyNoInteractions(client,store,precheck,executions);
+    }
     @Test void increasedSellPriceKeepsReservedSharesAndDoesNotRequireBuyCash() {
         var parent=command("NEW","ACCEPTED","SELL");when(mapper.find("parent",1L)).thenReturn(parent);
         var row=new KbOrderExecutionItemResponse(parent.orderNo(),"005930","삼성전자","매도","090000",BigDecimal.ONE,

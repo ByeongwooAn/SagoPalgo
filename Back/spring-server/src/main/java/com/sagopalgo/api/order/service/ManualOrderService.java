@@ -65,8 +65,13 @@ public class ManualOrderService {
     }
 
     public ChangePreparation prepareChange(Long user,String parentId,String kind,BigDecimal price) {
+        return prepareChange(user,parentId,kind,price,null,false);
+    }
+    public ChangePreparation prepareChange(Long user,String parentId,String kind,BigDecimal price,BigDecimal quantity,boolean reuseReservation) {
         ready();
         ManualOrderCommand parent=require(user,parentId);
+        if(reuseReservation || (quantity!=null && quantity.compareTo(parent.quantity())!=0)) throw new ApiException(ErrorCode.VALIDATION_ERROR,
+            "실제 KB의 일부 수량 변경·예약금 재사용 계약은 미확인입니다. 주문을 준비하지 않았습니다. 시뮬레이터에서 먼저 검증하세요.");
         requireChangeable(parent);
         ManualOrderObservation observation=sync(user,parentId);
         if(!"OPEN".equals(observation.status())) throw new ApiException(ErrorCode.VALIDATION_ERROR,

@@ -52,14 +52,22 @@ public final class KbLimitOrderContract {
     }
 
     public static Request encodeChange(OrderPrecheckRequest request, String kind, String originalOrderNo) {
+        return encodeChange(request,kind,originalOrderNo,request==null?null:request.quantity());
+    }
+
+    /** 선택 수량은 새 총수량이 아니라 정정/취소할 수량입니다. */
+    public static Request encodeChange(OrderPrecheckRequest request, String kind, String originalOrderNo,BigDecimal remainingQuantity) {
         requireSupported(request);
+        if(remainingQuantity==null || request.quantity().compareTo(remainingQuantity)>0 || !wholePositiveWithinDigits(remainingQuantity,10)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,"변경 수량은 확인된 잔량을 넘을 수 없습니다.");
+        }
         if (!java.util.Set.of("AMEND", "CANCEL").contains(kind) || originalOrderNo == null
             || !originalOrderNo.matches("[0-9]{10}") || originalOrderNo.matches("0+")) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "원주문 번호와 정정·취소 종류를 확인하세요.");
         }
         Map<String, String> body = new LinkedHashMap<>();
         body.put("is_cd", request.stockCode()); body.put("orgn_ordr_no", originalOrderNo);
-        body.put("crct_clsf", "2"); body.put("ordr_q", request.quantity().toBigIntegerExact().toString());
+        body.put("crct_clsf", request.quantity().compareTo(remainingQuantity)==0?"2":"1"); body.put("ordr_q", request.quantity().toBigIntegerExact().toString());
         if ("AMEND".equals(kind)) {
             body.put("mkt_tm_clsf", "1"); body.put("ordr_uprc", request.limitPrice().toBigIntegerExact().toString());
             body.put("ordr_ccd", "00"); body.put("sor_ordr_ccd", "K");

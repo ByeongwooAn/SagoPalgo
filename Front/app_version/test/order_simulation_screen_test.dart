@@ -74,12 +74,9 @@ void main() {
       await t.ensureVisible(find.text('지정가 변경 검토'));
       await t.tap(find.text('지정가 변경 검토'));
       await t.pumpAndSettle();
-      expect(find.textContaining('기존 예약금을 합산하지 않고'), findsOneWidget);
+      expect(find.textContaining('가상 예약금은 선택한 수량만 재사용'), findsOneWidget);
       await t.enterText(
-        find.descendant(
-          of: find.byType(AlertDialog),
-          matching: find.byType(TextFormField),
-        ),
+        find.byKey(const Key('simulation-change-price')),
         '76000',
       );
       await t.tap(find.text('검증'));
@@ -441,8 +438,10 @@ void main() {
     await t.tap(find.text('1주 가상 체결'));
     await t.pumpAndSettle();
     expect(r.actions.last, 'orders/0000000001/fill');
-    await t.ensureVisible(find.text('전부 취소 검토'));
-    await t.tap(find.text('전부 취소 검토'));
+    await t.ensureVisible(find.text('수량 취소 검토'));
+    await t.tap(find.text('수량 취소 검토'));
+    await t.pump(const Duration(milliseconds: 400));
+    await t.tap(find.text('검증'));
     await t.pump(const Duration(milliseconds: 400));
     expect(r.lastPreparation?['kind'], 'CANCEL');
     expect(r.lastPreparation?['parentId'], 'c1');
@@ -450,6 +449,127 @@ void main() {
     await transmit(t);
     await t.pumpAndSettle();
     expect(r.actions.last, 'commands/c2/submit');
+  });
+
+  testWidgets(
+    'partial amendment of an accepted child shows selected quantity and reused budget',
+    (t) async {
+      final r = FakeSimulation()
+        ..preparedBudget = {
+          'reusedCash': 75000,
+          'additionalCash': 1000,
+          'releasedCash': 0,
+        };
+      r.commands.add(
+        command('c1', 'ACCEPTED')
+          ..['kind'] = 'AMEND'
+          ..['changed'] = true
+          ..['changeable'] = true,
+      );
+      await mount(t, r);
+      await t.ensureVisible(find.text('지정가 변경 검토'));
+      await t.tap(find.text('지정가 변경 검토'));
+      await t.pumpAndSettle();
+      await t.enterText(
+        find.byKey(const Key('simulation-change-price')),
+        '76000',
+      );
+      await t.enterText(
+        find.byKey(const Key('simulation-change-quantity')),
+        '1',
+      );
+      await t.tap(find.text('검증'));
+      await t.pump(const Duration(milliseconds: 400));
+      expect(r.lastPreparation?['parentId'], 'c1');
+      expect((r.lastPreparation?['plan'] as Map)['quantity'], 1);
+      expect(find.textContaining('현재 잔량 2주 중 1주만 정정'), findsOneWidget);
+      expect(
+        find.textContaining('가상 예약금 재사용 75000원 · 추가 필요 1000원'),
+        findsOneWidget,
+      );
+      await approve(t);
+      expect(r.actions.where((x) => x.endsWith('/submit')), isEmpty);
+      await transmit(t);
+      await t.pumpAndSettle();
+      expect(r.actions.where((x) => x.endsWith('/submit')), hasLength(1));
+    },
+  );
+  testWidgets(
+    'partial cancellation explains reduction and needs final consent',
+    (t) async {
+      final r = FakeSimulation();
+      r.commands.add(command('c1', 'ACCEPTED')..['changeable'] = true);
+      await mount(t, r);
+      await t.ensureVisible(find.text('수량 취소 검토'));
+      await t.tap(find.text('수량 취소 검토'));
+      await t.pumpAndSettle();
+      expect(find.byKey(const Key('simulation-change-price')), findsNothing);
+      await t.enterText(
+        find.byKey(const Key('simulation-change-quantity')),
+        '1',
+      );
+      await t.tap(find.text('검증'));
+      await t.pump(const Duration(milliseconds: 400));
+      expect(r.lastPreparation?['kind'], 'CANCEL');
+      expect((r.lastPreparation?['plan'] as Map)['quantity'], 1);
+      expect(find.textContaining('현재 잔량 2주 중 1주만 취소'), findsOneWidget);
+      await approve(t);
+      expect(
+        t
+            .widget<FilledButton>(find.widgetWithText(FilledButton, '모의 주문 전송'))
+            .onPressed,
+        isNull,
+      );
+      await t.tap(find.text('취소'));
+      await t.pumpAndSettle();
+      expect(r.actions.where((x) => x.endsWith('/submit')), isEmpty);
+    },
+  );
+  testWidgets('excess selected quantity never prepares or mutates parent', (
+    t,
+  ) async {
+    final r = FakeSimulation();
+    r.commands.add(command('c1', 'ACCEPTED')..['openQuantity'] = 1);
+    await mount(t, r);
+    await t.ensureVisible(find.text('수량 취소 검토'));
+    await t.tap(find.text('수량 취소 검토'));
+    await t.pumpAndSettle();
+    await t.enterText(find.byKey(const Key('simulation-change-quantity')), '2');
+    await t.tap(find.text('검증'));
+    await t.pumpAndSettle();
+    expect(r.actions, isEmpty);
+    expect(r.commands, hasLength(1));
+    expect(find.textContaining('현재 잔량 이내'), findsOneWidget);
+  });
+
+  testWidgets(
+    'older backend cannot silently turn selected quantity into whole order',
+    (t) async {
+      final r = FakeSimulation();
+      r.state.remove('changePolicy');
+      r.commands.add(command('c1', 'ACCEPTED'));
+      await mount(t, r);
+      await t.ensureVisible(find.text('지정가 변경 검토'));
+      await t.tap(find.text('지정가 변경 검토'));
+      await t.pumpAndSettle();
+      expect(r.actions, isEmpty);
+      expect(find.textContaining('서버 업데이트가 필요'), findsOneWidget);
+    },
+  );
+  testWidgets('different prepared quantity is never approved or submitted', (
+    t,
+  ) async {
+    final r = FakeSimulation()..returnWrongQuantity = true;
+    r.commands.add(command('c1', 'ACCEPTED'));
+    await mount(t, r);
+    await t.ensureVisible(find.text('수량 취소 검토'));
+    await t.tap(find.text('수량 취소 검토'));
+    await t.pumpAndSettle();
+    await t.enterText(find.byKey(const Key('simulation-change-quantity')), '1');
+    await t.tap(find.text('검증'));
+    await t.pumpAndSettle();
+    expect(r.actions, ['commands/prepare']);
+    expect(find.textContaining('선택한 가격·수량·원주문과 다릅니다'), findsOneWidget);
   });
 
   test(
@@ -572,9 +692,12 @@ class FakeSimulation
   num? createdCash;
   final actions = <String>[];
   Map<String, dynamic>? lastPreparation;
+  Map<String, dynamic>? preparedBudget;
+  bool returnWrongQuantity = false;
   Completer<Map<String, dynamic>>? pending;
   final Map<String, dynamic> state = {
     'mode': 'SIMULATION',
+    'changePolicy': 'OWNED_RESERVATION_V1',
     'sessionId': 's1',
     'revision': 1,
     'cash': 10000000,
@@ -615,7 +738,12 @@ class FakeSimulation
       lastPreparation = body;
       final c = command('c${commands.length + 1}', 'PREPARED')
         ..['plan'] = body['plan']
-        ..['kind'] = body['kind'];
+        ..['kind'] = body['kind']
+        ..['parentId'] = body['parentId']
+        ..['changeBudget'] = preparedBudget;
+      if (returnWrongQuantity) {
+        c['plan'] = {...c['plan'] as Map, 'quantity': 99};
+      }
       commands.add(c);
       return {
         'mode': 'SIMULATION',

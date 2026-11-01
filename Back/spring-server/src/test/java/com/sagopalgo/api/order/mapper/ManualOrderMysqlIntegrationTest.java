@@ -363,8 +363,8 @@ class ManualOrderMysqlIntegrationTest {
         assertThat((BigDecimal)settled.get("cash")).isEqualByComparingTo("BUY".equals(side)?"150000":"1002000");
         assertThat((BigDecimal)((Map<?,?>)settled.get("positions")).get("KOSPI:005930")).isEqualByComparingTo("BUY".equals(side)?"2":"0");
     }
-    @Test void increasedBuyCannotBorrowOriginalReservationOrUseOnlyPriceDelta() {
-        String id=simSession("301999");String parent=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+    @Test void reservationReuseStillRequiresFullPositivePriceDifference() {
+        String id=simSession("151999");String parent=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
         simulationService.submit(1L,id,parent,true,"모의 주문 전송");
         String before=simulations.find(id,1L).stateJson();
         assertThatThrownBy(()->simReady(id,simPlan("BUY","76000","2"),"AMEND",parent,"WAIT")).isInstanceOf(RuntimeException.class);
@@ -374,13 +374,13 @@ class ManualOrderMysqlIntegrationTest {
         assertThat(simReady(id,simPlan("BUY","74000","2"),"AMEND",parent,"WAIT")).isNotBlank();
     }
     @Test void cashConsumedAfterApprovalBlocksIncreaseBeforeClaimAndLeavesParentUsable() {
-        String id=simSession("400000");String parent=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
+        String id=simSession("302000");String parent=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");
         simulationService.submit(1L,id,parent,true,"모의 주문 전송");String child=simReady(id,simPlan("BUY","76000","2"),"AMEND",parent,"WAIT");
-        String competing=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"WAIT");simulationService.submit(1L,id,competing,true,"모의 주문 전송");
+        String competing=simReady(id,simPlan("BUY","76000","2"),"NEW",null,"WAIT");simulationService.submit(1L,id,competing,true,"모의 주문 전송");
         assertThatThrownBy(()->simulationService.submit(1L,id,child,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
         var result=simulationService.get(1L,id);assertThat(simCommand(result,child)).containsEntry("status","READY").containsEntry("sendCount",0);
         assertThat(simCommand(result,parent)).containsEntry("changed",false).containsEntry("brokerStatus","OPEN");
-        assertThat((BigDecimal)result.get("availableCash")).isEqualByComparingTo("100000");
+        assertThat((BigDecimal)result.get("availableCash")).isEqualByComparingTo("0");
         assertThat(simReady(id,simPlan("BUY","75000","2"),"CANCEL",parent,"WAIT")).isNotBlank();
     }
     @Test void concurrentPriceIncreasesConsumeOriginalOnce() throws Exception {
@@ -411,6 +411,117 @@ class ManualOrderMysqlIntegrationTest {
         assertThat(simCommand(result,parent)).containsEntry("changed",false);
     }
 
+    @ParameterizedTest @ValueSource(strings={"BUY","SELL"})
+    void partialAmendSplitsReservationWithoutChangingTotalSharesOrDoubleSettling(String side) {
+        String id=simSession("BUY".equals(side)?"375000":"1000000");
+        if("SELL".equals(side)) simSend(id,"BUY","75000","5","NEW",null,"FULL_FILL");
+        String parent=simSend(id,side,"75000","5","NEW",null,"WAIT");
+        String child=simSend(id,side,"74000","2","AMEND",parent,"WAIT");
+        var split=simulationService.get(1L,id);
+        assertThat((BigDecimal)simCommand(split,parent).get("openQuantity")).isEqualByComparingTo("3");
+        assertThat((BigDecimal)simCommand(split,parent).get("removedQuantity")).isEqualByComparingTo("2");
+        assertThat(simCommand(split,parent)).containsEntry("changeable",true).containsEntry("brokerStatus","OPEN");
+        assertThat(simCommand(split,child)).containsEntry("changeable",true);
+        if("SELL".equals(side)) assertThatThrownBy(()->simReady(id,simPlan("SELL","75000","1"),"NEW",null,"WAIT")).isInstanceOf(RuntimeException.class);
+        simulationService.fill(1L,id,(String)simCommand(split,parent).get("brokerOrderNo"),new BigDecimal("3"));
+        var finalState=simulationService.fill(1L,id,(String)simCommand(split,child).get("brokerOrderNo"),new BigDecimal("2"));
+        assertThat((BigDecimal)finalState.get("cash")).isEqualByComparingTo("BUY".equals(side)?"2000":"998000");
+        assertThat((BigDecimal)((Map<?,?>)finalState.get("positions")).get("KOSPI:005930")).isEqualByComparingTo("BUY".equals(side)?"5":"0");
+        assertThat(simCommand(finalState,parent)).containsEntry("brokerStatus","FILLED");
+    }
+    @ParameterizedTest @ValueSource(strings={"BUY","SELL"})
+    void partialFillThenPartialCancelReleasesOnlySelectedRemainingReservation(String side) {
+        String id=simSession("1000000");if("SELL".equals(side))simSend(id,"BUY","75000","4","NEW",null,"FULL_FILL");
+        String parent=simSend(id,side,"75000","4","NEW",null,"PARTIAL_FILL");
+        var before=simulationService.get(1L,id);String cancelled=simSend(id,side,"75000","1","CANCEL",parent,"WAIT");
+        var result=simulationService.get(1L,id);
+        assertThat(result.get("cash")).isEqualTo(before.get("cash"));assertThat(result.get("positions")).isEqualTo(before.get("positions"));
+        assertThat((BigDecimal)simCommand(result,parent).get("openQuantity")).isEqualByComparingTo("1");
+        assertThat((BigDecimal)simCommand(result,parent).get("filledQuantity")).isEqualByComparingTo("2");
+        assertThat(simCommand(result,cancelled)).containsEntry("brokerStatus","CANCELLED");
+        String last=simSend(id,side,"75000","1","CANCEL",parent,"WAIT");
+        assertThat(simCommand(simulationService.get(1L,id),last)).containsEntry("sendCount",1);
+        assertThat(simCommand(simulationService.get(1L,id),parent)).containsEntry("changeable",false);
+    }
+    @Test void additionalAmendUsesLatestAcceptedChildAndCanCancelItsReservation() {
+        String id=simSession("154000");String parent=simSend(id,"BUY","75000","2","NEW",null,"WAIT");
+        String first=simSend(id,"BUY","76000","2","AMEND",parent,"WAIT");
+        String second=simSend(id,"BUY","77000","2","AMEND",first,"WAIT");
+        var state=simulationService.get(1L,id);assertThat((BigDecimal)state.get("availableCash")).isZero();
+        assertThat(simCommand(state,first)).containsEntry("brokerStatus","REPLACED");
+        String cancel=simSend(id,"BUY","77000","1","CANCEL",second,"WAIT");
+        var cancelled=simulationService.get(1L,id);assertThat((BigDecimal)cancelled.get("availableCash")).isEqualByComparingTo("77000");
+        simulationService.submit(1L,id,cancel,true,"모의 주문 전송");
+        var repeated=simulationService.get(1L,id);assertThat(repeated.get("availableCash")).isEqualTo(cancelled.get("availableCash"));
+        assertThat(simCommand(repeated,cancel)).containsEntry("sendCount",1);
+    }
+    @Test void snapshotNumericScaleIsStableAcrossMysqlJsonForTenShareReservation() {
+        String id=simSession("751000");String parent=simSend(id,"BUY","75000","10","NEW",null,"WAIT");
+        String child=simReady(id,simPlan("BUY","75100","10"),"AMEND",parent,"WAIT");
+        simulationStore.mutate(1L,id,s->{var c=s.commands.get(child);var p=c.changeSnapshot;
+            c.changeSnapshot=new OrderSimulationState.ChangeSnapshot(p.parentOrderNo(),p.filledQuantity().setScale(2),p.removedQuantity().setScale(2),
+                p.openQuantity().setScale(2),p.revision(),p.previousChangeId());return null;});
+        var result=simulationService.submit(1L,id,child,true,"모의 주문 전송");
+        assertThat(simCommand(result,child)).containsEntry("status","ACCEPTED").containsEntry("sendCount",1);
+        assertThat((BigDecimal)result.get("availableCash")).isZero();
+    }
+    @Test void fillOrAnotherChangeInvalidatesPreparedSourceEvenWhenSelectedQuantityStillFits() {
+        String id=simSession("1000000");String parent=simSend(id,"BUY","75000","5","NEW",null,"WAIT");
+        String stale=simReady(id,simPlan("BUY","76000","1"),"AMEND",parent,"WAIT");
+        simulationService.fill(1L,id,"0000000001",BigDecimal.ONE);
+        assertThatThrownBy(()->simulationService.submit(1L,id,stale,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+        assertThat(simCommand(simulationService.get(1L,id),stale)).containsEntry("sendCount",0);
+        String next=simReady(id,simPlan("BUY","76000","1"),"AMEND",parent,"WAIT");
+        simSend(id,"BUY","75000","1","CANCEL",parent,"WAIT");
+        assertThatThrownBy(()->simulationService.submit(1L,id,next,true,"모의 주문 전송")).isInstanceOf(RuntimeException.class);
+        assertThat(simCommand(simulationService.get(1L,id),next)).containsEntry("sendCount",0);
+    }
+    @Test void concurrentPartialChangesCannotReuseSameSnapshotOrReservation() throws Exception {
+        String id=simSession("301000");String parent=simSend(id,"BUY","75000","4","NEW",null,"WAIT");
+        String a=simReady(id,simPlan("BUY","76000","1"),"AMEND",parent,"WAIT"),b=simReady(id,simPlan("BUY","76000","1"),"AMEND",parent,"WAIT");
+        assertThat(race(()->simulationService.submit(1L,id,a,true,"모의 주문 전송"),()->simulationService.submit(1L,id,b,true,"모의 주문 전송"))).containsExactlyInAnyOrder(true,false);
+        var state=simulationService.get(1L,id);assertThat((BigDecimal)state.get("availableCash")).isZero();
+        assertThat((BigDecimal)simCommand(state,parent).get("openQuantity")).isEqualByComparingTo("3");
+        assertThat((int)simCommand(state,a).get("sendCount")+(int)simCommand(state,b).get("sendCount")).isEqualTo(1);
+    }
+    @ParameterizedTest @ValueSource(strings={"AMEND","CANCEL"})
+    void unknownPartialChangeCanResolveItsOwnedAllocationWhileParentStaysOpen(String kind) {
+        String id=simSession("1000000");String parent=simSend(id,"BUY","75000","4","NEW",null,"WAIT");
+        String child=simSend(id,"BUY","76000","1",kind,parent,"TIMEOUT_AFTER_ACCEPT");var before=simulationService.get(1L,id);
+        assertThat(before.get("blocked")).isEqualTo(true);
+        var p=simulationService.prepareCompletion(1L,id,child,"0000000002");
+        var done=simulationService.confirmCompletion(1L,id,child,(String)p.get("resolutionId"),(String)p.get("token"),true,"가상 주문 종결 확정");
+        assertThat(done.get("cash")).isEqualTo(before.get("cash"));assertThat(done.get("positions")).isEqualTo(before.get("positions"));
+        assertThat(done.get("blocked")).isEqualTo(false);assertThat(simCommand(done,child)).containsEntry("resolved",true).containsEntry("status","UNKNOWN");
+        assertThat((BigDecimal)simCommand(done,parent).get("openQuantity")).isEqualByComparingTo("3");
+        // UNKNOWN 부모 변경 가드는 보존합니다. 관찰 종결만으로 추가 정정을 열지 않습니다.
+        assertThat(simCommand(done,parent)).containsEntry("changeable",false);
+    }
+    @Test void unknownAdditionalAmendmentResolutionRequiresItsImmediateAllocation() {
+        String id=simSession("1000000");String parent=simSend(id,"BUY","75000","3","NEW",null,"WAIT");
+        String first=simSend(id,"BUY","74000","2","AMEND",parent,"WAIT");
+        String second=simSend(id,"BUY","76000","1","AMEND",first,"TIMEOUT_AFTER_ACCEPT");
+        var p=simulationService.prepareCompletion(1L,id,second,"0000000003");
+        simulationService.confirmCompletion(1L,id,second,(String)p.get("resolutionId"),(String)p.get("token"),true,"가상 주문 종결 확정");
+        assertThat(simCommand(simulationService.get(1L,id),second)).containsEntry("resolved",true);
+    }
+    @ParameterizedTest @ValueSource(strings={"owner","metadata","receipt","allocation"})
+    void unverifiedOrCorruptReservationNeverEnablesReuse(String type) {
+        String id=simSession("1000000");String parent=simSend(id,"BUY","75000","3","NEW",null,"WAIT");
+        simulationStore.mutate(1L,id,s->{var c=s.commands.get(parent);var b=s.brokerOrders.get(c.brokerOrderNo);
+            switch(type){case "owner"->b.commandId="other";case "metadata"->b.changeKind=null;case "receipt"->c.receipt=null;
+                case "allocation"->{b.removed=BigDecimal.ONE;b.changeAllocations.clear();}default->throw new AssertionError(type);}return null;});
+        String before=simulations.find(id,1L).stateJson();
+        assertThatThrownBy(()->simReady(id,simPlan("BUY","76000","1"),"AMEND",parent,"WAIT")).isInstanceOf(RuntimeException.class);
+        assertThat(simulations.find(id,1L).stateJson()).isEqualTo(before);
+    }
+    @Test void rejectedPartialChangeKeepsParentGuardAndDoesNotReleaseReservation() {
+        String id=simSession("300000");String parent=simSend(id,"BUY","75000","4","NEW",null,"WAIT");
+        var before=simulationService.get(1L,id);String child=simSend(id,"BUY","74000","1","AMEND",parent,"REJECT");
+        var result=simulationService.get(1L,id);assertThat(result.get("availableCash")).isEqualTo(before.get("availableCash"));
+        assertThat(simCommand(result,child)).containsEntry("status","REJECTED");assertThat(simCommand(result,parent)).containsEntry("changeable",false);
+        assertThatThrownBy(()->simReady(id,simPlan("BUY","74000","1"),"AMEND",parent,"WAIT")).isInstanceOf(RuntimeException.class);
+    }
     @Test void simulationOwnershipAndSessionIsolationDoNotTouchRealOrders() {
         String id=simSession("1000000");String c=simReady(id,simPlan("BUY","75000","2"),"NEW",null,"TIMEOUT_AFTER_ACCEPT");
         simulationService.submit(1L,id,c,true,"모의 주문 전송");
@@ -875,6 +986,14 @@ class ManualOrderMysqlIntegrationTest {
         assertThatThrownBy(()->reviewService.confirm(1L,c.commandId(),p.reviewId(),p.token(),true,"가상 주문 종결 확정")).isInstanceOf(RuntimeException.class);
         verify(diagnosticExecutions,times(1)).findByOrderNumber(c.orderDate(),"0040000639");assertThat(commands.pending(1L)).isEqualTo(1);
     }
+    @Test void liveIncreasedPriceUnknownReviewRetainsPendingAndDoesNotRequirePriceReduction() {
+        var original=reviewCandidate("AMEND");jdbc.update("UPDATE manual_order_commands SET price=101 WHERE command_id=?",original.commandId());
+        var c=commands.find(original.commandId(),1L);
+        when(diagnosticExecutions.findByOrderNumber(c.orderDate(),"0040000639")).thenReturn(reviewLookup(c,"AMEND"));
+        var p=reviewService.prepare(1L,c.commandId(),"0040000639");
+        reviewService.confirm(1L,c.commandId(),p.reviewId(),p.token(),true,"잠금 유지 대조 저장");
+        assertThat(commands.pending(1L)).isEqualTo(1);assertThat(commands.find(c.commandId(),1L).status()).isEqualTo("UNKNOWN");
+    }
     @ParameterizedTest @ValueSource(strings={"NEW","AMEND","CANCEL"})
     void virtualCompletionPreservesOriginalAndResourcesThenAllowsNewVirtualOrder(String kind) {
         String session=simSession("1000000");String id=completionCandidate(session,kind);
@@ -997,6 +1116,9 @@ class ManualOrderMysqlIntegrationTest {
     }
 
     private String simSession(String cash) {return (String)simulationService.create(1L,new BigDecimal(cash)).get("sessionId");}
+    private String simSend(String session,String side,String price,String quantity,String kind,String parent,String scenario){
+        String id=simReady(session,simPlan(side,price,quantity),kind,parent,scenario);simulationService.submit(1L,session,id,true,"모의 주문 전송");return id;
+    }
     private OrderPrecheckRequest simPlan(String side,String price,String quantity) {
         return new OrderPrecheckRequest("005930","삼성전자","KOSPI",side,new BigDecimal(price),new BigDecimal(quantity));
     }

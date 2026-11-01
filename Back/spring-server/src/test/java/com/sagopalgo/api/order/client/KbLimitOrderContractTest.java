@@ -43,6 +43,15 @@ class KbLimitOrderContractTest {
         assertThatThrownBy(() -> KbLimitOrderContract.encode(request("BUY", "A005930", "100", "1")))
             .isInstanceOf(ApiException.class);
     }
+    @Test void selectedQuantityEncodesPartialAndFullScopeWithoutChangingExistingLiveContract() {
+        var plan=request("BUY","005930","76000","2");
+        assertThat(KbLimitOrderContract.encodeChange(plan,"AMEND","0040000638",new BigDecimal("5")).dataBody())
+            .containsEntry("crct_clsf","1").containsEntry("ordr_q","2").containsEntry("ordr_uprc","76000");
+        assertThat(KbLimitOrderContract.encodeChange(plan,"CANCEL","0040000638",new BigDecimal("5")).dataBody())
+            .containsEntry("crct_clsf","1").containsEntry("ordr_q","2").doesNotContainKey("ordr_uprc");
+        assertThat(KbLimitOrderContract.encodeChange(plan,"AMEND","0040000638").dataBody()).containsEntry("crct_clsf","2");
+        assertThatThrownBy(()->KbLimitOrderContract.encodeChange(plan,"AMEND","0040000638",BigDecimal.ONE)).isInstanceOf(ApiException.class);
+    }
 
     @Test
     void acceptsOnlyExplicitSuccessWithRealOrderNumber() throws Exception {

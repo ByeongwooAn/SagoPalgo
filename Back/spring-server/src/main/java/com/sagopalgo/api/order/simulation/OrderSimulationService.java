@@ -10,6 +10,7 @@ import com.sagopalgo.api.order.service.OrderDispatchReceipt;
 import com.sagopalgo.api.order.service.OrderSendingDiagnosticRules;
 import com.sagopalgo.api.order.service.UnknownOrderReviewRules;
 import com.sagopalgo.api.order.service.OrderParentEvidence;
+import com.sagopalgo.api.order.service.OrderReservationBudget;
 import com.sagopalgo.api.order.dto.KbOrderExecutionItemResponse;
 import com.sagopalgo.api.order.dto.KbOrderLookupResponse;
 import com.sagopalgo.api.order.simulation.OrderSimulationState.*;
@@ -80,25 +81,29 @@ public class OrderSimulationService {
         String commandId = store.mutate(userId, id, state -> {
             if (state.commands.size() >= 100) throw invalid("세션의 명령 100건 한도입니다. 새 세션을 만드세요.");
             OrderPrecheckRequest plan;
+            ChangeSnapshot changeSnapshot=null;
             if ("NEW".equals(kind)) {
                 if (parentId != null) throw invalid("신규 주문에는 원주문을 지정할 수 없습니다.");
                 KbLimitOrderContract.requireSupported(requested);
                 plan = normalized(requested);
             } else {
-                var parent = changeable(state, parentId);
+                var parent = command(state,parentId);
+                var source=SimulationChangeRules.source(state,parent);
+                changeSnapshot=SimulationChangeRules.snapshot(parent,source);
                 BigDecimal price = "AMEND".equals(kind) ? requested.limitPrice() : parent.plan.limitPrice();
                 plan = new OrderPrecheckRequest(parent.plan.stockCode(), parent.plan.stockName(), parent.plan.market(),
-                    parent.plan.side(), price, parent.plan.quantity());
+                    parent.plan.side(), price, requested.quantity());
                 if ("AMEND".equals(kind)) OrderWorkflowRules.requireAmendedPrice(parent.plan.limitPrice(),price);
             }
             KbLimitOrderContract.requireSupported(plan);
             if (Set.of("PARTIAL_FILL","TIMEOUT_AFTER_PARTIAL").contains(scenario) && !"CANCEL".equals(kind) && plan.quantity().compareTo(new BigDecimal("2")) < 0) {
                 throw invalid("부분체결 시나리오는 정수 2주 이상 필요합니다.");
             }
-            validate(state, plan, kind, "NEW".equals(kind)?null:command(state,parentId).plan);
+            validate(state, plan, kind, "NEW".equals(kind)?null:command(state,parentId).plan,changeSnapshot);
             var command = new Command();
             command.id = UUID.randomUUID().toString(); command.parentId = parentId; command.kind = kind;
             command.plan = plan; command.scenario = scenario; command.tokenHash = OrderWorkflowRules.hash(token);
+            command.changeSnapshot=changeSnapshot;
             command.createdAt = OrderSimulationStore.now().toString();
             command.expiresAt = OrderSimulationStore.now().plusSeconds(OrderWorkflowRules.APPROVAL_SECONDS).toString();
             state.commands.put(command.id, command); event(state, command.id, "PREPARED: 공통 형식·금액 한도·시세 이탈률·가상 자원 검증 통과");
@@ -144,10 +149,18 @@ public class OrderSimulationService {
             if (state.commands.values().stream().anyMatch(OrderSimulationService::pending)) {
                 throw invalid("미확정 모의 전송이 있습니다. 기록은 유지하고 다른 시나리오는 새 세션에서 실행하세요.");
             }
-            validate(state, c.plan, c.kind, "NEW".equals(c.kind)?null:command(state,c.parentId).plan);
+            if(c.changeSnapshot!=null) {
+                var parent=command(state,c.parentId);var source=SimulationChangeRules.source(state,parent);
+                if(!SimulationChangeRules.snapshotMatches(parent,source,c.changeSnapshot,false,c.id)) throw invalid("원주문 체결·잔량·변경 순서가 바뀌었습니다. 다시 준비하세요.");
+            }
+            validate(state, c.plan, c.kind, "NEW".equals(c.kind)?null:command(state,c.parentId).plan,c.changeSnapshot);
             if ("NEW".equals(c.kind)) KbLimitOrderContract.encode(c.plan);
-            else KbLimitOrderContract.encodeChange(c.plan, c.kind, command(state, c.parentId).brokerOrderNo);
-            if (!"NEW".equals(c.kind)) changeable(state, c.parentId).changed = true;
+            else KbLimitOrderContract.encodeChange(c.plan, c.kind, command(state, c.parentId).brokerOrderNo,
+                c.changeSnapshot==null?c.plan.quantity():c.changeSnapshot.openQuantity());
+            if (!"NEW".equals(c.kind)) {
+                var parent=c.changeSnapshot==null?changeable(state,c.parentId):command(state,c.parentId);
+                parent.changed=true;parent.latestChangeId=c.id;
+            }
             c.status = "SENDING";
             c.executionKey=executionKey; c.dispatchPhase="RESERVED";
             event(state, commandId, "SENDING: 제출 가드 커밋, 재전송 금지"); return null;
@@ -164,17 +177,25 @@ public class OrderSimulationService {
         var outcome = store.mutate(userId, id, state -> {
             var c = command(state, commandId); c.sendCount++;
             if ("NEW".equals(c.kind)) KbLimitOrderContract.encode(c.plan);
-            else KbLimitOrderContract.encodeChange(c.plan, c.kind, command(state, c.parentId).brokerOrderNo);
+            else KbLimitOrderContract.encodeChange(c.plan, c.kind, command(state, c.parentId).brokerOrderNo,
+                c.changeSnapshot==null?c.plan.quantity():c.changeSnapshot.openQuantity());
             if ("REJECT".equals(scenario)) { event(state, commandId, "가상 증권사 명시적 거절"); return interpreted(false, "0000000000"); }
             BrokerOrder parentOrder = null;
             if (!"NEW".equals(c.kind)) {
                 var parent = command(state, c.parentId); parentOrder = state.brokerOrders.get(parent.brokerOrderNo);
-                if (parentOrder == null || !"OPEN".equals(parentOrder.status)) return interpreted(false, "0000000000");
+                if(!SimulationChangeRules.canAllocate(parent,parentOrder,c)) {
+                    event(state,c.id,"가상 증권사 거절: 승인 후 원주문 잔량/체결 변경");return interpreted(false,"0000000000");
+                }
             }
             String orderNo = String.format(java.util.Locale.ROOT, "%010d", state.sequence++);
             var broker = new BrokerOrder(); broker.orderNo = orderNo; broker.commandId = commandId; broker.plan = c.plan;
             broker.changeKind=c.kind;broker.originalOrderNo=parentOrder==null?"":parentOrder.orderNo;
-            if (parentOrder != null) {parentOrder.status = "CANCEL".equals(c.kind) ? "CANCELLED" : "REPLACED";parentOrder.changedByCommandId=commandId;}
+            if (parentOrder != null) {
+                parentOrder.removed=parentOrder.removed.add(c.plan.quantity());parentOrder.changeAllocations.put(c.id,c.plan.quantity());
+                parentOrder.revision++;parentOrder.changedByCommandId=commandId;
+                parentOrder.status=parentOrder.plan.quantity().subtract(parentOrder.filled).subtract(parentOrder.removed).signum()==0
+                    ?("CANCEL".equals(c.kind)?"CANCELLED":"REPLACED"):(parentOrder.filled.signum()>0?"PARTIAL":"OPEN");
+            }
             if ("CANCEL".equals(c.kind)) broker.status = "CANCELLED";
             state.brokerOrders.put(orderNo, broker);
             // 응답 유실 시에도 증권사 쪽 접수 여부를 시험할 수 있도록 내부 가정 상태를 별도로 보관합니다.
@@ -362,7 +383,8 @@ public class OrderSimulationService {
         if ("BUY".equals(order.plan.side())) { state.cash = state.cash.subtract(amount); state.positions.put(key, position.add(quantity)); }
         else { state.cash = state.cash.add(amount); state.positions.put(key, position.subtract(quantity)); }
         order.filled = order.filled.add(quantity);
-        order.status = order.filled.compareTo(order.plan.quantity()) == 0 ? "FILLED" : "PARTIAL";
+        order.revision++;
+        order.status = order.filled.add(order.removed).compareTo(order.plan.quantity()) == 0 ? "FILLED" : "PARTIAL";
         event(state, order.commandId, "수동 가상 체결 " + quantity + "주 · " + order.status);
     }
 
@@ -375,8 +397,13 @@ public class OrderSimulationService {
         return parent;
     }
 
-    private void validate(OrderSimulationState state, OrderPrecheckRequest plan, String kind, OrderPrecheckRequest parent) {
+    private void validate(OrderSimulationState state, OrderPrecheckRequest plan, String kind, OrderPrecheckRequest parent,ChangeSnapshot snapshot) {
         KbLimitOrderContract.requireSupported(plan);
+        if(snapshot!=null) {
+            var budget=OrderReservationBudget.calculate(plan.side(),kind,parent.limitPrice(),plan.limitPrice(),plan.quantity(),snapshot.openQuantity());
+            if(!OrderWorkflowRules.covers(availableCash(state),budget.additionalCash())) throw invalid("선택한 가상 예약금을 재사용해도 증액 차액을 충당할 가용 현금이 부족합니다.");
+            if(availableShares(state,key(plan.market(),plan.stockCode())).signum()<0) throw invalid("가상 주식 예약 원장이 일치하지 않습니다.");
+        }
         if ("CANCEL".equals(kind)) return;
         BigDecimal quote = state.quotes.get(key(plan.market(), plan.stockCode()));
         if (quote == null || quote.signum() <= 0 || OrderWorkflowRules.deviation(plan.limitPrice(), quote).compareTo(new BigDecimal("5")) > 0
@@ -386,7 +413,7 @@ public class OrderSimulationService {
             BigDecimal required = "BUY".equals(plan.side()) ? plan.limitPrice().multiply(plan.quantity()) : plan.quantity();
             if (!OrderWorkflowRules.covers(available, required)) throw invalid("예약분을 제외한 가상 현금/주식이 부족합니다.");
         }
-        if ("AMEND".equals(kind)) {
+        if ("AMEND".equals(kind) && snapshot==null) {
             OrderWorkflowRules.requireAmendedPrice(parent.limitPrice(),plan.limitPrice());
             if(OrderWorkflowRules.requiresAmendCash(plan.side(),parent.limitPrice(),plan.limitPrice())
                 && !OrderWorkflowRules.covers(availableCash(state),plan.limitPrice().multiply(plan.quantity()))) {
@@ -423,6 +450,10 @@ public class OrderSimulationService {
             item.put("scenario", c.scenario); item.put("status", c.status); item.put("expiresAt", c.expiresAt);
             item.put("expired", Set.of("PREPARED", "READY").contains(c.status) && !LocalDateTime.parse(c.expiresAt).isAfter(OrderSimulationStore.now()));
             item.put("createdAt", c.createdAt); item.put("changed", c.changed); item.put("sendCount", c.sendCount);
+            item.put("changeable",SimulationChangeRules.canChange(state,c));
+            item.put("removedQuantity",broker==null?BigDecimal.ZERO:broker.removed);
+            item.put("changeBudget",c.changeSnapshot==null?null:OrderReservationBudget.calculate(c.plan.side(),c.kind,
+                command(state,c.parentId).plan.limitPrice(),c.plan.limitPrice(),c.plan.quantity(),c.changeSnapshot.openQuantity()));
             item.put("dispatchPhase",c.dispatchPhase==null?"LEGACY_UNVERIFIED":c.dispatchPhase);
             item.put("receipt",c.receipt); item.put("startedAt",c.startedAt); item.put("returnedAt",c.returnedAt); item.put("recoveredAt",c.recoveredAt);
             item.put("recoverable","SENDING".equals(c.status) && "RETURNED".equals(c.dispatchPhase) && c.receipt!=null && c.receipt.valid());
@@ -436,10 +467,11 @@ public class OrderSimulationService {
             item.put("filledQuantity", broker == null ? BigDecimal.ZERO : broker.filled);
             item.put("openQuantity", broker == null ? BigDecimal.ZERO : broker.openQuantity()); commands.add(item);
         }
-        return Map.of("mode", "SIMULATION", "sessionId", id, "revision", revision, "cash", state.cash,
+        var result=new LinkedHashMap<String,Object>(Map.of("mode", "SIMULATION", "sessionId", id, "revision", revision, "cash", state.cash,
             "availableCash", availableCash(state), "positions", state.positions, "quotes", state.quotes,
             "commands", commands, "events", state.events,
-            "blocked", state.commands.values().stream().anyMatch(OrderSimulationService::pending));
+            "blocked", state.commands.values().stream().anyMatch(OrderSimulationService::pending)));
+        result.put("changePolicy","OWNED_RESERVATION_V1");return result;
     }
     private KbLimitOrderContract.Outcome interpreted(boolean accepted, String orderNo) {
         return KbLimitOrderContract.interpret(json.valueToTree(Map.of("dataHeader", Map.of("resultCode", "200", "processFlag", accepted ? "A" : "B"),

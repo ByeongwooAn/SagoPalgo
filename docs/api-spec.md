@@ -973,3 +973,11 @@ POST `/api/v1/orders/manual/{id}/reviews/prepare`, `/confirm`와 GET 기본 revi
 기존 실제 주문의 `POST /api/v1/orders/manual/{id}/changes/prepare`와 자식 submit 계약을 유지합니다. 준비 본문 `{kind:"AMEND",price}`의 가격은 기존과 달라야 하며 기존 원주문 수량을 그대로 사용합니다. 당일 전량 미체결 신규 주문·한 차례 변경 제한은 유지합니다. 새 경로/응답 필드/마이그레이션은 없습니다. 시뮬레이터도 기존 commands/prepare·confirm·submit을 사용합니다.
 
 매수 증액은 준비 및 제출 직전의 사전검증에서 BUYING_POWER가 명시적으로 성공하고 `orderAvailableCash >= 새 지정가 × 전체 수량`이어야 합니다. 기존 예약금이나 차액을 합산/대입하지 않습니다. 인하와 동일 수량 매도 정정은 기존 예약 자원의 중복 검사를 제외합니다. 모든 변경은 새 전체 금액 한도·현재가/이탈률·스위치·계좌를 검사하며 일부 수량 변경은 제공하지 않습니다. 상세 정책과 검증은 [지정가 변경](order-price-amendment.md)을 따릅니다.
+
+## 25. 가상 추가 정정·일부 수량·선택 예약금 재사용
+
+시뮬레이터의 기존 commands/prepare에서 `plan.quantity`는 정정/취소할 선택 수량입니다. 정상 접수된 NEW/AMEND의 소유권·현재 잔량·이전 변경 배분을 확인하며 일부 정정은 기존 잔량과 새 가격 주문을 분리하고 일부 취소는 선택 잔량만 제거합니다. 준비 근거가 달라지면 제출을 거절하고 세션 행 잠금으로 동일 예약금의 중복 사용을 막습니다. 실제 KB 전송 정책은 확장하지 않습니다.
+
+세션 GET에 `changePolicy:"OWNED_RESERVATION_V1"`, 명령에 `changeable,removedQuantity,changeBudget`을 추가합니다. changeBudget은 `selectedQuantity,remainingQuantity,reusedCash,newReservedCash,additionalCash,releasedCash,scope`입니다. 가상 추가 필요 현금은 선택 수량의 새/기존 예약액 차이의 양수 부분만 사용합니다. 내부 changeSnapshot·실행 키·토큰 해시는 제외합니다. 부분/추가 정정의 종결 evidence에는 선택적 allocation(`source:"SIMULATION_ALLOCATION",parentQuantity,parentRemoved,allocatedQuantity`)을 추가하며 이전 이력의 누락은 null입니다.
+
+실제 `/orders/manual/{id}/changes/prepare`는 선택적 `quantity,reuseReservation`을 읽습니다. 기존과 다른 수량 또는 reuseReservation=true는 VALIDATION_ERROR(400)로 거절하며 KB 조회/승인/전송을 시작하지 않습니다. 누락·동일 수량/false는 기존 정책을 따릅니다. 시뮬레이터와 실제 API 사이에서 source/모드 플래그를 전달해 조건을 우회하지 않습니다. 새 스키마·마이그레이션 없이 018 JSON을 확장하며 [전체 규칙·공식 근거·배포](order-partial-changes.md)를 따릅니다.
