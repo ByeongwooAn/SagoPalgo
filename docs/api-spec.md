@@ -259,6 +259,14 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 
 `orderDate` 생략 시 한국 날짜이며 잘못된 날짜는 외부 조회 전 400입니다. 관찰 응답의 HTTP 200/공통 `success=true`만으로 각 구간의 성공을 판단하지 않습니다. 응답은 `Cache-Control: no-store`입니다. 상세 필드·페이지 상한·정밀도·검증 범위는 [계좌 관찰 계약](account-snapshot-contract.md)을 따릅니다.
 
+### 5.6 계좌 관찰 저장·이력
+
+- POST `/api/v1/kb/accounts/primary/observations`: `{requestId: UUID, orderDate: YYYYMMDD}`로 서버 관찰과 저장을 명시적으로 요청합니다. 두 필드는 필수이며 같은 사용자/ID는 한 번만 관찰합니다.
+- GET `/api/v1/kb/accounts/primary/observations?limit=20&beforeId=...`: 현재 사용자·연결의 최근 요약과 `nextBeforeId`를 반환합니다. limit 1~100, keyset 내림차순입니다.
+- GET `/api/v1/kb/accounts/primary/observations/{requestId}`: 저장 상태와 완료된 관찰을 조회하며 KB를 재호출하지 않습니다.
+
+`storageState=PENDING/COMPLETED/FAILED`와 관찰의 `snapshotStatus`를 구분합니다. 동일 ID의 대기/완료/실패는 기존 결과를 반환하고, 다른 날짜/계좌 연결 재사용은 409입니다. 다른 사용자/연결의 상세는 404, 저장소/무결성 오류는 503 `OBSERVATION_STORAGE_UNAVAILABLE`입니다. 정상 응답은 no-store·`readOnly=true`이고 관찰 본문은 계속 `atomic=false`, `usableForTrading=false`입니다. 기존 `/snapshot`은 자동 저장하지 않습니다. 023 적용·상태/복구·정밀도·검증 범위는 [계좌 관찰 이력 계약](account-observation-history.md)을 따릅니다.
+
 ## 6. 대시보드 API
 
 ### 6.0 시장 데이터 Provider

@@ -330,3 +330,9 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 `manual_order_reservation_aborts`는 command_id PK/전송기록 FK, user_id FK, execution_key, account_fingerprint, aborted_at(DATETIME(6))을 저장합니다. `manual_order_dispatches.phase` CHECK에 ABORTED를 추가하며 원본 주문과 가드는 변경하지 않습니다. 실제 pending 제외는 감사와 전송 기록의 소유권·키·계좌·시각·미시작 조건 일치를 요구합니다. 기존 DB는 [022 백업·적용](reserved-order-abort.md)이 필요하고 신규 schema.sql에도 포함됩니다. 메인 PC 021까지 점검 이후 022 운영 적용은 미실행입니다.
 
 2026-11-02 메인 PC에서 백업 후 022 적용과 필수 컬럼·PK/FK·ABORTED 단계 CHECK를 확인했습니다. 읽기 전용 배포 점검은 [실제 일부 변경 후속 문서](manual-partial-order-changes.md)를 따릅니다. Ubuntu 별도 DB의 상태와 실제 주문 결과 검증을 의미하지 않습니다.
+
+## 023. 계좌 관찰 저장·이력
+
+`kb_account_observations`는 로컬 사용자 FK·내부 연결 HMAC·저장 요청 UUID·조회일·PENDING/COMPLETED/FAILED 상태, 불변 관찰 JSON·SHA-256과 UTC DATETIME(6) 메타데이터를 저장합니다. `(user_id,request_id)`와 `(user_id,observation_id)`는 UNIQUE이고 연결별 목록은 `(user_id,account_binding,record_id)` 인덱스를 사용합니다. LONGTEXT의 JSON_VALID와 상태 CHECK는 본문·결과·실패 코드·완료 시각의 일관성을 검사합니다.
+
+외부 조회 전 예약을 커밋하고, 결과 저장은 별도 트랜잭션입니다. 실패한 결과 저장이 롤백돼도 예약은 남아 같은 ID의 재관찰을 막습니다. 기존 보유·자본금·주문/원장·가드는 수정하지 않습니다. [023 SQL](../Back/database/migrations/023_account_observation_history.sql)은 기존 설치에서 백업 후 적용하고, 신규 schema.sql에는 같은 테이블을 포함합니다. 이번 작업의 운영 DB 적용은 미실행입니다. [API·복구·격리 검증](account-observation-history.md)을 참고합니다.
