@@ -79,6 +79,90 @@ Map<String, String> _scope(dynamic value) => Map.unmodifiable(
 
 const _statuses = ['SUCCESS', 'PARTIAL', 'FAILED', 'DISABLED'];
 
+/// 서버 설정과 실행 기록은 별개입니다. ACTIVE를 시간 경과로 해제하지 않습니다.
+class ObservationCollection {
+  ObservationCollection.fromJson(Map<String, dynamic> json)
+    : enabled = _boolean(json['enabled']),
+      personalModeEnabled = _boolean(json['personalModeEnabled']),
+      accountEnabled = _boolean(json['accountEnabled']),
+      connectionConfigured = _boolean(json['connectionConfigured']),
+      intervalSeconds = _count(json['intervalSeconds']),
+      state = _choice(json['state'], [
+        'UNCONFIGURED',
+        'NOT_STARTED',
+        'IDLE',
+        'ACTIVE',
+        'PAUSED',
+      ]),
+      activeRequestId = json['activeRequestId'] == null
+          ? null
+          : observationRequestId(json['activeRequestId']),
+      activeOrderDate = json['activeOrderDate'] == null
+          ? null
+          : observationDate(json['activeOrderDate']),
+      lastRequestId = json['lastRequestId'] == null
+          ? null
+          : observationRequestId(json['lastRequestId']),
+      lastStorageState = json['lastStorageState'] == null
+          ? null
+          : _choice(json['lastStorageState'], [
+              'PENDING',
+              'COMPLETED',
+              'FAILED',
+            ]),
+      lastSnapshotStatus = json['lastSnapshotStatus'] == null
+          ? null
+          : _choice(json['lastSnapshotStatus'], _statuses),
+      failureCode = _optionalString(json['failureCode']),
+      nextDueAt = json['nextDueAt'] == null ? null : _time(json['nextDueAt']),
+      startedAt = json['startedAt'] == null ? null : _time(json['startedAt']),
+      completedAt = json['completedAt'] == null
+          ? null
+          : _time(json['completedAt']) {
+    if (json['readOnly'] != true ||
+        json['usableForTrading'] != false ||
+        intervalSeconds < 60 ||
+        intervalSeconds > 86400) {
+      throw const FormatException('수집 상태 계약 오류');
+    }
+  }
+
+  final bool enabled, personalModeEnabled, accountEnabled, connectionConfigured;
+  final int intervalSeconds;
+  final String state;
+  final String? activeRequestId,
+      activeOrderDate,
+      lastRequestId,
+      lastStorageState,
+      lastSnapshotStatus,
+      failureCode;
+  final DateTime? nextDueAt, startedAt, completedAt;
+
+  /// 버튼 표시 조건일 뿐이며 최종 종료/무결성 대조는 서버가 수행합니다.
+  bool get canResume =>
+      connectionConfigured &&
+      state == 'PAUSED' &&
+      activeRequestId == null &&
+      activeOrderDate == null &&
+      lastRequestId != null &&
+      completedAt != null &&
+      ((lastStorageState == 'FAILED' && lastSnapshotStatus == null) ||
+          (lastStorageState == 'COMPLETED' && lastSnapshotStatus != null)) &&
+      const [
+        'SNAPSHOT_PARTIAL',
+        'SNAPSHOT_FAILED',
+        'SNAPSHOT_DISABLED',
+        'SNAPSHOT_UNUSABLE',
+        'OBSERVATION_FAILED',
+        'CONTEXT_CHANGED',
+      ].contains(failureCode);
+}
+
+bool _boolean(dynamic value) {
+  if (value is! bool) throw const FormatException('수집 설정 오류');
+  return value;
+}
+
 class ObservationRequest {
   const ObservationRequest(this.requestId, this.orderDate);
   factory ObservationRequest.fromJson(Map<String, dynamic> json) =>

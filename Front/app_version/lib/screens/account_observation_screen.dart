@@ -8,6 +8,7 @@ import '../repositories/account_observation_repository.dart';
 import '../widgets/app_card.dart';
 import '../widgets/responsive_layout.dart';
 import 'observation_labels.dart';
+import 'observation_collection_panel.dart';
 
 class AccountObservationScreen extends StatefulWidget {
   const AccountObservationScreen({
@@ -27,6 +28,7 @@ class _AccountObservationScreenState extends State<AccountObservationScreen> {
   List<ObservationSummary> _items = [];
   List<ObservationRequest> _pending = [];
   int? _next;
+  int _collectionRevision = 0;
   String? _before, _after, _error, _journalError;
   bool _busy = false;
 
@@ -82,6 +84,7 @@ class _AccountObservationScreenState extends State<AccountObservationScreen> {
     final cursor = more ? _next : null;
     if (!more && mounted) {
       setState(() {
+        _collectionRevision++;
         _items = [];
         _next = null;
         _before = null;
@@ -203,6 +206,14 @@ class _AccountObservationScreenState extends State<AccountObservationScreen> {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 12),
+            ObservationCollectionPanel(
+              key: const ValueKey('observation-collection'),
+              repository: widget.repository,
+              refreshRevision: _collectionRevision,
+              enabled: !_busy,
+              onDetail: (id) => _openDetail(id),
             ),
             if (_busy)
               const Padding(

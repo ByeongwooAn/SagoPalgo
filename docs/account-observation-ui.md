@@ -1,6 +1,6 @@
 # R1 계좌 관찰 이력·상세·비교 화면
 
-기준일: 2026-11-02 · 상태: Flutter 구현·모의 HTTP/위젯 검증. 운영 서버 배포·023 적용 여부·실계좌 대조·사용자 PC 실행 확인은 후속입니다.
+기준일: 2026-11-03 · 상태: Flutter 이력/비교 및 자동 수집 상태·재개 구현. 로컬 Docker의 023·024 적용·API 응답 확인과 실계좌 대조·사용자 앱 실행 확인은 구분합니다. 실계좌 대조와 Ubuntu 배포 검증은 후속입니다.
 
 [관찰 저장·이력](account-observation-history.md)과 [관찰 비교](account-observation-comparison.md)를 Flutter Windows 앱에서 사용하도록 연결했습니다. 새 관찰 저장을 누를 때만 계좌 조회·저장을 요청하며, 화면 진입·새로고침·상세·비교·복구 확인은 GET으로 저장 이력만 읽습니다.
 
@@ -67,7 +67,7 @@ Windows의 파일 위치는 `%LOCALAPPDATA%\SagoPalgo\account-observation-reques
 
 실행 명령은 [Flutter README](../Front/app_version/README.md)를 따릅니다. 테스트는 `test/account_observation_repository_test.dart`, `test/account_observation_screen_test.dart`와 기존 앱 루트 동선 검증을 사용합니다. KB/운영 서버를 호출하지 않는 모의 HTTP 테스트이며 로컬 파일 복구는 임시 테스트 디렉터리에서 재생성해 검증합니다.
 
-후속으로 서버의 [기본 OFF 자동 관찰 수집](account-observation-collection.md)을 추가했습니다. 앱 목록은 새로고침으로 저장 이력을 읽으며 수집 활성화·상태/재개 전용 UI·자동 화면 갱신은 이 화면에 포함하지 않습니다.
+후속으로 서버의 [기본 OFF 자동 관찰 수집](account-observation-collection.md)과 아래 상태/재개 패널을 추가했습니다. 앱 목록은 새로고침으로 저장 이력을 읽으며 서버 수집 활성화 설정 변경·자동 화면 갱신은 포함하지 않습니다.
 
 검증 결과와 빌드 종류는 [개발 진척도](development-progress.md)에 기록합니다. 파일/Repository 재생성 검증은 실제 운영 EXE 종료·재시작 및 서버 장애를 실행한 것과 구분합니다.
 
@@ -75,4 +75,17 @@ Windows의 파일 위치는 `%LOCALAPPDATA%\SagoPalgo\account-observation-reques
 
 - 서버에 [023 테이블](../Back/database/migrations/023_account_observation_history.sql)과 저장·비교 API가 배포돼 있어야 합니다. 이번 작업은 서버/DB/키/주문 스위치를 변경하거나 실제 KB를 호출하지 않았습니다.
 - Flutter UI 변경이므로 새 Windows 앱 빌드가 필요합니다. EXE와 같은 빌드 폴더의 DLL·data를 함께 사용합니다. 이번 로컬 빌드가 사용자 PC 배포/실행 확인을 뜻하지 않습니다.
-- 서버/앱의 실제 연결, KB 앱과 잔고·수량 대조, 운영 복구 확인은 남아 있습니다. 서버 주기 수집과 별개로 이 화면에 자동 수집 제어·주문·체결 원장·기간 성과를 추가하지 않았습니다.
+- 실제 KB 조회와 잔고·수량 대조, 운영 복구 확인은 남아 있습니다. 이 화면은 수집 설정 변경·주문·체결 원장·기간 성과를 제공하지 않습니다.
+
+## 6. 자동 수집 상태와 재개
+
+`자동 관찰 수집` 패널은 동일 Repository의 `collectionStatus()`와 `resumeCollection(lastRequestId)`로 기존 상태/재개 API를 사용합니다. [패널 구현](../Front/app_version/lib/screens/observation_collection_panel.dart)은 이력 조회와 오류를 분리하며, `test/observation_collection_test.dart`에서 실제 Repository와 모의 HTTP를 연결해 검증합니다.
+
+1. 화면 진입·이력 새로고침·`수집 상태 확인`은 GET입니다. 확인 시각을 표시하며 자동 폴링·수집 활성화는 없습니다.
+2. 서버 설정 ON/OFF와 실행 상태를 별도로 표시합니다. NOT_STARTED/IDLE/ACTIVE/PAUSED/UNCONFIGURED, 간격, 마지막 결과·사유, 진행/직전 요청 ID와 한국 시간의 실행 기록을 확인할 수 있습니다. 연결 구성은 실제 KB 권한/호출 성공을 뜻하지 않습니다.
+3. `진행 관찰 상세`·`마지막 관찰 상세`는 기존 요청 ID의 상세 GET을 엽니다. ACTIVE는 실행 중 또는 종료 미확정이며 시간 경과로 해제하지 않습니다.
+4. PAUSED·종료 결과·알려진 중단 사유가 있어야 재개 버튼을 활성화합니다. PENDING/미확인 메타데이터는 차단하며 최종 현재 ID·종료·무결성 검증은 서버가 수행합니다.
+5. `수집 재개`는 마지막 요청 ID를 한 번만 POST합니다. 성공 시 IDLE·다음 실행 가능 시각을 표시하며 즉시 KB 조회나 환경 설정 ON을 하지 않습니다. 설정 OFF인 경우에도 OFF가 유지된다는 안내를 표시합니다.
+6. 재개 응답을 확인하지 못하면 이전 상태를 제거하고 GET 상태 확인을 안내합니다. 자동 POST 재시도는 없습니다. 화면 재진입도 GET만 실행합니다. 상태 GET 실패 역시 이전 PAUSED로 재개할 수 없도록 처리합니다.
+
+금액·수량 처리와 수동 저장의 로컬 UUID 복구 정책은 기존 계약을 따릅니다. 재개는 기존 서버 요청 ID를 사용하며 수동 저장의 새 UUID나 START 기록을 만들지 않습니다. 024 미적용/저장소 오류는 패널에 고정 문구로 안내하고 외부 오류 원문을 노출하지 않습니다.

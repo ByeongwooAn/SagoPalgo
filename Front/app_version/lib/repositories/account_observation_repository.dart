@@ -1,6 +1,11 @@
 import '../models/account_observation.dart';
 
 abstract class AccountObservationRepository {
+  Future<ObservationCollection> collectionStatus();
+
+  /// 수집 설정을 켜거나 즉시 KB를 조회하지 않습니다. 자동 재시도하지 않습니다.
+  Future<ObservationCollection> resumeCollection(String lastRequestId);
+
   Future<ObservationPage> history({int? beforeId});
   Future<ObservationDetail> detail(String requestId);
   Future<ObservationComparison> compare(

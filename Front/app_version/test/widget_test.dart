@@ -30,6 +30,7 @@ import 'package:app_version/repositories/research_feed_repository.dart';
 import 'package:app_version/repositories/watchlist_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'fixtures/account_observation_fixtures.dart';
 
 /// 사고팔고 앱의 기본 위젯 스모크 테스트입니다.
 ///
@@ -48,7 +49,9 @@ void main() {
         return http.Response(
           jsonEncode({
             'success': true,
-            'data': {'items': []},
+            'data': request.url.path.endsWith('/collection')
+                ? observationCollectionJson()
+                : {'items': []},
           }),
           200,
         );
@@ -102,7 +105,7 @@ void main() {
     await tester.tap(find.text('계좌 관찰 이력·비교'));
     await tester.pumpAndSettle();
     expect(find.text('계좌 관찰 이력'), findsOneWidget);
-    expect(observationMethods, ['GET']);
+    expect(observationMethods, ['GET', 'GET']);
     await tester.pageBack();
     await tester.pumpAndSettle();
 
@@ -179,7 +182,7 @@ void main() {
     await tester.tap(find.text('계좌 관찰 이력·비교'));
     await tester.pumpAndSettle();
     expect(find.text('계좌 관찰 이력'), findsOneWidget);
-    expect(observationMethods, ['GET', 'GET']);
+    expect(observationMethods, ['GET', 'GET', 'GET', 'GET']);
     await tester.pageBack();
     await tester.pumpAndSettle();
 
