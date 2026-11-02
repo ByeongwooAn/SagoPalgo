@@ -2,6 +2,8 @@
 
 기준일: 2026-11-02 · 상태: 백엔드 구현·전용 MySQL 검증. [앱 구현](account-observation-ui.md)과 [기본 OFF 자동 수집](account-observation-collection.md)을 후속으로 연결합니다. 운영 DB 적용·서버/앱 배포·실계좌 대조·수집 활성화는 후속입니다.
 
+후속 실행 기록: [2026-11-03 실제 계좌 읽기 점검](account-observation-live-validation.md). 로컬 023·024 적용 환경에서 실제 관찰 1회의 저장/재조회 및 보유/현금 사용자 대조를 확인했고 지정일 주문 조회 실패로 전체 관찰은 PARTIAL로 남았습니다. 아래 운영 미적용 설명은 최초 개발 당시의 범위입니다.
+
 [읽기 스냅샷 계약](account-snapshot-contract.md)을 변경하지 않고 **명시적인 새 저장 요청**으로 관찰을 실행합니다. 저장되는 결과는 서버가 만든 `KB_ACCOUNT_OBSERVATION_V1`이며, 클라이언트가 보낸 잔고/수량/스냅샷을 저장하는 API는 아닙니다. [R1 로드맵](realtime-trading-roadmap.md#r1-계좌-자동-동기화와-원장-기반)의 관찰 이력 단계이며 거래 원장은 아닙니다.
 
 ## 1. API
