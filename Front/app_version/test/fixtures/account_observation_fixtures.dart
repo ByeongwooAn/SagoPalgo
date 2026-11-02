@@ -126,3 +126,30 @@ Map<String, dynamic> observationComparisonJson({bool blocked = false}) => {
       },
   ],
 };
+Map<String, dynamic> observationCollectionJson({
+  String state = 'NOT_STARTED',
+  bool enabled = false,
+}) => {
+  'enabled': enabled,
+  'personalModeEnabled': true,
+  'accountEnabled': true,
+  'connectionConfigured': state != 'UNCONFIGURED',
+  'intervalSeconds': 900,
+  'state': state,
+  'readOnly': true,
+  'usableForTrading': false,
+  if (state == 'ACTIVE') ...{
+    'activeRequestId': afterObservationId,
+    'activeOrderDate': '20261103',
+    'startedAt': '2026-11-03T01:00:00Z',
+  },
+  if (state == 'PAUSED' || state == 'IDLE') ...{
+    'lastRequestId': beforeObservationId,
+    'lastStorageState': 'COMPLETED',
+    'lastSnapshotStatus': 'PARTIAL',
+    'startedAt': '2026-11-03T00:00:00Z',
+    'completedAt': '2026-11-03T00:01:00Z',
+  },
+  if (state == 'PAUSED') 'failureCode': 'SNAPSHOT_PARTIAL',
+  if (state == 'IDLE') 'nextDueAt': '2026-11-03T00:16:00Z',
+};

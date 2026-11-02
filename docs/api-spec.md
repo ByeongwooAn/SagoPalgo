@@ -279,6 +279,8 @@ Flutter 보유/설정 탭에서 사용하는 [저장·이력·상세·비교 화
 
 ### 5.8 계좌 관찰 자동 수집 상태·재개
 
+Flutter의 [자동 수집 상태/재개 패널](account-observation-ui.md#6-자동-수집-상태와-재개)에서 아래 API를 사용합니다. 화면 진입·재조회는 GET이며 재개 POST를 자동 반복하지 않습니다.
+
 - GET `/api/v1/kb/accounts/primary/observations/collection`: 현재 로컬 사용자·연결의 수집 설정과 `NOT_STARTED/IDLE/ACTIVE/PAUSED/UNCONFIGURED`, 실행/직전 요청·종료 상태·고정 사유·DB UTC 시각을 읽습니다. 상태 조회는 예약·KB 조회를 실행하지 않습니다.
 - POST `/api/v1/kb/accounts/primary/observations/collection/resume`: `{lastRequestId: UUID}`로 현재 PAUSED의 저장된 종료 결과를 확인하고 IDLE로 바꿉니다. 즉시 KB 조회나 설정 ON은 하지 않고 현재 시각+간격 이후 새 주기를 허용합니다. ACTIVE/PENDING은 해제하지 않습니다.
 

@@ -45,7 +45,7 @@ void main() {
       await open(tester, server);
       expect(find.textContaining('저장 이력이 없습니다'), findsOneWidget);
       expect(server.posts, 0);
-      expect(server.methods, ['GET']);
+      expect(server.methods, ['GET', 'GET']);
       expect(tester.takeException(), isNull);
     },
   );
@@ -232,6 +232,23 @@ void main() {
       expect(server.posts, 0);
     },
   );
+
+  testWidgets(
+    'collection storage failure keeps history and manual capture available',
+    (tester) async {
+      final server = _Server()..collectionUnavailable = true;
+      await open(tester, server);
+      expect(find.textContaining('024'), findsOneWidget);
+      expect(find.textContaining('저장 이력이 없습니다'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, '새 관찰 저장'))
+            .onPressed,
+        isNotNull,
+      );
+      expect(server.posts, 0);
+    },
+  );
 }
 
 class _UnavailableJournal extends MemoryObservationRequestJournal {
@@ -251,6 +268,7 @@ class _Server {
       missingDetail = false,
       paginate = false,
       failMore = false;
+  bool collectionUnavailable = false;
   Completer<void>? wait;
   void seed() {
     details[beforeObservationId] = observationDetailJson(beforeObservationId);
@@ -268,6 +286,19 @@ class _Server {
         journal: journal,
         client: MockClient((request) async {
           methods.add(request.method);
+          if (request.url.path.endsWith('/collection')) {
+            if (collectionUnavailable) {
+              return http.Response(
+                jsonEncode({
+                  'error': {
+                    'code': 'OBSERVATION_COLLECTION_STORAGE_UNAVAILABLE',
+                  },
+                }),
+                503,
+              );
+            }
+            return _ok(observationCollectionJson());
+          }
           if (request.method == 'POST') {
             posts++;
             await wait?.future;

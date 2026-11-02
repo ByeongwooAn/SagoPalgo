@@ -29,6 +29,7 @@ class SpringAccountObservationRepository
   final ObservationRequestJournal journal;
   final Duration timeout;
   bool _capturing = false;
+  bool _resuming = false;
 
   String get _context => jsonEncode([
     Uri.parse(
@@ -43,6 +44,58 @@ class SpringAccountObservationRepository
     'Content-Type': 'application/json',
     if (accessToken.trim().isNotEmpty) 'Authorization': 'Bearer $accessToken',
   };
+
+  @override
+  Future<ObservationCollection> collectionStatus() async {
+    final data = await _collectionCall(
+      () => client.get(_uri('/collection'), headers: _headers),
+    );
+    return _parse(() => ObservationCollection.fromJson(data));
+  }
+
+  @override
+  Future<ObservationCollection> resumeCollection(String lastRequestId) async {
+    final id = _id(lastRequestId);
+    if (_resuming) {
+      throw const ObservationRepositoryException('BUSY', '수집 재개 요청을 처리 중입니다.');
+    }
+    _resuming = true;
+    try {
+      final data = await _collectionCall(
+        () => client.post(
+          _uri('/collection/resume'),
+          headers: _headers,
+          body: jsonEncode({'lastRequestId': id}),
+        ),
+      );
+      return _parse(() {
+        final result = ObservationCollection.fromJson(data);
+        if (result.lastRequestId != id || result.state != 'IDLE') {
+          throw const FormatException('재개 결과 불일치');
+        }
+        return result;
+      });
+    } finally {
+      _resuming = false;
+    }
+  }
+
+  Future<Map<String, dynamic>> _collectionCall(
+    Future<http.Response> Function() send,
+  ) async {
+    try {
+      return await _call(send);
+    } on ObservationRepositoryException catch (e) {
+      final message = switch (e.code) {
+        'HTTP_400' => '수집 요청과 서버 연결 설정을 확인하세요.',
+        'HTTP_404' => '수집 API 배포 상태와 현재 계좌 연결의 종료 기록을 확인하세요.',
+        'HTTP_409' => '재개 대상 또는 계좌 연결이 변경됐습니다. 수집 상태를 다시 확인하세요.',
+        'CONNECTION_ERROR' => '수집 응답을 확인하지 못했습니다. 수집 상태 확인으로 서버 결과를 조회하세요.',
+        _ => e.message,
+      };
+      throw ObservationRepositoryException(e.code, message);
+    }
+  }
 
   @override
   Future<List<ObservationRequest>> outstanding() async {
@@ -266,6 +319,12 @@ class SpringAccountObservationRepository
       throw const ObservationRepositoryException(
         'OBSERVATION_STORAGE_UNAVAILABLE',
         '관찰 저장소를 확인할 수 없습니다. 서버의 DB 023 적용 상태를 확인한 뒤 같은 요청의 저장 상태를 확인하세요.',
+      );
+    }
+    if (code == 'OBSERVATION_COLLECTION_STORAGE_UNAVAILABLE') {
+      throw const ObservationRepositoryException(
+        'OBSERVATION_COLLECTION_STORAGE_UNAVAILABLE',
+        '수집 저장소를 확인할 수 없습니다. 서버의 DB 024 적용 상태를 확인하세요.',
       );
     }
     final message = switch (response.statusCode) {
