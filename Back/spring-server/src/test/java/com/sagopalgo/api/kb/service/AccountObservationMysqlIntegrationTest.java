@@ -15,6 +15,9 @@ import com.sagopalgo.api.common.exception.GlobalExceptionHandler;
 import com.sagopalgo.api.config.PersonalModeProperties;
 import com.sagopalgo.api.config.SecuritiesProviderProperties;
 import com.sagopalgo.api.kb.controller.AccountObservationHistoryController;
+import com.sagopalgo.api.kb.controller.AccountObservationComparisonController;
+import com.sagopalgo.api.kb.dto.AccountObservationComparisonResponse.ComparisonStatus;
+import com.sagopalgo.api.kb.dto.AccountObservationComparisonResponse.Reason;
 import com.sagopalgo.api.kb.dto.KbAccountSnapshotResponse.Status;
 import com.sagopalgo.api.kb.mapper.AccountObservationMapper;
 import com.sagopalgo.api.user.service.LocalUserContext;
@@ -238,6 +241,79 @@ class AccountObservationMysqlIntegrationTest {
             .andExpect(jsonPath("$.data.items.length()").value(1));
         assertThat(body).doesNotContain("private-key","private-secret",binding.current(),"payloadSha256","accountBinding","userId");
         verify(observer,times(1)).observe(DATE);
+    }
+
+    @Test void comparisonHttpReadsPersistedDecimalsWithoutBrokerCallsOrWrites() throws Exception {
+        var before=AccountObservationComparisonFixtures.change(AccountObservationComparisonFixtures.observation(0),0,
+            s -> AccountObservationComparisonFixtures.rows(s,AccountObservationComparisonFixtures.row("is_no","005930","gnrl_q","0.123456")));
+        var after=AccountObservationComparisonFixtures.change(AccountObservationComparisonFixtures.observation(1),0,
+            s -> AccountObservationComparisonFixtures.rows(s,AccountObservationComparisonFixtures.row("is_no","005930","gnrl_q","0.123457")));
+        when(observer.observe(DATE)).thenReturn(before,after);
+        var a=service.capture(1L,id(),DATE);var b=service.capture(1L,id(),DATE);
+        var saved=jdbc.queryForList("SELECT * FROM kb_account_observations ORDER BY record_id");
+        var context=new LocalUserContext(new PersonalModeProperties(true,1L,"owner","local@test"));
+        var mvc=MockMvcBuilders.standaloneSetup(new AccountObservationHistoryController(service,context),
+            new AccountObservationComparisonController(comparisonService(),context))
+            .setControllerAdvice(new GlobalExceptionHandler()).build();
+        String body=mvc.perform(get("/api/v1/kb/accounts/primary/observations/comparison")
+            .param("beforeRequestId",a.requestId()).param("afterRequestId",b.requestId()))
+            .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"))
+            .andExpect(jsonPath("$.data.status").value("COMPARED"))
+            .andExpect(jsonPath("$.data.sections[0].rowChanges[0].fields[0].numericDelta").value("0.000001"))
+            .andExpect(jsonPath("$.data.readOnly").value(true)).andExpect(jsonPath("$.data.usableForTrading").value(false))
+            .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        assertThat(body).doesNotContain("private-key","private-secret",binding.current(),"payloadSha256","accountBinding","userId");
+        assertThat(jdbc.queryForList("SELECT * FROM kb_account_observations ORDER BY record_id")).isEqualTo(saved);
+        verify(observer,times(2)).observe(DATE);verifyNoMoreInteractions(observer);
+    }
+
+    @Test void comparisonUsesCurrentUserAndBindingForBothRecords() {
+        when(observer.observe(DATE)).thenReturn(AccountObservationComparisonFixtures.observation(0),AccountObservationComparisonFixtures.observation(1),
+            AccountObservationComparisonFixtures.observation(2));
+        var a=service.capture(1L,id(),DATE);var b=service.capture(1L,id(),DATE);
+        assertNotFound(() -> comparisonService().compare(2L,a.requestId(),b.requestId()));
+        properties.getKb().setAppKey("changed-key");
+        assertNotFound(() -> comparisonService().compare(1L,a.requestId(),b.requestId()));
+        var newScope=service.capture(1L,id(),DATE);
+        assertNotFound(() -> comparisonService().compare(1L,newScope.requestId(),b.requestId()));
+        assertThat(count()).isEqualTo(3);verify(observer,times(3)).observe(DATE);
+    }
+
+    @Test void pendingComparisonDoesNotCaptureOrModifyStoredRequests() {
+        String a=id();store.reserve(1L,a,binding.current(),DATE,NOW);
+        when(observer.observe(DATE)).thenReturn(AccountObservationComparisonFixtures.observation(1));
+        var b=service.capture(1L,id(),DATE);
+        var result=comparisonService().compare(1L,a,b.requestId());
+        assertThat(result.status()).isEqualTo(ComparisonStatus.BLOCKED);
+        assertThat(result.sections()).allSatisfy(s -> assertThat(s.reasons()).contains(Reason.STORAGE_NOT_COMPLETED));
+        assertThat(service.detail(1L,a).storageState()).isEqualTo("PENDING");
+        assertThat(count()).isEqualTo(2);verify(observer,times(1)).observe(DATE);
+    }
+
+    @Test void comparisonDoesNotReturnChangesFromTamperedStoredPayload() {
+        when(observer.observe(DATE)).thenReturn(AccountObservationComparisonFixtures.observation(0),AccountObservationComparisonFixtures.observation(1));
+        var a=service.capture(1L,id(),DATE);var b=service.capture(1L,id(),DATE);
+        jdbc.update("UPDATE kb_account_observations SET payload=REPLACE(payload,'SUCCESS','PARTIAL') WHERE request_id=?",b.requestId());
+        assertThatThrownBy(() -> comparisonService().compare(1L,a.requestId(),b.requestId()))
+            .isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.OBSERVATION_STORAGE_UNAVAILABLE));
+        verify(observer,times(2)).observe(DATE);assertThat(count()).isEqualTo(2);
+    }
+
+    @Test void comparisonReadsStoredScopesAndCanBlockOneSectionOnly() {
+        var a=AccountObservationComparisonFixtures.observation(0);
+        var b=AccountObservationComparisonFixtures.change(AccountObservationComparisonFixtures.observation(1),0,
+            s -> AccountObservationComparisonFixtures.scope(s,Map.of("stockFilter","005930")));
+        when(observer.observe(DATE)).thenReturn(a,b);
+        var left=service.capture(1L,id(),DATE);var right=service.capture(1L,id(),DATE);
+        var result=comparisonService().compare(1L,left.requestId(),right.requestId());
+        assertThat(result.status()).isEqualTo(ComparisonStatus.PARTIAL);
+        assertThat(result.sections().get(0).reasons()).contains(Reason.SCOPE_MISMATCH);
+        assertThat(result.sections().get(1).status()).isEqualTo(ComparisonStatus.COMPARED);
+        verify(observer,times(2)).observe(DATE);
+    }
+
+    private AccountObservationComparisonService comparisonService() {
+        return new AccountObservationComparisonService(service,binding,new AccountObservationComparison());
     }
 
     private AccountObservationMapper newMapper() throws Exception {

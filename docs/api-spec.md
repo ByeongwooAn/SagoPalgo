@@ -267,6 +267,14 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 
 `storageState=PENDING/COMPLETED/FAILED`와 관찰의 `snapshotStatus`를 구분합니다. 동일 ID의 대기/완료/실패는 기존 결과를 반환하고, 다른 날짜/계좌 연결 재사용은 409입니다. 다른 사용자/연결의 상세는 404, 저장소/무결성 오류는 503 `OBSERVATION_STORAGE_UNAVAILABLE`입니다. 정상 응답은 no-store·`readOnly=true`이고 관찰 본문은 계속 `atomic=false`, `usableForTrading=false`입니다. 기존 `/snapshot`은 자동 저장하지 않습니다. 023 적용·상태/복구·정밀도·검증 범위는 [계좌 관찰 이력 계약](account-observation-history.md)을 따릅니다.
 
+### 5.7 저장된 계좌 관찰 비교
+
+`GET /api/v1/kb/accounts/primary/observations/comparison?beforeRequestId=<UUID>&afterRequestId=<UUID>`
+
+서로 다른 두 요청 ID는 필수입니다. 같은 사용자·현재 연결의 저장 이력만 읽으며 KB 재조회나 DB 쓰기를 실행하지 않습니다. 구간별 동일 범위·성공/완전성·문제 코드·식별자·수신 순서를 검사한 뒤 지원 필드의 변화와 정확한 십진 변화량을 반환합니다. 불완전한 구간은 차단 사유와 빈 차이 목록을 반환합니다. 전체 `status=COMPARED/PARTIAL/BLOCKED`를 확인해야 하며 정상 응답은 no-store·`readOnly=true`·`usableForTrading=false`입니다.
+
+필드/행의 누락을 0·매수·매도·주문 종결로 판단하지 않습니다. 입력 오류는 400, 없는 사용자/연결 기록은 404, 연결 변경은 409, 저장 무결성 오류는 503입니다. 응답·매칭 식별자·차단 사유는 [관찰 비교 계약](account-observation-comparison.md)을 따릅니다. 기존 023 테이블을 사용하며 추가 마이그레이션은 없습니다.
+
 ## 6. 대시보드 API
 
 ### 6.0 시장 데이터 Provider
