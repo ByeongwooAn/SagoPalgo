@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/holding.dart';
 import '../repositories/portfolio_repository.dart';
+import '../repositories/account_observation_repository.dart';
+import 'account_observation_screen.dart';
 import '../repositories/kb_portfolio_importer.dart';
 import '../models/kb_portfolio_import.dart';
 import '../repositories/market_data_repository.dart';
@@ -35,6 +37,7 @@ class PortfolioScreen extends StatelessWidget {
     required this.summary,
     required this.holdings,
     required this.repository,
+    this.accountObservationRepository,
     required this.marketDataRepository,
     required this.orderPrecheckRepository,
     required this.portfolioFuture,
@@ -55,6 +58,8 @@ class PortfolioScreen extends StatelessWidget {
 
   /// 자본금/보유 종목 API 요청을 처리하는 Repository입니다.
   final PortfolioRepository repository;
+
+  final AccountObservationRepository? accountObservationRepository;
 
   /// 보유 종목 상세 차트 데이터를 조회하는 Repository입니다.
   final MarketDataRepository marketDataRepository;
@@ -95,6 +100,7 @@ class PortfolioScreen extends StatelessWidget {
           isRefreshing: snapshot.connectionState != ConnectionState.done,
           hasRefreshError: snapshot.hasError,
           repository: repository,
+          accountObservationRepository: accountObservationRepository,
           marketDataRepository: marketDataRepository,
           orderPrecheckRepository: orderPrecheckRepository,
           pendingSetupAction: pendingSetupAction,
@@ -113,6 +119,7 @@ class _PortfolioContent extends StatelessWidget {
     required this.isRefreshing,
     required this.hasRefreshError,
     required this.repository,
+    required this.accountObservationRepository,
     required this.marketDataRepository,
     required this.orderPrecheckRepository,
     required this.pendingSetupAction,
@@ -125,6 +132,7 @@ class _PortfolioContent extends StatelessWidget {
   final bool isRefreshing;
   final bool hasRefreshError;
   final PortfolioRepository repository;
+  final AccountObservationRepository? accountObservationRepository;
   final MarketDataRepository marketDataRepository;
   final OrderPrecheckRepository orderPrecheckRepository;
   final PortfolioSetupAction? pendingSetupAction;
@@ -208,6 +216,29 @@ class _PortfolioContent extends StatelessWidget {
                         : () => _openKbImport(context),
                     icon: const Icon(Icons.account_balance_rounded),
                     label: const Text('KB 계좌에서 불러오기'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (accountObservationRepository != null) ...[
+            const SizedBox(height: 12),
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('계좌 관찰을 저장하고 이전 기록과 수량·잔고·주문 필드의 변화를 비교합니다.'),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => AccountObservationScreen(
+                          repository: accountObservationRepository!,
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.history),
+                    label: const Text('계좌 관찰 이력·비교'),
                   ),
                 ],
               ),

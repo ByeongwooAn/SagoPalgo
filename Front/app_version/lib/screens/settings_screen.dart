@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../models/kb_account_snapshot.dart';
 import '../models/provider_setting.dart';
 import '../repositories/kb_account_repository.dart';
+import '../repositories/account_observation_repository.dart';
+import 'account_observation_screen.dart';
 import '../repositories/provider_settings_repository.dart';
 import '../services/app_security_service.dart';
 import '../theme/app_theme.dart';
@@ -21,6 +23,7 @@ class SettingsScreen extends StatelessWidget {
     required this.providerSettingsFuture,
     required this.providerSettingsRepository,
     required this.kbAccountRepository,
+    this.accountObservationRepository,
     required this.appSecurityService,
     required this.appLockPinConfigured,
     required this.onAppLockPinChanged,
@@ -34,6 +37,8 @@ class SettingsScreen extends StatelessWidget {
 
   /// KB증권 계좌 조회 Repository입니다.
   final KbAccountRepository kbAccountRepository;
+
+  final AccountObservationRepository? accountObservationRepository;
 
   /// 앱 잠금 PIN을 Windows Credential Manager에 저장합니다.
   final AppSecurityService appSecurityService;
@@ -80,6 +85,29 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
+              if (accountObservationRepository != null) ...[
+                AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('저장된 KB 계좌 상태와 두 관찰의 차이를 확인합니다.'),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => AccountObservationScreen(
+                              repository: accountObservationRepository!,
+                            ),
+                          ),
+                        ),
+                        icon: const Icon(Icons.history),
+                        label: const Text('계좌 관찰 이력·비교'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               AppCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
