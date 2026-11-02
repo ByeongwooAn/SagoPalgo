@@ -2,6 +2,8 @@
 
 이 문서는 Windows PC에는 Flutter 실행 파일만 두고, Ubuntu 컴퓨터에는 백엔드 컨테이너를 상시 실행하는 개인용 배치 구조를 정리합니다. 공개 인터넷 서비스가 아니라 같은 사설망 또는 VPN 안에서 사용하는 구성이 기준입니다.
 
+이 문서와 아래 이미지는 **현재 배포 구조**입니다. 실시간 수집·과거 데이터 학습·자동 주문을 확장하는 [목표 아키텍처](target-system-architecture.md)와 [최신 개발 로드맵](realtime-trading-roadmap.md)은 별도로 관리합니다. 목표 문서의 신규 논리 모듈이 현재 Compose에 배포된 것으로 해석하지 않습니다.
+
 ![Ubuntu 백엔드와 Windows 앱 시스템 구조](images/system-architecture-ubuntu.png)
 
 ## 1. 관리 범위

@@ -1,7 +1,7 @@
 # SagoPalgo
 
-SagoPalgo는 개인이 Windows PC에서 실행해 사용하는 투자 분석 보조 프로그램입니다.
-Flutter Windows 앱을 중심으로 KB증권 계좌 데이터, KIS/Toss 시세 데이터, 뉴스/공시, AI 분석, 알림 기능을 한 곳에 모으는 것을 목표로 합니다.
+SagoPalgo는 개인용 Windows 투자 프로그램입니다. 최종 목표는 KB증권 실계좌를 기준으로 실시간 시장 데이터·뉴스·공시·수급을 분석하고, 검증된 AI·전략이 운용 한도 안에서 종목·금액·매매 시점을 판단하는 단기 자동매매 시스템입니다.
+현재는 계좌 조회·규칙 기반 분석·알림·모의매매·제한된 승인형 주문을 구현한 상태이며, 실시간 수집·학습 모델·자동매매는 단계적으로 개발합니다.
 
 ## 프로젝트 방향
 
@@ -9,9 +9,10 @@ Flutter Windows 앱을 중심으로 KB증권 계좌 데이터, KIS/Toss 시세 �
 - 실제 계좌 조회, 주문, 체결 등 금융 업무는 KB증권 Open API만 사용합니다.
 - KIS와 Toss Open API는 계좌/주문 연동 없이 읽기 전용 시장 데이터 Provider로 사용합니다.
 - 같은 현재가를 여러 증권사에서 매번 합치지 않고, 기본 Provider와 fallback Provider를 분리합니다.
-- 자동매매는 장기 기능으로만 열어두고, 모의매매와 승인형 주문을 먼저 거칩니다.
+- 실시간 수집·시장 전체 탐색·과거 데이터 학습·AI 자금 배분을 개발하고, 재현 검증·실시간 모의·제한 실거래 검증을 거쳐 자동매매를 도입합니다.
+- 온주 단타와 소수점 거래는 실제 체결 방식에 맞춰 전략·주문 경로를 구분합니다.
 
-자세한 구조와 개발 로드맵은 [개인용 Windows 투자 어시스턴트 설계 문서](docs/personal-windows-investment-assistant.md)를 참고합니다.
+향후 개발 기준은 [실시간 AI 단기 자동매매 로드맵](docs/realtime-trading-roadmap.md)입니다. [목표 아키텍처](docs/target-system-architecture.md), [현재 배포 구조](docs/docker-architecture.md), [개발 진척도](docs/development-progress.md)를 구분해 확인하세요. [기존 설계·구현 이력](docs/personal-windows-investment-assistant.md)은 보존합니다.
 
 ## 개인 사용 및 책임 고지
 
@@ -27,7 +28,12 @@ API Key, 계좌정보, 토큰 등 민감정보를 저장소에 커밋하지 마�
 - 뉴스와 공시 기반 종목별 AI 분석
 - 관심종목, 보유종목, 리스크 신호 알림
 - 항상 화면 위에 띄울 수 있는 미니 위젯 모드
-- AI 신호 기반 모의매매와 주문 사전검증, 추후 승인형 주문과 제한적 자동매매
+- 실시간 시세·호가·분봉과 제공 주기에 맞는 투자자별 수급·뉴스·공시 갱신
+- 시장 전체 유망 후보 탐색, 다년간 데이터 학습과 비용 포함 전략 검증
+- AI 목표 비중·실잔고·미체결 예약을 반영한 분산 투자와 검증된 자동 주문
+- 체결 조건에 맞는 소수점 거래, 일·주·월·연 실계좌 수익·포트폴리오 차트
+
+위 목록은 목표 범위입니다. 기존 구현의 완료 표시는 새 목표 전체의 완료를 뜻하지 않습니다.
 
 ## 현재 기술 구조
 
@@ -42,6 +48,8 @@ docker                 Docker/Nginx 템플릿과 실행 보조 파일을 관리�
 Flutter 앱은 Windows PC에서 실행하고 Spring Boot, Python AI, MySQL, Nginx는 Ubuntu 컴퓨터의 Docker Compose에서 실행합니다. Ubuntu 백엔드는 앱이 꺼져 있어도 보유 종목을 주기적으로 분석해 알림을 저장하고, Windows 앱은 다시 연결될 때 미전달 알림을 운영체제 알림 센터에 표시합니다.
 
 ![Ubuntu 백엔드와 Windows 앱 시스템 구조](docs/images/system-architecture-ubuntu.png)
+
+위 이미지는 현재 배포 구조입니다. 신규 데이터 수집·학습·자동 주문의 연결은 [목표 시스템 구조도](docs/target-system-architecture.md)에서 확인할 수 있습니다.
 
 ## 백엔드 실행
 
@@ -108,7 +116,10 @@ Windows 앱 잠금 PIN은 Credential Manager에 저장합니다. Ubuntu 백엔�
 
 ## 참고 문서
 
-- [개인용 Windows 투자 어시스턴트 설계](docs/personal-windows-investment-assistant.md)
+- [최신 개발 로드맵: 실시간 AI 단기 자동매매](docs/realtime-trading-roadmap.md)
+- [목표 시스템 아키텍처와 구조도](docs/target-system-architecture.md)
+- [개발 진척도: 신규 단계와 기존 구현 이력](docs/development-progress.md)
+- [개인용 Windows 투자 어시스턴트 기존 설계·구현 이력](docs/personal-windows-investment-assistant.md)
 - [API 명세](docs/api-spec.md)
 - [데이터베이스 스키마](docs/database-schema.md)
 - [Docker 구조](docs/docker-architecture.md)
