@@ -15,7 +15,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -133,12 +132,7 @@ public class AccountObservationHistoryService {
     }
 
     private String requestId(String value) {
-        try {
-            if (value == null || !value.matches("[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}")) throw new IllegalArgumentException();
-            return UUID.fromString(value).toString();
-        } catch (IllegalArgumentException exception) {
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, "저장 요청 ID는 UUID여야 합니다.");
-        }
+        return AccountObservationInput.requestId(value);
     }
 
     private String orderDate(String value) {
