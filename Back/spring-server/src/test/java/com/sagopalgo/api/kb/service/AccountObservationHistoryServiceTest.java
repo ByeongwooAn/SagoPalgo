@@ -19,6 +19,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class AccountObservationHistoryServiceTest {
+    @Test void collectorBindingMismatchCannotReserveObserveOrReadAnotherScope() {
+        assertThatThrownBy(() -> service.captureForBinding(1L,request,DATE,"another-scope"))
+            .isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.DUPLICATE_RESOURCE));
+        assertThatThrownBy(() -> service.detailForBinding(1L,request,"another-scope"))
+            .isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.DUPLICATE_RESOURCE));
+        verifyNoInteractions(store,observer);
+    }
     private final AccountObservationStore store = mock(AccountObservationStore.class);
     private final AccountObservationBinding binding = mock(AccountObservationBinding.class);
     private final KbAccountSnapshotService observer = mock(KbAccountSnapshotService.class);

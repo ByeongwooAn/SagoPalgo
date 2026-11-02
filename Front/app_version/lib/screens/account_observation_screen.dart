@@ -160,7 +160,7 @@ class _AccountObservationScreenState extends State<AccountObservationScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text('계좌 상태를 저장해 이전 기록과 비교합니다. 자동 수집은 아직 제공하지 않습니다.'),
+            const Text('계좌 상태를 저장해 이전 기록과 비교합니다. 저장 이력은 새로고침으로 갱신합니다.'),
             const SizedBox(height: 12),
             AppCard(
               child: Column(

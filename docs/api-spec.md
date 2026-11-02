@@ -277,6 +277,13 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 
 Flutter 보유/설정 탭에서 사용하는 [저장·이력·상세·비교 화면과 요청 복구](account-observation-ui.md)를 연결했습니다. 앱의 복구 요청은 같은 ID의 GET이며 POST를 자동 재전송하지 않습니다.
 
+### 5.8 계좌 관찰 자동 수집 상태·재개
+
+- GET `/api/v1/kb/accounts/primary/observations/collection`: 현재 로컬 사용자·연결의 수집 설정과 `NOT_STARTED/IDLE/ACTIVE/PAUSED/UNCONFIGURED`, 실행/직전 요청·종료 상태·고정 사유·DB UTC 시각을 읽습니다. 상태 조회는 예약·KB 조회를 실행하지 않습니다.
+- POST `/api/v1/kb/accounts/primary/observations/collection/resume`: `{lastRequestId: UUID}`로 현재 PAUSED의 저장된 종료 결과를 확인하고 IDLE로 바꿉니다. 즉시 KB 조회나 설정 ON은 하지 않고 현재 시각+간격 이후 새 주기를 허용합니다. ACTIVE/PENDING은 해제하지 않습니다.
+
+정상 응답은 no-store·증권사 `readOnly=true`·`usableForTrading=false`입니다. 수집 기본 OFF·기본 간격 900초, DB 실행 소유권·불명확 결과 보존과 024 적용 조건은 [자동 수집 계약](account-observation-collection.md)을 따릅니다. 수집 저장소 오류는 503 `OBSERVATION_COLLECTION_STORAGE_UNAVAILABLE`, 잘못된 입력은 400, 상태/연결 충돌은 409입니다.
+
 ## 6. 대시보드 API
 
 ### 6.0 시장 데이터 Provider

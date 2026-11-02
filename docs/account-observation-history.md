@@ -1,6 +1,6 @@
 # R1 계좌 관찰 저장·이력 조회
 
-기준일: 2026-11-02 · 상태: 백엔드 구현·전용 MySQL 검증. 앱 구현은 [후속 문서](account-observation-ui.md)에 연결합니다. 운영 DB 적용·서버/앱 배포·실계좌 대조·자동 수집은 후속입니다.
+기준일: 2026-11-02 · 상태: 백엔드 구현·전용 MySQL 검증. [앱 구현](account-observation-ui.md)과 [기본 OFF 자동 수집](account-observation-collection.md)을 후속으로 연결합니다. 운영 DB 적용·서버/앱 배포·실계좌 대조·수집 활성화는 후속입니다.
 
 [읽기 스냅샷 계약](account-snapshot-contract.md)을 변경하지 않고 **명시적인 새 저장 요청**으로 관찰을 실행합니다. 저장되는 결과는 서버가 만든 `KB_ACCOUNT_OBSERVATION_V1`이며, 클라이언트가 보낸 잔고/수량/스냅샷을 저장하는 API는 아닙니다. [R1 로드맵](realtime-trading-roadmap.md#r1-계좌-자동-동기화와-원장-기반)의 관찰 이력 단계이며 거래 원장은 아닙니다.
 
@@ -12,7 +12,7 @@
 | GET `/api/v1/kb/accounts/primary/observations?limit=20&beforeId=...` | 현재 로컬 사용자·계좌 연결의 최근 이력 요약 | 없음 |
 | GET `/api/v1/kb/accounts/primary/observations/{requestId}` | 현재 연결의 저장 상태와 완료된 관찰 상세 | 없음 |
 
-세 API의 정상 응답은 공통 `ApiResponse`와 `Cache-Control: no-store`를 사용합니다. 기존 GET `/snapshot`은 계속 **조회만 수행하고 DB에 저장하지 않습니다**. 새 API에도 스케줄러·자동 폴링은 없습니다.
+세 API의 정상 응답은 공통 `ApiResponse`와 `Cache-Control: no-store`를 사용합니다. 기존 GET `/snapshot`은 계속 **조회만 수행하고 DB에 저장하지 않습니다**. 이 API 호출은 자동 수집 설정을 변경하지 않으며 별도 [수집 실행기](account-observation-collection.md)가 활성화된 환경에서만 주기 저장을 수행합니다.
 
 ### 저장 요청
 
@@ -119,4 +119,4 @@ try {
 
 후속 구현으로 [저장된 두 관찰 비교](account-observation-comparison.md)를 추가했습니다. 기존 세 저장/이력 API는 유지하며 비교는 별도 GET으로 요청합니다. 비교 기능도 외부 재조회·원장 갱신 없이 관찰 차이와 구간별 차단 사유만 반환합니다.
 
-[앱 이력·상세·비교 화면](account-observation-ui.md)을 후속 구현했습니다. 새 저장 POST 전에 요청 ID를 로컬에 보관하고 응답 유실 후 GET으로 상태를 확인합니다. 운영 023 적용·서버/앱 배포·실계좌 대조·자동 동기화·일별 자산/입출금/체결 원장은 남아 있습니다. 관찰에서 사라진 종목/주문을 매도/종결로 간주하지 않으며 KB 답변이 필요한 주문 완료 판정·추가 정정·예약금 재사용은 계속 보류합니다.
+[앱 이력·상세·비교 화면](account-observation-ui.md)과 [기본 OFF 주기 수집/상태 복구](account-observation-collection.md)를 후속 구현했습니다. 새 저장 POST 전에 요청 ID를 로컬에 보관하고 응답 유실 후 GET으로 상태를 확인합니다. 운영 023·024 적용·서버/앱 배포·실계좌 대조·계좌/원장 자동 반영·일별 자산/입출금/체결 원장은 남아 있습니다. 관찰에서 사라진 종목/주문을 매도/종결로 간주하지 않으며 KB 답변이 필요한 주문 완료 판정·추가 정정·예약금 재사용은 계속 보류합니다.
