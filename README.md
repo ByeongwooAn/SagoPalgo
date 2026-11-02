@@ -118,6 +118,9 @@ Windows 앱 잠금 PIN은 Credential Manager에 저장합니다. Ubuntu 백엔�
 
 - [최신 개발 로드맵: 실시간 AI 단기 자동매매](docs/realtime-trading-roadmap.md)
 - [목표 시스템 아키텍처와 구조도](docs/target-system-architecture.md)
+- [R0 API 지원·계약 매트릭스](docs/trading-api-contract-matrix.md)
+- [KB 문의 관련 계약 보류·재개 조건](docs/kb-contract-blockers.md)
+- [단기·중기·최종 목표와 초기 운용·측정 초안](docs/initial-trading-policy.md)
 - [개발 진척도: 신규 단계와 기존 구현 이력](docs/development-progress.md)
 - [개인용 Windows 투자 어시스턴트 기존 설계·구현 이력](docs/personal-windows-investment-assistant.md)
 - [API 명세](docs/api-spec.md)
