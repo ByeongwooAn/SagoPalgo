@@ -57,6 +57,10 @@ class ApiConfig {
 
   String get kbPortfolioImportUrl => '$baseUrl/api/v1/kb/portfolio-import';
 
+  /// 읽기 관찰 저장·이력·비교의 기본 경로입니다.
+  String get accountObservationsUrl =>
+      '$baseUrl/api/v1/kb/accounts/primary/observations';
+
   /// KB증권 결제기준 잔고 현황 조회 API 경로입니다.
   String get kbSettlementBalanceUrl =>
       '$baseUrl/api/v1/kb/accounts/primary/balances/settlement';

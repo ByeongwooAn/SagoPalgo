@@ -5,6 +5,8 @@ import 'models/auth_session.dart';
 import 'repositories/investment_repository.dart';
 import 'repositories/alert_repository.dart';
 import 'repositories/kb_account_repository.dart';
+import 'repositories/account_observation_repository.dart';
+import 'repositories/spring_account_observation_repository.dart';
 import 'repositories/market_data_repository.dart';
 import 'repositories/order_precheck_repository.dart';
 import 'repositories/paper_trading_repository.dart';
@@ -73,6 +75,7 @@ class SagoPalgoApp extends StatefulWidget {
     this.recommendationRepositoryBuilder,
     this.researchFeedRepositoryBuilder,
     this.kbAccountRepositoryBuilder,
+    this.accountObservationRepositoryBuilder,
     this.marketDataRepositoryBuilder,
     this.orderPrecheckRepositoryBuilder,
     this.paperTradingRepositoryBuilder,
@@ -99,6 +102,11 @@ class SagoPalgoApp extends StatefulWidget {
           SpringAlertRepository(accessToken: session.accessToken),
       localNotificationService: WindowsLocalNotificationService(),
       alertDisplayJournal: createDefaultAlertDisplayJournal(),
+      accountObservationRepositoryBuilder: (session) =>
+          SpringAccountObservationRepository(
+            accessToken: session.accessToken,
+            localUserId: session.user.userId,
+          ),
       desktopWindowService: WindowsDesktopWindowService(),
     );
   }
@@ -130,6 +138,9 @@ class SagoPalgoApp extends StatefulWidget {
   /// 테스트에서 KB증권 계좌 Repository를 교체하기 위한 빌더입니다.
   final KbAccountRepository Function(AuthSession session)?
   kbAccountRepositoryBuilder;
+
+  final AccountObservationRepository Function(AuthSession session)?
+  accountObservationRepositoryBuilder;
 
   /// 테스트에서 캔들 시세 Repository를 교체하기 위한 빌더입니다.
   final MarketDataRepository Function(AuthSession session)?
@@ -241,6 +252,9 @@ class _SagoPalgoAppState extends State<SagoPalgoApp> {
               kbAccountRepository:
                   widget.kbAccountRepositoryBuilder?.call(session) ??
                   SpringKbAccountRepository(accessToken: session.accessToken),
+              accountObservationRepository: widget
+                  .accountObservationRepositoryBuilder
+                  ?.call(session),
               marketDataRepository:
                   widget.marketDataRepositoryBuilder?.call(session) ??
                   SpringMarketDataRepository(accessToken: session.accessToken),

@@ -1,4 +1,11 @@
+import 'dart:convert';
+
 import 'package:app_version/main.dart';
+import 'package:app_version/config/api_config.dart';
+import 'package:app_version/repositories/spring_account_observation_repository.dart';
+import 'package:app_version/services/observation_request_journal.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:app_version/models/app_alert.dart';
 import 'package:app_version/models/holding.dart';
 import 'package:app_version/models/investment_snapshot.dart';
@@ -30,6 +37,24 @@ import 'package:flutter_test/flutter_test.dart';
 /// 핵심 사용자 흐름인 탭 이동과 테마 전환이 깨지지 않는지 확인합니다.
 void main() {
   testWidgets('SagoPalgo UI renders and navigates', (tester) async {
+    final observationMethods = <String>[];
+    final observationRepository = SpringAccountObservationRepository(
+      accessToken: '',
+      localUserId: 1,
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      journal: MemoryObservationRequestJournal(),
+      client: MockClient((request) async {
+        observationMethods.add(request.method);
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'data': {'items': []},
+          }),
+          200,
+        );
+      }),
+    );
+
     /// 앱 루트를 테스트 환경에 올려 실제 Android 앱과 같은 위젯 트리를 만듭니다.
     await tester.pumpWidget(
       SagoPalgoApp(
@@ -43,6 +68,7 @@ void main() {
         researchFeedRepositoryBuilder: (_) =>
             const FakeResearchFeedRepository(),
         kbAccountRepositoryBuilder: (_) => const FakeKbAccountRepository(),
+        accountObservationRepositoryBuilder: (_) => observationRepository,
         marketDataRepositoryBuilder: (_) => const FakeMarketDataRepository(),
         orderPrecheckRepositoryBuilder: (_) =>
             const FakeOrderPrecheckRepository(),
@@ -58,6 +84,7 @@ void main() {
     expect(find.text('사고팔고'), findsAtLeastNWidgets(1));
     expect(find.text('개인 사용자 · 개인 모드'), findsOneWidget);
     expect(find.text('3,000,000원'), findsOneWidget);
+    expect(observationMethods, isEmpty);
 
     /// 포트폴리오 보유 종목에서 실제 캔들 상세 화면으로 진입할 수 있어야 합니다.
     await tester.tap(find.text('보유'));
@@ -68,6 +95,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('005930 · KOSPI'), findsOneWidget);
     expect(find.text('KB 데이터'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('계좌 관찰 이력·비교'));
+    await tester.tap(find.text('계좌 관찰 이력·비교'));
+    await tester.pumpAndSettle();
+    expect(find.text('계좌 관찰 이력'), findsOneWidget);
+    expect(observationMethods, ['GET']);
     await tester.pageBack();
     await tester.pumpAndSettle();
 
@@ -139,6 +174,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Windows 앱 잠금'), findsOneWidget);
     expect(find.text('설정 안 됨'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('계좌 관찰 이력·비교'));
+    await tester.tap(find.text('계좌 관찰 이력·비교'));
+    await tester.pumpAndSettle();
+    expect(find.text('계좌 관찰 이력'), findsOneWidget);
+    expect(observationMethods, ['GET', 'GET']);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.text('PIN 설정'));
     await tester.tap(find.text('PIN 설정'));
