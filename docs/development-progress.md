@@ -11,7 +11,7 @@
 | 단계 | 현재 상태 | 재사용 기반 / 다음 증거 |
 |---|---|---|
 | R0 계약·운용 기준 | 진행 중·문서 기반 조사 완료 | [지원표](trading-api-contract-matrix.md)·[KB 보류/재개 조건](kb-contract-blockers.md)·[초기 운용/측정 초안](initial-trading-policy.md) 작성. 답변·권한/한도·실측·정책 수치 확정은 남음 |
-| R1 계좌 동기화·원장 | 일부 구현·관찰/저장/비교/앱/주기 수집·상태/재개 UI | [스냅샷](account-snapshot-contract.md)·[저장/이력](account-observation-history.md)·[비교](account-observation-comparison.md)·[앱](account-observation-ui.md)·[기본 OFF 수집](account-observation-collection.md) 구현·격리 검증. 로컬 Docker 023/024·API 접근 확인. 자동 수집 OFF, 실계좌 대조·Ubuntu 배포 검증·원장 자동 반영은 후속 |
+| R1 계좌 동기화·원장 | 일부 구현·관찰/저장/비교/앱/주기 수집·상태/재개 UI | [스냅샷](account-snapshot-contract.md)·[저장/이력](account-observation-history.md)·[비교](account-observation-comparison.md)·[앱](account-observation-ui.md)·[기본 OFF 수집](account-observation-collection.md) 구현·격리 검증. 로컬 Docker 023/024·API 접근과 [실제 보유/현금 사용자 대조](account-observation-live-validation.md) 확인. 주문 구간 FAILED(전체 PARTIAL), KB-07 미확인. 자동 수집 OFF, Ubuntu 배포 검증·원장 자동 반영은 후속 |
 | R2 실시간 시세·수급 | 계획·REST/일주월봉 기반 있음 | 스트리밍·분봉·수급 시점·재접속·부하/지연 검증 필요 |
 | R3 뉴스·공시 사건 | 계획·저장/주기 수집 기반 있음 | 증분 수집·정정·사건 추출·도착 재평가 검증 필요 |
 | R4 시장 후보 탐색 | 미착수 | 전 종목 후보 편입/제외·정밀 구독·한도 검증 필요 |
@@ -80,6 +80,15 @@
 - 재개 POST의 중복 클릭·자동 재전송을 차단하고 응답 유실/충돌/계약 오류 후 이전 재개 대상을 제거해 GET 확인을 안내합니다. 상태 GET 실패도 이전 PAUSED를 유지하지 않습니다. 024 저장소 오류는 패널에 표시하며 이력/수동 저장과 분리했습니다. 서버 설정 ON이나 즉시 KB 조회는 제공하지 않습니다.
 - 신규 모의 HTTP/모델/위젯 17건과 이력 화면의 수집 오류 격리 1건을 추가했습니다. 전체 Flutter 테스트 248건 통과·정적 분석 문제 0건, 한국어 밝은 PAUSED/어두운 ACTIVE 렌더링과 380px·글자 크기 1.4배 검증을 완료했습니다. Windows Release 빌드에 성공했습니다. 실제 앱 실행/KB 조회 검증과 구분합니다.
 - 후속은 실제 KB 읽기 관찰 1회와 앱/KB 잔고·수량 대조, 승인된 호출 예산 확인 후 수집 활성화/장기 운영·복구 점검, 체결/입출금/일별 자산 원장입니다. 상태/이력 자동 갱신과 수집 설정 변경 UI도 별도 범위입니다.
+
+## R1 실제 읽기 관찰·보유/현금 대조 · 2026-11-03
+
+- `feature/account-observation-live-validation`에서 [점검 스크립트](../scripts/check-account-observation.ps1)와 [실행/재확인 절차](account-observation-live-validation.md)를 추가했습니다. 영수증 CreateNew·전송 전 flush·명시적 Capture 1회·기본 GET 복구와 상태/계약/최근 이력 검증을 제공하며 민감한 계좌 값은 보고서에서 제외합니다.
+- 현재 Windows 로컬 Docker API에 관찰 저장 POST 1회를 실행했습니다. 저장 COMPLETED·상세/이력 GET 성공, 보유·결제/체결 잔고는 SUCCESS/COMPLETE·종목 행 0건이며 현금 요약은 별도로 수신했습니다. 사용자가 KB 앱에서 보유 종목 없음과 현금 표시 금액 일치를 확인했습니다. 금액·계좌번호·인증값은 Git에 기록하지 않습니다.
+- 전체는 PARTIAL입니다. SSQM2341은 LOOKUP_FAILED이고 별도 기존 읽기 진단 GET 1회에서 KB의 조회 내역 없음 실패 메시지를 확인했습니다. 성공한 빈 주문 결과로 변환할 공식 조건은 미확인으로 KB-07을 추가했습니다. 실제 주문/미체결 없음·예약 반환·주문 종결 검증으로 올리지 않습니다.
+- 실행 중인 Windows 앱의 설정/관찰 이력에서 실제 보유·현금 표시, 수집 OFF·NOT_STARTED와 저장 완료/일부만 확인 이력을 확인했습니다. 상세/최근 이력의 재확인은 GET만 사용했습니다. 자동 수집·주문 스위치·기존 원장 변경이나 백엔드/앱 재배포는 수행하지 않았습니다.
+- PowerShell 점검 스크립트의 로컬 모의 HTTP 테스트 9건이 통과했습니다. 단일 POST·사전 기록·유실 후 GET·기존 영수증·PARTIAL/PENDING·범위 불일치·설정/저장/파일 오류를 검증했습니다. 백엔드/Flutter 코드는 변경하지 않아 기존 테스트/빌드 기록과 구분합니다.
+- 다음은 KB-07 정상 빈 응답/업무 실패 계약 확보와 해당 구간 검증, 호출 예산 확정 후 자동 수집 운영 점검입니다. 보유 종목/소수점 수량이 있는 실계좌·입출금/체결 발생 시점의 대조·장기 운영 검증은 남아 있습니다.
 
 ## 기존 11단계 진척도 기록
 
