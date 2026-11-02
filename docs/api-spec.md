@@ -251,6 +251,14 @@ KB Open API `SSQM2952_잔고현황조회(체결기준)`을 호출합니다. 백�
 
 요약 응답에는 순자산평가금액, 유가순평가금액, 매입금액합계, 평가금액합계, 평가손익합계, 평가수익률합계 등을 정규화합니다. `Record1` 상세는 보유수량, 주문가능수량, 미결제매도수량, 미결제매수수량, 정산수량, 현재가, 매입평균가, 평가금액, 평가손익, 평가수익률 등을 포함합니다.
 
+### 5.5 읽기 전용 KB 계좌 관찰
+
+`GET /api/v1/kb/accounts/primary/snapshot?orderDate=YYYYMMDD`
+
+보유·결제기준 잔고·체결기준 잔고·지정일 주문을 구간별로 관찰합니다. 공식 숫자 필드를 십진 문자열로 보존하고 `status/completeness/issues`, 서버 수신 구간·조회 범위를 반환합니다. 빈 결과와 누락/잘림·부분 실패를 구분하며 `atomic=false`, `usableForTrading=false`입니다. 기존 화면용 계좌 API와 별도이고 자동 동기화·저장·주문/가드 변경은 없습니다.
+
+`orderDate` 생략 시 한국 날짜이며 잘못된 날짜는 외부 조회 전 400입니다. 관찰 응답의 HTTP 200/공통 `success=true`만으로 각 구간의 성공을 판단하지 않습니다. 응답은 `Cache-Control: no-store`입니다. 상세 필드·페이지 상한·정밀도·검증 범위는 [계좌 관찰 계약](account-snapshot-contract.md)을 따릅니다.
+
 ## 6. 대시보드 API
 
 ### 6.0 시장 데이터 Provider

@@ -84,6 +84,14 @@ public class KbSecuritiesAccountClient {
     }
 
     public JsonNode fetchHoldings() {
+        return fetchHoldingsPage("");
+    }
+
+    /** SSQM1801의 다음키를 그대로 전달합니다. 기존 단일 조회의 요청 형식은 유지합니다. */
+    public JsonNode fetchHoldingsPage(String nextKey) {
+        if (nextKey != null && (nextKey.length() > 12 || nextKey.chars().anyMatch(c -> c < 32 || c > 126))) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "KB 보유주식 다음키가 올바르지 않습니다.");
+        }
         ensureAccountConfigured();
         ensurePathConfigured(properties.getHoldingsPath(), "KB증권 보유 주식 API 경로 설정이 필요합니다.");
         ensureText(properties.getHoldingsInquiryClassification(), "KB증권 보유주식 조회구분 설정이 필요합니다.");
@@ -92,6 +100,9 @@ public class KbSecuritiesAccountClient {
         Map<String, Object> dataBody = new LinkedHashMap<>();
         dataBody.put("inq_clsf", properties.getHoldingsInquiryClassification());
         dataBody.put("mkt_tm_ccd", properties.getHoldingsMarketTimeCode());
+        if (StringUtils.hasText(nextKey)) {
+            dataBody.put("nxt_key", nextKey);
+        }
         if (StringUtils.hasText(properties.getHoldingsStockCode())) {
             dataBody.put("is_no", properties.getHoldingsStockCode());
         }
