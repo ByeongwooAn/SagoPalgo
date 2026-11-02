@@ -67,10 +67,12 @@ Windows의 파일 위치는 `%LOCALAPPDATA%\SagoPalgo\account-observation-reques
 
 실행 명령은 [Flutter README](../Front/app_version/README.md)를 따릅니다. 테스트는 `test/account_observation_repository_test.dart`, `test/account_observation_screen_test.dart`와 기존 앱 루트 동선 검증을 사용합니다. KB/운영 서버를 호출하지 않는 모의 HTTP 테스트이며 로컬 파일 복구는 임시 테스트 디렉터리에서 재생성해 검증합니다.
 
+후속으로 서버의 [기본 OFF 자동 관찰 수집](account-observation-collection.md)을 추가했습니다. 앱 목록은 새로고침으로 저장 이력을 읽으며 수집 활성화·상태/재개 전용 UI·자동 화면 갱신은 이 화면에 포함하지 않습니다.
+
 검증 결과와 빌드 종류는 [개발 진척도](development-progress.md)에 기록합니다. 파일/Repository 재생성 검증은 실제 운영 EXE 종료·재시작 및 서버 장애를 실행한 것과 구분합니다.
 
 ## 5. 배포와 남은 일
 
 - 서버에 [023 테이블](../Back/database/migrations/023_account_observation_history.sql)과 저장·비교 API가 배포돼 있어야 합니다. 이번 작업은 서버/DB/키/주문 스위치를 변경하거나 실제 KB를 호출하지 않았습니다.
 - Flutter UI 변경이므로 새 Windows 앱 빌드가 필요합니다. EXE와 같은 빌드 폴더의 DLL·data를 함께 사용합니다. 이번 로컬 빌드가 사용자 PC 배포/실행 확인을 뜻하지 않습니다.
-- 서버/앱의 실제 연결, KB 앱과 잔고·수량 대조, 운영 복구 확인은 남아 있습니다. 자동 수집·주문·체결 원장·기간 성과는 추가하지 않았습니다.
+- 서버/앱의 실제 연결, KB 앱과 잔고·수량 대조, 운영 복구 확인은 남아 있습니다. 서버 주기 수집과 별개로 이 화면에 자동 수집 제어·주문·체결 원장·기간 성과를 추가하지 않았습니다.

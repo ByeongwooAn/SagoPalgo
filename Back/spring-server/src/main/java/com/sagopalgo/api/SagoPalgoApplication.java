@@ -1,6 +1,7 @@
 package com.sagopalgo.api;
 
 import com.sagopalgo.api.config.AiAnalysisProperties;
+import com.sagopalgo.api.config.AccountObservationCollectionProperties;
 import com.sagopalgo.api.config.AlertProperties;
 import com.sagopalgo.api.config.KisMarketProperties;
 import com.sagopalgo.api.config.DotEnvLoader;
@@ -24,6 +25,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableConfigurationProperties({
     AlertProperties.class,
     AiAnalysisProperties.class,
+    AccountObservationCollectionProperties.class,
     KisMarketProperties.class,
     PersonalModeProperties.class,
     ResearchProviderProperties.class,

@@ -43,10 +43,22 @@ public class AccountObservationHistoryService {
     }
 
     public AccountObservationResponse capture(Long user, String requestId, String orderDate) {
+        return captureBound(user,requestId,orderDate,null);
+    }
+
+    /** 수집 상태를 예약한 연결과 실제 관찰 연결이 달라지면 외부 조회 전에 차단합니다. */
+    AccountObservationResponse captureForBinding(Long user, String requestId, String orderDate, String expectedBinding) {
+        return captureBound(user,requestId,orderDate,expectedBinding);
+    }
+
+    private AccountObservationResponse captureBound(Long user, String requestId, String orderDate, String expectedBinding) {
         validateUser(user);
         String request = requestId(requestId);
         String date = orderDate(orderDate);
         String scope = binding.current();
+        if(expectedBinding!=null && !expectedBinding.equals(scope)) {
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,"수집을 예약한 계좌 연결이 변경되었습니다.");
+        }
         var reservation = store.reserve(user, request, scope, date, now());
         var record = reservation.record();
         if (!scope.equals(record.accountBinding()) || !date.equals(record.orderDate())) {
@@ -80,9 +92,16 @@ public class AccountObservationHistoryService {
     }
 
     public AccountObservationResponse detail(Long user, String requestId) {
+        return detailForBinding(user,requestId,null);
+    }
+
+    AccountObservationResponse detailForBinding(Long user, String requestId, String expectedBinding) {
         validateUser(user);
         String request = requestId(requestId);
         String scope = binding.current();
+        if(expectedBinding!=null && !expectedBinding.equals(scope)) {
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,"수집을 예약한 계좌 연결이 변경되었습니다.");
+        }
         var record = store.find(user, scope, request);
         assertBinding(scope);
         if (record == null) throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "현재 계좌 연결의 관찰 이력이 없습니다.");

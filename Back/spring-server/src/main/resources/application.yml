@@ -28,6 +28,11 @@ mybatis:
     map-underscore-to-camel-case: true
 
 sagopalgo:
+  account-observation:
+    collection:
+      # 계좌 읽기 관찰 자동 저장. 운영 키/호출 예산 확인 후 명시적으로 활성화합니다.
+      enabled: ${SAGOPALGO_ACCOUNT_OBSERVATION_COLLECTION_ENABLED:false}
+      interval-seconds: ${SAGOPALGO_ACCOUNT_OBSERVATION_COLLECTION_INTERVAL_SECONDS:900}
   alerts:
     # Ubuntu 백엔드가 보유 종목을 재분석하고 Windows 앱용 알림을 저장합니다.
     analysis-enabled: ${SAGOPALGO_ALERT_ANALYSIS_ENABLED:false}

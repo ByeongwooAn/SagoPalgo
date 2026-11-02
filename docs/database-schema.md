@@ -336,3 +336,9 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 `kb_account_observations`는 로컬 사용자 FK·내부 연결 HMAC·저장 요청 UUID·조회일·PENDING/COMPLETED/FAILED 상태, 불변 관찰 JSON·SHA-256과 UTC DATETIME(6) 메타데이터를 저장합니다. `(user_id,request_id)`와 `(user_id,observation_id)`는 UNIQUE이고 연결별 목록은 `(user_id,account_binding,record_id)` 인덱스를 사용합니다. LONGTEXT의 JSON_VALID와 상태 CHECK는 본문·결과·실패 코드·완료 시각의 일관성을 검사합니다.
 
 외부 조회 전 예약을 커밋하고, 결과 저장은 별도 트랜잭션입니다. 실패한 결과 저장이 롤백돼도 예약은 남아 같은 ID의 재관찰을 막습니다. 기존 보유·자본금·주문/원장·가드는 수정하지 않습니다. [023 SQL](../Back/database/migrations/023_account_observation_history.sql)은 기존 설치에서 백업 후 적용하고, 신규 schema.sql에는 같은 테이블을 포함합니다. 이번 작업의 운영 DB 적용은 미실행입니다. [API·복구·격리 검증](account-observation-history.md)을 참고합니다.
+
+## 024. 계좌 관찰 자동 수집 상태
+
+`kb_account_observation_collectors`는 `(user_id,account_binding)` PK·사용자 FK, IDLE/ACTIVE/PAUSED, 실행 중 UUID·조회일, 직전 저장/관찰 상태·차단 코드와 UTC DATETIME(6) 시각을 저장합니다. `(user_id,active_request_id)` UNIQUE와 상태/종료 결과 CHECK로 중복 소유권과 불가능한 조합을 제한합니다. 관찰 본문은 기존 023에 보존합니다.
+
+실행을 독립 트랜잭션으로 커밋한 뒤 관찰하며, ACTIVE는 시간 경과·재시작·설정 OFF로 해제하지 않습니다. 기존 UUID의 저장된 종료 결과만 대조해 IDLE/PAUSED로 바꿉니다. [024 SQL](../Back/database/migrations/024_account_observation_collection.sql)은 기존 설치에서 백업 후 별도 적용해야 하며 신규 schema.sql에도 같은 정의를 추가했습니다. 운영 적용은 미실행이고 [수집·복구 계약](account-observation-collection.md)을 따릅니다.
