@@ -2,6 +2,8 @@
 
 기준일: 2026-11-03. [시장별 특수 세션 검사](historical-session-evidence.md)의 다음 작업입니다. 이전 공지 3건은 KOSDAQ/KONEX 대상이었으며 기존 삼성전자 KOSPI 검사에서 모두 제외했습니다. 이번에는 KB 공식 [2025년 개장 공지](https://www.kbsec.com/go.able?idt=20241226&linkcd=s060901010000&seq=10007903)와 [2026년 개장 공지](https://www.kbsec.com/go.able?idt=20251222&linkcd=s060901010000&seq=10009341)를 확보해 KOSPI 거래시간과 명시된 개장/휴장 날짜를 연결했습니다. 5-08 전체는 진행 중이며 **7/18·39%**를 유지합니다.
 
+후속: [OpenDART 실제 과거 공시 204건·선택 원문 1건](dart-historical-disclosures.md)을 확보했습니다. 현재 법인 연결과 해외 대상 표시·검토 후보를 구분하며 전체 상장/기업행사 효력 완료는 남습니다. 아래 229건은 당시 결과이며 최신 전체 검증은 266건입니다.
+
 ## 공개 원문 확보와 오프라인 변환
 
 [kb_market_evidence.py](../AI/ai-server/app/replay/kb_market_evidence.py)에 다음 두 명령을 추가했습니다.
