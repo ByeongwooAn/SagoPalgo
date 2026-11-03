@@ -1,0 +1,8 @@
+{
+  "provenance": "SYNTHETIC",
+  "rights": "PERMITTED",
+  "rightsEvidence": "가상 테스트 자료의 변환 예제입니다. 실제 자료의 권한 확인값으로 사용하지 마세요.",
+  "regularSessionCodes": ["R"],
+  "sessionEvidence": "가상 테스트에서만 R을 정규 세션으로 지정했습니다. 실제 KIS 코드의 의미를 확정한 값이 아닙니다.",
+  "availabilityMode": "EXPORT_OBSERVED"
+}

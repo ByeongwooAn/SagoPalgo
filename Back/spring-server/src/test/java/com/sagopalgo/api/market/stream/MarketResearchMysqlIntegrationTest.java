@@ -6,6 +6,7 @@ import com.sagopalgo.api.config.ResearchProviderProperties;
 import com.sagopalgo.api.research.mapper.*;
 import com.sagopalgo.api.research.model.*;
 import com.sagopalgo.api.research.service.*;
+import com.sagopalgo.api.research.export.StoredDatasetExportService;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -152,5 +153,68 @@ class MarketResearchMysqlIntegrationTest {
             assertThat(journal.changes("005930",0,100)).extracting(ResearchJournalMapper.Version::changeId).containsExactly(1L,2L);
             assertThat(journal.changes("005930",1,100)).extracting(ResearchJournalMapper.Version::changeId).containsExactly(2L);
         } finally {release.countDown();pool.shutdownNow();}
+    }
+    final Instant exportFrom = Instant.parse("2025-11-03T00:00:00Z");
+    final Instant exportTo = exportFrom.plusSeconds(120);
+    @Test void storedExportPreservesRawEventsResearchLineageAndGeneratesBridgeFixture() throws Exception {
+        var bridgeJson = json.copy().disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        var bridgeStream = proxy(new MarketStreamStore(session.getMapper(MarketStreamMapper.class), bridgeJson));
+        long[][] ticks = {{1,2,100,2,2},{20,70,102,3,5},{61,62,104,2,7}};
+        for (var t : ticks) {
+            String id = KisStreamDecoder.hash("TRADE|005930|2025-11-03|" + t[4]);
+            bridgeStream.append(new MarketStreamEvent(id,"005930","TRADE",exportFrom.plusSeconds(t[0]),exportFrom.plusSeconds(t[1]),
+                ""+t[2],""+t[3],""+t[4],List.of(),List.of(),"R","PROVIDER_DATE"));
+        }
+        bridgeStream.append(new MarketStreamEvent(KisStreamDecoder.hash("test-quote"),"005930","QUOTE",exportFrom.plusSeconds(5),exportFrom.plusSeconds(6),
+            null,null,null,List.of(),List.of(),"R","RECEIVE_DATE_INFERRED"));
+        for (String title : List.of("A","B","A")) feed.saveAndFind(request,List.of(new NewsArticle("NAVER_NEWS","005930",title,
+            "https://news.test/bridge","요약",exportFrom.minusSeconds(86400))),List.of());
+        feed.saveAndFind(request,List.of(),List.of(new Disclosure("OPEN_DART","005930","corp","테스트","정정 공시","receipt","제출자",LocalDate.of(2025,11,3),"https://dart.test/receipt")));
+        jdbc.update("UPDATE research_versions SET observed_at=TIMESTAMPADD(SECOND,change_id*10,?)",LocalDateTime.ofInstant(exportFrom,ZoneOffset.UTC));
+        var service = proxy(new StoredDatasetExportService(jdbc,bridgeJson));
+        var result = service.export("005930",exportFrom,exportTo);
+        assertThat(result.streamEvents()).hasSize(4);assertThat(result.researchVersions()).hasSize(4);
+        assertThat(result.researchVersions().stream().filter(v -> v.kind().equals("NEWS"))).extracting(StoredDatasetExportService.VersionRow::revision).containsExactly(1L,2L,3L);
+        assertThat(result.readOnly()).isTrue();assertThat(result.usableForTrading()).isFalse();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_events",Integer.class)).isEqualTo(4);
+        var fixture = java.nio.file.Path.of("build-codex-dataset-export/bridge-fixture.json");
+        java.nio.file.Files.createDirectories(fixture.getParent());
+        java.nio.file.Files.write(fixture,bridgeJson.writeValueAsBytes(com.sagopalgo.api.common.response.ApiResponse.success(result,"SYNTHETIC_TEST_ONLY")));
+    }
+    @Test void storedExportRejectsCorruptedResearchHashWithoutChangingRows() {
+        feed.saveAndFind(request,List.of(article("A","same")),List.of());
+        jdbc.update("UPDATE research_versions SET observed_at=?,content_hash=REPEAT('0',64)",LocalDateTime.ofInstant(exportFrom,ZoneOffset.UTC));
+        assertThatThrownBy(()->proxy(new StoredDatasetExportService(jdbc,json)).export("005930",exportFrom,exportTo))
+            .hasMessage("저장 자료의 025·026 적용 상태와 무결성을 확인하세요.");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM research_versions",Integer.class)).isEqualTo(1);
+    }
+    @Test void storedExportRejectsLimitBeforeLoadingPayloads() {
+        var parameters = new ArrayList<Object[]>();
+        for (int n=0;n<10001;n++) parameters.add(new Object[]{String.format("%064x",n),"005930","TRADE",LocalDateTime.ofInstant(exportFrom,ZoneOffset.UTC),LocalDateTime.ofInstant(exportFrom,ZoneOffset.UTC),"{}"});
+        jdbc.batchUpdate("INSERT INTO market_stream_events VALUES(?,?,?,?,?,?)",parameters);
+        assertThatThrownBy(()->proxy(new StoredDatasetExportService(jdbc,json)).export("005930",exportFrom,exportTo))
+            .hasMessage("내보내기 상한을 초과했습니다. 일부 자료로 완료 처리하지 않습니다.");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_events",Integer.class)).isEqualTo(10001);
+    }
+    @Test void exportSnapshotExcludesConcurrentCommitBetweenQueries() throws Exception {
+        var pool = Executors.newSingleThreadExecutor();
+        var inserted = new java.util.concurrent.atomic.AtomicBoolean();
+        JdbcTemplate probe = new JdbcTemplate(source) {
+            @Override public <T> T queryForObject(String sql,org.springframework.jdbc.core.RowMapper<T> mapper,Object... args) {
+                T result = super.queryForObject(sql,mapper,args);
+                if(sql.startsWith("SELECT COUNT") && inserted.compareAndSet(false,true)) {
+                    try { pool.submit(()->{
+                        feed.saveAndFind(request,List.of(article("concurrent","new")),List.of());
+                        jdbc.update("UPDATE research_versions SET observed_at=?",LocalDateTime.ofInstant(exportFrom,ZoneOffset.UTC));
+                    }).get(10,TimeUnit.SECONDS); } catch(Exception e) {throw new IllegalStateException(e);}
+                }
+                return result;
+            }
+        };
+        try {
+            var result = proxy(new StoredDatasetExportService(probe,json)).export("005930",exportFrom,exportTo);
+            assertThat(result.researchVersions()).isEmpty();
+            assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM research_versions",Integer.class)).isEqualTo(1);
+        } finally {pool.shutdownNow();}
     }
 }

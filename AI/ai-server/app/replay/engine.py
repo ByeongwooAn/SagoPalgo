@@ -28,6 +28,8 @@ def _replay(manifest, spec, records, quality, config):
         raise ResearchError("SYNTHETIC_OPT_IN_REQUIRED")
     if any(s.availability == "PUBLICATION_ASSUMED" for s in spec.sources) and not config.allowAssumedAvailability:
         raise ResearchError("ASSUMED_AVAILABILITY_OPT_IN_REQUIRED")
+    if any(s.availability == "RECEIPT_DERIVED" for s in spec.sources) and not config.allowDerivedAvailability:
+        raise ResearchError("DERIVED_AVAILABILITY_OPT_IN_REQUIRED")
     bars = [r for r in records if r.kind == "BAR" and r.sourceId == config.barSourceId and r.revision == 1]
     if not bars or any(r.payload.timeframe != "MINUTE_1" for r in bars):
         raise ResearchError("MINUTE_BARS_REQUIRED")
@@ -161,7 +163,7 @@ def _replay(manifest, spec, records, quality, config):
         holdings.append({"stockCode": stock, "quantity": quantity, "markRef": mark.ref if fresh else None,
                          "value": money(value) if value is not None else None})
     report = {
-        "schemaVersion": "SAGOPALGO_INTENT_REPLAY_V1", "engineVersion": "R5_FOUNDATION_1",
+        "schemaVersion": "SAGOPALGO_INTENT_REPLAY_V1", "engineVersion": "R5_FOUNDATION_2",
         "datasetId": manifest["datasetId"], "configId": digest(canonical(config.model_dump(mode="json"))),
         "config": config.model_dump(mode="json"), "status": "BAR_ESTIMATE_ONLY", "usableForTrading": False,
         "usableForStrategyValidation": False, "initialCash": config.initialCash, "finalCash": money(cash),

@@ -46,6 +46,8 @@ def read_json(value: bytes):
 
 def known_at(record: Record, spec: DatasetSpec):
     source = next(s for s in spec.sources if s.sourceId == record.sourceId)
+    if source.availability == "RECEIPT_DERIVED":
+        return record.publishedAt
     # A legacy baseline has no trustworthy historical observation time.
     if record.revision > 1 or (isinstance(record.payload, ResearchContent) and record.payload.origin == "LEGACY_BASELINE"):
         return record.observedAt
@@ -64,6 +66,9 @@ def normalize(raw: bytes, spec: DatasetSpec) -> list[Record]:
         item = Record.model_validate(read_json(line))
         if item.sourceId not in sources:
             raise ResearchError("UNKNOWN_SOURCE")
+        policy = next(s for s in spec.sources if s.sourceId == item.sourceId)
+        if policy.availability == "RECEIPT_DERIVED" and item.kind != "BAR":
+            raise ResearchError("DERIVED_AVAILABILITY_REQUIRES_BAR")
         old = groups[item.key].get(item.revision)
         if old and old != item:
             raise ResearchError("REVISION_CONFLICT")
@@ -130,7 +135,7 @@ def quality(records: list[Record], spec: DatasetSpec, input_rows: int) -> dict:
     slots = {(r.sourceId, r.stockCode, r.payload.startAt, r.payload.endAt) for r in bars}
     missing = [e.model_dump(mode="json") for e in spec.expectedBars
                if (e.sourceId, e.stockCode, e.startAt, e.endAt) not in slots]
-    return {
+    report = {
         "status": "RESEARCH_ONLY", "usableForTrading": False, "usableForStrategyValidation": False,
         "recordCount": len(records), "inputRows": input_rows, "exactDuplicates": input_rows - len(records),
         "stocks": sorted({r.stockCode for r in records}),
@@ -144,6 +149,11 @@ def quality(records: list[Record], spec: DatasetSpec, input_rows: int) -> dict:
         "corporateActions": "UNVERIFIED", "universeCompleteness": "UNVERIFIED",
         "limitations": spec.limitations,
     }
+    # Omit additive fields for old bundles so their original quality hashes remain valid.
+    derived = [s.sourceId for s in spec.sources if s.availability == "RECEIPT_DERIVED"]
+    if derived:
+        report["derivedAvailability"] = derived
+    return report
 
 
 def records_bytes(records: list[Record]) -> bytes:
@@ -158,7 +168,7 @@ def build_bundle(spec_path: Path, input_path: Path, output: Path) -> dict:
     contents = dict(zip(FILES, [spec_raw, raw, records_bytes(records), canonical(report)]))
     if any(len(value) > MAX_BYTES for value in contents.values()):
         raise ResearchError("OUTPUT_SIZE_LIMIT")
-    manifest = {"schemaVersion": VERSION, "engineVersion": "R5_FOUNDATION_1",
+    manifest = {"schemaVersion": VERSION, "engineVersion": "R5_FOUNDATION_2",
                 "files": {name: {"sha256": digest(data), "bytes": len(data)} for name, data in contents.items()}}
     manifest["datasetId"] = digest(canonical(manifest))
     if output.exists() or output.is_symlink():
@@ -184,7 +194,7 @@ def load_bundle(path: Path):
     if not isinstance(manifest, dict) or set(manifest) != {"schemaVersion", "engineVersion", "files", "datasetId"}:
         raise ResearchError("MANIFEST_INVALID")
     body = {k: v for k, v in manifest.items() if k != "datasetId"}
-    if body["schemaVersion"] != VERSION or body["engineVersion"] != "R5_FOUNDATION_1" or digest(canonical(body)) != manifest["datasetId"]:
+    if body["schemaVersion"] != VERSION or body["engineVersion"] not in {"R5_FOUNDATION_1", "R5_FOUNDATION_2"} or digest(canonical(body)) != manifest["datasetId"]:
         raise ResearchError("MANIFEST_HASH_MISMATCH")
     if not isinstance(body["files"], dict) or set(body["files"]) != set(FILES):
         raise ResearchError("MANIFEST_FILES_INVALID")
