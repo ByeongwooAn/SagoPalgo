@@ -29,6 +29,8 @@
 
 KB-07은 [2026-11-03 실제 계좌 읽기 점검](account-observation-live-validation.md)에서 추가했습니다. 저장된 관찰의 보유·두 잔고는 성공했지만 지정일 주문은 LOOKUP_FAILED였고, 별도 읽기 진단에서 KB의 조회 내역 없음 실패 메시지를 확인했습니다. 현재 공개 상세 정의에 성공/실패 봉투와 성공 코드만 확인했으며 정상 빈 결과로 승격할 조건은 확보하지 못했습니다. 신규 문의나 메시지를 실제로 발송하지 않았습니다.
 
+후속 [자동 수집 제한 운영 점검](account-collection-operations.md)에서도 동일 주문 구간의 LOOKUP_FAILED로 자동 관찰이 PARTIAL·PAUSED가 됐음을 확인했습니다. 정상 빈 주문 결과로 변환하지 않고 OFF 복귀·중단 기록 보존·OFF 재개만 검증했습니다. KB-07은 계속 미확정이며 현재 OFF·IDLE은 계약이 해결됐다는 뜻이 아닙니다.
+
 ## 3. 현재 공개 근거와 코드 경계
 
 2026-11-02 공개 상세 정의를 재조회해 `crct_cncl_ccd`, `crct_q`, `sor_cncl_q`의 description이 null임을 확인했습니다. 공개 자료 전체에 설명이 존재하지 않는다는 결론은 아닙니다. [SSQM2341 정의](https://openapi.kbsec.com/api/apis/catalog/66998ea3-85f3-4060-bf6d-f88a163eee35/tr-list)
