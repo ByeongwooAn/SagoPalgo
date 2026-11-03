@@ -31,6 +31,7 @@ public class ResearchFeedService {
     private final List<DisclosureProvider> disclosureProviders;
     private final ResearchProviderProperties properties;
     private final ResearchFeedStore researchFeedStore;
+    private final ResearchJournalStore journal;
 
     public ResearchFeedService(
         List<NewsProvider> newsProviders,
@@ -38,10 +39,16 @@ public class ResearchFeedService {
         ResearchProviderProperties properties,
         ResearchFeedStore researchFeedStore
     ) {
+        this(newsProviders,disclosureProviders,properties,researchFeedStore,null);
+    }
+    @org.springframework.beans.factory.annotation.Autowired
+    public ResearchFeedService(List<NewsProvider> newsProviders,List<DisclosureProvider> disclosureProviders,
+        ResearchProviderProperties properties,ResearchFeedStore researchFeedStore,ResearchJournalStore journal) {
         this.newsProviders = newsProviders;
         this.disclosureProviders = disclosureProviders;
         this.properties = properties;
         this.researchFeedStore = researchFeedStore;
+        this.journal=journal;
     }
 
     public ResearchFeedResponse getStoredFeed(
@@ -69,9 +76,16 @@ public class ResearchFeedService {
     ) {
         ResearchRequest request = request(stockCode, stockName, fromDate, toDate);
         List<ResearchProviderStatusResponse> statuses = new ArrayList<>();
-        List<NewsArticle> news = collectNews(request, statuses);
-        List<Disclosure> disclosures = collectDisclosures(request, statuses);
-        StoredResearchFeed stored = researchFeedStore.saveAndFind(request, news, disclosures);
+        boolean incremental=properties.getIncremental().isEnabled();
+        if(incremental) {
+            try {journal.verify();} catch(RuntimeException e) {throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR,"뉴스·공시 변경 저장소 026 적용 상태를 확인하세요.");}
+        }
+        var coverage=new ArrayList<com.sagopalgo.api.research.mapper.ResearchJournalMapper.Coverage>();
+        boolean rolling=incremental && fromDate==null && toDate==null;
+        List<NewsArticle> news = collectNews(request, statuses,coverage,rolling);
+        List<Disclosure> disclosures = collectDisclosures(request, statuses,coverage,rolling);
+        StoredResearchFeed stored = incremental ? researchFeedStore.saveAndFind(request,news,disclosures,coverage)
+            : researchFeedStore.saveAndFind(request, news, disclosures);
         return response(request, stored, statuses);
     }
 
@@ -111,7 +125,8 @@ public class ResearchFeedService {
 
     private List<NewsArticle> collectNews(
         ResearchRequest request,
-        List<ResearchProviderStatusResponse> statuses
+        List<ResearchProviderStatusResponse> statuses,
+        List<com.sagopalgo.api.research.mapper.ResearchJournalMapper.Coverage> coverage,boolean rolling
     ) {
         List<NewsArticle> result = new ArrayList<>();
         for (NewsProvider provider : newsProviders) {
@@ -120,12 +135,24 @@ public class ResearchFeedService {
                 continue;
             }
             try {
+                if(properties.getIncremental().isEnabled()) {
+                    var scope=rolling?journal.scope(provider.providerCode(),request):request;
+                    var batch=provider instanceof com.sagopalgo.api.research.provider.PagedNewsProvider paged
+                        ?paged.searchBatch(scope):new com.sagopalgo.api.research.model.ResearchBatch<>(provider.search(scope),0,false,"UNVERIFIED_PROVIDER");
+                    result.addAll(batch.items());
+                    statuses.add(new ResearchProviderStatusResponse(provider.providerCode(),"NEWS",batch.complete()?"SUCCESS":"PARTIAL",
+                        batch.complete()?"검색 범위 페이지 확인 완료":"검색 범위 일부만 확인",batch.pagesRead(),batch.complete(),scope.fromDate(),scope.toDate()));
+                    if(rolling && batch.complete()) coverage.add(journal.coverage(provider.providerCode(),request));
+                    continue;
+                }
                 List<NewsArticle> articles = provider.search(request);
                 result.addAll(articles);
                 statuses.add(status(provider.providerCode(), "NEWS", "SUCCESS", articles.size() + "건 조회"));
             } catch (ApiException exception) {
                 log.warn("뉴스 Provider 조회 실패. provider={} message={}", provider.providerCode(), exception.getMessage());
                 statuses.add(status(provider.providerCode(), "NEWS", "FAILED", exception.getMessage()));
+            } catch(RuntimeException exception) {
+                statuses.add(status(provider.providerCode(),"NEWS","FAILED","뉴스 조회 범위 또는 저장소를 확인하세요."));
             }
         }
         return List.copyOf(result);
@@ -133,7 +160,8 @@ public class ResearchFeedService {
 
     private List<Disclosure> collectDisclosures(
         ResearchRequest request,
-        List<ResearchProviderStatusResponse> statuses
+        List<ResearchProviderStatusResponse> statuses,
+        List<com.sagopalgo.api.research.mapper.ResearchJournalMapper.Coverage> coverage,boolean rolling
     ) {
         List<Disclosure> result = new ArrayList<>();
         for (DisclosureProvider provider : disclosureProviders) {
@@ -142,12 +170,24 @@ public class ResearchFeedService {
                 continue;
             }
             try {
+                if(properties.getIncremental().isEnabled()) {
+                    var scope=rolling?journal.scope(provider.providerCode(),request):request;
+                    var batch=provider instanceof com.sagopalgo.api.research.provider.PagedDisclosureProvider paged
+                        ?paged.searchBatch(scope):new com.sagopalgo.api.research.model.ResearchBatch<>(provider.search(scope),0,false,"UNVERIFIED_PROVIDER");
+                    result.addAll(batch.items());
+                    statuses.add(new ResearchProviderStatusResponse(provider.providerCode(),"DISCLOSURE",batch.complete()?"SUCCESS":"PARTIAL",
+                        batch.complete()?"검색 범위 페이지 확인 완료":"검색 범위 일부만 확인",batch.pagesRead(),batch.complete(),scope.fromDate(),scope.toDate()));
+                    if(rolling && batch.complete()) coverage.add(journal.coverage(provider.providerCode(),request));
+                    continue;
+                }
                 List<Disclosure> items = provider.search(request);
                 result.addAll(items);
                 statuses.add(status(provider.providerCode(), "DISCLOSURE", "SUCCESS", items.size() + "건 조회"));
             } catch (ApiException exception) {
                 log.warn("공시 Provider 조회 실패. provider={} message={}", provider.providerCode(), exception.getMessage());
                 statuses.add(status(provider.providerCode(), "DISCLOSURE", "FAILED", exception.getMessage()));
+            } catch(RuntimeException exception) {
+                statuses.add(status(provider.providerCode(),"DISCLOSURE","FAILED","공시 조회 범위 또는 저장소를 확인하세요."));
             }
         }
         return List.copyOf(result);

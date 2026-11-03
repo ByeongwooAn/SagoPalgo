@@ -667,3 +667,67 @@ CREATE TABLE IF NOT EXISTS kb_account_observation_collectors (
         ('SNAPSHOT_PARTIAL','SNAPSHOT_FAILED','SNAPSHOT_DISABLED','SNAPSHOT_UNUSABLE','OBSERVATION_FAILED','CONTEXT_CHANGED'))
   )
 ) ENGINE=InnoDB COMMENT='KB 관찰 자동 수집 소유권. ACTIVE는 시간만으로 해제하지 않음';
+
+-- 공개 KIS KRX 시세만 기록합니다. 계좌/주문 원장을 변경하지 않습니다.
+CREATE TABLE IF NOT EXISTS market_stream_events (
+  event_id CHAR(64) NOT NULL PRIMARY KEY,
+  stock_code CHAR(6) NOT NULL,
+  event_type VARCHAR(10) NOT NULL,
+  market_at DATETIME(6) NOT NULL,
+  received_at DATETIME(6) NOT NULL,
+  payload LONGTEXT NOT NULL,
+  CONSTRAINT chk_market_stream_event_json CHECK (JSON_VALID(payload)),
+  CONSTRAINT chk_market_stream_event_type CHECK (event_type IN ('TRADE','QUOTE')),
+  INDEX idx_market_stream_stock_time(stock_code,market_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS market_stream_minutes (
+  stock_code CHAR(6) NOT NULL,
+  minute_at DATETIME(6) NOT NULL,
+  payload LONGTEXT NOT NULL,
+  PRIMARY KEY(stock_code,minute_at),
+  CONSTRAINT chk_market_stream_minute_json CHECK (JSON_VALID(payload))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 연구 자료 변경 이력: 공급자 원문 전체나 인증값은 저장하지 않습니다.
+CREATE TABLE IF NOT EXISTS research_journal_clock (
+  singleton TINYINT NOT NULL PRIMARY KEY,
+  last_id BIGINT NOT NULL,
+  CHECK(singleton=1 AND last_id>=0)
+) ENGINE=InnoDB;
+INSERT IGNORE INTO research_journal_clock VALUES(1,0);
+CREATE TABLE IF NOT EXISTS research_item_heads (
+  kind VARCHAR(12) NOT NULL,
+  provider VARCHAR(30) NOT NULL,
+  stock_code VARCHAR(30) NOT NULL,
+  item_key CHAR(64) NOT NULL,
+  revision BIGINT NOT NULL,
+  content_hash CHAR(64),
+  PRIMARY KEY(kind,provider,stock_code,item_key),
+  CHECK(kind IN ('NEWS','DISCLOSURE') AND revision>=0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS research_versions (
+  change_id BIGINT NOT NULL PRIMARY KEY,
+  kind VARCHAR(12) NOT NULL,
+  provider VARCHAR(30) NOT NULL,
+  stock_code VARCHAR(30) NOT NULL,
+  item_key CHAR(64) NOT NULL,
+  revision BIGINT NOT NULL,
+  content_hash CHAR(64) NOT NULL,
+  payload LONGTEXT NOT NULL,
+  observed_at DATETIME(6) NOT NULL,
+  origin VARCHAR(20) NOT NULL,
+  UNIQUE KEY uk_research_revision(kind,provider,stock_code,item_key,revision),
+  INDEX idx_research_change_stock(stock_code,change_id),
+  CONSTRAINT chk_research_version_payload CHECK(JSON_VALID(payload)),
+  CONSTRAINT chk_research_version_origin CHECK(origin IN ('LEGACY_BASELINE','OBSERVED')),
+  CONSTRAINT fk_research_version_head FOREIGN KEY(kind,provider,stock_code,item_key)
+    REFERENCES research_item_heads(kind,provider,stock_code,item_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS research_checkpoints (
+  provider VARCHAR(30) NOT NULL,
+  stock_code VARCHAR(30) NOT NULL,
+  scope_key CHAR(64) NOT NULL,
+  through_date DATE NOT NULL,
+  updated_at DATETIME(6) NOT NULL,
+  PRIMARY KEY(provider,stock_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

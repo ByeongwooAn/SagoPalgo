@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../models/market_candle.dart';
 import '../repositories/market_data_repository.dart';
+import '../repositories/realtime_market_repository.dart';
+import 'market_realtime_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_text.dart';
@@ -72,6 +74,23 @@ class _MarketCandleScreenState extends State<MarketCandleScreen> {
           ],
         ),
         actions: [
+          if (widget.repository is RealtimeMarketAccess)
+            IconButton(
+              tooltip: '실시간 체결·호가',
+              icon: const Icon(Icons.sensors),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => MarketRealtimeScreen(
+                      stockCode: widget.stockCode,
+                      stockName: widget.stockName,
+                      repository:
+                          (widget.repository as RealtimeMarketAccess).realtime,
+                    ),
+                  ),
+                );
+              },
+            ),
           IconButton(
             onPressed: _reload,
             tooltip: '새로고침',

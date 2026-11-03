@@ -24,6 +24,8 @@
 
 ## 백엔드 API 기준
 
+추가 구현: 기존 캔들 상세에서 KIS KRX 실시간 체결·호가·관측 분봉 화면으로 이동할 수 있습니다. 소식 탭은 저장 자료를 30초마다 GET으로 확인하고 뉴스·공시 변경 버전을 별도 화면에서 조회합니다. [수집 계약과 025/026 배포 조건](../../docs/realtime-data-pipeline.md)을 확인하세요. 외부 실시간/증분 수집은 서버에서 기본 OFF이며 앱 진입이 이를 켜지 않습니다.
+
 기본 API 주소는 `Front/app_version/.env`의 `SAGOPALGO_API_BASE_URL`에서 읽습니다. 이 값이 없으면 앱 `.env`에 적힌 `SAGOPALGO_NGINX_SERVER_NAME`과 `SAGOPALGO_PROXY_HTTP_PORT`로 주소를 만듭니다. 서버의 루트 `.env`는 비밀값이 있으므로 앱 asset으로 복사하지 않습니다.
 
 ```dotenv

@@ -11,6 +11,19 @@ public class ResearchProviderProperties {
     private NaverNews naverNews = new NaverNews();
     private OpenDart openDart = new OpenDart();
     private Sync sync = new Sync();
+    private Incremental incremental = new Incremental();
+    public Incremental getIncremental() { return incremental; }
+    public void setIncremental(Incremental value) { incremental=value; }
+    public static class Incremental {
+        private boolean enabled=false;
+        private int maxPages=3,overlapDays=2;
+        public boolean isEnabled() {return enabled;}
+        public void setEnabled(boolean value) {enabled=value;}
+        public int getMaxPages() {return maxPages;}
+        public void setMaxPages(int value) {if(value<1 || value>10) throw new IllegalArgumentException("페이지 상한은 1~10입니다.");maxPages=value;}
+        public int getOverlapDays() {return overlapDays;}
+        public void setOverlapDays(int value) {if(value<1 || value>30) throw new IllegalArgumentException("중첩 기간은 1~30일입니다.");overlapDays=value;}
+    }
 
     public NaverNews getNaverNews() {
         return naverNews;

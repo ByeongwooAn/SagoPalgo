@@ -7,6 +7,16 @@ public record ResearchProviderStatusResponse(
     String provider,
     String dataType,
     String status,
-    String message
+    String message,
+    Integer pagesRead,
+    Boolean complete,
+    java.time.LocalDate fromDate,
+    java.time.LocalDate toDate
 ) {
+    public ResearchProviderStatusResponse(String provider,String dataType,String status,String message) {
+        this(provider,dataType,status,message,null,null,null,null);
+    }
+    public ResearchProviderStatusResponse(String provider,String dataType,String status,String message,Integer pagesRead,Boolean complete) {
+        this(provider,dataType,status,message,pagesRead,complete,null,null);
+    }
 }

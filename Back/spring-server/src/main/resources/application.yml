@@ -112,6 +112,12 @@ sagopalgo:
       app-key: ${SAGOPALGO_TOSS_APP_KEY:}
       app-secret: ${SAGOPALGO_TOSS_APP_SECRET:}
   market:
+    stream:
+      enabled: ${SAGOPALGO_MARKET_STREAM_ENABLED:false}
+      rights-confirmed: ${SAGOPALGO_MARKET_STREAM_RIGHTS_CONFIRMED:false}
+      approved-subscriptions: ${SAGOPALGO_MARKET_STREAM_APPROVED_SUBSCRIPTIONS:0}
+      symbols: ${SAGOPALGO_MARKET_STREAM_SYMBOLS:}
+      stale-seconds: ${SAGOPALGO_MARKET_STREAM_STALE_SECONDS:15}
     kis:
       # 한국투자증권 Open API 현재가 조회 사용 여부입니다. 키를 설정한 환경에서만 true로 켭니다.
       enabled: ${SAGOPALGO_KIS_ENABLED:false}
@@ -131,6 +137,10 @@ sagopalgo:
       candle-transaction-id: ${SAGOPALGO_KIS_CANDLE_TR_ID:FHKST03010100}
       customer-type: ${SAGOPALGO_KIS_CUSTOMER_TYPE:P}
   research:
+    incremental:
+      enabled: ${SAGOPALGO_RESEARCH_INCREMENTAL_ENABLED:false}
+      max-pages: ${SAGOPALGO_RESEARCH_INCREMENTAL_MAX_PAGES:3}
+      overlap-days: ${SAGOPALGO_RESEARCH_INCREMENTAL_OVERLAP_DAYS:2}
     naver-news:
       enabled: ${SAGOPALGO_NAVER_NEWS_ENABLED:false}
       base-url: ${SAGOPALGO_NAVER_NEWS_BASE_URL:https://naverapihub.apigw.ntruss.com}

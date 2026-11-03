@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/research_feed.dart';
 import '../repositories/research_feed_repository.dart';
+import '../repositories/research_changes_repository.dart';
+import 'research_changes_screen.dart';
 import '../repositories/watchlist_repository.dart';
 import 'watchlist_setup_sheet.dart';
 import 'watchlist_management_sheet.dart';
@@ -47,15 +50,64 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
   Future<ResearchSyncOverview>? _statusFuture;
   ResearchTimelineFilter _filter = ResearchTimelineFilter.all;
   bool _syncing = false;
+  bool _polling = false;
+  Timer? _pollTimer;
+  String? _pollError;
 
   @override
   void initState() {
     super.initState();
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _pollStored(),
+    );
     _selectedStock = widget.stocks.isEmpty ? null : widget.stocks.first;
     if (widget.active && _selectedStock != null) {
       _feedFuture = widget.repository.fetchFeed(_selectedStock!);
       _statusFuture = widget.repository.fetchSyncStatus(_selectedStock!);
     }
+  }
+
+  Future<void> _pollStored() async {
+    final stock = _selectedStock;
+    final repo = widget.repository;
+    if (!widget.active ||
+        stock == null ||
+        _syncing ||
+        _polling ||
+        repo is! ResearchChangesAccess) {
+      return;
+    }
+    _polling = true;
+    try {
+      final results = await Future.wait<Object>([
+        repo.fetchFeed(stock),
+        repo.fetchSyncStatus(stock),
+      ]).timeout(const Duration(seconds: 20));
+      if (mounted &&
+          widget.active &&
+          identical(repo, widget.repository) &&
+          _selectedStock?.stockCode == stock.stockCode &&
+          _selectedStock?.stockName == stock.stockName) {
+        setState(() {
+          _feedFuture = Future.value(results[0] as ResearchFeed);
+          _statusFuture = Future.value(results[1] as ResearchSyncOverview);
+          _pollError = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _pollError = '자동 확인 실패 · 저장 자료는 이전 조회 결과입니다.');
+      }
+    } finally {
+      _polling = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -131,6 +183,23 @@ class _ResearchTimelineScreenState extends State<ResearchTimelineScreen> {
             ),
             const SizedBox(height: 12),
             _buildSyncStatus(),
+            if (widget.repository is ResearchChangesAccess) ...[
+              const Text('저장 자료를 30초마다 확인합니다. 외부 수집 시각·실행 주기는 동기화 상태를 참고하세요.'),
+              if (_pollError != null) Text(_pollError!),
+              TextButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ResearchChangesScreen(
+                      stockCode: _selectedStock!.stockCode,
+                      stockName: _selectedStock!.stockName,
+                      repository: widget.repository as ResearchChangesAccess,
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.history),
+                label: const Text('뉴스·공시 변경 이력'),
+              ),
+            ],
             const SizedBox(height: 12),
             _FilterControl(
               selected: _filter,
@@ -809,6 +878,7 @@ class _EmptyFeedState extends StatelessWidget {
         )
         .toList();
     final failed = relevant.any((provider) => provider.status == 'FAILED');
+    final partial = relevant.any((provider) => provider.status == 'PARTIAL');
     final disabled =
         relevant.isNotEmpty &&
         relevant.every((provider) => provider.status == 'DISABLED');
@@ -818,6 +888,8 @@ class _EmptyFeedState extends StatelessWidget {
     );
     final label = failed
         ? '수집 실패 · 저장된 결과 없음'
+        : partial
+        ? '수집 범위 일부만 확인 · 저장된 결과 없음'
         : disabled
         ? '수집 연동 설정 필요'
         : success
@@ -846,6 +918,8 @@ class _EmptyFeedState extends StatelessWidget {
           Text(
             failed
                 ? 'Provider 상태를 확인하고 동기화를 다시 시도하세요.'
+                : partial
+                ? '수집이 끝나지 않아 자료가 없다는 것을 확정할 수 없습니다.'
                 : disabled
                 ? '서버에서 뉴스·공시 Provider 활성화와 인증 설정을 확인하세요.'
                 : success
