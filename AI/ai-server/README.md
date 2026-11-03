@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[여러 기업의 실제 기준정보 사례](../../docs/multi-company-reference-cases.md)는 `python -m app.replay.kind_cases`의 capture/build/audit/as-of로 실행합니다. 신규상장·폐지·분할·정지/해제 5개 대표 사례를 원문과 연결하며, 5-08 전체 완료 조건과 시장·기간 누락을 별도로 관리합니다.
+
 [배당·소각 및 취득결과 연결](../../docs/distribution-completion-evidence.md)은 거래소 HTML 원문을 지원합니다. 관련공시 원문은 `app.replay.related_documents`, 취득 결과/합계·계획 대조는 `app.replay.treasury_outcomes`로 실행하며 취득 보고와 실제 소각 완료를 구분합니다.
 
 [공시 원문 사실 추출](../../docs/corporate-action-facts.md)은 `python -m app.replay.corporate_facts`로 실행합니다. 자기주식 취득·해외 상장폐지의 예정 날짜/수량/금액과 정정 전후를 원본에 연결하고 실제 완료·가격 조정과 구분합니다.

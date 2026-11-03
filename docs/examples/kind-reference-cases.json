@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "SAGOPALGO_KIND_CASE_SCOPE_V1",
+  "startDate": "2023-11-01",
+  "endDate": "2026-11-02",
+  "purpose": "PERSONAL_LOCAL_REFERENCE_RESEARCH",
+  "cases": [
+    {
+      "caseId": "m83-ipo-2024",
+      "stockCode": "476080",
+      "issuerName": "(주)엠83",
+      "market": "KOSDAQ",
+      "kind": "IPO",
+      "url": "https://kind.krx.co.kr/external/2024/08/20/000540/20240820001319/70760.htm"
+    },
+    {
+      "caseId": "eugene-spac7-delisting-2024",
+      "stockCode": "388800",
+      "issuerName": "유진기업인수목적7호 주식회사",
+      "market": "KOSDAQ",
+      "kind": "DELISTING",
+      "url": "https://kind.krx.co.kr/external/2024/06/19/000839/20240619001771/70769.htm"
+    },
+    {
+      "caseId": "ecopro-split-2024",
+      "stockCode": "086520",
+      "issuerName": "(주)에코프로",
+      "market": "KOSDAQ",
+      "kind": "SPLIT",
+      "url": "https://kind.krx.co.kr/external/2024/04/24/000628/20240424001650/70764.htm"
+    },
+    {
+      "caseId": "ecopro-suspension-2024",
+      "stockCode": "086520",
+      "issuerName": "(주)에코프로",
+      "market": "KOSDAQ",
+      "kind": "SUSPENSION",
+      "url": "https://kind.krx.co.kr/external/2024/04/04/000682/20240404001818/70797.htm"
+    },
+    {
+      "caseId": "ecopro-resumption-2024",
+      "stockCode": "086520",
+      "issuerName": "(주)에코프로",
+      "market": "KOSDAQ",
+      "kind": "RESUMPTION",
+      "url": "https://kind.krx.co.kr/external/2024/04/24/000631/20240424001656/70799.htm"
+    }
+  ]
+}
