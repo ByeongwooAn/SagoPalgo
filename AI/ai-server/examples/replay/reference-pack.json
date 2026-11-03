@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "SAGOPALGO_MARKET_REFERENCE_V1",
+  "provider": "SYNTHETIC_REFERENCE_EXAMPLE",
+  "provenance": "SYNTHETIC",
+  "reference": "가상 예제이며 실제 거래일·거래 세션·상장·기업행사 근거가 아닙니다.",
+  "observedAt": "2024-01-04T00:00:00Z",
+  "calendar": [
+    {"businessDate":"2024-01-02","businessDay":true,"tradingDay":true,"openDay":true,"settlementDay":true},
+    {"businessDate":"2024-01-03","businessDay":true,"tradingDay":true,"openDay":true,"settlementDay":true}
+  ],
+  "sessions": [
+    {"businessDate":"2024-01-02","openAt":"2024-01-02T01:00:00Z","closeAt":"2024-01-02T06:30:00Z","knownAt":"2024-01-01T00:00:00Z","evidence":"SYNTHETIC only: explicit 10:00 open example"}
+  ],
+  "listings": [
+    {"eventId":"fake-listing","stockCode":"000001","effectiveDate":"2024-01-02","eligible":true,"knownAt":"2024-01-01T00:00:00Z","evidence":"SYNTHETIC only"}
+  ],
+  "actions": [
+    {"eventId":"fake-split","stockCode":"000001","kind":"SPLIT","effectiveDate":"2024-01-03","knownAt":"2024-01-02T08:00:00Z","ratio":"2","evidence":"SYNTHETIC only; do not adjust real prices"}
+  ],
+  "coverage": [
+    {"dimension":"CALENDAR","startDate":"2024-01-02","endDate":"2024-01-03","scope":"MARKET","stockCodes":[],"status":"PARTIAL","evidence":"SYNTHETIC only"}
+  ]
+}
