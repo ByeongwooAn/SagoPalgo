@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+과거 원주가 수집은 별도 [KIS 수집 도구](../../docs/historical-price-acquisition.md)의 `python -m app.replay.history`를 사용합니다. plan/audit는 오프라인이며 collect만 제한된 인증·공개 시세 조회를 수행합니다. 실제 데이터의 학습 활용권·날짜 정밀도·가격 기준을 구분합니다.
+
 R2/R3 저장 자료는 [읽기 전용 내보내기·변환](../../docs/stored-dataset-export.md)의 `convert-stored`로 연결합니다. 원본·제외 사유를 보존하며 기본 가용 시각과 선택적 수신 기반 추정을 구분합니다.
 
 과거 자료 연구용 오프라인 도구는 [R5 데이터셋·시점 재현 문서](../../docs/historical-data-replay.md)를 따릅니다. `python -m app.replay --help`로 버전 데이터셋·시점 조회·명시적 주문안의 비용 추정·시간 구간 분리를 실행합니다. 기존 분석 API와 분리되어 있으며 실제 계좌·자동 주문·학습 모델을 활성화하지 않습니다. [가상 예제](examples/replay)는 실측 시세/성과가 아닙니다.
