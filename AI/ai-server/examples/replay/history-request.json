@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "SAGOPALGO_KIS_DAILY_REQUEST_V1",
+  "stockCode": "005930",
+  "startDate": "2023-11-01",
+  "endDate": "2026-11-02",
+  "provenance": "SYNTHETIC",
+  "queryRightsConfirmed": false,
+  "queryRightsEvidence": "계획 확인용 예제입니다. 실제 계정의 개인 조회 권한을 확인한 설정을 별도로 준비하세요.",
+  "trainingRightsConfirmed": false,
+  "trainingRightsEvidence": "",
+  "windowDays": 60,
+  "maxRequests": 64,
+  "minIntervalSeconds": 2
+}
