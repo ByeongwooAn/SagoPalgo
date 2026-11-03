@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[배당·소각 및 취득결과 연결](../../docs/distribution-completion-evidence.md)은 거래소 HTML 원문을 지원합니다. 관련공시 원문은 `app.replay.related_documents`, 취득 결과/합계·계획 대조는 `app.replay.treasury_outcomes`로 실행하며 취득 보고와 실제 소각 완료를 구분합니다.
+
 [공시 원문 사실 추출](../../docs/corporate-action-facts.md)은 `python -m app.replay.corporate_facts`로 실행합니다. 자기주식 취득·해외 상장폐지의 예정 날짜/수량/금액과 정정 전후를 원본에 연결하고 실제 완료·가격 조정과 구분합니다.
 
 [OpenDART 과거 기업·공시 이력](../../docs/dart-historical-disclosures.md)은 `python -m app.replay.dart_history`로 일봉에 연결한 계획·제한 수집·감사를 실행합니다. 선택 원문은 `python -m app.replay.dart_documents`로 확보하며 현재 법인 연결·검토 후보와 실제 상장/기업행사 효력을 구분합니다.

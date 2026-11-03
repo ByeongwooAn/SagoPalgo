@@ -9,7 +9,7 @@ from xml.etree import ElementTree as ET
 from zipfile import ZipFile
 
 from .dart_documents import audit_document
-from .dart_history import audit_locked
+from .dart_history import audit_locked, cached, load_job
 from .dataset import canonical, digest, read_bytes, read_json
 from .history import day, job_lock
 from .models import ResearchError, utc
@@ -191,7 +191,15 @@ def derive(index: Path, capture: Path):
         with ZipFile(io.BytesIO(read_bytes(capture / "original.zip"))) as archive:
             entry = one(v for v in archive.infolist() if v.filename.lower().endswith(".xml"))
             raw = archive.read(entry)
-        content = extract_content(raw, selected, rows, report["corpCode"])
+        if re.match(rb"\s*<html(?:\s|>)", raw.lstrip(b"\xef\xbb\xbf"), re.I):
+            from .distribution_facts import extract_distribution
+            _, _, journal = load_job(index)
+            company_raw, _ = cached(index, journal, "company", {"corp_code": report["corpCode"]})
+            company = read_json(company_raw)
+            names = [v for v in [company.get("stock_name"), company.get("corp_name")] if isinstance(v, str) and v]
+            content = extract_distribution(raw, selected, names)
+        else:
+            content = extract_content(raw, selected, rows, report["corpCode"])
         if content["instrument"]["scope"] == "DOMESTIC_EQUITY_PROGRAM" and selected["instrumentScope"] in {"OVERSEAS_SECURITIES", "SUBSIDIARY"}:
             raise ResearchError("FACT_INSTRUMENT_SCOPE_CONFLICT")
         known = max(utc(original["capturedAt"]), utc(selected["observedAt"]))
@@ -223,7 +231,9 @@ def audit(index, capture, facts):
 
 def as_of(value, at):
     body = {key: item for key, item in value.items() if key != "factId"}
-    if (value.get("factId") != digest(canonical(body)) or value.get("stage") != "DECLARED_PLAN"
+    supported_stage = (value.get("schemaVersion"), value.get("stage")) in {
+        ("SAGOPALGO_DISCLOSURE_FACTS_V1", "DECLARED_PLAN"), ("SAGOPALGO_TREASURY_OUTCOME_V1", "REPORTED_OUTCOME")}
+    if (value.get("factId") != digest(canonical(body)) or not supported_stage
             or value.get("automaticEffectAllowed") is not False or value.get("effectiveDate") is not None):
         raise ResearchError("FACT_SNAPSHOT_INVALID")
     cutoff = utc(at)
