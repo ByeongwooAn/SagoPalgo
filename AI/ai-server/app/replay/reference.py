@@ -12,6 +12,8 @@ from .history import audit, day, job_lock
 from .local_use import load_local_use
 from .models import Number, ResearchError, StrictModel, Timestamp
 
+SESSION_MARKETS = ("KOSPI", "KOSDAQ", "KONEX", "UNSPECIFIED")
+
 
 class CalendarDay(StrictModel):
     businessDate: str
@@ -27,6 +29,7 @@ class CalendarDay(StrictModel):
 
 
 class Session(StrictModel):
+    market: Literal["KOSPI", "KOSDAQ", "KONEX", "UNSPECIFIED"] = "UNSPECIFIED"
     businessDate: str
     openAt: Timestamp
     closeAt: Timestamp
@@ -111,7 +114,7 @@ class ReferencePack(StrictModel):
 
     @model_validator(mode="after")
     def unique_keys(self):
-        for values in [[v.businessDate for v in self.calendar], [v.businessDate for v in self.sessions],
+        for values in [[v.businessDate for v in self.calendar], [(v.market, v.businessDate) for v in self.sessions],
                        [v.eventId for v in self.listings], [v.eventId for v in self.actions]]:
             if len(set(values)) != len(values):
                 raise ValueError("duplicate reference identity")
@@ -133,18 +136,20 @@ def combine(packs):
     for pack in packs:
         for name in result:
             for item in getattr(pack, name):
-                key = item.businessDate if name in {"calendar", "sessions"} else item.eventId
+                key = (item.market, item.businessDate) if name == "sessions" else item.businessDate if name == "calendar" else item.eventId
                 if key in result[name] and result[name][key] != item:
                     raise ResearchError("REFERENCE_CONFLICT")
                 result[name][key] = item
     return result
 
 
-def references_as_of(packs, stock, at, business_date):
+def references_as_of(packs, stock, at, business_date, market="UNSPECIFIED"):
+    if market not in SESSION_MARKETS:
+        raise ResearchError("REFERENCE_SESSION_MARKET_INVALID")
     combined = combine(packs)
     day(business_date)
     selected = _membership([v for v in combined["listings"].values() if v.stockCode == stock], at, business_date)
-    session = combined["sessions"].get(business_date)
+    session = combined["sessions"].get((market, business_date))
     return {
         "membership": selected.model_dump(mode="json") if selected else None,
         "session": session.model_dump(mode="json") if session and session.knownAt <= at else None,
@@ -162,8 +167,11 @@ def _membership(events, at, business_date):
     return selected[0] if selected else None
 
 
-def reconcile(report, rows, packs):
+def reconcile(report, rows, packs, market="UNSPECIFIED"):
+    if market not in SESSION_MARKETS:
+        raise ResearchError("REFERENCE_SESSION_MARKET_INVALID")
     combined = combine(packs)
+    sessions = {stamp: value for (venue, stamp), value in combined["sessions"].items() if venue == market}
     wanted = set(dates_between(report["requestStart"], report["requestEnd"]))
     calendar = {key: value for key, value in combined["calendar"].items() if key in wanted}
     # KIS explicitly documents opnd_yn for market-open/order-day checks. Preserve tr_day_yn separately.
@@ -172,8 +180,8 @@ def reconcile(report, rows, packs):
     unknown = sorted(wanted - set(calendar))
     missing = sorted(expected - observed)
     unexpected = sorted(key for key in observed if key in calendar and not calendar[key].openDay)
-    no_session = sorted(expected - set(combined["sessions"]))
-    invalid_session = sorted(key for key in combined["sessions"] if key in calendar and not calendar[key].openDay)
+    no_session = sorted(expected - set(sessions))
+    invalid_session = sorted(key for key in sessions if key in calendar and not calendar[key].openDay)
     stock = rows[0]["stockCode"] if rows else None
     declared = {}
     for dimension in ["CALENDAR", "SESSION", "UNIVERSE", "CORPORATE_ACTIONS"]:
@@ -183,7 +191,12 @@ def reconcile(report, rows, packs):
                 if item.dimension == dimension and item.status == "COMPLETE" and (item.scope == "MARKET" or stock in item.stockCodes):
                     first, last = max(item.startDate, report["requestStart"]), min(item.endDate, report["requestEnd"])
                     if first <= last:
-                        covered.update(dates_between(first, last))
+                        dates = set(dates_between(first, last))
+                        if dimension == "SESSION" and market != "UNSPECIFIED":
+                            # Evidenced closed dates require no session; unknown dates do not qualify.
+                            dates &= ({v.businessDate for v in pack.sessions if v.market == market}
+                                      | {stamp for stamp, value in calendar.items() if not value.openDay})
+                        covered.update(dates)
         declared[dimension] = len(wanted - covered)
     market_covered = set()
     for pack in packs:
@@ -194,8 +207,11 @@ def reconcile(report, rows, packs):
                     market_covered.update(dates_between(first, last))
     market_universe = wanted <= market_covered
     issues = []
+    if market == "UNSPECIFIED" and report["provenance"] != "SYNTHETIC":
+        issues.append({"code": "SESSION_MARKET_UNSPECIFIED"})
     for code, values in [("CALENDAR_UNKNOWN", unknown), ("NO_PRICE_ON_DECLARED_OPEN_DAY", missing), ("PRICE_ON_DECLARED_CLOSED_DAY", unexpected),
-                         ("SESSION_MISSING", no_session), ("SESSION_ON_CLOSED_DAY", invalid_session)]:
+                         ("SESSION_MISSING", no_session), ("SESSION_ON_CLOSED_DAY", invalid_session),
+                         ("PRICE_SESSION_MISSING", sorted(observed - set(sessions)))]:
         if values:
             issues.append({"code": code, "count": len(values), "dates": values[:100]})
     for dimension, count in declared.items():
@@ -209,7 +225,7 @@ def reconcile(report, rows, packs):
     relevant_listings = [v for v in combined["listings"].values() if v.stockCode == stock]
     for row in rows:
         stamp = row["businessDate"]
-        session = combined["sessions"].get(stamp)
+        session = sessions.get(stamp)
         if session is None:
             missing_membership.append(stamp)
             continue
@@ -227,6 +243,9 @@ def reconcile(report, rows, packs):
     return {"schemaVersion": "SAGOPALGO_REFERENCE_RECONCILIATION_V1", "historyPlanId": report["planId"],
             "historyRecords": len(rows), "requestedCalendarDates": len(wanted), "knownCalendarDates": len(calendar),
             "knownTradingDates": sum(v.tradingDay for v in calendar.values()), "knownOpenDates": len(expected),
+            "sessionMarket": market, "sessionMarketBasis": "CALLER_DECLARED" if market != "UNSPECIFIED" else "UNSPECIFIED",
+            "matchedSessionDates": len(wanted & set(sessions)),
+            "excludedSessionRecords": sum(venue != market for venue, _ in combined["sessions"]),
             "expectedPriceDayBasis": "OPEN_DAY",
             "calendarFlagDifferences": sorted(k for k, v in calendar.items() if v.openDay != v.tradingDay),
             "calendarCompleteness": "COMPLETE" if not unknown else "PARTIAL",
@@ -241,7 +260,7 @@ def reconcile(report, rows, packs):
                 "Known-at filtering and effective-date filtering are distinct; no automatic past price adjustment."]}
 
 
-def check_reference_files(job: Path, local_use: Path, paths: list[Path], output: Path):
+def check_reference_files(job: Path, local_use: Path, paths: list[Path], output: Path, market="UNSPECIFIED"):
     with job_lock(job):
         report, rows = audit(job, check_daily=True)
         raw = read_bytes(job / "daily.jsonl")
@@ -251,7 +270,7 @@ def check_reference_files(job: Path, local_use: Path, paths: list[Path], output:
             data = read_bytes(path)
             packs.append(ReferencePack.model_validate(read_json(data)))
             hashes.append(digest(data))
-        result = reconcile(report, rows, packs)
+        result = reconcile(report, rows, packs, market)
         result.update(localUseAccepted=True, useBasis=policy.basis, referenceHashes=hashes, dailySha256=digest(raw))
         result["reportId"] = digest(canonical(result))
         with output.open("xb") as stream:

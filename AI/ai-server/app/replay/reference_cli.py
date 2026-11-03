@@ -11,6 +11,7 @@ from .history import KisHistoryTransport
 from .local_use import bind_local_use
 from .models import ResearchError
 from .reference import check_reference_files
+from .session_evidence import fetch_session_notice
 
 
 def main(argv=None):
@@ -22,11 +23,15 @@ def main(argv=None):
     calendar = commands.add_parser("calendar-fetch")
     calendar.add_argument("--basis-date", required=True)
     calendar.add_argument("--cache", required=True, type=Path)
+    session = commands.add_parser("session-fetch")
+    session.add_argument("--url", required=True)
+    session.add_argument("--cache", required=True, type=Path)
     check = commands.add_parser("check")
     check.add_argument("--job", required=True, type=Path)
     check.add_argument("--local-use", required=True, type=Path)
     check.add_argument("--reference", nargs="+", required=True, type=Path)
     check.add_argument("--output", required=True, type=Path)
+    check.add_argument("--market", choices=["KOSPI", "KOSDAQ", "KONEX", "UNSPECIFIED"], default="UNSPECIFIED")
     args = parser.parse_args(argv)
     try:
         if args.command == "accept-local":
@@ -39,8 +44,15 @@ def main(argv=None):
             result = {"status": "CAPTURED", "cached": cached, "dates": len(dates),
                       "firstDate": dates[0] if dates else None, "lastDate": dates[-1] if dates else None,
                       "referenceFile": str(folder / "reference.json"), "autoPagination": False}
+        elif args.command == "session-fetch":
+            pack, folder, cached = fetch_session_notice(args.url, args.cache)
+            session = pack.sessions[0]
+            result = {"status": "CAPTURED", "cached": cached, "market": session.market,
+                      "businessDate": session.businessDate, "openAt": session.openAt.isoformat(),
+                      "closeAt": session.closeAt.isoformat(), "knowledgeBasis": "FETCH_TIME_ONLY",
+                      "referenceFile": str(folder / "reference.json")}
         else:
-            result = check_reference_files(args.job, args.local_use, args.reference, args.output)
+            result = check_reference_files(args.job, args.local_use, args.reference, args.output, args.market)
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 1 if result.get("status") == "REFERENCE_GAPS" else 0
     except ResearchError as exc:
