@@ -27,6 +27,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     AiAnalysisProperties.class,
     AccountObservationCollectionProperties.class,
     KisMarketProperties.class,
+    com.sagopalgo.api.config.MarketStreamProperties.class,
     PersonalModeProperties.class,
     ResearchProviderProperties.class,
     SecuritiesProviderProperties.class

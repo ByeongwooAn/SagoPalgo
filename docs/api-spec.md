@@ -347,7 +347,12 @@ Toss는 공식 Open API의 OAuth2 Client Credentials 토큰과 `GET /api/v1/pric
 
 Toss 공식 `GET /api/v1/stocks?symbols=종목코드` 응답을 사용합니다. 응답에는 Provider, 종목명, 영문명, 시장, 종목 유형, 보통주 여부, 상장 상태, 통화, 상장·상장폐지일, 발행주식수, NXT 지원 여부, 거래정지 여부가 포함됩니다.
 
+#### 6.0.3 실시간 시세와 연구 변경 조회
+
+`GET /api/v1/market/realtime?stockCode=005930`, `GET /api/v1/market/realtime/events?stockCode=005930`(SSE), `GET /api/v1/research/changes?stockCode=005930&afterId=0&limit=100`은 [실시간 데이터 수집 계약](realtime-data-pipeline.md)을 따릅니다. KIS 공개 KRX 시세와 저장된 연구 버전이며 계좌 관찰/주문 상태와 분리합니다. 신규 기능은 기본 OFF이고 025/026 적용·배포·권한/예산 확인 후 사용합니다. 스냅샷은 항상 usableForTrading=false이며, 분봉은 OBSERVED_ONLY입니다.
+
 ### 6.1 앱 초기 스냅샷 조회
+
 
 `GET /api/v1/dashboard/snapshot`
 

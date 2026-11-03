@@ -94,8 +94,10 @@ public class ResearchSyncService {
         int succeeded = count(response, "SUCCESS");
         int failed = count(response, "FAILED");
         int disabled = count(response, "DISABLED");
-        String status = resultStatus(succeeded, failed);
-        String message = "Provider 성공 %d · 실패 %d · 비활성 %d".formatted(succeeded, failed, disabled);
+        int partial=count(response,"PARTIAL");
+        String status = partial>0 ? "PARTIAL" : resultStatus(succeeded, failed);
+        String message = "Provider 성공 %d · 실패 %d · 비활성 %d".formatted(succeeded, failed, disabled)
+            +(partial>0?" · 부분 조회 "+partial:"");
         statusStore.save(
             userId,
             response.stockCode(),

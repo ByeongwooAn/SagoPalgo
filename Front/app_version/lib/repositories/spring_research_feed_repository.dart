@@ -5,9 +5,56 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/research_feed.dart';
 import 'research_feed_repository.dart';
+import 'research_changes_repository.dart';
+import '../models/research_changes.dart';
 
 /// Spring Boot 뉴스·공시 저장/동기화 API와 통신합니다.
-class SpringResearchFeedRepository implements ResearchFeedRepository {
+class SpringResearchFeedRepository
+    implements ResearchFeedRepository, ResearchChangesAccess {
+  @override
+  Future<ResearchChangesPage> changes(
+    String stockCode, {
+    int afterId = 0,
+  }) async {
+    if (!RegExp(r'^\d{6}$').hasMatch(stockCode) || afterId < 0) {
+      throw const ResearchFeedRepositoryException('변경 이력의 조회 범위를 확인하세요.');
+    }
+    try {
+      final uri = Uri.parse('${config.baseUrl}/api/v1/research/changes')
+          .replace(
+            queryParameters: {
+              'stockCode': stockCode,
+              'afterId': '$afterId',
+              'limit': '100',
+            },
+          );
+      final response = await client
+          .get(uri, headers: _headers())
+          .timeout(const Duration(seconds: 15));
+      final decoded =
+          jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      if (response.statusCode != 200 || decoded['success'] != true) {
+        throw const FormatException();
+      }
+      final page = ResearchChangesPage.fromJson(
+        decoded['data'] as Map<String, dynamic>,
+      );
+      var previous = afterId;
+      for (final item in page.items) {
+        if (item.stockCode != stockCode || item.id <= previous) {
+          throw const FormatException();
+        }
+        previous = item.id;
+      }
+      if (page.nextAfterId != previous) throw const FormatException();
+      return page;
+    } catch (_) {
+      throw const ResearchFeedRepositoryException(
+        '변경 이력을 확인하지 못했습니다. 서버 배포와 DB 026 적용 상태를 확인하세요.',
+      );
+    }
+  }
+
   SpringResearchFeedRepository({
     required this.accessToken,
     ApiConfig? config,

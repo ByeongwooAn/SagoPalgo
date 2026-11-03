@@ -26,7 +26,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 @Component
 @Order(10)
-public class OpenDartDisclosureProvider implements DisclosureProvider {
+public class OpenDartDisclosureProvider implements com.sagopalgo.api.research.provider.PagedDisclosureProvider {
 
     private static final String PROVIDER_CODE = "OPEN_DART";
     private static final String SUCCESS_STATUS = "000";
@@ -36,6 +36,7 @@ public class OpenDartDisclosureProvider implements DisclosureProvider {
     private final ResearchProviderProperties.OpenDart properties;
     private final OpenDartCorpCodeResolver corpCodeResolver;
     private final RestClient restClient;
+    private final ResearchProviderProperties.Incremental incremental;
 
     public OpenDartDisclosureProvider(
         ResearchProviderProperties properties,
@@ -45,6 +46,7 @@ public class OpenDartDisclosureProvider implements DisclosureProvider {
         this.properties = properties.getOpenDart();
         this.corpCodeResolver = corpCodeResolver;
         this.restClient = restClient;
+        incremental=properties.getIncremental();
     }
 
     @Override
@@ -61,25 +63,38 @@ public class OpenDartDisclosureProvider implements DisclosureProvider {
 
     @Override
     public List<Disclosure> search(ResearchRequest request) {
+        return searchBatch(request).items();
+    }
+
+    @Override
+    public com.sagopalgo.api.research.model.ResearchBatch<Disclosure> searchBatch(ResearchRequest request) {
         ensureConfigured();
         OpenDartCorpCodeResolver.CorpCode corpCode = corpCodeResolver.resolve(request.stockCode());
-
+        List<Disclosure> all=new ArrayList<>();
+        int max=incremental.isEnabled()?incremental.getMaxPages():1,pages=0;
+        int firstTotal=-1;
+        boolean datesKnown=true;
+        java.util.Set<String> seenPages=new java.util.HashSet<>();
+        java.util.Map<String,Disclosure> seenReceipts=new java.util.HashMap<>();
+        for(int page=1;page<=max;page++) {
         JsonNode response;
         try {
             response = restClient.get()
-                .uri(disclosureUri(corpCode.value(), request))
+                .uri(disclosureUri(corpCode.value(), request,page))
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .body(JsonNode.class);
         } catch (RestClientException exception) {
+            if(pages>0) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"LOOKUP_FAILED");
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "OpenDART 공시검색 API 호출에 실패했습니다.");
         }
 
         String status = response == null ? "" : response.path("status").asText("");
         if (NO_DATA_STATUS.equals(status)) {
-            return List.of();
+            return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages+1,page==1,page==1?null:"MISSING_PAGE");
         }
         if (!SUCCESS_STATUS.equals(status)) {
+            if(pages>0) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"LOOKUP_FAILED");
             String message = response == null ? "" : response.path("message").asText("");
             throw new ApiException(
                 ErrorCode.EXTERNAL_DATA_ERROR,
@@ -89,12 +104,16 @@ public class OpenDartDisclosureProvider implements DisclosureProvider {
 
         JsonNode items = response.path("list");
         if (!items.isArray()) {
+            if(pages>0) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"INVALID_PAGE");
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "OpenDART 공시검색 응답 형식이 올바르지 않습니다.");
         }
-
+        pages++;
+        if(!seenPages.add(com.sagopalgo.api.common.util.ContentHash.sha256(items.toString())))
+            return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"REPEATED_PAGE");
         List<Disclosure> disclosures = new ArrayList<>();
         for (JsonNode item : items) {
             String receiptNumber = item.path("rcept_no").asText("");
+            if(!receiptNumber.matches("[0-9]{14}") || parseDate(item.path("rcept_dt").asText(""))==null) datesKnown=false;
             disclosures.add(new Disclosure(
                 PROVIDER_CODE,
                 request.stockCode(),
@@ -107,17 +126,30 @@ public class OpenDartDisclosureProvider implements DisclosureProvider {
                 disclosureLink(receiptNumber)
             ));
         }
-        return List.copyOf(disclosures);
+        for(var value:disclosures) {
+            var old=seenReceipts.putIfAbsent(value.receiptNumber(),value);
+            if(old==null) all.add(value);else if(!old.equals(value)) datesKnown=false;
+        }
+        var total=response.path("total_page");
+        if(!total.isIntegralNumber() || !total.canConvertToInt() || total.asInt()<1 ||
+            (response.has("page_no") && response.path("page_no").asInt(-1)!=page))
+            return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"PAGE_METADATA_UNCONFIRMED");
+        if(firstTotal<0) firstTotal=total.asInt();
+        else if(firstTotal!=total.asInt()) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"RANGE_CHANGED");
+        if(page>=firstTotal) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,datesKnown,datesKnown?null:"DATE_UNCONFIRMED");
+        if(items.isEmpty()) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"MISSING_PAGE");
+        }
+        return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"PAGE_LIMIT");
     }
 
-    private URI disclosureUri(String corpCode, ResearchRequest request) {
+    private URI disclosureUri(String corpCode, ResearchRequest request,int page) {
         return UriComponentsBuilder
             .fromUriString(endpoint(properties.getDisclosurePath()))
             .queryParam("crtfc_key", properties.getApiKey())
             .queryParam("corp_code", corpCode)
             .queryParam("bgn_de", request.fromDate().format(DART_DATE))
             .queryParam("end_de", request.toDate().format(DART_DATE))
-            .queryParam("page_no", 1)
+            .queryParam("page_no", page)
             .queryParam("page_count", Math.max(1, Math.min(properties.getPageCount(), 100)))
             .build()
             .encode()

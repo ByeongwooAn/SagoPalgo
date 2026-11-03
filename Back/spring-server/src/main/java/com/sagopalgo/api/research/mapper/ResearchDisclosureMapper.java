@@ -13,6 +13,8 @@ import org.apache.ibatis.annotations.Select;
  */
 @Mapper
 public interface ResearchDisclosureMapper {
+    @Select("SELECT * FROM research_disclosures WHERE provider=#{provider} AND stock_code=#{stock} AND receipt_number=#{receipt}")
+    ResearchDisclosureRecord findByReceipt(@Param("provider") String provider,@Param("stock") String stock,@Param("receipt") String receipt);
 
     @Insert("""
         INSERT INTO research_disclosures (

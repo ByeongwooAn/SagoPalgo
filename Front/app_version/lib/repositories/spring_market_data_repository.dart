@@ -5,9 +5,15 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/market_candle.dart';
 import 'market_data_repository.dart';
+import 'realtime_market_repository.dart';
+import 'spring_realtime_market_repository.dart';
 
 /// Spring Boot 시장 데이터 API에서 정규화된 캔들을 조회합니다.
-class SpringMarketDataRepository implements MarketDataRepository {
+class SpringMarketDataRepository
+    implements MarketDataRepository, RealtimeMarketAccess {
+  @override
+  RealtimeMarketRepository get realtime =>
+      SpringRealtimeMarketRepository(accessToken: accessToken, config: config);
   SpringMarketDataRepository({
     required this.accessToken,
     ApiConfig? config,

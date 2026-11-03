@@ -35,10 +35,16 @@ public class ResearchFeedStore {
 
     private final ResearchNewsMapper newsMapper;
     private final ResearchDisclosureMapper disclosureMapper;
+    private final ResearchJournalStore journal;
 
     public ResearchFeedStore(ResearchNewsMapper newsMapper, ResearchDisclosureMapper disclosureMapper) {
+        this(newsMapper,disclosureMapper,null);
+    }
+    @org.springframework.beans.factory.annotation.Autowired
+    public ResearchFeedStore(ResearchNewsMapper newsMapper,ResearchDisclosureMapper disclosureMapper,ResearchJournalStore journal) {
         this.newsMapper = newsMapper;
         this.disclosureMapper = disclosureMapper;
+        this.journal=journal;
     }
 
     @Transactional
@@ -47,14 +53,34 @@ public class ResearchFeedStore {
         List<NewsArticle> news,
         List<Disclosure> disclosures
     ) {
+        return saveAndFind(request,news,disclosures,List.of());
+    }
+    @Transactional
+    public StoredResearchFeed saveAndFind(ResearchRequest request,List<NewsArticle> news,List<Disclosure> disclosures,
+        List<com.sagopalgo.api.research.mapper.ResearchJournalMapper.Coverage> coverage) {
+        boolean incremental=journal!=null && journal.enabled();
+        if(incremental) journal.begin();
         news.stream()
             .filter(this::isPersistable)
             .map(article -> toRecord(request, article))
-            .forEach(newsMapper::upsert);
+            .forEach(record -> {
+                if(incremental) {
+                    var old=newsMapper.findByContentKey(record.getProvider(),record.getContentKey());
+                    journal.news(old==null?null:toArticle(old),toArticle(record),record.getContentKey());
+                }
+                newsMapper.upsert(record);
+            });
         disclosures.stream()
             .filter(this::isPersistable)
             .map(this::toRecord)
-            .forEach(disclosureMapper::upsert);
+            .forEach(record -> {
+                if(incremental) {
+                    var old=disclosureMapper.findByReceipt(record.getProvider(),record.getStockCode(),record.getReceiptNumber());
+                    journal.disclosure(old==null?null:toDisclosure(old),toDisclosure(record));
+                }
+                disclosureMapper.upsert(record);
+            });
+        if(incremental) journal.checkpoint(coverage);
         return findInternal(request);
     }
 

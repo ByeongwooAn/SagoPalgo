@@ -29,17 +29,19 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 @Component
 @Order(10)
-public class NaverNewsProvider implements NewsProvider {
+public class NaverNewsProvider implements com.sagopalgo.api.research.provider.PagedNewsProvider {
 
     private static final String PROVIDER_CODE = "NAVER_NEWS";
     private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
 
     private final ResearchProviderProperties.NaverNews properties;
     private final RestClient restClient;
+    private final ResearchProviderProperties.Incremental incremental;
 
     public NaverNewsProvider(ResearchProviderProperties properties, RestClient restClient) {
         this.properties = properties.getNaverNews();
         this.restClient = restClient;
+        this.incremental=properties.getIncremental();
     }
 
     @Override
@@ -57,29 +59,52 @@ public class NaverNewsProvider implements NewsProvider {
 
     @Override
     public List<NewsArticle> search(ResearchRequest request) {
-        ensureConfigured();
+        return searchBatch(request).items();
+    }
 
+    @Override
+    public com.sagopalgo.api.research.model.ResearchBatch<NewsArticle> searchBatch(ResearchRequest request) {
+        ensureConfigured();
+        var all=new ArrayList<NewsArticle>();
+        int max=incremental.isEnabled()?incremental.getMaxPages():1;
+        int display=Math.max(1,Math.min(properties.getDisplay(),100)),start=1,pages=0;
+        long firstTotal=-1;
+        java.util.Set<String> seenPages=new java.util.HashSet<>();
+        java.util.Map<String,NewsArticle> seenArticles=new java.util.HashMap<>();
+        Instant prior=null;
+        boolean datesKnown=true;
+        for(int page=0;page<max;page++) {
         JsonNode response;
         try {
             response = restClient.get()
-                .uri(searchUri(request.stockName()))
+                .uri(searchUri(request.stockName(),start))
                 .accept(MediaType.APPLICATION_JSON)
                 .header("X-NCP-APIGW-API-KEY-ID", properties.getClientId())
                 .header("X-NCP-APIGW-API-KEY", properties.getClientSecret())
                 .retrieve()
                 .body(JsonNode.class);
         } catch (RestClientException exception) {
+            if(pages>0) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"LOOKUP_FAILED");
             throw NaverNewsErrors.requestFailure(exception);
         }
 
         JsonNode items = response == null ? null : response.path("items");
         if (items == null || !items.isArray()) {
+            if(pages>0) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"INVALID_PAGE");
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "네이버 뉴스 검색 응답 형식이 올바르지 않습니다.");
         }
-
+        pages++;
+        String pageHash=com.sagopalgo.api.common.util.ContentHash.sha256(items.toString());
+        if(!seenPages.add(pageHash)) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"REPEATED_PAGE");
+        boolean boundary=false;
         List<NewsArticle> articles = new ArrayList<>();
         for (JsonNode item : items) {
             Instant publishedAt = parsePublishedAt(item.path("pubDate").asText(""));
+            if(publishedAt==null || (prior!=null && publishedAt.isAfter(prior))) datesKnown=false;
+            if(publishedAt!=null) {
+                prior=publishedAt;
+                if(publishedAt.atZone(SEOUL).toLocalDate().isBefore(request.fromDate())) boundary=true;
+            }
             if (!isWithinRange(publishedAt, request)) {
                 continue;
             }
@@ -93,15 +118,32 @@ public class NaverNewsProvider implements NewsProvider {
                 publishedAt
             ));
         }
-        return List.copyOf(articles);
+        for(var article:articles) {
+            String identity=article.link()==null || article.link().isBlank()?article.title()+"|"+article.publishedAt():article.link();
+            var old=seenArticles.putIfAbsent(identity,article);
+            if(old==null) all.add(article);else if(!old.equals(article)) datesKnown=false;
+        }
+        JsonNode total=response.path("total");
+        if(!total.isIntegralNumber() || !total.canConvertToLong() || total.asLong()<start-1L+items.size() || items.size()>display ||
+            (response.has("start") && response.path("start").asInt(-1)!=start))
+            return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"PAGE_METADATA_UNCONFIRMED");
+        if(firstTotal<0) firstTotal=total.asLong();
+        else if(firstTotal!=total.asLong()) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"RANGE_CHANGED");
+        if(start-1L+items.size()>=firstTotal || (boundary && datesKnown))
+            return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,datesKnown,datesKnown?null:"DATE_ORDER_UNCONFIRMED");
+        if(items.isEmpty()) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"MISSING_PAGE");
+        start+=display;
+        if(start>1000) return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"SEARCH_WINDOW_LIMIT");
+        }
+        return new com.sagopalgo.api.research.model.ResearchBatch<>(all,pages,false,"PAGE_LIMIT");
     }
 
-    private URI searchUri(String stockName) {
+    private URI searchUri(String stockName,int start) {
         return UriComponentsBuilder
             .fromUriString(endpoint(properties.getSearchPath()))
             .queryParam("query", stockName)
             .queryParam("display", Math.max(1, Math.min(properties.getDisplay(), 100)))
-            .queryParam("start", 1)
+            .queryParam("start", start)
             .queryParam("sort", "date")
             .queryParam("format", "json")
             .build()

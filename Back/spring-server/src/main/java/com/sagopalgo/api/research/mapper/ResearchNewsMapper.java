@@ -13,6 +13,8 @@ import org.apache.ibatis.annotations.Select;
  */
 @Mapper
 public interface ResearchNewsMapper {
+    @Select("SELECT * FROM research_news WHERE provider=#{provider} AND content_key=#{key}")
+    ResearchNewsRecord findByContentKey(@Param("provider") String provider,@Param("key") String key);
 
     @Select("""
         SELECT n.news_id, n.provider, n.content_key, n.stock_code, n.stock_name, n.title, n.link,
