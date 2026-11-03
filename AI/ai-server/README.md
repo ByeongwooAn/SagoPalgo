@@ -2,6 +2,8 @@
 
 개인용 이용 범위·캘린더/세션/상장/기업행사 대조는 [기준정보 검증](../../docs/historical-reference-validation.md)의 `python -m app.replay.reference_cli`로 실행합니다. 기존 수집 기록을 바꾸지 않고 새 범위를 자료 해시에 연결하며, 모르는 달력/이력을 생성하지 않습니다.
 
+실제 특수 거래시간은 [KIND 공지 확보·시장별 대조](../../docs/historical-session-evidence.md)의 `session-fetch`와 `check --market`으로 검사합니다. 코스피/코스닥/코넥스 세션과 현재 확보 시각을 구분합니다.
+
 과거 원주가 수집은 별도 [KIS 수집 도구](../../docs/historical-price-acquisition.md)의 `python -m app.replay.history`를 사용합니다. plan/audit는 오프라인이며 collect만 제한된 인증·공개 시세 조회를 수행합니다. 실제 데이터의 학습 활용권·날짜 정밀도·가격 기준을 구분합니다.
 
 R2/R3 저장 자료는 [읽기 전용 내보내기·변환](../../docs/stored-dataset-export.md)의 `convert-stored`로 연결합니다. 원본·제외 사유를 보존하며 기본 가용 시각과 선택적 수신 기반 추정을 구분합니다.
