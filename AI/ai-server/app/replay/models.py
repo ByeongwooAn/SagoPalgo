@@ -38,8 +38,8 @@ class Source(StrictModel):
     provider: str = Field(min_length=1, max_length=100)
     reference: str = Field(min_length=1, max_length=500)
     rights: Literal["UNCONFIRMED", "PERMITTED"]
-    provenance: Literal["OBSERVED", "PROVIDER_HISTORICAL", "SYNTHETIC"]
-    availability: Literal["OBSERVED_AT", "PUBLICATION_ASSUMED"]
+    provenance: Literal["OBSERVED", "PROVIDER_HISTORICAL", "SYNTHETIC", "DERIVED_OBSERVATIONS"]
+    availability: Literal["OBSERVED_AT", "PUBLICATION_ASSUMED", "RECEIPT_DERIVED"]
     notes: str = Field(min_length=1, max_length=1000)
 
 
@@ -181,6 +181,7 @@ class ReplayConfig(StrictModel):
     maxOrderNotional: str = Field(pattern=r"^[1-9][0-9]{0,17}$")
     allowSynthetic: bool = False
     allowAssumedAvailability: bool = False
+    allowDerivedAvailability: bool = False
     intents: list[Intent] = Field(max_length=1000)
 
     @model_validator(mode="after")

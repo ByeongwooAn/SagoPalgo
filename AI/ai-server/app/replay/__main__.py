@@ -9,6 +9,7 @@ from .dataset import build_bundle, canonical, known_at, load_bundle, read_bytes,
 from .engine import replay
 from .models import ReplayConfig, ResearchError, utc
 from .temporal import SplitRequest, temporal_split
+from .stored import convert_file
 
 
 def write_report(path: Path, report):
@@ -37,9 +38,16 @@ def main(argv=None) -> int:
     split = commands.add_parser("split")
     split.add_argument("--config", required=True, type=Path)
     split.add_argument("--output", required=True, type=Path)
+    stored = commands.add_parser("convert-stored")
+    stored.add_argument("--input", required=True, type=Path)
+    stored.add_argument("--config", required=True, type=Path)
+    stored.add_argument("--output", required=True, type=Path)
     args = parser.parse_args(argv)
     try:
-        if args.command == "build":
+        if args.command == "convert-stored":
+            report = convert_file(args.input, args.config, args.output)
+            result = {k: report[k] for k in ["status", "outputRecordCount", "excludedCounts"]}
+        elif args.command == "build":
             manifest = build_bundle(args.spec, args.input, args.output)
             result = {"status": "CREATED", "datasetId": manifest["datasetId"]}
         elif args.command == "split":
