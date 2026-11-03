@@ -12,6 +12,7 @@ from .local_use import bind_local_use
 from .models import ResearchError
 from .reference import check_reference_files
 from .session_evidence import fetch_session_notice
+from .kb_market_evidence import AVAILABILITY, capture_notice, import_notice
 
 
 def main(argv=None):
@@ -26,6 +27,14 @@ def main(argv=None):
     session = commands.add_parser("session-fetch")
     session.add_argument("--url", required=True)
     session.add_argument("--cache", required=True, type=Path)
+    kb_capture = commands.add_parser("kb-notice-capture")
+    kb_capture.add_argument("--url", required=True)
+    kb_capture.add_argument("--cache", required=True, type=Path)
+    kb_import = commands.add_parser("kb-notice-import")
+    kb_import.add_argument("--capture", required=True, type=Path)
+    kb_import.add_argument("--output", required=True, type=Path)
+    kb_import.add_argument("--market", required=True, choices=["KOSPI", "KOSDAQ", "KONEX"])
+    kb_import.add_argument("--availability", choices=AVAILABILITY, default="OBSERVED_AT")
     check = commands.add_parser("check")
     check.add_argument("--job", required=True, type=Path)
     check.add_argument("--local-use", required=True, type=Path)
@@ -51,6 +60,14 @@ def main(argv=None):
                       "businessDate": session.businessDate, "openAt": session.openAt.isoformat(),
                       "closeAt": session.closeAt.isoformat(), "knowledgeBasis": "FETCH_TIME_ONLY",
                       "referenceFile": str(folder / "reference.json")}
+        elif args.command == "kb-notice-capture":
+            folder, cached = capture_notice(args.url, args.cache)
+            result = {"status": "CAPTURED", "cached": cached, "captureFolder": str(folder)}
+        elif args.command == "kb-notice-import":
+            pack = import_notice(args.capture, args.output, args.market, args.availability)
+            result = {"status": "IMPORTED", "market": args.market, "availability": args.availability,
+                      "sessions": len(pack.sessions), "calendarDates": len(pack.calendar),
+                      "knownAt": pack.sessions[0].knownAt.isoformat(), "referenceFile": str(args.output)}
         else:
             result = check_reference_files(args.job, args.local_use, args.reference, args.output, args.market)
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))

@@ -2,6 +2,8 @@
 
 기준일: 2026-11-03. [이전 기준정보 검증](historical-reference-validation.md) 다음 작업입니다. KIND 공개 공지 원문에서 실제 특수 거래시간을 추출하고 시장·확보 시각을 검사하는 경로를 추가했습니다. 고정 체크리스트는 **7/18·39% 유지**, 5-08은 진행 중입니다.
 
+후속: [KB 공식 공지의 KOSPI 세션·달력 연결](kb-historical-market-evidence.md)에서 대상 시장 세션 2건·개장/휴장 날짜 4건을 연결하고 현재 관측/공급자 공개 시각 가정을 비교했습니다. 아래 193건과 세션 일치 0건은 이전 단계 결과이며 최신 전체 검증은 229건, 대상 세션 일치 2건입니다.
+
 ## 구현한 동작
 
 [session_evidence.py](../AI/ai-server/app/replay/session_evidence.py)의 `session-fetch`는 지정한 한국거래소 KIND 공개 문서 1건을 GET으로 확보합니다. 인증·계좌·시세를 전송하지 않습니다.
