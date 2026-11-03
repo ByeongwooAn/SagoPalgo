@@ -1,14 +1,16 @@
 # R1 계좌 관찰 자동 수집과 상태 복구
 
-기준일: 2026-11-03 · 상태: 백엔드와 Flutter 상태/재개 화면 구현. 로컬 Docker의 023·024 적용·API 응답을 확인했으며, 수집 활성화·실계좌 대조·Ubuntu 배포 검증은 후속입니다.
+기준일: 2026-11-03 · 상태: 백엔드/Flutter 구현과 로컬 Docker의 실제 1주기 부분 실패 중단·재시작 보존·OFF 재개를 확인했습니다. 정상 연속 운용·KB-07·호출 예산 확정·Ubuntu 배포 검증은 후속입니다.
 
 후속 [실제 읽기 관찰 점검](account-observation-live-validation.md)에서 보유/현금의 사용자 대조와 저장/이력을 확인했습니다. 지정일 주문 조회 실패로 전체 관찰은 PARTIAL로 남았으며 이 결과로 수집을 활성화하지 않았습니다. 아래 최초 개발 범위와 실환경 확인 범위를 구분합니다.
+
+추가 [제한 운영 검증](account-collection-operations.md)에서는 일시적으로 수집을 켜 자동 1건과 PAUSED를 확인한 뒤 원래 OFF 환경으로 복구했습니다. 재시작 보존과 OFF에서의 재개 후 현재는 OFF·IDLE이며, 수동 1건/자동 1건이 남아 있습니다. 정상 연속 수집을 켜둔 상태가 아닙니다.
 
 [계좌 관찰 저장](account-observation-history.md)을 서버에서 주기적으로 실행하는 기능입니다. 앱이 닫혀 있어도 서버 프로세스가 동작하고 설정이 활성화된 환경에서 관찰 이력을 쌓습니다. 관찰은 계속 `atomic=false`, `usableForTrading=false`이며 보유분·자본금·주문·예약·거래 원장에 자동 반영하지 않습니다. 실시간 시세 스트리밍은 R2에서 별도로 진행합니다.
 
 ## 1. 설정과 실행 조건
 
-기본값은 다음과 같습니다. 이 예시는 이번 작업에서 실제 `.env`에 적용하지 않았습니다.
+기본값은 다음과 같습니다. 최초 구현에서는 실제 `.env`를 바꾸지 않았고, 후속 제한 운영 검증의 일시 ON 후에는 원래 파일 내용으로 복구했습니다.
 
 ```dotenv
 SAGOPALGO_ACCOUNT_OBSERVATION_COLLECTION_ENABLED=false
@@ -88,7 +90,7 @@ PAUSED 사유는 `SNAPSHOT_PARTIAL`, `SNAPSHOT_FAILED`, `SNAPSHOT_DISABLED`, `SN
 
 ## 5. 적용·검증·남은 범위
 
-기존 설치는 [DB 백업·마이그레이션 절차](docker-architecture.md#기존-ubuntu-db의-kb-점검-이력-테이블)를 따라 023·024 적용과 백엔드 재배포를 확인합니다. 신규 schema.sql에도 024와 같은 정의를 추가했습니다. `.env.example`, application.yml, Compose는 새 설정을 기본 OFF로 전달합니다. 이번 작업은 실제 `.env`·운영 DB·실계좌·주문 스위치를 변경하지 않았습니다.
+기존 설치는 [DB 백업·마이그레이션 절차](docker-architecture.md#기존-ubuntu-db의-kb-점검-이력-테이블)를 따라 023·024 적용과 백엔드 재배포를 확인합니다. 신규 schema.sql에도 024와 같은 정의를 추가했습니다. `.env.example`, application.yml, Compose는 새 설정을 기본 OFF로 전달합니다. 최초 백엔드 구현에서는 실제 `.env`·운영 DB·실계좌·주문 스위치를 변경하지 않았으며 후속 실제 읽기/제한 운영 범위는 별도 실행 기록을 따릅니다.
 
 [기존 전용 MySQL 재현 절차](account-observation-history.md#5-격리-검증과-재현)와 같은 33317/마커/tmpfs 환경을 사용합니다. 새 통합 테스트가 실제 023·024를 적용하며 observer는 항상 mock입니다. 8개 독립 수집기·예약 전 커밋·cooldown·orphan/PENDING 보존·결과 갱신 롤백·부분 실패/재개·사용자/연결 격리·무결성·HTTP 경로를 검증합니다. 새 인스턴스/Mapper 재생성 시험이며 실제 운영 프로세스 종료/재시작을 수행한 것은 아닙니다.
 

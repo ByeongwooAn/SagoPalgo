@@ -11,7 +11,7 @@
 | 단계 | 현재 상태 | 재사용 기반 / 다음 증거 |
 |---|---|---|
 | R0 계약·운용 기준 | 진행 중·문서 기반 조사 완료 | [지원표](trading-api-contract-matrix.md)·[KB 보류/재개 조건](kb-contract-blockers.md)·[초기 운용/측정 초안](initial-trading-policy.md) 작성. 답변·권한/한도·실측·정책 수치 확정은 남음 |
-| R1 계좌 동기화·원장 | 일부 구현·관찰/저장/비교/앱/주기 수집·상태/재개 UI | [스냅샷](account-snapshot-contract.md)·[저장/이력](account-observation-history.md)·[비교](account-observation-comparison.md)·[앱](account-observation-ui.md)·[기본 OFF 수집](account-observation-collection.md) 구현·격리 검증. 로컬 Docker 023/024·API 접근과 [실제 보유/현금 사용자 대조](account-observation-live-validation.md) 확인. 주문 구간 FAILED(전체 PARTIAL), KB-07 미확인. 자동 수집 OFF, Ubuntu 배포 검증·원장 자동 반영은 후속 |
+| R1 계좌 동기화·원장 | 일부 구현·관찰/저장/비교/앱/주기 수집·상태/재개 UI | [스냅샷](account-snapshot-contract.md)·[저장/이력](account-observation-history.md)·[비교](account-observation-comparison.md)·[앱](account-observation-ui.md)·[기본 OFF 수집](account-observation-collection.md) 구현·격리 검증. [실제 보유/현금 대조](account-observation-live-validation.md)와 [단일 자동 주기의 부분 실패 중단/재시작/OFF 재개](account-collection-operations.md) 확인. 최종 OFF·IDLE, 수동/자동 각 1건. KB-07·정상 연속 운용·Ubuntu·원장 자동 반영은 후속 |
 | R2 실시간 시세·수급 | 계획·REST/일주월봉 기반 있음 | 스트리밍·분봉·수급 시점·재접속·부하/지연 검증 필요 |
 | R3 뉴스·공시 사건 | 계획·저장/주기 수집 기반 있음 | 증분 수집·정정·사건 추출·도착 재평가 검증 필요 |
 | R4 시장 후보 탐색 | 미착수 | 전 종목 후보 편입/제외·정밀 구독·한도 검증 필요 |
@@ -89,6 +89,15 @@
 - 실행 중인 Windows 앱의 설정/관찰 이력에서 실제 보유·현금 표시, 수집 OFF·NOT_STARTED와 저장 완료/일부만 확인 이력을 확인했습니다. 상세/최근 이력의 재확인은 GET만 사용했습니다. 자동 수집·주문 스위치·기존 원장 변경이나 백엔드/앱 재배포는 수행하지 않았습니다.
 - PowerShell 점검 스크립트의 로컬 모의 HTTP 테스트 9건이 통과했습니다. 단일 POST·사전 기록·유실 후 GET·기존 영수증·PARTIAL/PENDING·범위 불일치·설정/저장/파일 오류를 검증했습니다. 백엔드/Flutter 코드는 변경하지 않아 기존 테스트/빌드 기록과 구분합니다.
 - 다음은 KB-07 정상 빈 응답/업무 실패 계약 확보와 해당 구간 검증, 호출 예산 확정 후 자동 수집 운영 점검입니다. 보유 종목/소수점 수량이 있는 실계좌·입출금/체결 발생 시점의 대조·장기 운영 검증은 남아 있습니다.
+
+## R1 자동 수집 제한 운영 검증 · 2026-11-03
+
+- `feature/account-collection-operations-validation`에서 GET 전용 [수집 상태 점검 도구](../scripts/check-account-collection.ps1)와 [운영 검증 기록](account-collection-operations.md)을 추가했습니다. 기대 ON/OFF·상태·마지막 종료 기록·읽기 계약·주문 OFF·최근 요청 목록을 검사하고 기준 보고서와 변화 여부를 대조합니다. 도구는 활성화나 재개 POST를 하지 않습니다.
+- 기존 수집 테스트를 전용 마커/루프백 33317의 격리 MySQL에서 실행해 설정 7건·서비스 25건·MySQL 통합 14건, 총 46건이 통과했습니다. 신규 모의 HTTP 7건도 통과했습니다. ACTIVE/PENDING·불일치·알 수 없는 코드/계약·HTTP/캐시/목록 오류는 점검 성공으로 올리지 않습니다.
+- 한국 시간 10:11~10:15에 기존 Spring 이미지로 실제 수집을 1주기만 제한 활성화했습니다. 자동 관찰 COMPLETED/PARTIAL 저장 후 PAUSED/SNAPSHOT_PARTIAL을 확인하고 65초 후 다음 스케줄러 확인에서도 새 관찰이 없음을 확인했습니다. 보유/두 잔고는 SUCCESS/COMPLETE, 지정일 주문은 기존 KB-07의 LOOKUP_FAILED였습니다.
+- 원래 환경 파일 내용을 정확히 복구해 OFF로 API를 재생성했고 같은 PAUSED 요청이 보존됐습니다. 마지막 요청 ID를 기록한 뒤 재개 POST 1회와 GET으로 OFF·IDLE을 확인했습니다. 이후 65초 동안 같은 요청과 이력 2건을 유지했습니다. 이전 PARTIAL 관찰은 그대로이며 정상 SUCCESS로 바뀌지 않았습니다.
+- 최종 상태는 수집 OFF·IDLE·진행 요청 없음, 수동 1건과 자동 1건, 주문 스위치 모두 OFF입니다. API만 두 번 재생성, Nginx는 reload만 했으며 MySQL·AI·프록시 컨테이너 ID는 유지됐습니다. 새 이미지/EXE·마이그레이션·주문 전송은 없고 전용 임시 DB/네트워크는 정리했습니다.
+- 정상 실계좌의 다음 주기 반복/장기 운용은 KB-07과 키/계좌별 호출 예산 확정 후 별도로 검증합니다. 이번 결과를 정상 연속 수집 완료로 올리거나 수집을 켜두지 않았습니다.
 
 ## 기존 11단계 진척도 기록
 
