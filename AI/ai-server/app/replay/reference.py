@@ -17,10 +17,10 @@ SESSION_MARKETS = ("KOSPI", "KOSDAQ", "KONEX", "UNSPECIFIED")
 
 class CalendarDay(StrictModel):
     businessDate: str
-    businessDay: bool
-    tradingDay: bool
+    businessDay: bool | None
+    tradingDay: bool | None
     openDay: bool
-    settlementDay: bool
+    settlementDay: bool | None
 
     @model_validator(mode="after")
     def valid_date(self):
@@ -138,7 +138,16 @@ def combine(packs):
             for item in getattr(pack, name):
                 key = (item.market, item.businessDate) if name == "sessions" else item.businessDate if name == "calendar" else item.eventId
                 if key in result[name] and result[name][key] != item:
-                    raise ResearchError("REFERENCE_CONFLICT")
+                    if name != "calendar":
+                        raise ResearchError("REFERENCE_CONFLICT")
+                    previous = result[name][key].model_dump()
+                    incoming = item.model_dump()
+                    for field in ["businessDay", "tradingDay", "openDay", "settlementDay"]:
+                        if previous[field] is not None and incoming[field] is not None and previous[field] != incoming[field]:
+                            raise ResearchError("REFERENCE_CONFLICT")
+                        if previous[field] is None:
+                            previous[field] = incoming[field]
+                    item = CalendarDay.model_validate(previous)
                 result[name][key] = item
     return result
 
@@ -207,6 +216,10 @@ def reconcile(report, rows, packs, market="UNSPECIFIED"):
                     market_covered.update(dates_between(first, last))
     market_universe = wanted <= market_covered
     issues = []
+    partial_flags = sorted(stamp for stamp, value in calendar.items()
+                           if any(getattr(value, name) is None for name in ["businessDay", "tradingDay", "settlementDay"]))
+    if partial_flags:
+        issues.append({"code": "CALENDAR_FLAGS_PARTIAL", "count": len(partial_flags), "dates": partial_flags[:100]})
     if market == "UNSPECIFIED" and report["provenance"] != "SYNTHETIC":
         issues.append({"code": "SESSION_MARKET_UNSPECIFIED"})
     for code, values in [("CALENDAR_UNKNOWN", unknown), ("NO_PRICE_ON_DECLARED_OPEN_DAY", missing), ("PRICE_ON_DECLARED_CLOSED_DAY", unexpected),
@@ -242,13 +255,17 @@ def reconcile(report, rows, packs, market="UNSPECIFIED"):
             issues.append({"code": code, "count": len(values), "dates": values[:100]})
     return {"schemaVersion": "SAGOPALGO_REFERENCE_RECONCILIATION_V1", "historyPlanId": report["planId"],
             "historyRecords": len(rows), "requestedCalendarDates": len(wanted), "knownCalendarDates": len(calendar),
-            "knownTradingDates": sum(v.tradingDay for v in calendar.values()), "knownOpenDates": len(expected),
+            "knownTradingDates": sum(v.tradingDay is True for v in calendar.values()), "knownOpenDates": len(expected),
+            "calendarUnknownFlags": {name: sum(getattr(v, name) is None for v in calendar.values())
+                                     for name in ["businessDay", "tradingDay", "settlementDay"]},
             "sessionMarket": market, "sessionMarketBasis": "CALLER_DECLARED" if market != "UNSPECIFIED" else "UNSPECIFIED",
             "matchedSessionDates": len(wanted & set(sessions)),
             "excludedSessionRecords": sum(venue != market for venue, _ in combined["sessions"]),
             "expectedPriceDayBasis": "OPEN_DAY",
-            "calendarFlagDifferences": sorted(k for k, v in calendar.items() if v.openDay != v.tradingDay),
+            "calendarFlagDifferences": sorted(k for k, v in calendar.items() if v.tradingDay is not None and v.openDay != v.tradingDay),
             "calendarCompleteness": "COMPLETE" if not unknown else "PARTIAL",
+            "calendarCompletenessBasis": "OPEN_DAY",
+            "providerPublicationAssumptions": [p.reference for p in packs if "availability=PROVIDER_PUBLICATION_ASSUMED" in p.reference],
             "status": "REFERENCE_GAPS" if issues else "EVIDENCE_SCOPES_RECONCILED",
             "issues": issues, "declaredCoverageOnly": True, "marketUniverseDeclaredComplete": market_universe,
             "syntheticSources": [p.provider for p in packs if p.provenance == "SYNTHETIC"],
