@@ -14,7 +14,7 @@
 
 직전 수집 단계에서는 활용권 해석 미확인으로 6/18을 유지했습니다. 이후 사용자가 새 공식 FAQ와 개인 로컬·비제공 범위를 확정해 5-07을 해당 범위에서 완료했습니다. 명시적인 KIS AI 허가를 새로 받았다는 뜻이 아니며 [해석·별도 범위 기록](historical-reference-validation.md)을 따릅니다.
 
-이번 후속은 [KB 공식 공지의 KOSPI 세션·달력 연결](kb-historical-market-evidence.md)입니다. 대상 시장 세션 일치 0→2건, 달력 24→28일과 현재 관측/공급자 공개 시각 가정을 대조했고 전체 229건 검증을 완료했습니다. 대상 시장 전체 기간과 상장/기업행사 이력이 남아 5-08은 미완료이며, 고정 완료율은 유지합니다.
+이번 후속은 [OpenDART 과거 공시·원문 연결](dart-historical-disclosures.md)입니다. 현재 법인 연결·실제 3년 공시 204건·선택 원문 1건과 전체 266건 검증을 확인했습니다. 원문의 실제 효력과 전체 과거 종목군·달력/세션이 남아 5-08은 미완료이며 고정 완료율은 유지합니다.
 
 ## 1. 자동 수집 상태·재개 화면 · 5개
 
@@ -75,7 +75,7 @@
 - [x] 5-05 R2·R3 저장 자료의 일관된 읽기 전용 내보내기
 - [x] 5-06 지원 자료의 R5 변환·제외 사유·원본 보존과 Java/MySQL→Python 교차 검증
 - [x] 5-07 활용권/기간/해상도 확인·실제 다년간 자료 수집/대조 — [730건·대조](historical-price-acquisition.md)와 [공식 FAQ·사용자 확정 개인용 범위](kis-data-usage-evidence.md)에 근거해 완료
-- [ ] 5-08 실제 과거 종목군·상장/폐지·기업행사·거래일 달력 — **진행 중:** [일부 달력](historical-reference-validation.md)·[시장별 검사](historical-session-evidence.md)·[KB 공식 KOSPI 세션 2건/달력 4일 연결](kb-historical-market-evidence.md), 전체 기간·과거 상장/기업행사는 남음
+- [ ] 5-08 실제 과거 종목군·상장/폐지·기업행사·거래일 달력 — **진행 중:** [달력/시장 검사](historical-reference-validation.md)·[KOSPI 세션 2건/달력 4일 추가](kb-historical-market-evidence.md)·[공시 204건/원문 1건](dart-historical-disclosures.md), 원문 효력·전체 과거 종목군/달력/세션은 남음
 - [ ] 5-09 실제 호가/체결·비용/호가 단위와 대조한 체결 재현
 - [ ] 5-10 R4 시장 후보 탐색과 과거 순위 재현
 - [ ] 5-11 R6 시점 일치 특징·목표·비교 기준 전략

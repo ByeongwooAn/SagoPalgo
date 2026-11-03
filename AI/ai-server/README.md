@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[OpenDART 과거 기업·공시 이력](../../docs/dart-historical-disclosures.md)은 `python -m app.replay.dart_history`로 일봉에 연결한 계획·제한 수집·감사를 실행합니다. 선택 원문은 `python -m app.replay.dart_documents`로 확보하며 현재 법인 연결·검토 후보와 실제 상장/기업행사 효력을 구분합니다.
+
 개인용 이용 범위·캘린더/세션/상장/기업행사 대조는 [기준정보 검증](../../docs/historical-reference-validation.md)의 `python -m app.replay.reference_cli`로 실행합니다. 기존 수집 기록을 바꾸지 않고 새 범위를 자료 해시에 연결하며, 모르는 달력/이력을 생성하지 않습니다.
 
 실제 특수 거래시간은 [KIND 공지 확보·시장별 대조](../../docs/historical-session-evidence.md)의 `session-fetch`와 `check --market`으로 검사합니다. 코스피/코스닥/코넥스 세션과 현재 확보 시각을 구분합니다.
