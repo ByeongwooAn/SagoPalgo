@@ -1,0 +1,23 @@
+{
+  "barSourceId": "demo",
+  "universeSourceId": "demo",
+  "startAt": "2026-11-02T00:00:00Z",
+  "endAt": "2026-11-02T00:05:01Z",
+  "initialCash": "10000",
+  "feeBps": "10",
+  "sellTaxBps": "20",
+  "halfSpreadBps": "5",
+  "slippageBps": "5",
+  "participationRate": "0.5",
+  "tickSize": "1",
+  "latencyMs": 100,
+  "maxSignalAgeSeconds": 120,
+  "maxMarkAgeSeconds": 120,
+  "maxOrderNotional": "10000",
+  "allowSynthetic": true,
+  "allowAssumedAvailability": false,
+  "intents": [
+    {"intentId":"buy-demo","stockCode":"000001","decisionAt":"2026-11-02T00:01:01Z","expiresAt":"2026-11-02T00:03:00Z","side":"BUY","quantity":8,"evidence":["demo/BAR/m1/1"]},
+    {"intentId":"sell-demo","stockCode":"000001","decisionAt":"2026-11-02T00:03:01Z","expiresAt":"2026-11-02T00:05:00Z","side":"SELL","quantity":2,"evidence":["demo/BAR/m3/1"]}
+  ]
+}

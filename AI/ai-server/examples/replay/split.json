@@ -1,0 +1,13 @@
+{
+  "startAt": "2026-01-01T00:00:00Z",
+  "validationStartAt": "2026-07-01T00:00:00Z",
+  "testStartAt": "2026-10-01T00:00:00Z",
+  "endAt": "2027-01-01T00:00:00Z",
+  "embargoSeconds": 60,
+  "samples": [
+    {"sampleId":"train-example","decisionAt":"2026-06-01T00:00:00Z","labelEndAt":"2026-06-01T00:05:00Z"},
+    {"sampleId":"purged-example","decisionAt":"2026-06-30T23:59:00Z","labelEndAt":"2026-07-01T00:04:00Z"},
+    {"sampleId":"validation-example","decisionAt":"2026-08-01T00:00:00Z","labelEndAt":"2026-08-01T00:05:00Z"},
+    {"sampleId":"test-example","decisionAt":"2026-11-01T00:00:00Z","labelEndAt":"2026-11-01T00:05:00Z"}
+  ]
+}

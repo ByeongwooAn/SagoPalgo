@@ -92,6 +92,7 @@ dist/
 .vite/
 
 # Python
+AI/ai-server/research-artifacts/
 __pycache__/
 *.py[cod]
 *.pyo
