@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "SAGOPALGO_UNIVERSE_EVENT_SCOPE_V1",
+  "startDate": "2023-11-01",
+  "endDate": "2026-11-02",
+  "transfers": [
+    {
+      "caseId": "landf-transfer-2024",
+      "stockCode": "066970",
+      "sourceIssuerName": "(주)엘앤에프",
+      "destinationIssuerName": "엘앤에프",
+      "fromMarket": "KOSDAQ",
+      "toMarket": "KOSPI",
+      "exitUrl": "https://kind.krx.co.kr/external/2024/01/24/000603/20240124001736/70769.htm",
+      "entryUrl": "https://kind.krx.co.kr/external/2024/01/26/000543/20240126001612/99343.htm"
+    }
+  ],
+  "mergerDelistings": [
+    {
+      "caseId": "korea-spac11-merger-delisting-2024",
+      "stockCode": "436610",
+      "issuerName": "한국제11호기업인수목적 주식회사",
+      "survivingIssuerName": "(주)차이커뮤니케이션",
+      "market": "KOSDAQ",
+      "url": "https://kind.krx.co.kr/external/2024/09/25/000422/20240925001236/70769.htm"
+    }
+  ]
+}

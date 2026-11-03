@@ -75,7 +75,7 @@
 - [x] 5-05 R2·R3 저장 자료의 일관된 읽기 전용 내보내기
 - [x] 5-06 지원 자료의 R5 변환·제외 사유·원본 보존과 Java/MySQL→Python 교차 검증
 - [x] 5-07 활용권/기간/해상도 확인·실제 다년간 자료 수집/대조 — [730건·대조](historical-price-acquisition.md)와 [공식 FAQ·사용자 확정 개인용 범위](kis-data-usage-evidence.md)에 근거해 완료
-- [ ] 5-08 실제 과거 종목군·상장/폐지·기업행사·거래일 달력 — **진행 중:** [KOSPI 세션/달력](kb-historical-market-evidence.md)·[공시 204건](dart-historical-disclosures.md)·[배당/소각 및 취득결과 연결](distribution-completion-evidence.md)·[다른 기업 3곳의 실제 5사례와 고정 완료 조건 7개](multi-company-reference-cases.md). 대표 사례 5/5와 전체 완료를 구분하며, 합병/이전상장·전체 과거 종목군/달력/세션·과거 가용 시각 확보는 남음
+- [ ] 5-08 실제 과거 종목군·상장/폐지·기업행사·거래일 달력 — **진행 중:** [고정 완료 조건 7개](multi-company-reference-cases.md)·[이전상장/합병 폐지 및 종목군 식별 목록](historical-universe-seed.md). 대표 사례 7개, 현재 법인 2,656개+과거 사례 보존 2개를 연결. 시작 시점 전체 기준표·전 기간 이력·합병 완료/비율·전체 달력/세션·과거 가용 시각은 남으며 식별 목록을 과거 전체 종목군으로 계산하지 않음
 - [ ] 5-09 실제 호가/체결·비용/호가 단위와 대조한 체결 재현
 - [ ] 5-10 R4 시장 후보 탐색과 과거 순위 재현
 - [ ] 5-11 R6 시점 일치 특징·목표·비교 기준 전략

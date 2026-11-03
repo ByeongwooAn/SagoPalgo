@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[이전상장·합병 폐지와 종목군 식별 목록](../../docs/historical-universe-seed.md)은 `app.replay.universe_events`와 `app.replay.kind_registry`로 실행합니다. 시장별 편입/제외를 구분하고 현재 법인 목록·과거 사례를 연결하며 현재 명단을 과거 전체 종목군으로 소급하지 않습니다.
+
 [여러 기업의 실제 기준정보 사례](../../docs/multi-company-reference-cases.md)는 `python -m app.replay.kind_cases`의 capture/build/audit/as-of로 실행합니다. 신규상장·폐지·분할·정지/해제 5개 대표 사례를 원문과 연결하며, 5-08 전체 완료 조건과 시장·기간 누락을 별도로 관리합니다.
 
 [배당·소각 및 취득결과 연결](../../docs/distribution-completion-evidence.md)은 거래소 HTML 원문을 지원합니다. 관련공시 원문은 `app.replay.related_documents`, 취득 결과/합계·계획 대조는 `app.replay.treasury_outcomes`로 실행하며 취득 보고와 실제 소각 완료를 구분합니다.
