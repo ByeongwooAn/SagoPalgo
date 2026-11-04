@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[KIND 현황·공시 대조 원장](../../docs/universe-event-reconciliation.md)은 `app.replay.kind_membership_status`의 plan/capture/audit와 `app.replay.universe_reconciliation`의 build/audit/as-of로 실행합니다. 전체 관찰을 공식 현황·공시와 대조하고 식별 관계·날짜·근거 누락을 구분하며 기존 관찰과 과거 정보 시점을 보존합니다.
+
 [KRX 기간 전체 종목 목록·관찰 변화 수집](../../docs/krx-universe-history.md)은 `app.replay.krx_universe_history`의 plan/status/collect/build/audit/as-of/check-events로 실행합니다. 일별 원문·호출 예산·중단 재개·사건 경계 대조를 관리하며 거래일 달력·전체 기업행사·학습 가능 여부는 별도로 검증합니다.
 
 [KRX 실제 시작일 기준표·매매정보 교차 검증](../../docs/krx-baseline-live-validation.md)에서 2023-11-01 두 시장 2,634행·보통주 2,517개를 확보했습니다. `app.replay.krx_baseline_validation`은 원본 V1을 보존하는 V2 분류·일별매매 대조를 실행하며 전체 기간 확보 상태와 구분합니다.
