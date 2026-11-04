@@ -14,6 +14,8 @@ SagoPalgo는 개인용 Windows 투자 프로그램입니다. 최종 목표는 KB
 
 향후 개발 기준은 [실시간 AI 단기 자동매매 로드맵](docs/realtime-trading-roadmap.md)입니다. [목표 아키텍처](docs/target-system-architecture.md), [현재 배포 구조](docs/docker-architecture.md), [개발 진척도](docs/development-progress.md)를 구분해 확인하세요. [기존 설계·구현 이력](docs/personal-windows-investment-assistant.md)은 보존합니다.
 
+과거 데이터 후속은 [KRX 기간 전체 종목 목록·관찰 변화 수집](docs/krx-universe-history.md)입니다. 날짜별 원문·호출 예산·중단 재개·사건 경계 대조를 관리합니다. 종목 목록 확보와 거래일/거래정지·기업행사·학습 가능 여부는 구분합니다.
+
 ## 개인 사용 및 책임 고지
 
 본 프로젝트는 개인 학습 및 개인 투자 분석 보조용 오픈소스입니다.

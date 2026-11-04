@@ -16,15 +16,21 @@ DAILY_FIELDS = {"BAS_DD", "ISU_CD", "ISU_NM", "MKT_NM", "SECT_TP_NM", "TDD_CLSPR
 POLICY = "KRX_COMMON_SHARE_CLASSIFICATION_2"
 
 
-def reviewed_snapshot(job):
-    original = krx_universe.audit(job)
-    result = copy.deepcopy(original)
-    for row in result["records"]:
+def reviewed_records(records):
+    result = copy.deepcopy(records)
+    for row in result:
         share, security = row["shareType"], row["securityType"]
         if share == "보통주" and security in krx_universe.SECURITIES | {"선박투자회사"}:
             row["classification"] = "COMMON_SHARE"
         elif share in krx_universe.OTHER_SHARES | {"구형우선주", "종류주권"}:
             row["classification"] = "OTHER_SHARE_CLASS"
+    return result
+
+
+def reviewed_snapshot(job):
+    original = krx_universe.audit(job)
+    result = copy.deepcopy(original)
+    result["records"] = reviewed_records(original["records"])
     result.update(schemaVersion="SAGOPALGO_KRX_UNIVERSE_REVIEW_V2", classificationPolicy=POLICY,
                   parentSnapshotSha256=digest(canonical(original)),
                   commonShareRecords=sum(v["classification"] == "COMMON_SHARE" for v in result["records"]),

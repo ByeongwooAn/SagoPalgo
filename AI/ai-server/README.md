@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[KRX 기간 전체 종목 목록·관찰 변화 수집](../../docs/krx-universe-history.md)은 `app.replay.krx_universe_history`의 plan/status/collect/build/audit/as-of/check-events로 실행합니다. 일별 원문·호출 예산·중단 재개·사건 경계 대조를 관리하며 거래일 달력·전체 기업행사·학습 가능 여부는 별도로 검증합니다.
+
 [KRX 실제 시작일 기준표·매매정보 교차 검증](../../docs/krx-baseline-live-validation.md)에서 2023-11-01 두 시장 2,634행·보통주 2,517개를 확보했습니다. `app.replay.krx_baseline_validation`은 원본 V1을 보존하는 V2 분류·일별매매 대조를 실행하며 전체 기간 확보 상태와 구분합니다.
 
 [KRX 과거 기준일 종목군 수집](../../docs/krx-historical-universe.md)은 `python -m app.replay.krx_universe`의 plan/status/collect/audit/check로 실행합니다. KRX 인증키와 유가증권/코스닥 종목기본정보 이용 승인 후 명시적으로 수집하며 샘플과 실제 기준표 확보를 구분합니다.
