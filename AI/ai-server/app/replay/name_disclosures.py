@@ -176,10 +176,10 @@ def requests_for(target, completed):
         yield label + "_BODY", {"url": url, "method": "GET", "parameters": None}
 
 
-def inspect(folder, target, latest, expected=None):
+def inspect(folder, target, latest, expected=None, request_builder=requests_for):
     completed = {}
     try:
-        for stage, spec in requests_for(target, completed):
+        for stage, spec in request_builder(target, completed):
             key = (target["observationId"], stage)
             if expected is not None:
                 expected[key] = spec
@@ -198,9 +198,9 @@ def inspect(folder, target, latest, expected=None):
         return None, None, completed, str(exc)
 
 
-def load(folder):
+def load(folder, config_type=Config, request_builder=requests_for):
     plan = read_json(read_bytes(folder / "plan.json"))
-    config = Config.model_validate({k: v for k, v in plan.items() if k != "planId"}).model_dump(mode="json")
+    config = config_type.model_validate({k: v for k, v in plan.items() if k != "planId"}).model_dump(mode="json")
     if plan != {**config, "planId": digest(canonical(config))}:
         raise ResearchError("NAME_DISCLOSURES_PLAN_INVALID")
     journal = read_json(read_bytes(folder / "journal.json"))
@@ -235,41 +235,41 @@ def load(folder):
         latest[key] = entry
     expected = {}
     for target in plan["targets"]:
-        inspect(folder, target, latest, expected)
+        inspect(folder, target, latest, expected, request_builder)
     if any(e["request"] != expected.get((e["targetId"], e["stage"])) for e in journal["attempts"]):
         raise ResearchError("NAME_DISCLOSURES_REQUEST_TAMPERED")
     return plan, journal, latest
 
 
-def summary(folder):
-    plan, journal, latest = load(folder)
+def summary(folder, config_type=Config, request_builder=requests_for):
+    plan, journal, latest = load(folder, config_type, request_builder)
     counts = {}
     for target in plan["targets"]:
-        state = inspect(folder, target, latest)[3]
+        state = inspect(folder, target, latest, request_builder=request_builder)[3]
         counts[state] = counts.get(state, 0) + 1
     return {"planId": plan["planId"], "sourceKind": plan["sourceKind"], "targets": len(plan["targets"]), "states": counts,
             "attemptsUsed": len(journal["attempts"]), "maxRequests": plan["maxRequests"], "nameChangeConfirmed": False,
             "usableForTraining": False, "usableForTrading": False}
 
 
-def collect(folder, transport, max_new_requests, retry_failed=False, sleep=time.sleep):
+def collect(folder, transport, max_new_requests, retry_failed=False, sleep=time.sleep, *, config_type=Config, request_builder=requests_for):
     if type(max_new_requests) is not int or not 0 <= max_new_requests <= 3000:
         raise ResearchError("NAME_DISCLOSURES_RUN_BUDGET_INVALID")
     with job_lock(folder):
-        plan, journal, latest = load(folder)
+        plan, journal, latest = load(folder, config_type, request_builder)
         if transport.source_kind != plan["sourceKind"]:
             raise ResearchError("NAME_DISCLOSURES_SOURCE_KIND_MISMATCH")
         used = 0
         for index, target in enumerate(plan["targets"], 1):
             while True:
-                stage, spec, _, state = inspect(folder, target, latest)
+                stage, spec, _, state = inspect(folder, target, latest, request_builder=request_builder)
                 if not stage or state in {"RESERVED", "FAILED"} and not retry_failed:
                     break
                 key = (target["observationId"], stage)
                 if sum(e["targetId"] == key[0] and e["stage"] == key[1] for e in journal["attempts"]) >= 3:
                     break
                 if used >= max_new_requests or len(journal["attempts"]) >= plan["maxRequests"]:
-                    return summary(folder)
+                    return summary(folder, config_type, request_builder)
                 if journal["attempts"]:
                     elapsed = (utc(now()) - utc(journal["attempts"][-1]["startedAt"])).total_seconds()
                     if elapsed < 0:
@@ -294,7 +294,7 @@ def collect(folder, transport, max_new_requests, retry_failed=False, sleep=time.
                     break
             if index % 10 == 0:
                 print(json.dumps({"progress": True, "targetsVisited": index, "attemptsUsed": len(journal["attempts"])}), flush=True)
-        return summary(folder)
+        return summary(folder, config_type, request_builder)
 
 
 def main(argv=None):
