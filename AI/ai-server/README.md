@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[미해결 57건의 개별 공시 확인과 V2 원장](../../docs/unresolved-membership-evidence.md)은 `app.replay.kind_membership_evidence`의 plan/collect/audit, `app.replay.membership_corrections`의 plan/collect/audit, `app.replay.membership_reconciliation`의 build/audit/as-of로 실행합니다. `app.replay.membership_evidence_facts`가 검토 양식의 사실을 추출합니다. 기존 원장을 보존하고 전체 코드·KDR 문맥·정정 전후를 대조하며 현황 일치와 개별 공시 확인을 구분합니다.
+
 [KIND 현황·공시 대조 원장](../../docs/universe-event-reconciliation.md)은 `app.replay.kind_membership_status`의 plan/capture/audit와 `app.replay.universe_reconciliation`의 build/audit/as-of로 실행합니다. 전체 관찰을 공식 현황·공시와 대조하고 식별 관계·날짜·근거 누락을 구분하며 기존 관찰과 과거 정보 시점을 보존합니다.
 
 [KRX 기간 전체 종목 목록·관찰 변화 수집](../../docs/krx-universe-history.md)은 `app.replay.krx_universe_history`의 plan/status/collect/build/audit/as-of/check-events로 실행합니다. 일별 원문·호출 예산·중단 재개·사건 경계 대조를 관리하며 거래일 달력·전체 기업행사·학습 가능 여부는 별도로 검증합니다.
