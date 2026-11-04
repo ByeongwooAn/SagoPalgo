@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "SAGOPALGO_NAME_ALIAS_CASES_V1",
+  "cases": [
+    {
+      "observationId": "c15bb0bda053653d00d9399ee9a7620316754bb6096cec5e98defe43e492142e",
+      "stockCode": "038530",
+      "mode": "FORMAL_ENGLISH_BRIDGE",
+      "receipt": "20260331004265"
+    },
+    {
+      "observationId": "760b69dd7f533bf88bf3326986d78a40ea62a1087fdacbda07cc8015b0dcaf2a",
+      "stockCode": "150900",
+      "mode": "TRADING_ALIAS_NOTICE",
+      "receipt": "20260504000568"
+    },
+    {
+      "observationId": "5d4cc793486db83f79157a1180dd9337e30b744cf7e87bf7e11c4a1cd3b2dbe2",
+      "stockCode": "054050",
+      "mode": "TRADING_ALIAS_NOTICE",
+      "receipt": "20260506000754"
+    }
+  ]
+}
