@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[KRX 과거 기준일 종목군 수집](../../docs/krx-historical-universe.md)은 `python -m app.replay.krx_universe`의 plan/status/collect/audit/check로 실행합니다. KRX 인증키와 유가증권/코스닥 종목기본정보 이용 승인 후 명시적으로 수집하며 샘플과 실제 기준표 확보를 구분합니다.
+
 [이전상장·합병 폐지와 종목군 식별 목록](../../docs/historical-universe-seed.md)은 `app.replay.universe_events`와 `app.replay.kind_registry`로 실행합니다. 시장별 편입/제외를 구분하고 현재 법인 목록·과거 사례를 연결하며 현재 명단을 과거 전체 종목군으로 소급하지 않습니다.
 
 [여러 기업의 실제 기준정보 사례](../../docs/multi-company-reference-cases.md)는 `python -m app.replay.kind_cases`의 capture/build/audit/as-of로 실행합니다. 신규상장·폐지·분할·정지/해제 5개 대표 사례를 원문과 연결하며, 5-08 전체 완료 조건과 시장·기간 누락을 별도로 관리합니다.
