@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[이름 변경 관찰 검토와 V3 원장](../../docs/name-change-evidence.md)은 `app.replay.name_disclosures`의 plan/collect/audit, `app.replay.name_facts`의 검토 양식 추출과 `app.replay.name_reconciliation`의 build/audit/as-of로 실행합니다. 관찰 291건 중 공시 일치 285건·이전상장 표기 변화 3건·추가 검토 3건을 구분하며 정식명/명시된 약명·거래소 적용일·현재 확보 시점을 보존합니다.
+
 [미해결 57건의 개별 공시 확인과 V2 원장](../../docs/unresolved-membership-evidence.md)은 `app.replay.kind_membership_evidence`의 plan/collect/audit, `app.replay.membership_corrections`의 plan/collect/audit, `app.replay.membership_reconciliation`의 build/audit/as-of로 실행합니다. `app.replay.membership_evidence_facts`가 검토 양식의 사실을 추출합니다. 기존 원장을 보존하고 전체 코드·KDR 문맥·정정 전후를 대조하며 현황 일치와 개별 공시 확인을 구분합니다.
 
 [KIND 현황·공시 대조 원장](../../docs/universe-event-reconciliation.md)은 `app.replay.kind_membership_status`의 plan/capture/audit와 `app.replay.universe_reconciliation`의 build/audit/as-of로 실행합니다. 전체 관찰을 공식 현황·공시와 대조하고 식별 관계·날짜·근거 누락을 구분하며 기존 관찰과 과거 정보 시점을 보존합니다.
