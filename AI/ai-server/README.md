@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[514건 목록·신규상장 292건 대조와 V5](../../docs/listing-disclosure-coverage.md)는 `app.replay.listing_disclosure_coverage`의 plan/collect/audit, `app.replay.listing_disclosure_facts`의 원문/정정 검증과 `app.replay.listing_coverage_reconciliation`의 build/audit/as-of로 실행합니다. V4의 현황 일치 단계 514건을 고정해 신규상장 292건을 보강했습니다. 개별 공시 355건·현황 일치 단계 222건과 전체 법적 사건 완전성을 구분하며 아래 V4 후속은 당시 기록입니다.
+
 [남은 이름·약명 3건과 V4 원장](../../docs/name-alias-evidence.md)은 `app.replay.name_alias_evidence`의 plan/collect/audit, `app.replay.name_alias_facts`의 약명/양언어 필드 대조, `app.replay.name_alias_reconciliation`의 build/audit/as-of로 실행합니다. V3와 고정 사례 설정을 감사하고 미해결 이름 관찰 3건만 보강합니다. 이름 관찰 291건의 설명/대조 완료와 전체 법적 사건/개별 공시 완전성을 구분합니다. 아래 V3 후속 수치는 해당 작업 당시 기록입니다.
 
 [이름 변경 관찰 검토와 V3 원장](../../docs/name-change-evidence.md)은 `app.replay.name_disclosures`의 plan/collect/audit, `app.replay.name_facts`의 검토 양식 추출과 `app.replay.name_reconciliation`의 build/audit/as-of로 실행합니다. 관찰 291건 중 공시 일치 285건·이전상장 표기 변화 3건·추가 검토 3건을 구분하며 정식명/명시된 약명·거래소 적용일·현재 확보 시점을 보존합니다.
