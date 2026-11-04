@@ -147,6 +147,7 @@ def report(folder):
 
 class Transport:
     source_kind = "PROVIDER_HISTORICAL"
+    endpoints = ENDPOINTS
 
     def __init__(self, key, enabled, opener=None):
         self.key, self.enabled = key, enabled
@@ -162,10 +163,10 @@ class Transport:
 
     def fetch(self, market, basis_date):
         self.ready()
-        if market not in ENDPOINTS:
+        if market not in self.endpoints:
             raise ResearchError("KRX_MARKET_INVALID")
         day(basis_date)
-        req = request.Request(BASE + ENDPOINTS[market] + "?basDd=" + basis_date.replace("-", ""),
+        req = request.Request(BASE + self.endpoints[market] + "?basDd=" + basis_date.replace("-", ""),
                               headers={"AUTH_KEY": self.key, "Accept": "application/json"}, method="GET")
         try:
             client = self.opener or request.build_opener(NoRedirect())
@@ -302,6 +303,7 @@ def main(argv=None):
         p.add_argument("--env-file", type=Path)
     p = sub.add_parser("check")
     p.add_argument("--job", type=Path, required=True)
+    p.add_argument("--reviewed", type=Path)
     for arg in ["case-cache", "case-scope", "case-report", "event-scope", "event-report", "output"]:
         p.add_argument("--" + arg, type=Path, required=True)
     args = parser.parse_args(argv)
@@ -312,7 +314,12 @@ def main(argv=None):
             from . import kind_cases, universe_events
             cases = kind_cases.audit_report(kind_cases.load_scope(args.case_scope), args.case_cache, args.case_report)
             events = universe_events.audit_report(universe_events.load_scope(args.event_scope), args.case_cache, args.event_report)
-            result = compare_evidence(audit(args.job), cases, events, args.case_cache)
+            snapshot = audit(args.job)
+            if args.reviewed:
+                from .krx_baseline_validation import immutable_json, reviewed_snapshot
+                snapshot = reviewed_snapshot(args.job)
+                immutable_json(args.reviewed, snapshot, True)
+            result = compare_evidence(snapshot, cases, events, args.case_cache)
             args.output.parent.mkdir(parents=True, exist_ok=True)
             if args.output.exists():
                 if read_bytes(args.output) != canonical(result):
@@ -333,7 +340,10 @@ def main(argv=None):
             result = audit(args.job)
             if args.command == "status":
                 key, enabled = load_environment(args.env_file)
-                result.update(collectionEnabled=enabled, keyConfigured=bool(key), serviceApprovalStatus="NOT_VERIFIED")
+                live_access = result["sourceKind"] == "PROVIDER_HISTORICAL"
+                result.update(collectionEnabled=enabled, keyConfigured=bool(key),
+                              serviceApprovalStatus="SUCCESSFUL_REQUESTS_OBSERVED" if live_access and result["capturedMarkets"] else "NOT_VERIFIED",
+                              serviceAccessObservedByMarket={m: live_access and m in result["capturedMarkets"] for m in ENDPOINTS})
         result = {key: value for key, value in result.items() if key != "records"}
         print(json.dumps(result, ensure_ascii=True, sort_keys=True))
         return 0
