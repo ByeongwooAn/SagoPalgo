@@ -16,7 +16,7 @@ SagoPalgo는 개인용 Windows 투자 프로그램입니다. 최종 목표는 KB
 
 과거 데이터 후속은 [KRX 기간 전체 종목 목록·관찰 변화 수집](docs/krx-universe-history.md)입니다. 날짜별 원문·호출 예산·중단 재개·사건 경계 대조를 관리합니다. 종목 목록 확보와 거래일/거래정지·기업행사·학습 가능 여부는 구분합니다.
 
-최신 후속은 [전체 관찰의 KIND 현황·공시 대조 원장](docs/universe-event-reconciliation.md)입니다. 관찰 868건을 보존하면서 근거가 일치한 사건과 미확인 사건을 구분합니다.
+최신 후속은 [미해결 57건의 개별 공시 확인과 V2 원장](docs/unresolved-membership-evidence.md)입니다. 관찰 868건과 [기존 V1](docs/universe-event-reconciliation.md)을 보존하고 편입·제외·시장 변경 577/577건의 현황 또는 공시 일치를 확인했습니다. 개별 공시 확인은 63건이며 현황 일치 단계 514건과 이름 변경 관찰 291건은 추가 검증 대상입니다.
 
 ## 개인 사용 및 책임 고지
 
