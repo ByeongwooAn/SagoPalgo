@@ -1,6 +1,6 @@
 # SagoPalgo AI Analysis Server
 
-[재상장·대상 시장 편입과 V7](../../docs/remaining-membership-disclosures.md)은 `app.replay.remaining_membership_disclosures`의 plan/collect/audit, `app.replay.remaining_membership_facts`의 원문 검증, `app.replay.remaining_membership_reconciliation`의 build/audit/as-of로 실행합니다. V6의 미확인 17건 중 재상장 9·대상 시장 편입 7건을 확인하고 폐지일 충돌 1건을 유지합니다. 개별 공시 576/577건과 전체 기준정보 완전성을 구분하며 V1~V6·관찰 868건을 보존합니다. 아래는 당시 기록입니다.
+[전체 기간 달력·시장별 특수 세션](../../docs/market-calendar-session-coverage.md)은 `app.replay.krx_calendar_sources`의 plan/collect/audit와 `app.replay.market_calendar_evidence`의 capture/build/audit/as-of로 실행합니다. 검토 출처는 `docs/examples/market-calendar-sources.json`입니다. 두 시장의 1,098일 개장 여부를 재구성하고 시장별 특수 세션 6일을 확인하며, 일반 시간 후보 724일씩과 미확인 플래그를 유지합니다. 기존 V7·가격·원문은 보존하며 아래는 당시 기록입니다.
 
 [남은 이름·약명 3건과 V4 원장](../../docs/name-alias-evidence.md)은 `app.replay.name_alias_evidence`의 plan/collect/audit, `app.replay.name_alias_facts`의 약명/양언어 필드 대조, `app.replay.name_alias_reconciliation`의 build/audit/as-of로 실행합니다. V3와 고정 사례 설정을 감사하고 미해결 이름 관찰 3건만 보강합니다. 이름 관찰 291건의 설명/대조 완료와 전체 법적 사건/개별 공시 완전성을 구분합니다. 아래 V3 후속 수치는 해당 작업 당시 기록입니다.
 

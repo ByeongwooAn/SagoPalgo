@@ -1,2 +1,3 @@
-# This reviewed manifest is byte-hash bound by existing acquisition plans.
+# Reviewed manifests are byte-hash bound by acquisition plans.
 docs/examples/name-alias-cases.json text eol=lf
+docs/examples/market-calendar-sources.json text eol=lf

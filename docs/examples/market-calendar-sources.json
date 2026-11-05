@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "SAGOPALGO_MARKET_CALENDAR_SCOPE_V1",
+  "startDate": "2023-11-01",
+  "endDate": "2026-11-02",
+  "sources": [
+    {
+      "sourceId": "kospi-current-rule",
+      "role": "KOSPI_RULE",
+      "url": "https://regulation.krx.co.kr/contents/RGL/03/03010100/RGL03010100T1.jsp",
+      "markets": ["KOSPI"]
+    },
+    {
+      "sourceId": "kosdaq-current-rule",
+      "role": "KOSDAQ_RULE",
+      "url": "https://regulation.krx.co.kr/contents/RGL/03/03020401/RGL03020401.jsp",
+      "markets": ["KOSDAQ"]
+    },
+    {
+      "sourceId": "kospi-newyear-2024",
+      "role": "KIND_SESSION",
+      "url": "https://kind.krx.co.kr/external/2023/12/14/000173/20231213000752/99303.htm",
+      "markets": ["KOSPI"],
+      "expectedDate": "2024-01-02"
+    },
+    {
+      "sourceId": "kosdaq-newyear-2024",
+      "role": "KIND_SESSION",
+      "url": "https://kind.krx.co.kr/external/2023/12/14/000189/20231214000422/70780.htm",
+      "markets": ["KOSDAQ"],
+      "expectedDate": "2024-01-02"
+    },
+    {
+      "sourceId": "newyear-2025",
+      "role": "KB_YEAR_END",
+      "url": "https://www.kbsec.com/go.able?idt=20241226&linkcd=s060901010000&seq=10007903",
+      "markets": ["KOSPI", "KOSDAQ"],
+      "expectedDate": "2025-01-02"
+    },
+    {
+      "sourceId": "newyear-2026",
+      "role": "KB_YEAR_END",
+      "url": "https://www.kbsec.com/go.able?idt=20251222&linkcd=s060901010000&seq=10009341",
+      "markets": ["KOSPI", "KOSDAQ"],
+      "expectedDate": "2026-01-02"
+    },
+    {
+      "sourceId": "exam-2023",
+      "role": "MIRAE_EXAM",
+      "url": "https://securities.miraeasset.com/bbs/board/message/view.do?categoryId=66&messageId=2312542",
+      "markets": ["KOSPI", "KOSDAQ"],
+      "expectedDate": "2023-11-16"
+    },
+    {
+      "sourceId": "exam-2024",
+      "role": "YUANTA_EXAM",
+      "url": "https://www.myasset.com/myasset/customer/notice/CU_0201000_P2.cmd?SEQ=202411061044540000000004&gubun=norNotice",
+      "markets": ["KOSPI", "KOSDAQ"],
+      "expectedDate": "2024-11-14"
+    },
+    {
+      "sourceId": "exam-2025",
+      "role": "YUANTA_EXAM",
+      "url": "https://www.myasset.com/myasset/customer/notice/CU_0201000_P2.cmd?SEQ=202511100903560000000004&gubun=norNotice",
+      "markets": ["KOSPI", "KOSDAQ"],
+      "expectedDate": "2025-11-13"
+    }
+  ]
+}
