@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[코스닥 과거 전문·위임 시행일과 규정 V2](../../docs/kosdaq-rule-effective-evidence.md)는 `app.replay.rule_effective_evidence`의 capture/build/audit/as-of로 실행합니다. `docs/examples/kosdaq-rule-effective-evidence.json`에 V1 해시·세 원문 식별을 고정하고 과거 전문과 위임 부칙을 연결합니다. 제2280호의 2025-03-04 시행일·15/15개 규정 연결을 확인하되 이전 불일치·자리표시자와 실제 세션 미확인 상태를 보존합니다. 임시 변경 검토 8구간은 대기 상태입니다.
+
 [과거 일반 정규장 규정 판본 검증](../../docs/historical-ordinary-session-rules.md)은 `app.replay.historical_session_rules`의 capture/build/audit/as-of로 실행합니다. `docs/examples/historical-session-rules.json`에 판본과 이전 달력 해시를 고정합니다. 15개 중 14개 일치·코스닥 제53차 본문 불일치 1건을 보존하며, KOSPI 규정 7구간 확인과 실제 세션 확정을 구분합니다. 일반 후보는 실제 세션에서 계속 제외합니다.
 
 [전체 기간 달력·시장별 특수 세션](../../docs/market-calendar-session-coverage.md)은 `app.replay.krx_calendar_sources`의 plan/collect/audit와 `app.replay.market_calendar_evidence`의 capture/build/audit/as-of로 실행합니다. 검토 출처는 `docs/examples/market-calendar-sources.json`입니다. 두 시장의 1,098일 개장 여부를 재구성하고 시장별 특수 세션 6일을 확인하며, 일반 시간 후보 724일씩과 미확인 플래그를 유지합니다. 기존 V7·가격·원문은 보존하며 아래는 당시 기록입니다.
