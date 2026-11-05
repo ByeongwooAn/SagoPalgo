@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[과거 일반 정규장 규정 판본 검증](../../docs/historical-ordinary-session-rules.md)은 `app.replay.historical_session_rules`의 capture/build/audit/as-of로 실행합니다. `docs/examples/historical-session-rules.json`에 판본과 이전 달력 해시를 고정합니다. 15개 중 14개 일치·코스닥 제53차 본문 불일치 1건을 보존하며, KOSPI 규정 7구간 확인과 실제 세션 확정을 구분합니다. 일반 후보는 실제 세션에서 계속 제외합니다.
+
 [전체 기간 달력·시장별 특수 세션](../../docs/market-calendar-session-coverage.md)은 `app.replay.krx_calendar_sources`의 plan/collect/audit와 `app.replay.market_calendar_evidence`의 capture/build/audit/as-of로 실행합니다. 검토 출처는 `docs/examples/market-calendar-sources.json`입니다. 두 시장의 1,098일 개장 여부를 재구성하고 시장별 특수 세션 6일을 확인하며, 일반 시간 후보 724일씩과 미확인 플래그를 유지합니다. 기존 V7·가격·원문은 보존하며 아래는 당시 기록입니다.
 
 [남은 이름·약명 3건과 V4 원장](../../docs/name-alias-evidence.md)은 `app.replay.name_alias_evidence`의 plan/collect/audit, `app.replay.name_alias_facts`의 약명/양언어 필드 대조, `app.replay.name_alias_reconciliation`의 build/audit/as-of로 실행합니다. V3와 고정 사례 설정을 감사하고 미해결 이름 관찰 3건만 보강합니다. 이름 관찰 291건의 설명/대조 완료와 전체 법적 사건/개별 공시 완전성을 구분합니다. 아래 V3 후속 수치는 해당 작업 당시 기록입니다.

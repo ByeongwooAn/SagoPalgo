@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "SAGOPALGO_SESSION_RULE_SCOPE_V1",
+  "startDate": "2023-11-01",
+  "endDate": "2026-11-02",
+  "anchors": {
+    "KOSPI": "330007789",
+    "KOSDAQ": "210228704"
+  },
+  "versions": [
+    {
+      "market": "KOSPI",
+      "bookId": "330007789",
+      "revision": 61,
+      "ruleNumber": "2497",
+      "effectiveDate": "2026-09-14",
+      "title": "유가증권시장 업무규정"
+    },
+    {
+      "market": "KOSPI",
+      "bookId": "330002296",
+      "revision": 60,
+      "ruleNumber": "2483",
+      "effectiveDate": "2026-08-19",
+      "title": "유가증권시장 업무규정"
+    },
+    {
+      "market": "KOSPI",
+      "bookId": "210225665",
+      "revision": 59,
+      "ruleNumber": "2471",
+      "effectiveDate": "2026-07-02",
+      "title": "유가증권시장 업무규정"
+    },
+    {
+      "market": "KOSPI",
+      "bookId": "210200859",
+      "revision": 58,
+      "ruleNumber": "2433",
+      "effectiveDate": "2026-04-28",
+      "title": "유가증권시장 업무규정"
+    },
+    {
+      "market": "KOSPI",
+      "bookId": "210163555",
+      "revision": 57,
+      "ruleNumber": "2405",
+      "effectiveDate": "2026-01-29",
+      "title": "유가증권시장 업무규정"
+    },
+    {
+      "market": "KOSPI",
+      "bookId": "210025251",
+      "revision": 56,
+      "ruleNumber": "2285",
+      "effectiveDate": "2025-03-04",
+      "title": "유가증권시장 업무규정"
+    },
+    {
+      "market": "KOSPI",
+      "bookId": "210018540",
+      "revision": 55,
+      "ruleNumber": "2287",
+      "effectiveDate": "2025-03-04",
+      "title": "유가증권시장 업무규정"
+    },
+    {
+      "market": "KOSPI",
+      "bookId": "204846055",
+      "revision": 54,
+      "ruleNumber": "2144",
+      "effectiveDate": "2023-07-24",
+      "title": "유가증권시장 업무규정"
+    },
+    {
+      "market": "KOSDAQ",
+      "bookId": "210228704",
+      "revision": 58,
+      "ruleNumber": "2498",
+      "effectiveDate": "2026-09-14",
+      "title": "코스닥시장 업무규정"
+    },
+    {
+      "market": "KOSDAQ",
+      "bookId": "210223407",
+      "revision": 57,
+      "ruleNumber": "2469",
+      "effectiveDate": "2026-07-02",
+      "title": "코스닥시장 업무규정"
+    },
+    {
+      "market": "KOSDAQ",
+      "bookId": "210164370",
+      "revision": 56,
+      "ruleNumber": "2416",
+      "effectiveDate": "2026-04-27",
+      "title": "코스닥시장 업무규정"
+    },
+    {
+      "market": "KOSDAQ",
+      "bookId": "210150966",
+      "revision": 55,
+      "ruleNumber": "2403",
+      "effectiveDate": "2026-01-29",
+      "title": "코스닥시장 업무규정"
+    },
+    {
+      "market": "KOSDAQ",
+      "bookId": "210019450",
+      "revision": 54,
+      "ruleNumber": "2287",
+      "effectiveDate": "2025-03-04",
+      "title": "코스닥시장 업무규정"
+    },
+    {
+      "market": "KOSDAQ",
+      "bookId": "210016900",
+      "revision": 53,
+      "ruleNumber": "2280",
+      "effectiveDate": "9999-12-31",
+      "title": "코스닥시장 업무규정"
+    },
+    {
+      "market": "KOSDAQ",
+      "bookId": "204845050",
+      "revision": 52,
+      "ruleNumber": "2085",
+      "effectiveDate": "2023-01-25",
+      "title": "코스닥시장 업무규정"
+    }
+  ],
+  "parentSha256": "8803fae3e2bfd85c323693f51a3daba1ed5b9d90df0d99bbeb63fd5f89b23849"
+}
