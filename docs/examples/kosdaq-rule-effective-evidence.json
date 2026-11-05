@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "SAGOPALGO_RULE_EFFECTIVE_SCOPE_V1",
+  "parentSha256": "93a78be7e225933045e2c175a88aaaeb0359bf49714f9b8a645460f3a7649fda",
+  "targetBookId": "210016900",
+  "resolvedEffectiveDate": "2025-03-04",
+  "sources": [
+    {
+      "sourceId": "kosdaq-2280-archived",
+      "role": "ARCHIVED_RULE",
+      "bookId": "210016900",
+      "oldyn": "Y",
+      "title": "코스닥시장 업무규정",
+      "revision": 53,
+      "ruleNumber": "2280",
+      "promulgatedDate": "2025-02-05",
+      "headerEffectiveDate": "9999-12-31"
+    },
+    {
+      "sourceId": "kosdaq-2304-archived",
+      "role": "DELEGATING_BYLAW",
+      "bookId": "210019594",
+      "oldyn": "Y",
+      "title": "코스닥시장 업무규정 시행세칙",
+      "revision": 111,
+      "ruleNumber": "2304",
+      "promulgatedDate": "2025-02-27",
+      "headerEffectiveDate": "2025-03-04"
+    },
+    {
+      "sourceId": "kosdaq-2500-corroborating",
+      "role": "CORROBORATING_BYLAW",
+      "bookId": "230001398",
+      "oldyn": "N",
+      "title": "코스닥시장 업무규정 시행세칙",
+      "revision": 119,
+      "ruleNumber": "2500",
+      "promulgatedDate": "2026-09-10",
+      "headerEffectiveDate": "2026-09-14"
+    }
+  ]
+}
