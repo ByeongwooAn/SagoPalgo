@@ -1,0 +1,1544 @@
+{
+  "schemaVersion": "SAGOPALGO_SESSION_COVERAGE_REVIEW_SCOPE_V1",
+  "inventorySha256": "0a7ea55f0fde93adb0c5b7a409ec9fb9ae8b1579de8c8f419174fb4eac07897c",
+  "parentReviewSha256": "0193a6a016058d024073e60325c1657f0f514055b49b45bd74bee9655d59ecd4",
+  "reviewedAt": "2026-11-06T01:08:33.099845+00:00",
+  "decisions": [
+    {
+      "market": "KOSPI",
+      "document": "20220210000011",
+      "bodySha256": "c35b9d373136331fb3a302c7a53853357922030d0d4769c9bb274971aabc280e",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20221219001156",
+      "bodySha256": "db25371c01196eb7b79fba0e931b7cb89eae5dfe4c8f7c4e7a4cb2f40b5aadf7",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "세원정공"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220907000500",
+      "bodySha256": "997d54d8b6da4b844a79350b0d1b315d39c7df2eb5c3b49dcfe2a2615b216a79",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "에스엠벡셀"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220721001022",
+      "bodySha256": "80be4e93ff248141641875551df7db8e79ea90ecc87dccb90f2f572f4ea97150",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "계양전기"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220721001021",
+      "bodySha256": "9d51094f2034aebc24e5599beec0b97f7a53690ecba8f24405d5ce8915728aca",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "계양전기"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220615000583",
+      "bodySha256": "60a08bb0c6bf6848a567ca90db55b6500c09f478623fb41cafebebbcd80c4df3",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "와이투솔루션"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220413001786",
+      "bodySha256": "aca5faa318b0b5f821a4dcd592bf060268dfdff925c7973063818062bd6349b0",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "성안"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230911000161",
+      "bodySha256": "1ef8730c1328cbb237f94e07f40eae36867b94868166d4e967efe1536398f4c0",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230515000150",
+      "bodySha256": "90013c4f1ccf29484fd6893b637a118c1f0cd27b3ce319e80abd41dea493de63",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230417000003",
+      "bodySha256": "e2786f4fd2017db4d9b381117548482e6054be0ce934d7a9ee987685bcc6cda7",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231031000718",
+      "bodySha256": "e5d3874124fe0de021afe816382ff4fe5639df5f26830b78b5ddf86c8b12162d",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "하이트론씨스템즈"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231025001327",
+      "bodySha256": "a5db7e9737a8ed8e3c0053b30ec88b4e357020a74a44b5005c5b64078f44cf19",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "영풍제지"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231025001333",
+      "bodySha256": "c7709ce3ae8e28583804527e09d90ebdd271dc56cb6d6558a69e97078c8cba27",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "대양금속"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230630002172",
+      "bodySha256": "5823859d82fcc8c364436d39d3b9d6f1c6b9835034f3b0f36f989d054e559113",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "대한방직"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230630002168",
+      "bodySha256": "43363c6961adc7a675e4b74b05b6de09fd182fcd106e43770a51d83ec444045d",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "방림"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230630002167",
+      "bodySha256": "f5183dbe63bb2c460d925d959d83fbbadee925ca16e67326d924ad22ecffb4f4",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "동일산업"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230630002166",
+      "bodySha256": "76a2de7bc92d28504cf9dc68e3e19b8ad689056755c72f8f6d24d1402330282e",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "만호제강"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230427000662",
+      "bodySha256": "d4f2bccf5cd97a3c39a95e95b5486faeeebdf6f80c1781d8668e539a6d218367",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "KG모빌리티"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240909000913",
+      "bodySha256": "d32944ef7018d1d0cffe078aab394f2aedda7723a6631f9b4beb2b282f5139ae",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240326002215",
+      "bodySha256": "320d92352bf4c4a3ee9e2c9b8765a45200c6da8d55af4cfb0812080355ae696b",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20241227002073",
+      "bodySha256": "b1caf463b93f871ffd9ab3ab70bd77f7df7e2f06d2684f707bab46570075b236",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "경보제약"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20241030001819",
+      "bodySha256": "730561b8740e11b0140f347a5822c146bad1b7bba684828a8f884d79c254c3bd",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "태영건설"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20241030000012",
+      "bodySha256": "633633fa8854c116069baa4a51800144d1980f1b9a38629819b9e150aa0fa120",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "태영건설"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240920001227",
+      "bodySha256": "e6d3e465b86fea0700e0742cd6d144a25d0d0f61073a0330502c0e82622d5c4e",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "만호제강"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240419001721",
+      "bodySha256": "d3176199902e1cdf6c61794fa09eacb2d7db95844b99c5fd26526cb01fd47ed6",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "백광산업"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240321011393",
+      "bodySha256": "b63f9a18e61041a4e316927bb5db8bafde8cb49d469c391eb6bada1b069c32a5",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "일정실업"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240806000392",
+      "bodySha256": "cc416eee7be09daa75ad94788eb9793c5b6cc357a0d33f49bffdd14ac30d7275",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240805000754",
+      "bodySha256": "390e3bd22bd9e267f119a53fc0d98fb01528a3d74a1f1e7c4a850e56a9afee58",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240805000684",
+      "bodySha256": "7286178aa200b7063ae11072662dc32054e65bb6ff8b4591189d07849e90c8cb",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240805000324",
+      "bodySha256": "3b494bb6d8d3537af52c8afb3d220e2b5d81ee9ede88587a6165ca5eeb9056ea",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250520000087",
+      "bodySha256": "1ee01a1704ba19a93768bb2be2e6d6858941f0d881d669d304208a560c072e71",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250430000123",
+      "bodySha256": "33befd59e0c1eded1786a94191f4c916294fea722f3b16989816594d4ca2dbe6",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250116000002",
+      "bodySha256": "f72350396664571103e92ede3a44cf7668a2102d0c2e862aeefa622dec8549f9",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250623001366",
+      "bodySha256": "d097530e4f4342c78d93afabedbc0cb497e834676197847598c825502b5261f3",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "동성제약"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250325003474",
+      "bodySha256": "416af5b1720ec8170c69ca3365cc0adf57f4b44182bf345fb83292b989f493ad",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "주성코퍼레이션"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250325004237",
+      "bodySha256": "576d9467496a7241523f94c03392c247d870867f30ba85a71429a86ac96cbb75",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "주성코퍼레이션"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250109001673",
+      "bodySha256": "9978fc0b3fadac229787d6f8deb5f94666cc62f00cbd45cf284bbb175c363601",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "인바이오젠"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20251105000202",
+      "bodySha256": "b007b5143939b40490014f901f59e2c2bc47b46f484134c3681a22622158a151",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250410000313",
+      "bodySha256": "ba4ae89e91918e7c3146d08c9fae94ee783e02727588a85e7e16468f0943e4c8",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250407000233",
+      "bodySha256": "be59b3bc97b1800d6b2b543982259beaa6e83cf9a9cc6ba953193af07b808468",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260520000009",
+      "bodySha256": "4bcfef7d6e0c9a52cf89e04c09694157946faccb9631e5f39380e0f969a1f75e",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260729002730",
+      "bodySha256": "11440da33b3824ccf2e0c3aecee053a4fe41dc2830cb6024293b12ce3b38d018",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "동성제약"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260612002256",
+      "bodySha256": "dc4e0b9c92f3a50e9ce80e95d114cd0c14220563a25ba86778dace67720d52cf",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "효성화학"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260514002772",
+      "bodySha256": "e9dd4b84c1ca17e16551c313088baebff53f92d9765ea601e05903e60563e002",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "DKME"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260428001750",
+      "bodySha256": "b2ca1ddd84be2eb35aee54e8309c70bec649169ca8bb07c2da3d976d597f627e",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "선도전기"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260408003618",
+      "bodySha256": "36855d3b85a4e7b8cd1099f78727cf839b1ba49dfc3eb29c3fa2abd51db371b3",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "삼익THK"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260325004491",
+      "bodySha256": "e6844439abb4f851c409d5a2e1881677a2ae1e9fdb51f67f11e76582dde45edb",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "일양약품"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260325004495",
+      "bodySha256": "0b10cda98cb5241ac34718bb9abc539295b4bfcc2363b5ad027c3ae27b16e1cc",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "일양약품"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261105000281",
+      "bodySha256": "290504e32fadce3cb6f35f622162bd2a1611d4d6ac476c6894feaf5340ef45c6",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261030000395",
+      "bodySha256": "53467c177bd053568a80980d17975c03b156fd6f2e0db8a2003bcdad830e228d",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261028000233",
+      "bodySha256": "3184325fdc07aeb9f3eac3448349c6c81c61dd0e7b0c9d2bb71b7500cbdcbc84",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261027000281",
+      "bodySha256": "245812a0127c84e781cf9c46417f711788180742d56a4c1650526b402b7bacba",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261021000391",
+      "bodySha256": "a8e514d0045a036591b3086e66a83f7e1047695591222c3de166d6e7cbe6db59",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261015000689",
+      "bodySha256": "33306786921637e19bca0d9086ec388e059d95ff7d3acbe4b0ddc8ffcb6ae53d",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261015000672",
+      "bodySha256": "635fff8ed6acbcdc864da066142772aa88cb6a8a58cd6a054daaadfcbbc0450f",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261015000128",
+      "bodySha256": "5e9aa5eb39096831a918f4e1ed72215ef1b631092a68d4866d4b5a76d99b4a4d",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261013000218",
+      "bodySha256": "d27f5441a57c3129b154eaa5129154af1079b6d34bc27511b1fe6fc0b13cce46",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260820000210",
+      "bodySha256": "5d67f7ae8b41a39aaf9add8312432627d2fd393a4d094bf21bd8d85feb5f2dcc",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260819000133",
+      "bodySha256": "ec4a71db73e8d3f298b156e5b063c9a590a58c82299dac5c07642c8fc9478523",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260812000696",
+      "bodySha256": "4f0144e9e684503fceb4f2aac27d39837a5d060e9d78918fe393158d2ec72e7e",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260806000253",
+      "bodySha256": "35120fb4ff6f6c70f305a28470c731e9ea6d56b7364c52d65d35f79bd0f761d2",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260805000172",
+      "bodySha256": "6735c1a97a594097ce9521d756a52c6c1dccad6464d0bab7a3e8184868ff0fdf",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260731000148",
+      "bodySha256": "8e6c7874426e15e258fbe1014cfd5b02b99c9feccf963b2ce092f67267d95df5",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260729000811",
+      "bodySha256": "750fd98615af12f06aaa6bf7b288fc2637390bc359df14b3433e9a0783200f1d",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260729000801",
+      "bodySha256": "3d70451ce159096ca03cd81a4ec341128b7325c59a8dea10dbe81fc629fcf988",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260729000549",
+      "bodySha256": "1bfb70261533cda1d04b5b11e8ee36e257fe4b189cb07921e287ce491966057f",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260728000463",
+      "bodySha256": "699b6fbda039325e3b102b503e3e7d25e66f4e4bb058477a0db44df43b8e0a77",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260728000405",
+      "bodySha256": "616f0983e2cf3da8489d7ea81424d70965b03699490ab22bc8037c316584782b",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260728000204",
+      "bodySha256": "26655e7c5746dd343926c268a27b970ce0d2e5d1c3d9b892294d8ab3d8d3591e",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260724000499",
+      "bodySha256": "fd2da8300995426dfb05dfe0a1a27747db22afd8f7d4273ec80d5de46ab218d6",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260722000184",
+      "bodySha256": "fcca3587b6681b5b6eb76af3e190fe112c0b99cac7b0cbdb5e1cea0aa90bb561",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260721000591",
+      "bodySha256": "c04d7cf11155e4f2d4f8ddf519f1d547ab2f8a185620a06932c9b206e1986680",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260720000452",
+      "bodySha256": "07683b41c80613d6d6b4505a6fdf6879679ccfff980deff7e7214c98ec5f6e3e",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260716000157",
+      "bodySha256": "6f69cbb1e8107768ae01ad66bc0f76bd5d419b3ae3475b158144bdb961b88da5",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260715000125",
+      "bodySha256": "8b600fe222fba7075e12631cb7a34da3ac05dcffed0f91a794891edadc557251",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260713000709",
+      "bodySha256": "b0f7694e5a54faf5a4723166a18c4306629fc5c03d8855574329e555cab916cc",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260713000658",
+      "bodySha256": "694e1e2bd6548543944fef6b89f323d2f5f3e93fd7db2485f541ffafe413d624",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260713000410",
+      "bodySha256": "1eb8161f0b19efc07d70568a1ddd6d89eccc4f813e22c5b8376392bd895ec7fe",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260710000805",
+      "bodySha256": "bc5891ccc80e1ac09bb8965a206e6d95013ed1ffb7f5064b4329dd56ce09c954",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260708000728",
+      "bodySha256": "870a858f9cd9d66154a26018b05b8632e261de48646caa806ca198c5e45df39d",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260707000787",
+      "bodySha256": "96ab0b16bb994228234d2c5aecb0bac2954ea5d1e5c12a1c77e13933ea600168",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260707000728",
+      "bodySha256": "06cb6046af83081425b34f8c0b935922bc9befe04be625af6a0c49e214ba5dcb",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260707000330",
+      "bodySha256": "aa1bb0e4fd39fced14f508e77c435de1a5e97e36a38e791b7d2b6815b967faac",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260703000941",
+      "bodySha256": "4df592960fc2c0a3f1e73d4467f6fe6512a61ee58c2b1cb1f6c95872bb23747b",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260702000150",
+      "bodySha256": "eb90b7d6d86fc203a6b4906294e1874eb68d36d6fefbf313af15f7c4cec1ef69",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260626000876",
+      "bodySha256": "f5bab1008a702105aa29506096ce4f9fe4252aaaf3e05d03f4661fa724a79961",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260626000862",
+      "bodySha256": "31b3409cc39ffa83e6a7e78156e3556f6a5dfab4912762c289659b159f40fd0f",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260626000765",
+      "bodySha256": "83c7c2d980fdcedaa38e678a73500115c77fdfedcf9dc9036d74747fff26c327",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260625000191",
+      "bodySha256": "2d03ebbc2a644e19aa4c0f8d7389bda18f10dddab8d253a3f02b0517e82a79a7",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260623000942",
+      "bodySha256": "97733e48e4efbb3a3ad37baf84df948a7d0e0b43a2dcec7dc9cbd8a8a2eb3e85",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260623000852",
+      "bodySha256": "16c9826170715f31461bef61ef460082e9d0a52f78868761fa7802f5fc44b314",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260623000516",
+      "bodySha256": "8dd9736bcbf21bd0b0c6be3f160bfbed50aeba0d01a64bcd8f38663cbf8a7188",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260615000233",
+      "bodySha256": "934f2a083354bf548c4f53fdd314dbf36d7589275a25d20911a913b0f65a16ee",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260612000187",
+      "bodySha256": "22223fce73d32333af38a9389a0a622020b079d7031e8273506bcedaaaca4ecc",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260610000852",
+      "bodySha256": "135f9fabd667529b79fb1d00e4a9394f96f7fd7d7ba3183094e7bb7012665212",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260609000248",
+      "bodySha256": "1d9fdfde40a7223496ae16472794e3f598eb7a28142e7439aeccb95d78170526",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260608000357",
+      "bodySha256": "d79ce90518dcadb59063b474d234eb3e46eea06288c2c42314ef4fb6b74bb91e",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260608000307",
+      "bodySha256": "3a38fb650c02c820805b3b88e04693908d73140ef78bba8675ee950e6f38bfba",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260608000243",
+      "bodySha256": "01cfa87725d8c75915e5e6633c21aacba705b74dbcb561cc4dbb956e9105b024",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260605000163",
+      "bodySha256": "f38ee610e0ec2c2e351affab14f5c9f50efd9befb9186b1f774fb3da3efaf8d6",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260601000666",
+      "bodySha256": "9694fce46c2fa6abb7cb242aec32002fb0af2bc4dcd48157efa8813666456df8",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260527000186",
+      "bodySha256": "3b1495cc028ded01fe9858f2516417c42fd9607c3e1a0b870c11c2d0d94dab34",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260521000176",
+      "bodySha256": "ad130ba80629c3874af2a6dbce9bef6b31f2ce5f380fa91110dd6cc4671e10a5",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260518000347",
+      "bodySha256": "7834773b4be98acb1afc7a3df5f8197d090a60cb669d739b1cc616ee9fbc3d46",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260515001713",
+      "bodySha256": "7f8239cc89c671cc30688a58b56d9e4a2dabc0100f3680701cd49d151e9f1b7c",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260511000237",
+      "bodySha256": "c46dfd1cbd240adb35077c783ee0a7092893904ac6a46f75256b52928d2b6b36",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260506000212",
+      "bodySha256": "533ee41b32cbf8358d5e73358c40f28e8c4e79e58a55e5e8373038309c362170",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260408000198",
+      "bodySha256": "d6d8b8cd86e6a8eeb164711fb5a9dae126cdfa8bd6b7de5984a595ccd767f17b",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260402001434",
+      "bodySha256": "65f82bed3e67889780eb39d5d45f02a2bf609d5b3d1848e2d0f7064410220f60",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260401000241",
+      "bodySha256": "f90450f0a6a2b10af6129717f3b0d7f65121198b88e48023510fed9afb683fec",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260323000344",
+      "bodySha256": "32c2f73f1726b05dc25ac499fcfc88cbd30eb017d6b7c01235f0c8520e9b42a6",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260318002983",
+      "bodySha256": "07a4c1d5f2e9983d52dd3657757468194b4c1d2ea5569dcdf05066d90c348f09",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260310000376",
+      "bodySha256": "0739fae95020f09200b0c06539b78abb2b8d334cf5a9089ff19b725e2e5cd920",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260309000631",
+      "bodySha256": "b029c46f78ac05e1cb66c563d0250cd5044a56ce25a9bcfb5e9a396a3b2f9eea",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260309000522",
+      "bodySha256": "c04bad3da72d1eb16dd9dcae0ea10efab3d8817c0c128526d5b810cda4e1d9b3",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260309000217",
+      "bodySha256": "5460d8829556348e32e97bfc5048c83c8e9aa862d6f29db3feb817896fe0a282",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260305000332",
+      "bodySha256": "9cccea58525c139c8fc11ab0cc50d9ce127b2d687f45a36142a8dbe6583ae2d5",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260304001055",
+      "bodySha256": "0c94c3a2305d852bb3b65535b2c6cf0ae0c4ac73122c89e893ad0b825709aa77",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260304000990",
+      "bodySha256": "d5f31033a43adaf5fcca34bf58bd47055aeb24f56d6ddc56a68e88f34de1920e",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260304000292",
+      "bodySha256": "6a6fd65ae80cbcda0c48182310345cdb03dfb771e9144310bf52812126deadd3",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260303000965",
+      "bodySha256": "0b9d2d248caf68ab25d3713754a5dade4f8aead73ac7c66efadab9cefa3cd425",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260206000187",
+      "bodySha256": "001b07266ca4f4e610fee934379022169a284ca995d520a4efada54676cd5e87",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260203000369",
+      "bodySha256": "9e4e0430e689cd320a1d8f76c06662f84c50ad5e471a829f37373383b7649aa6",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260202001313",
+      "bodySha256": "f643d7f36c5620a5ee29fa0ff283a4a1b2d781d53dded7148858b2bf579fa20b",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261106000312",
+      "bodySha256": "1424ff358352e1a9684694d38f6b393d9355ba70b63dab6abf24c53a3dd795d4",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261106000267",
+      "bodySha256": "194365babdc26ac7fb1503371e9d63a0fc9093daa46a3903685f9358c773cd65",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261106000197",
+      "bodySha256": "34395fed779e0ef544c31c52ebd24f1570b26d0a59127f7f26577e1cfd6b57a0",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20220209001809",
+      "bodySha256": "00f1f3992d6c526c3ee2a356bd9e7255b81825e59d1e6cb767343e88e7b8c954",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230911000105",
+      "bodySha256": "1958bba4645b168aa2d03f85b171d0d93791bf2e22eb2ea66a6afd520f2039de",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230515000018",
+      "bodySha256": "6f43da1f2d72cda7655c398e8ecdb64256cd242dd6e962c6f692e16b231f70d2",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230414001076",
+      "bodySha256": "61c203b33aac06d7a7803310941ba027643b26798f52858b60d6d36e06d6610a",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20231107000449",
+      "bodySha256": "7952002e23c2309e43df392ece0cbc0f6e499f9b92823ee0dfdd969d91713844",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20231106000197",
+      "bodySha256": "f65045536e6f5cfb02f2031810dfbfd6ab549d5e348502242fba727c8f015ab3",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20240903001046",
+      "bodySha256": "9c8cf06a4c112d485604f22259d3d254100cd9a057e0dc4498f64496f057d815",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20240327000239",
+      "bodySha256": "41c10978c5266d29c5917d126d539fe012ecef937ca29a5c8b759736d38f19b2",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20240806000391",
+      "bodySha256": "3e176d0c95d5820c57808fc031971e89c2dcc97bb470c660773317fe0dc036ac",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20240805000691",
+      "bodySha256": "741b80a86257e5cd5024e6596a825a7f42ccdf9963a767ec10c49c9d2a7516e5",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20240805000619",
+      "bodySha256": "e19809ec5e37a708d0262edfb2b52f92b22fc34be4263525a3a9cb3427cd4c62",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20240805000492",
+      "bodySha256": "b5b24de4112e84efcf27c5c2e3e5790c55a3f061a2fbabbb8a7a34f6444d68af",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20250429000564",
+      "bodySha256": "5b53027f7af5a97c789ddf52e260d77b3425db5caff26d1f070d781ca872edef",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20250429000905",
+      "bodySha256": "4c9275d7a2e3574cafb8f722e9d5171c2f32028a7a7f11c94098cff1c1bae65e",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20250108000388",
+      "bodySha256": "9949bf65677bfb3aaf952525fcae3557f9d7fec3fed32273d8e452ac3662363b",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20251105000284",
+      "bodySha256": "8e64a306c0114db563262088b5aa4f7208c569bc42631fc09f51bf6b8f124d61",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20250410000808",
+      "bodySha256": "860498cffc00a9ac36b73dc7f0616cf6a8adfe2da2082337c7c033b3ca6d46af",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260520000184",
+      "bodySha256": "384af6ec9ef7fe799739ee3f24caa9020106e3a72728b283170f9eb8bc37c14a",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "선거일·공휴일·연말 휴장 안내로서 장중 거래시간 변경과 구분한다. 달력 근거와의 후속 대조 대상이며 이 분류만으로 전체 달력 플래그를 확정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20261105000957",
+      "bodySha256": "3f32c35c9f2f5e572248f4cd481c4712874d52dfc335faf69235cc1331b7afb3",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20261016000617",
+      "bodySha256": "8b021921c06006cdc0ebf64ec14ed33de9f5bad0e5625b37f03c7e67b5523eed",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20261015000676",
+      "bodySha256": "c21dfe4f170b37fd596c19a19bdcfb0f711b6fc1a3f419dbb763e35144789f42",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20261015000666",
+      "bodySha256": "720b7d1591ff02dc3961a7801f4f6eff741f2f9ea795da013a07e2bee107e7a3",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20261015000144",
+      "bodySha256": "a9090f345f344db634150e08107c9e9bbd08dbb55e3adc853ae2f2108afad5c0",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260821000298",
+      "bodySha256": "a51f64961fc8e716fee619ab80dfe67b5f1cb120a7e1636ec12e58d67ecda0f5",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260810000178",
+      "bodySha256": "715d8886a83767afab99570b985d5c5b9d1b68509738475f3c2ee5177fbf220e",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260804000379",
+      "bodySha256": "087e572d225e37bc70119fd7bea0d284b57aac51c853db42eb8b800f5f74ed89",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260803000617",
+      "bodySha256": "54967e0a2cd4fdeaf368b1cf6486687eb9973c6c178b6604670f4b494f71a894",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260731000150",
+      "bodySha256": "e0b488485b0f2cbb69aac1759d3d52d8d632c95e2aeba5c87734df64fcd43ab1",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260729000804",
+      "bodySha256": "a66b8f414b3a7baf385815388355ac7ee030a04ecef3bac855192bb20299db0e",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260729000791",
+      "bodySha256": "e674e060c771b7606e60cebcb02d29de012217a46629d850c9d7e2ff3d1d524e",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260729000551",
+      "bodySha256": "c04371467743bd5b95063db691929aad9cb92ec948db886213109bb9fd69cdc1",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260728000708",
+      "bodySha256": "2b94f03b62681bfd4fe4fcd93eadeeaf69be3dd53bbc14c7cc1b2f2e4a2d30b4",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260728000690",
+      "bodySha256": "374cf4d0f7f9a85a2f69b510c453e2d38a519d32fbb0449a51d1113c8e9c3421",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260728000222",
+      "bodySha256": "2dbf8476f36c9592ea5d9e67f8ad6c058d36455e672d75ec3e0e5829666f63fe",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260724000574",
+      "bodySha256": "35efa1a22c17d328d7c70dd9ee23963d7f9001fff5d1e1b918505b2a3280855f",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260723000881",
+      "bodySha256": "ee6546a2d46e3b0a08332176381668aef4e0df113b4f7ba07afca3970685eb65",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260720000383",
+      "bodySha256": "829e4a2302f4c883938f748188b7642714e928898b8a368a66027879fa7b640c",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260716000404",
+      "bodySha256": "df63171d8904900baf00fc5cdc6d25c4b6e1220dcc51850a3a1c4500aef62658",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260715000159",
+      "bodySha256": "b6742f1182523633a7cc1bdafbd1eae31c53fee6a4463c158d8c7d377d7d42e7",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260714000579",
+      "bodySha256": "314bdb5b6ed00b263de8148f8aafd93e1bcb1a397bdad496b06ccb190ac41af5",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260710000831",
+      "bodySha256": "d8a97f057295c01d54e8cdeffe0e1e541b629b33fd07ed64b26b193e33af1753",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260708000734",
+      "bodySha256": "cb80c95940455e091ab86f7760623de65273d3eeae53c5dd0d223852f0bf2214",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260702000733",
+      "bodySha256": "999d1d7ae39b7ca2f7da3a53a82c18aadd4a582522d697ab46c35229916a5002",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260629000349",
+      "bodySha256": "b5fac4e8458dbbd8af3211a3d89468d66a30f5296278f5b3e1a91a584d16c32b",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260623000514",
+      "bodySha256": "fe41820d9a5a5e6f5600b99581ba4631af30ed2a165d1368a21c5fe1da4e2618",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260611000818",
+      "bodySha256": "a4b9fb3cac817203f7b6b43613549bdde483e9a80963c5f3f34d244ce72cc748",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260609000303",
+      "bodySha256": "c4e9cbdc4ef0ac6bcb0fe557a6874d5a8573794361aa4e5fb8fe7bed29c54e54",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260608001177",
+      "bodySha256": "cb3fe6200aa4587ef7d24f8db2ff808a04ff377a65114e0370ce810c0c602a2c",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260608001126",
+      "bodySha256": "62f682a854f12bb7b05ee3221c61c91ce31c883587f8f0d6a65000d014832be5",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260608000252",
+      "bodySha256": "6d5f0e58e12444b3a4d7f6442a335e100eb6403564e101f0f2b46f3fcc7fc57a",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260522000230",
+      "bodySha256": "dae4dfde002de2f4e19987b2e97891628d75b5cd3bd5cfe888544c5494e50866",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260521000194",
+      "bodySha256": "f7e9f7439a22f742a86a50008ba19b12783fa638178f3249c04ba83033278eec",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260408000268",
+      "bodySha256": "085a387fc886486ad0d2d320c6d5b0ea6827d6abaabe9f54d72f680ad7b6787c",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260402001374",
+      "bodySha256": "64de5a73e154da83e83149138e7971dab928fa4dbf33dc8838318b0ac2a7fd37",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260401001590",
+      "bodySha256": "2f79728e24265d86b6d8f9974f6711e600b2cdac0b6d802ba3e280e8b873acfd",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260309000517",
+      "bodySha256": "a3963e3c79900a7a9932e26fcf33c90c17495f9609272d93fd7509fab85a48cf",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260306000275",
+      "bodySha256": "045a8d79cb8b80efb004071d4fe74a7250454097cc44445b10d1180b5527edb7",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260305000333",
+      "bodySha256": "072266e17a83a0402619a7b146da9b7123371da1c7a63c5183d408f85127e35e",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260304001049",
+      "bodySha256": "737b27a9e0186b79d0648dca90dd3b052567ffa178b2c3b2e5090a90bff9fc41",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260304000970",
+      "bodySha256": "4dd39185eee4f0f53167c845d4a8c1cbe157e365b46ef149dee7c2f0d47836db",
+      "classification": "MARKET_WIDE_HALT",
+      "reason": "시장 전체 1단계 CB 발동의 원문 일자·초 단위 시각과 향후 20분 중단을 확인한다. 예정된 2/3단계 조건을 실제 발동으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260304000731",
+      "bodySha256": "c46f4ca09bfc07fa2e39296066885c37ea81583abdf82d80dcf40bca927f0afc",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260219000603",
+      "bodySha256": "83bc6eccaeef4d9fb60170bb405e3ddaa7db15c35e9708d9698c08a4c587f636",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260126000446",
+      "bodySha256": "5e1b71e34731ca5e944f8e8a7e69e765f98ef6bc97db580c25c1d563acf79ce7",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20261106000205",
+      "bodySha256": "04d0637c791709b9580715c7656bc4e36dabae5a224c20fc2b86e17cf77dae11",
+      "classification": "PROGRAM_ORDER_PAUSE",
+      "reason": "프로그램 매수/매도 호가의 5분 효력 정지이며 모든 종목의 매매거래 중단이나 정규장 시간 변경과 구분한다.",
+      "subjectIssuer": null
+    }
+  ],
+  "corrections": [
+    {
+      "market": "KOSPI",
+      "originalDocument": "20250325003474",
+      "correctedDocument": "20250325004237",
+      "reason": "주성코퍼레이션 실제 발행주식수 반영으로 평가가격·최고/최저호가와 관련공시 설명이 정정되었다. 적용일 2025-03-26과 시장 전체 세션은 변경하지 않는다."
+    }
+  ]
+}
