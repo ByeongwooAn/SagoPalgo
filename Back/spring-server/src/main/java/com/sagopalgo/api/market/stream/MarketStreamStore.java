@@ -5,6 +5,8 @@ import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class MarketStreamStore {
@@ -33,6 +35,17 @@ public class MarketStreamStore {
             if(created==0) mapper.update(event.stockCode(),minute,write(read(locked,StreamMinuteBar.class).add(event)));
         }
         return true;
+    }
+    /** Publication is deferred to the real enclosing transaction's commit. */
+    @Transactional
+    public boolean appendCommitted(MarketStreamEvent event, Runnable afterCommit) {
+        if(!TransactionSynchronizationManager.isActualTransactionActive() || !TransactionSynchronizationManager.isSynchronizationActive())
+            throw new IllegalStateException("STREAM_TRANSACTION_REQUIRED");
+        boolean added=append(event);
+        if(added) TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override public void afterCommit() { afterCommit.run(); }
+        });
+        return added;
     }
     @Transactional(readOnly=true)
     public List<StreamMinuteBar> minutes(String stock,Instant from) {

@@ -73,7 +73,7 @@ class MarketStreamTest {
         assertThat(bar.volume()).isEqualTo("5");assertThat(bar.coverage()).isEqualTo("OBSERVED_ONLY");
     }
     @Test void liveRequiresAcknowledgedConnectionAndBothFreshDataTypes() {
-        var store=mock(MarketStreamStore.class);when(store.append(any())).thenReturn(true);when(store.minutes(any(),any())).thenReturn(List.of());
+        var store=mock(MarketStreamStore.class);when(store.appendCommitted(any(),any())).thenAnswer(call->{((Runnable)call.getArgument(1)).run();return true;});when(store.minutes(any(),any())).thenReturn(List.of());
         var hub=new MarketStreamHub(enabled(),store);hub.connection("SUBSCRIBING",null);
         hub.accept(decoder.decode(trade("100001","100","1","1"),NOW).get(0));hub.accept(decoder.decode(quote(),NOW).get(0));
         assertThat(hub.snapshot("005930",NOW).state()).isEqualTo("SUBSCRIBING");
@@ -84,12 +84,12 @@ class MarketStreamTest {
         hub.connection("CONNECTED",null);assertThat(hub.snapshot("005930",NOW).state()).isEqualTo("WAITING_DATA");
     }
     @Test void duplicateAndOutOfOrderTicksDoNotFreshenOrRegressLatestTrade() {
-        var store=mock(MarketStreamStore.class);when(store.append(any())).thenReturn(true);when(store.minutes(any(),any())).thenReturn(List.of());
+        var store=mock(MarketStreamStore.class);when(store.appendCommitted(any(),any())).thenAnswer(call->{((Runnable)call.getArgument(1)).run();return true;});when(store.minutes(any(),any())).thenReturn(List.of());
         var hub=new MarketStreamHub(enabled(),store);hub.connection("CONNECTED",null);
         hub.accept(decoder.decode(trade("100003","103","1","3"),NOW).get(0));
         hub.accept(decoder.decode(trade("100001","101","1","1"),NOW).get(0));hub.accept(decoder.decode(quote(),NOW).get(0));
         assertThat(hub.snapshot("005930",NOW).trade().price()).isEqualTo("103");
-        when(store.append(any())).thenReturn(false);
+        doReturn(false).when(store).appendCommitted(any(),any());
         hub.accept(decoder.decode(trade("100003","103","1","3"),NOW.plusSeconds(20)).get(0));
         assertThat(hub.snapshot("005930",NOW.plusSeconds(20)).state()).isEqualTo("STALE");
         assertThatThrownBy(()->hub.accept(new MarketStreamEvent("id","000660","TRADE",NOW,NOW,"1","1","1",List.of(),List.of(),"0","PROVIDER_DATE")))

@@ -44,7 +44,8 @@ class CaptureGap(StrictModel):
 
 class QuoteExecutionPolicy(StrictModel):
     schemaVersion: Literal["SAGOPALGO_QUOTE_EXECUTION_V1"]
-    availabilityMode: Literal["EXPORT_KNOWN_AT","RECEIPT_DERIVED_SCENARIO"] = "EXPORT_KNOWN_AT"
+    availabilityMode: Literal["EXPORT_KNOWN_AT","RECEIPT_DERIVED_SCENARIO","INPUT_PUBLICATION_OBSERVED"] = "EXPORT_KNOWN_AT"
+    decisionClockDomain: str | None = Field(default=None,pattern=r"^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$")
     quoteOrdering: Literal["REQUIRE_UNAMBIGUOUS_MARKET_TIME","CLIENT_RECEIPT_SCENARIO"] = "REQUIRE_UNAMBIGUOUS_MARKET_TIME"
     allowSynthetic: bool = False
     allowAnchoredQuoteDate: bool = False
@@ -67,7 +68,9 @@ class QuoteExecutionPolicy(StrictModel):
             raise ValueError("positive price/rate/order limits required")
         if Decimal(self.feeBps)+Decimal(self.sellTaxBps)>10000:raise ValueError("combined bps limit")
         if self.quoteOrdering=="CLIENT_RECEIPT_SCENARIO" and self.availabilityMode!="RECEIPT_DERIVED_SCENARIO":
-            raise ValueError("client receipt ordering requires explicit receipt scenario")
+            if self.availabilityMode!="INPUT_PUBLICATION_OBSERVED":raise ValueError("client receipt ordering requires explicit observation mode")
+        if (self.availabilityMode=="INPUT_PUBLICATION_OBSERVED") != (self.decisionClockDomain is not None):
+            raise ValueError("observed publication requires the matching decision clock domain")
         return self
 
 
@@ -92,6 +95,11 @@ def _estimate_quotes(raw, tick_config, evidence_raw, policy, orders, intraday):
     cash=Decimal(policy.initialCash);position=policy.initialPosition
     used={};outcomes=[]
     scenario=policy.availabilityMode=="RECEIPT_DERIVED_SCENARIO"
+    observed=policy.availabilityMode=="INPUT_PUBLICATION_OBSERVED"
+    by_id={r["eventId"]:r for r in records}
+    def publication_visible(row,at):
+        value=row.get("availabilityObservation")
+        return value and value["clockDomain"]==policy.decisionClockDomain and value["clockQuality"]=="MONOTONIC_STABLE" and precise_time(value["inputPublishedAt"])<=at
     for order in sorted(orders,key=lambda o:(o.decisionAt,o.orderId)):
         at=order.decisionAt+timedelta(milliseconds=policy.latencyMs)
         result={"orderId":order.orderId,"at":at.isoformat(),"quantityRequested":order.quantity,
@@ -111,9 +119,9 @@ def _estimate_quotes(raw, tick_config, evidence_raw, policy, orders, intraday):
                     break
             if blocked:continue
         visible=[q for q in quotes if times[q["eventId"]][0]<=at and times[q["eventId"]][1]<=at
-                 and (scenario or times[q["eventId"]][2]<=at)]
+                 and (publication_visible(q,at) if observed else scenario or times[q["eventId"]][2]<=at)]
         if not visible:
-            reasons.append("NO_VISIBLE_QUOTE" if scenario else "HISTORICAL_AVAILABILITY_UNCONFIRMED")
+            reasons.append("OBSERVED_PUBLICATION_NOT_VISIBLE" if observed else "NO_VISIBLE_QUOTE" if scenario else "HISTORICAL_AVAILABILITY_UNCONFIRMED")
             quote=None
         else:
             latest=max(times[q["eventId"]][0] for q in visible)
@@ -134,6 +142,9 @@ def _estimate_quotes(raw, tick_config, evidence_raw, policy, orders, intraday):
             if quote["dateEvidence"]["status"]!="PROVIDER_DATE" and not (
                 policy.allowAnchoredQuoteDate and quote["dateEvidence"]["status"]=="CROSS_FEED_ANCHORED_ONLY"
             ):reasons.append("QUOTE_BUSINESS_DATE_UNCONFIRMED")
+            if observed and quote["dateEvidence"]["anchorEventId"]:
+                anchor=by_id[quote["dateEvidence"]["anchorEventId"]]
+                if not publication_visible(anchor,at):reasons.append("DATE_ANCHOR_NOT_PUBLISHED")
             reasons.extend(flag for flag in quote["flags"] if flag in {
                 "INCOMPLETE_BOOK_LEVELS","UNORDERED_BOOK","LOCKED_OR_CROSSED_BOOK","EMPTY_BOOK_SIDE"})
         if reasons:
@@ -180,12 +191,12 @@ def _estimate_quotes(raw, tick_config, evidence_raw, policy, orders, intraday):
                       reasons=[],notional=format(notional,"f"),fee=format(fee,"f"),sellTax=format(tax,"f"))
         outcomes.append(result)
     report={"schemaVersion":"SAGOPALGO_QUOTE_EXECUTION_V1","sourceExportSha256":digest(raw),
-            "policy":policy.model_dump(mode="json"),"tickConfig":tick_config.model_dump(mode="json"),
+            "policy":policy.model_dump(mode="json",exclude_none=True),"tickConfig":tick_config.model_dump(mode="json"),
             "ordersSha256":digest(canonical([o.model_dump(mode="json") for o in orders])),
             "quality":quality,"inputIssues":audit["issues"],"outcomes":outcomes,
             "statusCounts":dict(Counter(o["status"] for o in outcomes)),"endingCash":format(cash,"f"),"endingPosition":position,
             "liquidityRefreshPolicy":"NO_REPLENISHMENT_WITHOUT_ORDER_IDS","orderDuration":"ONE_ATTEMPT_IOC",
-            "costAndTickEvidence":"CALLER_ASSUMPTIONS_NOT_BROKER_VERIFIED","causalAvailability":"RECEIPT_DERIVED_ASSUMPTION" if scenario else "EXPORT_KNOWN_AT",
+            "costAndTickEvidence":"CALLER_ASSUMPTIONS_NOT_BROKER_VERIFIED","causalAvailability":"INPUT_PUBLICATION_SAME_CLOCK_DOMAIN" if observed else "RECEIPT_DERIVED_ASSUMPTION" if scenario else "EXPORT_KNOWN_AT",
             "accountFillStatus":"NOT_PROVEN","usableForTrading":False,"usableForStrategyValidation":False}
     if intraday is not None:
         report["intradayBinding"]={"timelineSha256":intraday.timelineSha256,"market":intraday.market,"orderClass":intraday.orderClass}

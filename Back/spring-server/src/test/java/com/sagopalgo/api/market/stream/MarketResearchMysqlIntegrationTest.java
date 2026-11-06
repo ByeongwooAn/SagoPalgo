@@ -42,7 +42,7 @@ class MarketResearchMysqlIntegrationTest {
         assertThat(jdbc.queryForObject("SELECT DATABASE()",String.class)).isEqualTo("sagopalgo_market_research_test");
         assertThat(jdbc.queryForObject("SELECT marker FROM isolated_test_environment_marker",String.class)).isEqualTo("SAGOPALGO_ISOLATED_MARKET_RESEARCH_TEST_ONLY");
         try(var connection=source.getConnection()) {
-            for(String name:List.of("002_research_feed_storage.sql","025_market_stream.sql","026_research_incremental.sql"))
+            for(String name:List.of("002_research_feed_storage.sql","025_market_stream.sql","026_research_incremental.sql","027_market_input_availability.sql"))
                 ScriptUtils.executeSqlScript(connection,new FileSystemResource("../database/migrations/"+name));
             // 재적용 시 기존 이력/커서를 초기화하지 않습니다.
             ScriptUtils.executeSqlScript(connection,new FileSystemResource("../database/migrations/026_research_incremental.sql"));
@@ -52,7 +52,7 @@ class MarketResearchMysqlIntegrationTest {
         var factory=new SqlSessionFactoryBean();factory.setDataSource(source);factory.setConfiguration(config);session=new SqlSessionTemplate(factory.getObject());
     }
     @BeforeEach void resetOnlyTestFixtures() {
-        for(String table:List.of("research_versions","research_item_heads","research_checkpoints","research_news","research_disclosures","market_stream_minutes","market_stream_events")) jdbc.update("DELETE FROM "+table);
+        for(String table:List.of("market_stream_availability","research_versions","research_item_heads","research_checkpoints","research_news","research_disclosures","market_stream_minutes","market_stream_events")) jdbc.update("DELETE FROM "+table);
         jdbc.update("UPDATE research_journal_clock SET last_id=0 WHERE singleton=1");
         var policy=new ResearchProviderProperties();policy.getIncremental().setEnabled(true);
         journalMapper=session.getMapper(ResearchJournalMapper.class);
@@ -177,7 +177,7 @@ class MarketResearchMysqlIntegrationTest {
         assertThat(result.researchVersions().stream().filter(v -> v.kind().equals("NEWS"))).extracting(StoredDatasetExportService.VersionRow::revision).containsExactly(1L,2L,3L);
         assertThat(result.readOnly()).isTrue();assertThat(result.usableForTrading()).isFalse();
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_events",Integer.class)).isEqualTo(4);
-        var fixture = java.nio.file.Path.of("build-codex-dataset-export/bridge-fixture.json");
+        var fixture = java.nio.file.Path.of(System.getenv().getOrDefault("SAGOPALGO_STORED_EXPORT_FIXTURE_OUTPUT","build-codex-dataset-export/bridge-fixture.json"));
         java.nio.file.Files.createDirectories(fixture.getParent());
         java.nio.file.Files.write(fixture,bridgeJson.writeValueAsBytes(com.sagopalgo.api.common.response.ApiResponse.success(result,"SYNTHETIC_TEST_ONLY")));
     }
@@ -216,5 +216,80 @@ class MarketResearchMysqlIntegrationTest {
             assertThat(result.researchVersions()).isEmpty();
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM research_versions",Integer.class)).isEqualTo(1);
         } finally {pool.shutdownNow();}
+    }
+    MarketStreamHub observedHub() {
+        return new MarketStreamHub(MarketStreamTest.enabled(),stream,
+            new MarketAvailabilityJournal(jdbc,json,new MarketAvailabilityClock(),manager,true));
+    }
+    @Test void inputIsInvisibleBeforeCommitAndRollbackLeavesNoReceipt() {
+        var hub=observedHub();hub.connection("CONNECTED",null);
+        new TransactionTemplate(manager).executeWithoutResult(status->{
+            hub.accept(tick("100001","100","1","1"));
+            assertThat(hub.snapshot("005930",MarketStreamTest.NOW).trade()).isNull();
+            assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_availability",Integer.class)).isZero();
+            status.setRollbackOnly();
+        });
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_events",Integer.class)).isZero();
+        assertThat(hub.snapshot("005930",MarketStreamTest.NOW).trade()).isNull();
+    }
+    @Test void rolledBackSavepointNeverPublishesEvenWhenOuterTransactionCommits() {
+        for(boolean recording:List.of(false,true)) {
+            var hub=new MarketStreamHub(MarketStreamTest.enabled(),stream,
+                new MarketAvailabilityJournal(jdbc,json,new MarketAvailabilityClock(),manager,recording));
+            hub.connection("CONNECTED",null);
+            new TransactionTemplate(manager).executeWithoutResult(outer->{
+                var nested=new TransactionTemplate(manager);nested.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_NESTED);
+                nested.executeWithoutResult(inner->{hub.accept(tick("100001","100","1","1"));inner.setRollbackOnly();});
+            });
+            assertThat(hub.snapshot("005930",MarketStreamTest.NOW).trade()).isNull();
+            assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_events",Integer.class)).isZero();
+            assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_availability",Integer.class)).isZero();
+        }
+    }
+    @Test void committedPublicationIsBoundToPayloadAndNeverRefreshedByDuplicate() {
+        var hub=observedHub();hub.connection("CONNECTED",null);var event=tick("100001","100","1","1");
+        hub.accept(event);
+        assertThat(hub.snapshot("005930",MarketStreamTest.NOW).trade()).isEqualTo(event);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_availability",Integer.class)).isEqualTo(1);
+        String observed=jdbc.queryForObject("SELECT input_published_at FROM market_stream_availability",String.class);
+        hub.accept(event);
+        assertThat(jdbc.queryForObject("SELECT input_published_at FROM market_stream_availability",String.class)).isEqualTo(observed);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_availability WHERE input_published_at>=commit_observed_at AND published_elapsed_ns>=commit_elapsed_ns AND content_hash=SHA2((SELECT payload FROM market_stream_events LIMIT 1),256)",Integer.class)).isEqualTo(1);
+    }
+    @Test void staleGenerationAndOlderEventsHaveNoFalsePublicationReceipt() {
+        var hub=observedHub();hub.connection("CONNECTED",null);
+        new TransactionTemplate(manager).executeWithoutResult(status->{hub.accept(tick("100001","100","1","1"));hub.connection("RECONNECTING","TEST");});
+        assertThat(hub.snapshot("005930",MarketStreamTest.NOW).trade()).isNull();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_availability",Integer.class)).isZero();
+        hub.connection("CONNECTED",null);hub.accept(tick("100003","103","1","3"));hub.accept(tick("100002","102","1","2"));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_events",Integer.class)).isEqualTo(3);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_availability",Integer.class)).isEqualTo(1);
+    }
+    @Test void receiptWriteFailurePreservesCommittedSourceButClearsProjection() {
+        jdbc.execute("CREATE TRIGGER test_availability_failure BEFORE INSERT ON market_stream_availability FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='test-only'");
+        var hub=observedHub();hub.connection("CONNECTED",null);
+        try {assertThatThrownBy(()->hub.accept(tick("100001","100","1","1"))).hasMessage("AVAILABILITY_RECORD_FAILED");}
+        finally {jdbc.execute("DROP TRIGGER test_availability_failure");}
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_events",Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM market_stream_availability",Integer.class)).isZero();
+        assertThat(hub.snapshot("005930",MarketStreamTest.NOW).trade()).isNull();
+    }
+    @Test void availabilityExportDoesNotInventReceiptsForOldRowsAndPreservesV1() throws Exception {
+        var bridgeJson=json.copy().disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        var bridgeStream=proxy(new MarketStreamStore(session.getMapper(MarketStreamMapper.class),bridgeJson));
+        bridgeStream.append(tick("100001","100","1","1"));
+        var hub=new MarketStreamHub(MarketStreamTest.enabled(),bridgeStream,
+            new MarketAvailabilityJournal(jdbc,bridgeJson,new MarketAvailabilityClock(),manager,true));
+        hub.connection("CONNECTED",null);hub.accept(tick("100002","101","1","2"));
+        var service=proxy(new StoredDatasetExportService(jdbc,bridgeJson));
+        var v1=service.export("005930",Instant.parse("2026-11-03T01:00:00Z"),Instant.parse("2026-11-03T01:01:00Z"));
+        var v2=service.exportAvailability("005930",v1.from(),v1.to());
+        assertThat(v2.streamEvents()).hasSize(2);
+        assertThat(v2.streamEvents().get(0).availability()).isNull();
+        assertThat(v2.streamEvents().get(1).availability().utcSynchronized()).isFalse();
+        assertThat(v1.schemaVersion()).isEqualTo("SAGOPALGO_STORED_EXPORT_V1");
+        var fixture=java.nio.file.Path.of("build-codex-availability/bridge-v2.json");
+        java.nio.file.Files.createDirectories(fixture.getParent());
+        java.nio.file.Files.write(fixture,json.copy().disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).writeValueAsBytes(v2));
     }
 }

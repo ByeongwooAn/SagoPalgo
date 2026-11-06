@@ -5,6 +5,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import unittest
+import hashlib
 from unittest.mock import patch
 
 import capture_public_tick_sample as capture
@@ -32,7 +33,7 @@ class CapturePublicSampleTest(unittest.TestCase):
         for stock in ["x","1234567","12345\n"]:
             with self.assertRaises(ValueError):capture.isolated_environment(source(),stock)
 
-    def run_capture(self,available):
+    def run_capture(self,available,jar=None):
         clock=[0];calls=[]
         def docker(args,**kwargs):
             calls.append(args)
@@ -40,7 +41,13 @@ class CapturePublicSampleTest(unittest.TestCase):
                 v={"Config":{"Env":[k+"="+v for k,v in source().items()],"Image":"test-local-image"},
                    "NetworkSettings":{"Networks":{"test-network":{}}},"Image":"sha256:test-local"}
                 return subprocess.CompletedProcess([],0,stdout=json.dumps([v]).encode())
-            if args[0]=="run":return subprocess.CompletedProcess([],0,stdout=b"a"*64)
+            if args[0]=="run":
+                if jar:
+                    env_path=Path(args[args.index("--env-file")+1])
+                    self.assertIn("SAGOPALGO_MARKET_AVAILABILITY_ENABLED=true",env_path.read_text())
+                    self.assertIn("--mount",args)
+                    self.assertIn("readonly",args[args.index("--mount")+1])
+                return subprocess.CompletedProcess([],0,stdout=b"a"*64)
             return subprocess.CompletedProcess([],0,stdout=b"")
         def get(url):
             if not available:raise ValueError("not ready")
@@ -51,7 +58,8 @@ class CapturePublicSampleTest(unittest.TestCase):
         with patch.object(capture,"docker",side_effect=docker),patch.object(capture,"public_get",side_effect=get),\
              patch.object(capture.time,"monotonic",side_effect=lambda:clock[0]),patch.object(capture.time,"sleep",side_effect=sleep),\
              contextlib.redirect_stdout(stdout):
-            result=capture.main(["--stock-code","247540","--seconds","5","--personal-local-use-confirmed","--no-other-key-client-confirmed"])
+            result=capture.main(["--stock-code","247540","--seconds","5","--personal-local-use-confirmed","--no-other-key-client-confirmed"]+
+                                (["--availability-jar",str(jar)] if jar else []))
         public=json.loads(stdout.getvalue());folder=Path(public["receipt"]).parent
         try:
             receipt=json.loads((folder/"receipt.json").read_bytes())
@@ -75,6 +83,23 @@ class CapturePublicSampleTest(unittest.TestCase):
     def test_startup_timeout_also_stops_and_preserves_safe_receipt(self):
         result,r=self.run_capture(False)
         self.assertEqual(result,1);self.assertEqual(r["failureCode"],"CAPTURE_STARTUP_TIMEOUT")
+
+    def test_workspace_jar_is_hash_bound_and_mounted_read_only(self):
+        folder=Path(capture.__file__).resolve().parents[1]/"Back/spring-server/build-codex-availability"
+        folder.mkdir(exist_ok=True)
+        path=folder/"synthetic-capture-test.jar"
+        with path.open("xb") as stream:stream.write(b"synthetic-test-only")
+        try:
+            result,r=self.run_capture(True,path)
+            self.assertEqual(result,0)
+            self.assertEqual(r["availabilityJarSha256"],hashlib.sha256(path.read_bytes()).hexdigest())
+        finally:path.unlink()
+
+    def test_missing_jar_is_rejected_before_docker_or_environment_writes(self):
+        with patch.object(capture,"docker") as docker,contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                capture.main(["--stock-code","247540","--availability-jar","missing.jar","--personal-local-use-confirmed","--no-other-key-client-confirmed"])
+            docker.assert_not_called()
 
 
 if __name__=="__main__":unittest.main()

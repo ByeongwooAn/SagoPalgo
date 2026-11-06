@@ -355,6 +355,8 @@ Toss 공식 `GET /api/v1/stocks?symbols=종목코드` 응답을 사용합니다.
 
 `GET /api/v1/research/dataset-export?stockCode=005930&from=2025-11-03T00:00:00Z&to=2025-11-03T00:02:00Z`는 [내보내기 계약](stored-dataset-export.md)을 따릅니다. no-store·읽기 전용 REPEATABLE_READ이며 외부 Provider/계좌/주문을 호출하지 않습니다. 025/026 필요, 종목별 분 단위 최대 24시간·각 종류 10,000행·원문 합계 32MiB 상한입니다. 시세는 시장 시각 구간, 연구 버전은 to 이전의 전체 관측 이력을 반환하고 상한 초과를 부분 성공으로 바꾸지 않습니다.
 
+후속 `GET /api/v1/research/dataset-export/availability`는 같은 쿼리/상한/읽기 전용 계약의 `SAGOPALGO_STORED_EXPORT_V2`입니다. 027 테이블의 선택적 `availability`(해시·clockDomain·커밋/로컬 공개 관측 시각·단조 경과량·품질)를 연결합니다. 기록 없음은 null, `utcSynchronized=false`이며 실제 외부 전략 수신을 의미하지 않습니다. 기존 V1 응답은 유지합니다. [전체 계약·운영 확인](committed-input-availability.md)을 따릅니다.
+
 ### 6.1 앱 초기 스냅샷 조회
 
 

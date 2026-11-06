@@ -3,7 +3,7 @@
 SagoPalgo는 개인용 Windows 투자 프로그램입니다. 최종 목표는 KB증권 실계좌를 기준으로 실시간 시장 데이터·뉴스·공시·수급을 분석하고, 검증된 AI·전략이 운용 한도 안에서 종목·금액·매매 시점을 판단하는 단기 자동매매 시스템입니다.
 현재는 계좌 조회·규칙 기반 분석·알림·모의매매·제한된 승인형 주문을 구현한 상태이며, 실시간 수집·학습 모델·자동매매는 단계적으로 개발합니다.
 
-최근 작업은 [세션·시각 품질·호가 체결 추정과 표본 확대](docs/quote-execution-quality.md)입니다. 이번 ①~③의 검증 항목은 17/20·85%, [프로젝트 고정 체크리스트](docs/numbered-work-progress.md)는 27/48·56%로 구분합니다. [주 30시간 기준 완료일 추정](docs/development-completion-estimate.md)은 구현율과 별도로 범위·외부 의존성을 반영합니다.
+최근 작업은 [커밋 이후 로컬 입력 공개 시각 기록](docs/committed-input-availability.md)입니다. 실제 표본 5건의 공개 경계를 확인했으며 UTC 동기화·외부 전략 수신은 다음 작업입니다. [실행 단위별 잔여 작업](docs/remaining-development-units.md)과 [고정 체크리스트 27/48·56%](docs/numbered-work-progress.md)를 구분해 관리합니다. [주 30시간 기준 완료일 추정](docs/development-completion-estimate.md)은 별도 추정 기록입니다.
 
 ## 프로젝트 방향
 

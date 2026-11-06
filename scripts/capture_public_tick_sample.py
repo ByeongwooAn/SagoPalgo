@@ -7,6 +7,7 @@ import re
 import subprocess
 import time
 import uuid
+import hashlib
 
 from check_public_tick_readiness import public_get
 
@@ -44,10 +45,17 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stock-code", required=True)
     parser.add_argument("--seconds", type=int, default=20, choices=range(5, 61), metavar="5..60")
+    parser.add_argument("--availability-jar",type=Path)
     parser.add_argument("--personal-local-use-confirmed", action="store_true", required=True)
     parser.add_argument("--no-other-key-client-confirmed", action="store_true", required=True)
     args = parser.parse_args(argv)
     if not re.fullmatch(r"[0-9]{6}", args.stock_code): parser.error("six-digit stock code required")
+    jar=None
+    if args.availability_jar:
+        jar=args.availability_jar.resolve()
+        project=Path(__file__).resolve().parents[1]
+        if args.availability_jar.is_symlink() or not jar.is_file() or jar.suffix!=".jar" or not jar.is_relative_to(project/"Back/spring-server") or "," in str(jar):
+            parser.error("workspace backend jar required")
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")+"-"+uuid.uuid4().hex[:8]
     out = Path(__file__).resolve().parents[1]/"Back/spring-server/build-codex-quote-samples"/(args.stock_code+"-"+stamp)
     out.mkdir(parents=True)
@@ -62,6 +70,11 @@ def main(argv=None):
         original = json.loads(docker(["inspect", "sagopalgo-spring-api"], check=True).stdout)[0]
         source = dict(x.split("=",1) for x in original["Config"]["Env"] if "=" in x)
         values = isolated_environment(source,args.stock_code)
+        mount=[]
+        if jar:
+            values["SAGOPALGO_MARKET_AVAILABILITY_ENABLED"]="true"
+            mount=["--mount","type=bind,source="+str(jar)+",target=/app/app.jar,readonly"]
+            receipt["availabilityJarSha256"]=hashlib.sha256(jar.read_bytes()).hexdigest()
         networks = list(original["NetworkSettings"]["Networks"])
         if len(networks)!=1: raise ValueError("NETWORK_AMBIGUOUS")
         image = original["Image"]
@@ -72,7 +85,7 @@ def main(argv=None):
             stream.write("".join(k+"="+v+"\n" for k,v in values.items()))
         result = docker(["run","-d","--rm","--pull=never","--name","sagopalgo-bounded-public-sample",
                          "--label","sagopalgo.purpose=bounded-public-tick-sample","--network",networks[0],
-                         "-p","127.0.0.1:18080:8080","--env-file",str(env_path),"--entrypoint","/usr/bin/timeout",image,
+                         "-p","127.0.0.1:18080:8080","--env-file",str(env_path),*mount,"--entrypoint","/usr/bin/timeout",image,
                          "--signal=TERM","--kill-after=5s",str(args.seconds+50)+"s","java","-jar","/app/app.jar"])
         if result.returncode: raise ValueError("CAPTURE_CONTAINER_START_FAILED")
         container=result.stdout.decode().strip()

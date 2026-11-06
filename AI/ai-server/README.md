@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+최신 후속은 [커밋 이후 로컬 입력 공개 시각](../../docs/committed-input-availability.md)입니다. V1/V2 입력 검증, 오프라인 `snapshot-inputs`, 명시적 `INPUT_PUBLICATION_OBSERVED` 호가 모드를 추가했습니다. 같은 JVM 도메인의 안정 관측만 사용하며 UTC 동기화·실제 AI 수신과 구분합니다. 전체 회귀 1,164건 통과입니다. [다음/잔여 실행 단위](../../docs/remaining-development-units.md)를 따릅니다.
+
 [세션·시각 품질·호가 체결 추정](../../docs/quote-execution-quality.md)은 `profile-ticks`·`quote-scenario` CLI입니다. 공식 코드 0은 장중 의미만 연결하고 추정 날짜/가용 시각을 승격하지 않습니다. 기본 가용 시각 모드는 보류하며, 명시적 연구 가정에서 시장가·지정가 IOC/자원/잔량·비용 가정과 기존 장중 제한을 검사합니다. 실제 고유 이벤트 1,199개·호가 가정 프로브 28개, 전체 AI 1,150개 테스트 통과이며 독립 비용·계좌 체결과 장기 운영은 남습니다.
 
 [실제 틱 수집 장애 복구](../../docs/public-tick-collection-recovery.md)에서 025/026 적용 후 체결 946·호가 135행을 확보해 기존 `audit-ticks`로 입력 대조했습니다. 실제 원문은 Git 제외 경로에 보존하며 세션 코드·시각 품질·실제 주문 체결 검증은 남습니다. 운영 공개 저장소 점검은 루트 `scripts/check_public_tick_readiness.py`입니다.
