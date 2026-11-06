@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+최신 후속은 [U02 연구용 입력 수신·시계 연결](../../docs/strategy-input-receipts.md)입니다. `python -m app.replay.input_receipts --base-url http://127.0.0.1:18081 --config tick-config.json --output research-artifacts/새-영수증`으로 명시적 로컬 수신·해시 검증·시계 연결·영수증 게시를 수행합니다. 기존 `app.replay` CLI는 오프라인으로 유지합니다. 실제 123건 수신·프로세스 재시작, 최종 전체 1,196건 통과이며 모델 실행·전역 UTC 판단과 구분합니다.
+
 최신 후속은 [커밋 이후 로컬 입력 공개 시각](../../docs/committed-input-availability.md)입니다. V1/V2 입력 검증, 오프라인 `snapshot-inputs`, 명시적 `INPUT_PUBLICATION_OBSERVED` 호가 모드를 추가했습니다. 같은 JVM 도메인의 안정 관측만 사용하며 UTC 동기화·실제 AI 수신과 구분합니다. 전체 회귀 1,164건 통과입니다. [다음/잔여 실행 단위](../../docs/remaining-development-units.md)를 따릅니다.
 
 [세션·시각 품질·호가 체결 추정](../../docs/quote-execution-quality.md)은 `profile-ticks`·`quote-scenario` CLI입니다. 공식 코드 0은 장중 의미만 연결하고 추정 날짜/가용 시각을 승격하지 않습니다. 기본 가용 시각 모드는 보류하며, 명시적 연구 가정에서 시장가·지정가 IOC/자원/잔량·비용 가정과 기존 장중 제한을 검사합니다. 실제 고유 이벤트 1,199개·호가 가정 프로브 28개, 전체 AI 1,150개 테스트 통과이며 독립 비용·계좌 체결과 장기 운영은 남습니다.

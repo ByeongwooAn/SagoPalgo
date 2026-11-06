@@ -357,6 +357,8 @@ Toss 공식 `GET /api/v1/stocks?symbols=종목코드` 응답을 사용합니다.
 
 후속 `GET /api/v1/research/dataset-export/availability`는 같은 쿼리/상한/읽기 전용 계약의 `SAGOPALGO_STORED_EXPORT_V2`입니다. 027 테이블의 선택적 `availability`(해시·clockDomain·커밋/로컬 공개 관측 시각·단조 경과량·품질)를 연결합니다. 기록 없음은 null, `utcSynchronized=false`이며 실제 외부 전략 수신을 의미하지 않습니다. 기존 V1 응답은 유지합니다. [전체 계약·운영 확인](committed-input-availability.md)을 따릅니다.
 
+`GET /api/v1/research/input-delivery?requestId=<요청별 UUID>&stockCode=005930&from=<UTC>&to=<UTC>`는 V2와 같은 읽기 전용/구간/상한 계약의 `SAGOPALGO_INPUT_DELIVERY_V1`입니다. 요청·새 deliveryId·JVM 도메인·수신/발행 단조 시각·V2 원문 JSON 문자열/UTF-8 SHA-256을 반환합니다. no-store, utcSynchronized=false이며 계좌·Provider·모델·주문을 호출하지 않습니다. [Python 수신·오차 범위·차단과 실제 검증](strategy-input-receipts.md)을 따릅니다.
+
 ### 6.1 앱 초기 스냅샷 조회
 
 

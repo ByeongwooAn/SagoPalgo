@@ -1,5 +1,7 @@
 # R2·R3 저장 자료 → R5 데이터셋 연결
 
+최신 후속 [로컬 연구 입력 전달·수신](strategy-input-receipts.md)은 V2를 감싼 `GET /api/v1/research/input-delivery`와 명시적 Python 로컬 HTTP 소비기를 추가합니다. 원문 해시·요청/발행/수신 ID·두 프로세스 도메인·시계 오차 범위와 실제 수신 경계를 기록합니다. 기존 V1/V2·기본 변환은 유지합니다.
+
 2026-11-06 후속: 기존 V1을 유지하고 [선택적 커밋/로컬 공개 관측 V2](committed-input-availability.md)를 추가했습니다. `GET /api/v1/research/dataset-export/availability`는 027 관측을 함께 반환하며, 없으면 null입니다. 실제 UTC 동기화·외부 전략 수신을 주장하지 않습니다. Python은 V1/V2를 지원하고 기본 변환의 보수적 가용 시각은 유지합니다. 아래는 V1의 원래 계약과 당시 검증 기록입니다.
 
 후속 [틱 감사·대조 계약](tick-reference-validation.md)은 export V1의 체결/호가를 별도 감사 폴더로 보존합니다. 기존 BAR 변환이나 엔진 정책은 변경하지 않으며, 빈 호가·추정 날짜·거래소 순번/과거 가용 시각 부재를 표시합니다.
