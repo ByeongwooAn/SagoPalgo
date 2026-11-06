@@ -11,6 +11,7 @@ from .models import ReplayConfig, ResearchError, utc
 from .temporal import SplitRequest, temporal_split
 from .stored import convert_file
 from .intraday import load_policy
+from .ticks import audit_tick_files
 
 
 def write_report(path: Path, report):
@@ -47,12 +48,20 @@ def main(argv=None) -> int:
     stored.add_argument("--input", required=True, type=Path)
     stored.add_argument("--config", required=True, type=Path)
     stored.add_argument("--output", required=True, type=Path)
+    ticks = commands.add_parser("audit-ticks")
+    ticks.add_argument("--input", required=True, type=Path)
+    ticks.add_argument("--config", required=True, type=Path)
+    ticks.add_argument("--claims", type=Path)
+    ticks.add_argument("--output", required=True, type=Path)
     args = parser.parse_args(argv)
     if args.command == 'replay':
         binding = [args.intraday_timeline, args.timeline_sha256, args.market, args.order_class]
         if any(binding) and not all(binding):parser.error('intraday replay requires --intraday-timeline --timeline-sha256 --market --order-class together')
     try:
-        if args.command == "convert-stored":
+        if args.command == "audit-ticks":
+            report = audit_tick_files(args.input, args.config, args.output, args.claims)
+            result = {k: report[k] for k in ["status", "counts", "comparisonCounts", "reportId"]}
+        elif args.command == "convert-stored":
             report = convert_file(args.input, args.config, args.output)
             result = {k: report[k] for k in ["status", "outputRecordCount", "excludedCounts"]}
         elif args.command == "build":

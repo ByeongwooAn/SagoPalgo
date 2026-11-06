@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "SAGOPALGO_TICK_SAMPLE_PLAN_V1",
+  "asOf": "2026-11-06",
+  "collectionPolicy": "CACHE_ONLY",
+  "maxNewProviderRequests": 0,
+  "scope": "KRX KOSPI/KOSDAQ common shares; no account orders or subscriptions",
+  "sessionCodePolicy": "Confirm provider code meaning before mapping; do not copy synthetic R",
+  "selectionPolicy": "Pinned windows are candidates, not verified actual sessions or available ticks",
+  "samples": [
+    {"id": "continuous-kospi", "market": "KOSPI", "stockCode": "005930", "from": "2026-11-02T00:00:00Z", "to": "2026-11-02T00:05:00Z", "scenario": "CONTINUOUS", "status": "NO_ACTUAL_TICKS"},
+    {"id": "continuous-kosdaq", "market": "KOSDAQ", "stockCode": "247540", "from": "2026-11-02T00:00:00Z", "to": "2026-11-02T00:05:00Z", "scenario": "CONTINUOUS", "status": "NO_ACTUAL_TICKS"},
+    {"id": "thin-volume", "market": "KOSPI", "stockCode": "005930", "from": "2026-11-02T05:00:00Z", "to": "2026-11-02T05:05:00Z", "scenario": "LOW_LIQUIDITY_CANDIDATE", "status": "CONDITION_AND_TICKS_UNCONFIRMED", "requirement": "Verify low volume/book depth first; if unmet, exclude this candidate, do not relabel it as low liquidity"},
+    {"id": "gap", "market": "KOSPI", "stockCode": "005930", "from": "2026-11-02T00:00:00Z", "to": "2026-11-02T00:05:00Z", "scenario": "GAP_OR_LATE_RECEIPT", "status": "CONDITION_AND_TICKS_UNCONFIRMED", "requirement": "Synthetic removal tests are separate from observed real gaps"},
+    {"id": "halt-boundary", "market": "KOSPI", "stockCode": "005930", "from": "2024-08-05T05:14:00Z", "to": "2024-08-05T05:16:00Z", "scenario": "HALT_START", "boundaryAt": "2024-08-05T05:14:30Z", "status": "NOTICE_ONLY_NO_TICKS", "requirement": "Before/start/after boundary; timeline market evidence does not confirm this symbol tape"},
+    {"id": "reopen-auction", "market": "KOSPI", "stockCode": "005930", "from": "2024-08-05T05:34:00Z", "to": "2024-08-05T05:45:00Z", "scenario": "REOPENING_AUCTION", "startAt": "2024-08-05T05:34:30Z", "endAt": "2024-08-05T05:44:30Z", "status": "NOTICE_ONLY_NO_TICKS", "requirement": "No continuous-book fill estimate within auction; require actual auction prints and semantics"}
+  ],
+  "timelineSha256": "876f349993f30ce428041f08f1e9a5a4d5355e0dbe725f6f6d8e856860788875",
+  "comparisonPolicy": {
+    "MATCH": "Exact observed public trade id/time/price and requested quantity <= observed print; NOT an account fill proof",
+    "MISMATCH": "Observed reference time/price/quantity contradiction",
+    "NOT_ASSESSABLE": "Missing/synthetic/unconfirmed reference or missing actual tick data",
+    "executionRestrictions": "Keep existing intraday replay policy and its synthetic boundary tests; audit-ticks does not execute or override it"
+  }
+}
