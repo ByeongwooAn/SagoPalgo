@@ -342,3 +342,9 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 `kb_account_observation_collectors`는 `(user_id,account_binding)` PK·사용자 FK, IDLE/ACTIVE/PAUSED, 실행 중 UUID·조회일, 직전 저장/관찰 상태·차단 코드와 UTC DATETIME(6) 시각을 저장합니다. `(user_id,active_request_id)` UNIQUE와 상태/종료 결과 CHECK로 중복 소유권과 불가능한 조합을 제한합니다. 관찰 본문은 기존 023에 보존합니다.
 
 실행을 독립 트랜잭션으로 커밋한 뒤 관찰하며, ACTIVE는 시간 경과·재시작·설정 OFF로 해제하지 않습니다. 기존 UUID의 저장된 종료 결과만 대조해 IDLE/PAUSED로 바꿉니다. [024 SQL](../Back/database/migrations/024_account_observation_collection.sql)은 기존 설치에서 백업 후 별도 적용해야 하며 신규 schema.sql에도 같은 정의를 추가했습니다. 운영 적용은 미실행이고 [수집·복구 계약](account-observation-collection.md)을 따릅니다.
+
+## 025·026. 공개 시세·연구 변경 이력
+
+[025](../Back/database/migrations/025_market_stream.sql)는 `market_stream_events`와 `market_stream_minutes`, [026](../Back/database/migrations/026_research_incremental.sql)은 `research_journal_clock`·`research_item_heads`·`research_versions`·`research_checkpoints`를 추가합니다. 기존 DB에는 schema.sql 수정만으로 자동 적용되지 않습니다. 계약은 [실시간 수집](realtime-data-pipeline.md)과 [저장 자료 내보내기](stored-dataset-export.md)를 따릅니다.
+
+2026-11-06 메인 PC에서 전체 DB 백업·압축 검증 후 두 마이그레이션을 적용했습니다. [복구 기록](public-tick-collection-recovery.md)에서 원래 32개 테이블 보존·새 공개 테이블 6개·공개 API 200·실제 표본 1,081행 입력 대조를 확인했습니다. Ubuntu 별도 DB·장기 수집·주문 체결을 검증한 결과가 아니며 운영 수집 설정은 OFF입니다.

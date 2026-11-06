@@ -1,0 +1,23 @@
+{
+  "actualOrderFillStatus": "NOT_PROVEN",
+  "actualQuoteRows": 135,
+  "actualTradeRows": 946,
+  "asOf": "2026-11-06",
+  "existingTickAuditTestsPassed": 39,
+  "exportHttpAfter": 200,
+  "inputFieldMismatchRows": 0,
+  "newPublicTables": 6,
+  "newReadinessTestsPassed": 11,
+  "numberedWorkCompleted": 27,
+  "numberedWorkTotal": 48,
+  "originalTablesCompared": 32,
+  "originalTablesUnchanged": true,
+  "productionStreamEnabled": false,
+  "publicDataPolicy": "COUNTS_STATUS_HASHES_ONLY",
+  "schemaVersion": "SAGOPALGO_PUBLIC_TICK_RECOVERY_V1",
+  "storage025Applied": true,
+  "storage026Applied": true,
+  "streamHttpAfter": 200,
+  "temporaryCollectorRemoved": true,
+  "temporaryEnvRemoved": true
+}
