@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+최신 U05: [공개 체결과 호가 모형의 사후 비교](../../docs/public-tape-execution-comparison.md). `python -m app.replay.execution_comparison`은 고정 시간창의 공개 가격·수량 진단과 IOC 초 단위 경계·원문 계보를 기록합니다. 별도 계좌 체결·실제 비용 검증으로 승격하지 않습니다. 아래 U04 이하 테스트 수치는 당시 기록입니다.
+
 최신 U04: [결제일 기준 비용·세금 팩](../../docs/actual-cost-tax-rules.md)의 `python -m app.replay.cost_rules`를 추가했습니다. 공개 KB 요율과 실제 계좌 프로필을 분리하고 미확인 비용 합계는 null/차단합니다. 반올림은 명시적 연구 시나리오이며 기존 호가 엔진의 가정값을 자동 교체하지 않습니다. 전체 AI 1,271건 통과·실제 징수액 대조는 대기입니다.
 
 U03 후속: [과거 공식 호가 단위·엔진 연결](../../docs/historical-tick-rules.md). `quote-scenario --tick-rules <팩>`은 가격별 단위를 검사하고, 기본 주문 판단 시각보다 나중에 확보한 근거는 차단합니다. 명시적 `--rules-known-at` 사후 대조는 거래/전략 검증과 구분합니다. 전체 1,233건 통과입니다.
