@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[실제 틱 수집 장애 복구](../../docs/public-tick-collection-recovery.md)에서 025/026 적용 후 체결 946·호가 135행을 확보해 기존 `audit-ticks`로 입력 대조했습니다. 실제 원문은 Git 제외 경로에 보존하며 세션 코드·시각 품질·실제 주문 체결 검증은 남습니다. 운영 공개 저장소 점검은 루트 `scripts/check_public_tick_readiness.py`입니다.
+
 [틱 입력·실제 기준 자료 대조](../../docs/tick-reference-validation.md)는 `python -m app.replay audit-ticks`와 `python -m app.replay.daily_reference`로 실행합니다. 원본/해시·추정 날짜·수신/가용 시각·중복/누락을 구분하며 공개 체결 일치를 계좌 체결 증명으로 표시하지 않습니다. 실제 KIS 730일 재감사·KRX 1일 OHLCV 대조와 합성 4행 감사를 분리하며, 실제 틱/호가 확보는 남습니다.
 
 [장중 거래구간·재현 엔진 연결](../../docs/intraday-session-replay.md)은 `app.replay.intraday` build/audit와 `app.replay replay --intraday-timeline --timeline-sha256 --market --order-class`로 실행합니다. CB 17쌍·프로그램 정지 100개를 제한 구간 134개로 연결하고 당시 미확인·부분 근거 및 단일가 체결을 보류합니다. 명시적 적용 보고서는 R5_FOUNDATION_3, 기존 무타임라인 보고서는 바이트를 보존합니다. [Windows 게시 복구](../../docs/windows-file-publication.md)로 일지/JSONL/준비 폴더의 잠금 복구를 통일했으며 전체 **1,079건 통과·실패/오류/제외 0건**입니다. 과거 실패 로그는 보존합니다.

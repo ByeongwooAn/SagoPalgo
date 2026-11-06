@@ -2,6 +2,8 @@
 
 기준일: 2026-11-06
 
+최신 후속: [실제 틱 수집 장애 복구](public-tick-collection-recovery.md). 백업 후 025/026 메인 DB 적용·공개 API 200 복구·별도 1종목/2구독 실키 수신과 실제 1,081행 입력 대조를 확인했습니다. 기존 DB 32개 테이블과 운영 OFF는 보존했습니다. 4번 7/12·58%, 고정 합계 27/48·56%이며 5번 39%·5-08 진행 중입니다. 아래 입력 규격 작업은 직전 당시 기록입니다.
+
 최신 후속: [실제 틱 입력 규격·기존 자료 대조](tick-reference-validation.md). 필드/시각/누락·중복·비교 판정과 후보 표본을 구현했습니다. 실제 일봉 730건 재감사·독립 KRX 1일 OHLCV 5필드 일치이며 실제 틱은 자료 부재로 판정 불가입니다. 5-08 진행 중·7/18·39%, 1~5번 26/48·54% 유지입니다. [주 30시간 개발 일정 추정](development-completion-estimate.md)은 남은 작업량과 외부 의존성을 명시합니다.
 
 향후 개발 기준은 [실시간 AI 단기 자동매매 로드맵](realtime-trading-roadmap.md) R0~R10입니다. 새 목표의 전체 백분율은 산정하지 않으며 단계별 구현·자동 검증·실환경 검증·운영 확인을 증거로 관리합니다. [목표 아키텍처](target-system-architecture.md)의 전체 구현·운영 완료를 뜻하지 않습니다.
@@ -14,7 +16,7 @@
 |---|---|---|
 | R0 계약·운용 기준 | 진행 중·문서 기반 조사 완료 | [지원표](trading-api-contract-matrix.md)·[KB 보류/재개 조건](kb-contract-blockers.md)·[초기 운용/측정 초안](initial-trading-policy.md) 작성. 답변·권한/한도·실측·정책 수치 확정은 남음 |
 | R1 계좌 동기화·원장 | 일부 구현·관찰/저장/비교/앱/주기 수집·상태/재개 UI | [스냅샷](account-snapshot-contract.md)·[저장/이력](account-observation-history.md)·[비교](account-observation-comparison.md)·[앱](account-observation-ui.md)·[기본 OFF 수집](account-observation-collection.md) 구현·격리 검증. [실제 보유/현금 대조](account-observation-live-validation.md)와 [단일 자동 주기의 부분 실패 중단/재시작/OFF 재개](account-collection-operations.md) 확인. 최종 OFF·IDLE, 수동/자동 각 1건. KB-07·정상 연속 운용·Ubuntu·원장 자동 반영은 후속 |
-| R2 실시간 시세·수급 | 일부 구현·기본 OFF 공개 KRX 스트림 | [KIS 체결/호가·저장/관측 분봉·SSE/Flutter](realtime-data-pipeline.md) 구현·모의/격리 검증. 실연결·권한/예산·부하/지연·보유/관심 자동 편입·수급·backfill은 후속 |
+| R2 실시간 시세·수급 | 일부 구현·기본 OFF·1종목/2구독 실키 표본 검증 | [KIS 체결/호가·저장/관측 분봉·SSE/Flutter](realtime-data-pipeline.md) 구현·모의/격리 검증. [025/026 적용·실연결·실제 표본](public-tick-collection-recovery.md) 확인. 더 큰 공유 예산·부하/지연·보유/관심 자동 편입·수급·backfill·장기 운용은 후속 |
 | R3 뉴스·공시 사건 | 일부 구현·기본 OFF 증분/변경 버전 | [다중 페이지·체크포인트·버전·앱 이력](realtime-data-pipeline.md) 구현·모의/격리 검증. 실환경 페이지/한도·원문 사건 추출·정정 계보·전략 재평가는 후속 |
 | R4 시장 후보 탐색 | 미착수 | 전 종목 후보 편입/제외·정밀 구독·한도 검증 필요 |
 | R5 과거 데이터·재현 | 일부 구현·KRX 일별 목록/관찰 이력 수집·감사 | [실제 일봉](historical-price-acquisition.md)·[과거 공시](dart-historical-disclosures.md)·[원문 사실](corporate-action-facts.md)·[배당/소각/취득결과](distribution-completion-evidence.md)·[완료 조건](multi-company-reference-cases.md)·[식별 목록/시장 사건](historical-universe-seed.md)·[시작 기준표](krx-baseline-live-validation.md)·[기간 전체 목록/관찰 이력](krx-universe-history.md) 구현/검증. 전체 종목 법적 사건/총수 대조·합병 완료/비율·달력/세션·시점·호가 재생·독립 평가는 후속 |
