@@ -1,0 +1,760 @@
+{
+  "schemaVersion": "SAGOPALGO_SESSION_COVERAGE_REVIEW_SCOPE_V1",
+  "inventorySha256": "40594bd94a8d0a3e3013fd67aa71cc942caa39452af98f8dbac0cf9a7fa8276b",
+  "parentReviewSha256": "0193a6a016058d024073e60325c1657f0f514055b49b45bd74bee9655d59ecd4",
+  "reviewedAt": "2026-11-06T01:02:01.422531+00:00",
+  "decisions": [
+    {
+      "market": "KOSPI",
+      "document": "20221215000323",
+      "bodySha256": "30e99e8dd3476eef66040626e024fb7510eb0a4be510771e6e55ca3907808488",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "본문의 실제 적용일과 변경 전후 정규장 시각을 확인한다. 발표 창 안이라도 목표 효력일 범위 밖이면 기존 세션에 추가하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20221102001061",
+      "bodySha256": "0d9fd88f178be173cd67cbdf27beed43387ca73a69199a0c7ed37af8655f0d9f",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "본문의 실제 적용일과 변경 전후 정규장 시각을 확인한다. 발표 창 안이라도 목표 효력일 범위 밖이면 기존 세션에 추가하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20221219001156",
+      "bodySha256": "db25371c01196eb7b79fba0e931b7cb89eae5dfe4c8f7c4e7a4cb2f40b5aadf7",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "세원정공"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220907000500",
+      "bodySha256": "997d54d8b6da4b844a79350b0d1b315d39c7df2eb5c3b49dcfe2a2615b216a79",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "에스엠벡셀"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220721001022",
+      "bodySha256": "80be4e93ff248141641875551df7db8e79ea90ecc87dccb90f2f572f4ea97150",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "계양전기"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220721001021",
+      "bodySha256": "9d51094f2034aebc24e5599beec0b97f7a53690ecba8f24405d5ce8915728aca",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "계양전기"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220615000583",
+      "bodySha256": "60a08bb0c6bf6848a567ca90db55b6500c09f478623fb41cafebebbcd80c4df3",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "와이투솔루션"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220413001786",
+      "bodySha256": "aca5faa318b0b5f821a4dcd592bf060268dfdff925c7973063818062bd6349b0",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "성안"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231213000752",
+      "bodySha256": "a313f6c4c73f4e2b77031a3aa6c965c3cc3906fd28e5c0627aec3cfe71844ec0",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231102000001",
+      "bodySha256": "499a01e2465201168050caa42cd21d782e4fe98d94bbca7aece8c18bfe15b9b3",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231031000718",
+      "bodySha256": "e5d3874124fe0de021afe816382ff4fe5639df5f26830b78b5ddf86c8b12162d",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "하이트론씨스템즈"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231025001327",
+      "bodySha256": "a5db7e9737a8ed8e3c0053b30ec88b4e357020a74a44b5005c5b64078f44cf19",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "영풍제지"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231025001333",
+      "bodySha256": "c7709ce3ae8e28583804527e09d90ebdd271dc56cb6d6558a69e97078c8cba27",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "대양금속"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230630002172",
+      "bodySha256": "5823859d82fcc8c364436d39d3b9d6f1c6b9835034f3b0f36f989d054e559113",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "대한방직"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230630002168",
+      "bodySha256": "43363c6961adc7a675e4b74b05b6de09fd182fcd106e43770a51d83ec444045d",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "방림"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230630002167",
+      "bodySha256": "f5183dbe63bb2c460d925d959d83fbbadee925ca16e67326d924ad22ecffb4f4",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "동일산업"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230630002166",
+      "bodySha256": "76a2de7bc92d28504cf9dc68e3e19b8ad689056755c72f8f6d24d1402330282e",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "만호제강"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230427000662",
+      "bodySha256": "d4f2bccf5cd97a3c39a95e95b5486faeeebdf6f80c1781d8668e539a6d218367",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "KG모빌리티"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20241217000237",
+      "bodySha256": "56cf85779e6fce536df5643806af2f0e48374a7bc265686ad9756906351a7157",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20241031000185",
+      "bodySha256": "63f9382beb1ff8594cd041b04a11960c4d808afa75fbc09f66569732f902f2c4",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20241227002073",
+      "bodySha256": "b1caf463b93f871ffd9ab3ab70bd77f7df7e2f06d2684f707bab46570075b236",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "경보제약"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20241030001819",
+      "bodySha256": "730561b8740e11b0140f347a5822c146bad1b7bba684828a8f884d79c254c3bd",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "태영건설"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20241030000012",
+      "bodySha256": "633633fa8854c116069baa4a51800144d1980f1b9a38629819b9e150aa0fa120",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "태영건설"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240920001227",
+      "bodySha256": "e6d3e465b86fea0700e0742cd6d144a25d0d0f61073a0330502c0e82622d5c4e",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "만호제강"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240805000754",
+      "bodySha256": "390e3bd22bd9e267f119a53fc0d98fb01528a3d74a1f1e7c4a850e56a9afee58",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240419001721",
+      "bodySha256": "d3176199902e1cdf6c61794fa09eacb2d7db95844b99c5fd26526cb01fd47ed6",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "백광산업"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240321011393",
+      "bodySha256": "b63f9a18e61041a4e316927bb5db8bafde8cb49d469c391eb6bada1b069c32a5",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "일정실업"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20251217000864",
+      "bodySha256": "4a505b22cc27e440327ab6089592ddd896e4621a8f8621a92ffea00cc88def61",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20251030000137",
+      "bodySha256": "bbc8b4356af7feae1ed69e2892782f807c1c04d2b3e8c8ab40cb5854b707da33",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250623001366",
+      "bodySha256": "d097530e4f4342c78d93afabedbc0cb497e834676197847598c825502b5261f3",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "동성제약"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250325003474",
+      "bodySha256": "416af5b1720ec8170c69ca3365cc0adf57f4b44182bf345fb83292b989f493ad",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "주성코퍼레이션"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250325004237",
+      "bodySha256": "576d9467496a7241523f94c03392c247d870867f30ba85a71429a86ac96cbb75",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "주성코퍼레이션"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250318002918",
+      "bodySha256": "bf698985c98942791d40f31ddefc2352ef5bf3ccacafd5310542e672d2c9dcf9",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "동양철관 한 종목의 전산장애 정지·제목 정정·재개 안내이며 시장 전체 정규 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "동양철관"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250109001673",
+      "bodySha256": "9978fc0b3fadac229787d6f8deb5f94666cc62f00cbd45cf284bbb175c363601",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "인바이오젠"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261105000216",
+      "bodySha256": "75da004fe99147713d337ed49639c231030dc362d14b2d0c63a937d55dd9e2a9",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261015000689",
+      "bodySha256": "33306786921637e19bca0d9086ec388e059d95ff7d3acbe4b0ddc8ffcb6ae53d",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260729002730",
+      "bodySha256": "11440da33b3824ccf2e0c3aecee053a4fe41dc2830cb6024293b12ce3b38d018",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "동성제약"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260729000811",
+      "bodySha256": "750fd98615af12f06aaa6bf7b288fc2637390bc359df14b3433e9a0783200f1d",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260728000463",
+      "bodySha256": "699b6fbda039325e3b102b503e3e7d25e66f4e4bb058477a0db44df43b8e0a77",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260713000709",
+      "bodySha256": "b0f7694e5a54faf5a4723166a18c4306629fc5c03d8855574329e555cab916cc",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260707000787",
+      "bodySha256": "96ab0b16bb994228234d2c5aecb0bac2954ea5d1e5c12a1c77e13933ea600168",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260626000876",
+      "bodySha256": "f5bab1008a702105aa29506096ce4f9fe4252aaaf3e05d03f4661fa724a79961",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260623000942",
+      "bodySha256": "97733e48e4efbb3a3ad37baf84df948a7d0e0b43a2dcec7dc9cbd8a8a2eb3e85",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260612002256",
+      "bodySha256": "dc4e0b9c92f3a50e9ce80e95d114cd0c14220563a25ba86778dace67720d52cf",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "효성화학"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260608000307",
+      "bodySha256": "3a38fb650c02c820805b3b88e04693908d73140ef78bba8675ee950e6f38bfba",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260514002772",
+      "bodySha256": "e9dd4b84c1ca17e16551c313088baebff53f92d9765ea601e05903e60563e002",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "DKME"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260428001750",
+      "bodySha256": "b2ca1ddd84be2eb35aee54e8309c70bec649169ca8bb07c2da3d976d597f627e",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "선도전기"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260408003618",
+      "bodySha256": "36855d3b85a4e7b8cd1099f78727cf839b1ba49dfc3eb29c3fa2abd51db371b3",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "삼익THK"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260325004491",
+      "bodySha256": "e6844439abb4f851c409d5a2e1881677a2ae1e9fdb51f67f11e76582dde45edb",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "일양약품"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260325004495",
+      "bodySha256": "0b10cda98cb5241ac34718bb9abc539295b4bfcc2363b5ad027c3ae27b16e1cc",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "일양약품"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260309001232",
+      "bodySha256": "cbc44b5732ccda89c1e171b774083226b2048ae2a6ea2a3f40786bb217f4caa6",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "본문의 대상 회사/종목을 기준으로 개별 재개·기준가격·체결방법을 구분한다. 현재 표시 회사명과 과거 본문 이름은 다를 수 있으며 시장 전체 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "KODEX WTI원유선물(H)"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260309000631",
+      "bodySha256": "b029c46f78ac05e1cb66c563d0250cd5044a56ce25a9bcfb5e9a396a3b2f9eea",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260304001055",
+      "bodySha256": "0c94c3a2305d852bb3b65535b2c6cf0ae0c4ac73122c89e893ad0b825709aa77",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20221229000004",
+      "bodySha256": "3538b1d5308beafd920a7add84dc3f0ee9d8f64bc3b374304208200c9f24e193",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약·대상 종목/기간 안내이며 시장 전체 정규장 시간 변경과 구분한다. 계약의 영구적 효력을 임의로 추정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20221228000003",
+      "bodySha256": "fc1be1fb20b617a99c1d0306bb4af4172327f68b1f6cbe2cde627d1c89c81e4b",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "자기주식 주문 수량 한도 특례·연장·종료 안내이며 정규장 시간 변경과 구분한다. 앞선 발표가 이후 정책에 영향을 줄 수 있음을 보존한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20221208000001",
+      "bodySha256": "09a396bb738a024622d8e04f61ee4edeb9047c3127fcc99df2ef210ecc332175",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 대상·금지/허용·과열 지정 기준 안내이며 정규장 개장·폐장 시각 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20221017000542",
+      "bodySha256": "9c040779e6ca5c6e1f8e51a2d291795f7b97c5a91ed82cfa062e52e659e1a225",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 대상·금지/허용·과열 지정 기준 안내이며 정규장 개장·폐장 시각 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20221006000001",
+      "bodySha256": "6440bdabfbd6c18b0b047f58927ce2b6b8be8e96690dd817896261a152d7e312",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "자기주식 주문 수량 한도 특례·연장·종료 안내이며 정규장 시간 변경과 구분한다. 앞선 발표가 이후 정책에 영향을 줄 수 있음을 보존한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220831000336",
+      "bodySha256": "16ae3a2633b6be5e2d21f456f6b87c5bb0bd6eca8ec419792d304a5811d38a0c",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약·대상 종목/기간 안내이며 시장 전체 정규장 시간 변경과 구분한다. 계약의 영구적 효력을 임의로 추정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220620000463",
+      "bodySha256": "ad229309e14776eb6a63768ab857a23935da3c30282ff261c5717176ae4d5a95",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "자기주식 주문 수량 한도 특례·연장·종료 안내이며 정규장 시간 변경과 구분한다. 앞선 발표가 이후 정책에 영향을 줄 수 있음을 보존한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220609000098",
+      "bodySha256": "4aee8c22e8121206068ebc3fbb0a0bf227ae7e57b653f45a797e6fce8891f9e2",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 대상·금지/허용·과열 지정 기준 안내이며 정규장 개장·폐장 시각 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20220310000397",
+      "bodySha256": "6702f7b38fe38b93443f7c6754e3983f55754c3a6427216b3b8011f7ae930a46",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 대상·금지/허용·과열 지정 기준 안내이며 정규장 개장·폐장 시각 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261106000267",
+      "bodySha256": "194365babdc26ac7fb1503371e9d63a0fc9093daa46a3903685f9358c773cd65",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20221215000376",
+      "bodySha256": "6691d81950a46b6d859806cbecb5c992e36b5fab44c920f5a02af0fdf2a255f8",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "본문의 실제 적용일과 변경 전후 정규장 시각을 확인한다. 발표 창 안이라도 목표 효력일 범위 밖이면 기존 세션에 추가하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20221019000846",
+      "bodySha256": "d88bc7d99ceb43d24c2c206562826d510d3757f83890bd696511b74662d91a19",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "본문의 실제 적용일과 변경 전후 정규장 시각을 확인한다. 발표 창 안이라도 목표 효력일 범위 밖이면 기존 세션에 추가하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20231214000422",
+      "bodySha256": "efe735f3de532c161f9e5d0c53ef1968c577ef629c15289ff80dc86763c43d90",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20231101001384",
+      "bodySha256": "cd1bc5a1f8ccf65eeb89329b02e292a55da696c028415666222d2283932e1498",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20241216000236",
+      "bodySha256": "05c52f5315c1558b487b46a59f3e00858b2e9912a5d9447b0133a3bf339a8403",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20241021000338",
+      "bodySha256": "6b47bb488dac0f727fcf5509d639b1aa1b4bfb94d8e6210edb55827259797923",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20240805000691",
+      "bodySha256": "741b80a86257e5cd5024e6596a825a7f42ccdf9963a767ec10c49c9d2a7516e5",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20251204000985",
+      "bodySha256": "42b887ed62c272ac9f031977e90961e78e931db1ef97d06e92324b3e5ae7ed9b",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20251021000455",
+      "bodySha256": "d87a51de2a3f23f83e48ba736d9c55752a5f597871cd741f8e2577978ac99385",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20261104001218",
+      "bodySha256": "113480e87af555694f5169f0df763a6048927d162cfd36ee85a9545df96c8b91",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20261015000676",
+      "bodySha256": "c21dfe4f170b37fd596c19a19bdcfb0f711b6fc1a3f419dbb763e35144789f42",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260729000804",
+      "bodySha256": "a66b8f414b3a7baf385815388355ac7ee030a04ecef3bac855192bb20299db0e",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260728000708",
+      "bodySha256": "2b94f03b62681bfd4fe4fcd93eadeeaf69be3dd53bbc14c7cc1b2f2e4a2d30b4",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260608001177",
+      "bodySha256": "cb3fe6200aa4587ef7d24f8db2ff808a04ff377a65114e0370ce810c0c602a2c",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260304001049",
+      "bodySha256": "737b27a9e0186b79d0648dca90dd3b052567ffa178b2c3b2e5090a90bff9fc41",
+      "classification": "MARKET_WIDE_RESUMPTION",
+      "reason": "시장 전체 CB 해제 후 호가접수 재개 시각과 10분 단일가 경과 후 접속매매를 구분한다. 정규장 개장/폐장 시각 변경으로 해석하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20221229000869",
+      "bodySha256": "b625bc6be48a7a31b0e75027e5c027f12e78d5de2be37e106d968db2ca6dc5ec",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약·대상 종목/기간 안내이며 시장 전체 정규장 시간 변경과 구분한다. 계약의 영구적 효력을 임의로 추정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20221228000536",
+      "bodySha256": "3996f5cd80dc860e6a4abcc1476836fbea353fa7dff886d49b95b53b46b8460c",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "자기주식 주문 수량 한도 특례·연장·종료 안내이며 정규장 시간 변경과 구분한다. 앞선 발표가 이후 정책에 영향을 줄 수 있음을 보존한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20221208000953",
+      "bodySha256": "cc0fb5b8a0f08b5b070a7c30a66afc70d5eee2ed4a46cad97e1c1c9e33f5444d",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 대상·금지/허용·과열 지정 기준 안내이며 정규장 개장·폐장 시각 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20221125001030",
+      "bodySha256": "46e24b2ec4ebeb8f5aa09f8607d66a86dbe054418c2596319871abb257bfc6e1",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 대상·금지/허용·과열 지정 기준 안내이며 정규장 개장·폐장 시각 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20221102000962",
+      "bodySha256": "67b0e171002c16e7d911c33d1d8421a01eb1bb78b5848b11d11496fb5ed6eb28",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 대상·금지/허용·과열 지정 기준 안내이며 정규장 개장·폐장 시각 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20221018000654",
+      "bodySha256": "c0eec16356b8eb36a2fc17365379cc7b243180bba43f9a5009e397f0efcbdb75",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 대상·금지/허용·과열 지정 기준 안내이며 정규장 개장·폐장 시각 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20221006001384",
+      "bodySha256": "4511a082c21944671690aabbee9091ec1dfb8f190cc8b42a385cca62a7602179",
+      "classification": "LOCKUP_POLICY",
+      "reason": "개별 주식의 의무보유 기간·예외·승계 안내로서 시장 전체 거래시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20221006001082",
+      "bodySha256": "47a46e4a9317ff26de41f3342b6f822290eadc249f7d5125d5a3e41de8e0e289",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "자기주식 주문 수량 한도 특례·연장·종료 안내이며 정규장 시간 변경과 구분한다. 앞선 발표가 이후 정책에 영향을 줄 수 있음을 보존한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20220926000766",
+      "bodySha256": "681cbe5be7e47f434c407094bedc51e1266d3ed304170b9dfcf0d58dd612de3d",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약·대상 종목/기간 안내이며 시장 전체 정규장 시간 변경과 구분한다. 계약의 영구적 효력을 임의로 추정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20220914000545",
+      "bodySha256": "533a5332375d3534517e27e5cf5a76300345c3c79a68681fca25511d7920d06f",
+      "classification": "LOCKUP_POLICY",
+      "reason": "개별 주식의 의무보유 기간·예외·승계 안내로서 시장 전체 거래시간 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20220831001036",
+      "bodySha256": "a0d75db20fb38a62aecff03093265bfbbdc7851b37f000b61f2daedbc55a9832",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약·대상 종목/기간 안내이며 시장 전체 정규장 시간 변경과 구분한다. 계약의 영구적 효력을 임의로 추정하지 않는다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20220817000933",
+      "bodySha256": "f69f8d6ff79b71ab9a07c9572c3e1b7eaefca97f8a147277f82de8d4f75ea1a9",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 대상·금지/허용·과열 지정 기준 안내이며 정규장 개장·폐장 시각 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20220706000173",
+      "bodySha256": "cb175881198222a3d71de82b840c6b289ab1ae1e0435c02ce5c18f1516b6b75c",
+      "classification": "OTHER_MARKET_POLICY",
+      "reason": "자기주식 주문 수량 한도 특례·연장·종료 안내이며 정규장 시간 변경과 구분한다. 앞선 발표가 이후 정책에 영향을 줄 수 있음을 보존한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20220609000304",
+      "bodySha256": "9f16c6e154766785e3ffa060063d553ffa219e6af9ea33947b3ccad5b1ee3f2e",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 대상·금지/허용·과열 지정 기준 안내이며 정규장 개장·폐장 시각 변경과 구분한다.",
+      "subjectIssuer": null
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20220315002692",
+      "bodySha256": "2509923a049034cf7d56e19deb4a7319b2960949f135dc8b12905ff7405ae9b9",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 대상·금지/허용·과열 지정 기준 안내이며 정규장 개장·폐장 시각 변경과 구분한다.",
+      "subjectIssuer": null
+    }
+  ],
+  "corrections": [
+    {
+      "market": "KOSPI",
+      "originalDocument": "20250325003474",
+      "correctedDocument": "20250325004237",
+      "reason": "주성코퍼레이션 실제 발행주식수 반영으로 평가가격·최고/최저호가와 관련공시 설명이 정정되었다. 적용일 2025-03-26과 시장 전체 세션은 변경하지 않는다."
+    }
+  ]
+}
