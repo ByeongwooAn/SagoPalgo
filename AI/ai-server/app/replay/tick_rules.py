@@ -9,6 +9,8 @@ from pydantic import Field, model_validator
 
 from .dataset import canonical, digest, read_bytes, read_json
 from .models import ResearchError, StrictModel, Timestamp, utc
+import re
+import html
 
 
 class Band(StrictModel):
@@ -26,7 +28,7 @@ class Rule(StrictModel):
     knownAt: Timestamp
     evidenceUrl: str = Field(pattern=r'^https://')
     evidenceSha256: str = Field(pattern=r'^[a-f0-9]{64}$')
-    coverageBasis: Literal['DATED_RULE_SNAPSHOT','DATED_OFFICIAL_GUIDANCE']
+    coverageBasis: Literal['DATED_RULE_SNAPSHOT','DATED_OFFICIAL_GUIDANCE','ARCHIVED_BYLAW_INTERVAL']
     bands: list[Band] = Field(min_length=1,max_length=20)
 
     @model_validator(mode='after')
@@ -70,6 +72,40 @@ def lookup(pack,market,product,trading_date,price,known_at):
             'evidenceSha256':r.evidenceSha256,'evidenceUrl':r.evidenceUrl,
             'knownAt':r.knownAt.isoformat(),'coverageBasis':r.coverageBasis,
             'usableForTrading':False,'usableForStrategyValidation':False}
+
+
+def build_history(folder):
+    """Audit all consecutive captured bylaw revisions; merge only identical stock grids."""
+    rules=[];sources=[]
+    for market,article in [('KOSPI',32),('KOSDAQ',18)]:
+        versions=read_json(read_bytes(folder/(market+'-versions.json')))
+        revisions=[int(re.search(r'\d+',v['revision']).group()) for v in versions]
+        if sorted(revisions)!=list(range(min(revisions),max(revisions)+1)) or len(set(revisions))!=len(revisions):
+            raise ResearchError('TICK_REVISION_CHAIN_GAP')
+        if min(v['listedDate'] for v in versions)>'2023-11-01':raise ResearchError('TICK_BASELINE_MISSING')
+        grids=[];market_sources=[]
+        for v in versions:
+            raw=read_bytes(folder/v['book']/'body.html');receipt=read_json(read_bytes(folder/v['book']/'receipt.json'))
+            if digest(raw)!=receipt['sha256'] or receipt['parameters']!={'bookid':v['book'],'noformyn':'N','oldyn':'Y'}:
+                raise ResearchError('TICK_SOURCE_HASH_MISMATCH')
+            s=raw.decode('utf-8')
+            if f'name="BOOKID" id="BOOKID" value="{v["book"]}"' not in s:raise ResearchError('TICK_SOURCE_IDENTITY_MISMATCH')
+            text=html.unescape(re.sub('<[^>]+>',' ',s));text=re.sub(r'\s+','',text)
+            section=text.split(f'제{article}조(호가단위)',1)[1].split(f'제{article+1}조(',1)[0]
+            values=re.findall(r'가격이([^:]+)종목:([0-9,]+)원',section)[:7]
+            expected=['2,000원미만인','2,000원이상5,000원미만인','5,000원이상20,000원미만인','20,000원이상50,000원미만인','50,000원이상200,000원미만인','200,000원이상500,000원미만인','500,000원이상인']
+            if [x for x,y in values]!=expected:raise ResearchError('TICK_ARTICLE_LAYOUT_UNSUPPORTED')
+            grid=[int(t.replace(',','')) for _,t in values];grids.append(grid)
+            market_sources.append({**v,'sha256':digest(raw),'capturedAt':receipt['capturedAt'],'article':article})
+        if any(g!=grids[0] for g in grids):raise ResearchError('TICK_CHANGED_GRID_REQUIRES_INTERVAL_REVIEW')
+        sources.extend([dict(market=market,**v) for v in market_sources])
+        bounds=[0,2000,5000,20000,50000,200000,500000,None]
+        rules.append(dict(ruleId='krx-history-'+market,market=market,product='COMMON_STOCK',validFrom='2023-11-01',validTo='2026-11-07',
+            knownAt=max(v['capturedAt'] for v in market_sources),evidenceUrl='https://rule.krx.co.kr/out/regulation/regulationViewPop.do',
+            evidenceSha256=digest(canonical(market_sources)),coverageBasis='ARCHIVED_BYLAW_INTERVAL',
+            bands=[dict(lower=bounds[i],upper=bounds[i+1],tick=t) for i,t in enumerate(grids[0])]))
+    pack=TickRulePack.model_validate(dict(schemaVersion='SAGOPALGO_TICK_RULES_V1',coverageComplete=False,rules=rules))
+    return pack,{'sources':sources,'sameStockGridAcrossAllRevisions':True,'scopeFrom':'2023-11-01','scopeToExclusive':'2026-11-07'}
 
 
 def main(argv=None):

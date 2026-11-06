@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+U03 후속: [과거 공식 호가 단위·엔진 연결](../../docs/historical-tick-rules.md). `quote-scenario --tick-rules <팩>`은 가격별 단위를 검사하고, 기본 주문 판단 시각보다 나중에 확보한 근거는 차단합니다. 명시적 `--rules-known-at` 사후 대조는 거래/전략 검증과 구분합니다. 전체 1,233건 통과입니다.
+
 최신 후속은 [U02 연구용 입력 수신·시계 연결](../../docs/strategy-input-receipts.md)입니다. `python -m app.replay.input_receipts --base-url http://127.0.0.1:18081 --config tick-config.json --output research-artifacts/새-영수증`으로 명시적 로컬 수신·해시 검증·시계 연결·영수증 게시를 수행합니다. 기존 `app.replay` CLI는 오프라인으로 유지합니다. 실제 123건 수신·프로세스 재시작, 최종 전체 1,196건 통과이며 모델 실행·전역 UTC 판단과 구분합니다.
 
 최신 후속은 [커밋 이후 로컬 입력 공개 시각](../../docs/committed-input-availability.md)입니다. V1/V2 입력 검증, 오프라인 `snapshot-inputs`, 명시적 `INPUT_PUBLICATION_OBSERVED` 호가 모드를 추가했습니다. 같은 JVM 도메인의 안정 관측만 사용하며 UTC 동기화·실제 AI 수신과 구분합니다. 전체 회귀 1,164건 통과입니다. [다음/잔여 실행 단위](../../docs/remaining-development-units.md)를 따릅니다.

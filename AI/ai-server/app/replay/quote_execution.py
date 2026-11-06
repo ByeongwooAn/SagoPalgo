@@ -1,6 +1,6 @@
 """Conservative IOC depth scenarios. No broker fill, queue, or liquidity refresh claims."""
 from collections import Counter
-from datetime import timedelta
+from datetime import timedelta, timezone
 from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR, localcontext
 from typing import Literal
 
@@ -12,6 +12,7 @@ from .stored import precise_time
 from .ticks import TickAuditConfig, audit_ticks
 from .tick_quality import quality_profile
 from .intraday import gate
+from .tick_rules import lookup
 
 
 class QuoteOrder(StrictModel):
@@ -74,13 +75,14 @@ class QuoteExecutionPolicy(StrictModel):
         return self
 
 
-def estimate_quotes(raw, tick_config: TickAuditConfig, evidence_raw, policy: QuoteExecutionPolicy, orders: list[QuoteOrder], intraday=None):
+def estimate_quotes(raw, tick_config: TickAuditConfig, evidence_raw, policy: QuoteExecutionPolicy, orders: list[QuoteOrder], intraday=None, tick_rules=None, rules_known_at=None):
     with localcontext() as context:
         context.prec=96
-        return _estimate_quotes(raw,tick_config,evidence_raw,policy,orders,intraday)
+        return _estimate_quotes(raw,tick_config,evidence_raw,policy,orders,intraday,tick_rules,rules_known_at)
 
 
-def _estimate_quotes(raw, tick_config, evidence_raw, policy, orders, intraday):
+def _estimate_quotes(raw, tick_config, evidence_raw, policy, orders, intraday, tick_rules, rules_known_at):
+    if rules_known_at is not None and tick_rules is None:raise ResearchError("TICK_RULE_PACK_REQUIRED")
     records,audit=audit_ticks(raw,tick_config,[])
     records,quality=quality_profile(records,evidence_raw)
     if len(orders)>10000 or len({o.orderId for o in orders})!=len(orders):raise ResearchError("ORDER_ID_OR_COUNT_INVALID")
@@ -150,11 +152,21 @@ def _estimate_quotes(raw, tick_config, evidence_raw, policy, orders, intraday):
         if reasons:
             outcomes.append({**result,"status":"NOT_ASSESSABLE","reasons":sorted(set(reasons))});continue
         levels=quote["asks"] if order.side=="BUY" else quote["bids"]
-        tick=Decimal(policy.tickSize)
-        if (order.limitPrice is not None and Decimal(order.limitPrice)%tick!=0) or any(
-            Decimal(level["price"])>0 and int(level["quantity"])>0 and Decimal(level["price"])%tick!=0 for level in levels
-        ):
-            outcomes.append({**result,"status":"NOT_ASSESSABLE","reasons":["PRICE_OFF_ASSUMED_TICK_GRID"]});continue
+        if tick_rules is not None:
+            prices=([order.limitPrice] if order.limitPrice is not None else [])+[l["price"] for l in levels if Decimal(l["price"])>0 and int(l["quantity"])>0]
+            try:
+                checked=[lookup(tick_rules,tick_config.market,"COMMON_STOCK",at.astimezone(timezone(timedelta(hours=9))).date().isoformat(),p,rules_known_at or order.decisionAt) for p in prices]
+                aligned=all(r["priceAligned"] for r in checked)
+            except ResearchError as error:
+                outcomes.append({**result,"status":"NOT_ASSESSABLE","reasons":[str(error)]});continue
+            if not aligned:
+                outcomes.append({**result,"status":"NOT_ASSESSABLE","reasons":["PRICE_OFF_OFFICIAL_TICK_GRID"]});continue
+        else:
+            tick=Decimal(policy.tickSize)
+            if (order.limitPrice is not None and Decimal(order.limitPrice)%tick!=0) or any(
+                Decimal(level["price"])>0 and int(level["quantity"])>0 and Decimal(level["price"])%tick!=0 for level in levels
+            ):
+                outcomes.append({**result,"status":"NOT_ASSESSABLE","reasons":["PRICE_OFF_ASSUMED_TICK_GRID"]});continue
         quantity=0;notional=Decimal(0);fee=Decimal(0);tax=Decimal(0)
         def costs(value):
             f=(value*Decimal(policy.feeBps)/10000).to_integral_value(rounding=ROUND_CEILING)
@@ -198,6 +210,8 @@ def _estimate_quotes(raw, tick_config, evidence_raw, policy, orders, intraday):
             "liquidityRefreshPolicy":"NO_REPLENISHMENT_WITHOUT_ORDER_IDS","orderDuration":"ONE_ATTEMPT_IOC",
             "costAndTickEvidence":"CALLER_ASSUMPTIONS_NOT_BROKER_VERIFIED","causalAvailability":"INPUT_PUBLICATION_SAME_CLOCK_DOMAIN" if observed else "RECEIPT_DERIVED_ASSUMPTION" if scenario else "EXPORT_KNOWN_AT",
             "accountFillStatus":"NOT_PROVEN","usableForTrading":False,"usableForStrategyValidation":False}
+    if tick_rules is not None:
+        report["tickRuleBinding"]={"sha256":digest(canonical(tick_rules.model_dump(mode="json"))),"knownAtOverride":rules_known_at.isoformat() if rules_known_at else None,"exPostEvidence":rules_known_at is not None,"product":"COMMON_STOCK"}
     if intraday is not None:
         report["intradayBinding"]={"timelineSha256":intraday.timelineSha256,"market":intraday.market,"orderClass":intraday.orderClass}
     report["reportId"]=digest(canonical(report))

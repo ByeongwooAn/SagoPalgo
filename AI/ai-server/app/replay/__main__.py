@@ -13,6 +13,7 @@ from .stored import convert_file
 from .intraday import load_policy
 from .ticks import audit_tick_files
 from .ticks import TickAuditConfig, audit_ticks, observed_snapshot
+from .tick_rules import TickRulePack
 from .tick_quality import quality_profile
 from .quote_execution import QuoteExecutionPolicy, QuoteOrder, estimate_quotes
 
@@ -71,6 +72,8 @@ def main(argv=None) -> int:
         if command == "quote-scenario":
             command_parser.add_argument("--policy", required=True, type=Path)
             command_parser.add_argument("--orders", required=True, type=Path)
+            command_parser.add_argument("--tick-rules", type=Path)
+            command_parser.add_argument("--rules-known-at")
             command_parser.add_argument('--intraday-timeline', type=Path)
             command_parser.add_argument('--timeline-sha256')
             command_parser.add_argument('--market', choices=['KOSPI', 'KOSDAQ'])
@@ -94,7 +97,9 @@ def main(argv=None) -> int:
                 report = estimate_quotes(raw, config, evidence,
                     QuoteExecutionPolicy.model_validate(read_json(read_bytes(args.policy))),
                     [QuoteOrder.model_validate(value) for value in values],
-                    load_policy(args.intraday_timeline,args.timeline_sha256,args.market,args.order_class) if args.intraday_timeline else None)
+                    load_policy(args.intraday_timeline,args.timeline_sha256,args.market,args.order_class) if args.intraday_timeline else None,
+                    TickRulePack.model_validate(read_json(read_bytes(args.tick_rules))) if args.tick_rules else None,
+                    utc(args.rules_known_at) if args.rules_known_at else None)
                 result = {"status": "CREATED", "statusCounts": report["statusCounts"], "reportId": report["reportId"]}
             else:
                 records, audit_report = audit_ticks(raw, config, [])
