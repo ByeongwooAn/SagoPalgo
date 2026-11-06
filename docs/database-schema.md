@@ -355,3 +355,6 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 [027](../Back/database/migrations/027_market_input_availability.sql)은 `market_stream_availability`에 event_id PK/FK·원문 해시·JVM clock_domain·커밋/공개 관측 DATETIME(6)·단조 경과 ns·시계 품질과 순서 CHECK를 추가합니다. 기존 025/026 행은 수정하지 않으며 과거 공개 시각을 소급 생성하지 않습니다. [공개 순서·V2 계약·시계 한계](committed-input-availability.md)를 따릅니다.
 
 2026-11-06 메인 PC에서 전체 DB 백업/압축 검증 후 적용했습니다. 기존 이벤트 1,199건 해시와 비스트림 테이블 36개 불변, 신규 실제 이벤트/공개 관측 5건을 확인했습니다. 관측은 기본 OFF이며 Ubuntu 적용·운영 백엔드 재배포·외부 전략 수신 검증을 뜻하지 않습니다.
+
+
+후속 [U02 연구용 입력 수신](strategy-input-receipts.md)은 025/026/027을 읽는 전달 API와 로컬 파일 영수증을 추가하며 새 마이그레이션은 없습니다. 현재 프로세스의 실제 123건 공개/수신 연결을 확인했습니다. 영수증은 계좌·주문 원장이나 실제 모델 소비 기록을 대체하지 않습니다.
