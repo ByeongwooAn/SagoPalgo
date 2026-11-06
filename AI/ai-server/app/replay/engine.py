@@ -4,6 +4,7 @@ from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR, localcontext
 
 from .dataset import canonical, digest, known_at, membership, snapshot
 from .models import ReplayConfig, ResearchError
+from .intraday import ReplayIntraday, gate
 
 # This version supports modern KRX records only, with an explicit UTC+09:00 day boundary.
 KST = timezone(timedelta(hours=9))
@@ -14,13 +15,18 @@ def money(value: Decimal) -> str:
     return format(value, "f")
 
 
-def replay(manifest, spec, records, quality, config: ReplayConfig) -> dict:
+def replay(manifest, spec, records, quality, config: ReplayConfig, intraday: ReplayIntraday | None = None) -> dict:
+    if intraday is not None:
+        # Revalidate even a model_construct instance at this public boundary.
+        intraday = ReplayIntraday.model_validate(intraday.model_dump(mode='json'))
+        if intraday.timeline.provenance == 'SYNTHETIC' and not config.allowSynthetic:
+            raise ResearchError('SYNTHETIC_INTRADAY_OPT_IN_REQUIRED')
     with localcontext() as context:
         context.prec = 60
-        return _replay(manifest, spec, records, quality, config)
+        return _replay(manifest, spec, records, quality, config, intraday)
 
 
-def _replay(manifest, spec, records, quality, config):
+def _replay(manifest, spec, records, quality, config, intraday=None):
     sources = {s.sourceId: s for s in spec.sources}
     if config.barSourceId not in sources or config.universeSourceId not in sources:
         raise ResearchError("REPLAY_SOURCE_MISSING")
@@ -50,6 +56,12 @@ def _replay(manifest, spec, records, quality, config):
         member = membership(visible, config.universeSourceId, intent.stockCode)
         if member is None or not member.payload.eligible:
             raise ResearchError("DECISION_OUTSIDE_KNOWN_UNIVERSE")
+        if intraday is not None:
+            blocked = gate(intraday, intent.decisionAt, intent.decisionAt + timedelta(microseconds=1), intent.side)
+            if blocked:
+                outcomes.append({'intentId': intent.intentId, 'status': blocked['status'], 'stage': 'DECISION',
+                                 'phaseIds': blocked['phaseIds'], 'filledQuantity': 0})
+                continue
         eligible = [r for r in bars if r.stockCode == intent.stockCode
                     and r.payload.startAt > intent.decisionAt
                     and r.payload.startAt >= intent.decisionAt + timedelta(milliseconds=config.latencyMs)
@@ -88,6 +100,11 @@ def _replay(manifest, spec, records, quality, config):
             status = "MISSING_EXECUTION_BAR"
         elif bar.status != "TRADABLE":
             status = "HALTED"
+        if status is None and intraday is not None:
+            blocked = gate(intraday, executed_at, bar.endAt, intent.side)
+            if blocked:
+                status = blocked['status']
+                outcome.update(stage='EXECUTION', phaseIds=blocked['phaseIds'])
         capacity = int((Decimal(bar.volume) * Decimal(config.participationRate)).to_integral_value(rounding=ROUND_FLOOR))
         capacity -= consumed.get(row.ref, 0)
         if status is None and capacity <= 0:
@@ -178,5 +195,15 @@ def _replay(manifest, spec, records, quality, config):
                         "One attempt per intent; partial remainder cancels. No overnight carry of pending intents.",
                         "Positions are not forcibly liquidated; stale/unavailable marks make equity and PnL unknown."],
     }
+    if intraday is not None:
+        report['engineVersion'] = 'R5_FOUNDATION_3'
+        report['intradayPolicy'] = {'timelineId': intraday.timeline.timelineId, 'timelineSha256': intraday.timelineSha256,
+            'market': intraday.market, 'marketBasis': 'CALLER_DECLARED', 'orderClass': intraday.orderClass,
+            'provenance': intraday.timeline.provenance, 'allIntradayInterruptionsComplete': False,
+            'unknownCoveragePolicy': 'NO_FILL', 'auctionMatching': 'UNSUPPORTED', 'intervalConvention': '[startAt,endAt)'}
+        report['limitations'] += ['Intraday restrictions are applied only when known at the decision or execution-bar start.',
+            'Partial or unavailable intraday coverage cannot authorize continuous fills. No auction matching or queued order carry.',
+            'The caller declares the replay market and order class; no automatic historical stock-to-market classification.',
+            'Legacy runs without an intraday timeline do not validate market interruptions.']
     report["reportId"] = digest(canonical(report))
     return report

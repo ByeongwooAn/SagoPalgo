@@ -250,20 +250,24 @@ def test_plan_insufficient_budget_invalid_range_and_run_budget_fail(tmp_path):
 @pytest.mark.parametrize("failures", [2, 8])
 def test_windows_replacement_retry_is_bounded_and_preserves_previous_checkpoint(tmp_path, monkeypatch, failures):
     from app.replay import krx_storage
+    from app.replay import file_publish
+    monkeypatch.setattr(file_publish, 'WINDOWS', True)
     path = tmp_path / "checkpoint.json"
     atomic_json(path, {"version": 1})
-    original = krx_storage.os.replace
+    original = file_publish.os.replace
     calls = []
 
     def replace(source, target):
         calls.append((source, target))
         if len(calls) <= failures:
-            raise PermissionError("synthetic sharing violation")
+            error = PermissionError("synthetic sharing violation")
+            error.winerror = 32
+            raise error
         return original(source, target)
 
     waits = []
-    monkeypatch.setattr(krx_storage.os, "replace", replace)
-    monkeypatch.setattr(krx_storage.time, "sleep", waits.append)
+    monkeypatch.setattr(file_publish.os, "replace", replace)
+    monkeypatch.setattr(file_publish.time, "sleep", waits.append)
     if failures == 8:
         with pytest.raises(PermissionError):
             krx_storage.atomic_json(path, {"version": 2})

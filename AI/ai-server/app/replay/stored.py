@@ -14,6 +14,7 @@ from pydantic import Field, model_validator
 
 from .dataset import MAX_BYTES, canonical, digest, normalize, read_bytes, read_json, records_bytes
 from .models import DatasetSpec, Identifier, Record, ResearchError, StrictModel, Timestamp, utc
+from .file_publish import publish_directory
 
 
 class ConversionConfig(StrictModel):
@@ -256,14 +257,16 @@ def convert_file(input_path: Path, config_path: Path, output: Path):
         raise ResearchError("OUTPUT_EXISTS")
     output.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix=".stored-convert-", dir=output.parent))
+    prepared = False
     try:
         for name, data in contents.items():
             (staging / name).write_bytes(data)
         (staging / "conversion.json").write_bytes(canonical(report))
         if output.exists():
             raise ResearchError("OUTPUT_EXISTS")
-        os.rename(staging, output)
+        prepared = True
+        publish_directory(staging, output)
     finally:
-        if staging.exists():
+        if staging.exists() and not prepared:
             shutil.rmtree(staging)
     return report

@@ -15,6 +15,7 @@ from pydantic import Field, ValidationError, model_validator
 
 from .dataset import canonical, digest, read_bytes, read_json
 from .models import ResearchError, StrictModel, utc
+from .file_publish import replace_file
 
 BASE = "https://openapi.koreainvestment.com:9443"
 DAILY_PATH = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
@@ -86,7 +87,7 @@ def atomic_json(path: Path, value):
         stream.write(canonical(value))
         stream.flush()
         os.fsync(stream.fileno())
-    os.replace(temporary, path)
+    replace_file(temporary, path)
 
 
 def prepare(config_path: Path, output: Path):
@@ -332,7 +333,7 @@ def publish(path):
     data = b"".join(canonical(row) + b"\n" for row in rows)
     temporary = path / "daily.jsonl.tmp"
     temporary.write_bytes(data)
-    os.replace(temporary, path / "daily.jsonl")
+    replace_file(temporary, path / "daily.jsonl")
     report["dailySha256"] = digest(data)
     atomic_json(path / "audit.json", report)
     return report
