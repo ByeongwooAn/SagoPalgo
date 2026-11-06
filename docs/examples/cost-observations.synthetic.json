@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "SAGOPALGO_COST_OBSERVATIONS_V1",
+  "provenance": "SYNTHETIC",
+  "evidenceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "recordedAt": "2026-11-06T11:00:00Z",
+  "observations": [
+    {
+      "observationId": "sample-buy-1",
+      "sourceRef": "Synthetic!A3:N4",
+      "statementDate": "2026-03-02",
+      "dateBasis": "UNCONFIRMED",
+      "side": "BUY",
+      "quantity": "0.25",
+      "notionalWon": "123456",
+      "settlementWon": "123596",
+      "reportedFeeWon": "140",
+      "reportedTaxEtcWon": null,
+      "reportedRuralVatWon": "0",
+      "reportedOtherChargesWon": null,
+      "channel": "UNCONFIRMED",
+      "product": "UNCONFIRMED",
+      "instrumentRef": null,
+      "orderRef": null,
+      "executionRef": null
+    }
+  ]
+}

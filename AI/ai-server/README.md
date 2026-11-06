@@ -86,6 +86,8 @@ Invoke-RestMethod -Uri 'http://localhost:8000/health'
 
 Spring Boot는 `POST /internal/ai/analyze-investment`를 호출합니다. 모델 버전 `WEIGHTED_SIGNAL_V1`과 추천 유형, 상태, 0~100 점수, 요약, 개별 점수 근거를 반환합니다.
 
+실제 비용의 제한 대조는 별도 오프라인 `app.replay.cost_reconciliation`에서 수행합니다. [거래내역 관찰·실사용 기록 절차](../../docs/cost-statement-reconciliation.md)를 따르며 API·주문·확정 비용 프로필을 변경하지 않습니다.
+
 관심 종목 분석은 `analysisType=WATCHLIST`와 실제 현재가를 보내고, 매수가·수익률·손절·익절 필드는 생략하거나 `null`로 둡니다. 기본 `HOLDING` 분석은 해당 보유 손익 필드를 모두 요구합니다. 관심 종목의 낮은 점수는 보유 주식 매도가 아니라 신규 진입 보류로 해석합니다.
 
 보유 종목 요청의 선택적 `portfolioWeightRate`, `capitalWeightRate`, `maxCapitalWeightRate`는 Spring이 동일 종목의 여러 보유 건을 합산한 **매입 원금 기준**으로 계산합니다. 자본금 미설정 시 한도 판정은 하지 않습니다. 설정 자본금 대비 원금 비중이 권장 한도를 넘으면 신규 매수만 보류하며, 손절·익절 신호는 우선합니다. 실계좌 평가 비중이나 주문 가능 금액을 뜻하지 않습니다.
