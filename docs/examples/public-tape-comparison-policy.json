@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "SAGOPALGO_PUBLIC_TAPE_COMPARISON_POLICY_V1",
+  "contextBeforeMs": 1000,
+  "contextAfterMs": 2000,
+  "marketTimeResolutionMs": 1000,
+  "allowSynthetic": false,
+  "selection": "FIXED_TIME_WINDOW_ALL_PRICES",
+  "evidence": "Ex-post descriptive context fixed before comparing existing probes; same-provider trade and quote feeds do not prove account fills, queue position, exact IOC timing, or actual costs."
+}
