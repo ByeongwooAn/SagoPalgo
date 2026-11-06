@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+최신 U04: [결제일 기준 비용·세금 팩](../../docs/actual-cost-tax-rules.md)의 `python -m app.replay.cost_rules`를 추가했습니다. 공개 KB 요율과 실제 계좌 프로필을 분리하고 미확인 비용 합계는 null/차단합니다. 반올림은 명시적 연구 시나리오이며 기존 호가 엔진의 가정값을 자동 교체하지 않습니다. 전체 AI 1,271건 통과·실제 징수액 대조는 대기입니다.
+
 U03 후속: [과거 공식 호가 단위·엔진 연결](../../docs/historical-tick-rules.md). `quote-scenario --tick-rules <팩>`은 가격별 단위를 검사하고, 기본 주문 판단 시각보다 나중에 확보한 근거는 차단합니다. 명시적 `--rules-known-at` 사후 대조는 거래/전략 검증과 구분합니다. 전체 1,233건 통과입니다.
 
 최신 후속은 [U02 연구용 입력 수신·시계 연결](../../docs/strategy-input-receipts.md)입니다. `python -m app.replay.input_receipts --base-url http://127.0.0.1:18081 --config tick-config.json --output research-artifacts/새-영수증`으로 명시적 로컬 수신·해시 검증·시계 연결·영수증 게시를 수행합니다. 기존 `app.replay` CLI는 오프라인으로 유지합니다. 실제 123건 수신·프로세스 재시작, 최종 전체 1,196건 통과이며 모델 실행·전역 UTC 판단과 구분합니다.

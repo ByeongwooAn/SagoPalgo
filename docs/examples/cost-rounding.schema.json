@@ -1,0 +1,1 @@
+{"additionalProperties":false,"properties":{"mode":{"enum":["DOWN","UP","HALF_UP"],"title":"Mode","type":"string"},"unitWon":{"enum":[1,10],"title":"Unitwon","type":"integer"}},"required":["unitWon","mode"],"title":"Rounding","type":"object"}
