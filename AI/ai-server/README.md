@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[세션·시각 품질·호가 체결 추정](../../docs/quote-execution-quality.md)은 `profile-ticks`·`quote-scenario` CLI입니다. 공식 코드 0은 장중 의미만 연결하고 추정 날짜/가용 시각을 승격하지 않습니다. 기본 가용 시각 모드는 보류하며, 명시적 연구 가정에서 시장가·지정가 IOC/자원/잔량·비용 가정과 기존 장중 제한을 검사합니다. 실제 고유 이벤트 1,199개·호가 가정 프로브 28개, 전체 AI 1,150개 테스트 통과이며 독립 비용·계좌 체결과 장기 운영은 남습니다.
+
 [실제 틱 수집 장애 복구](../../docs/public-tick-collection-recovery.md)에서 025/026 적용 후 체결 946·호가 135행을 확보해 기존 `audit-ticks`로 입력 대조했습니다. 실제 원문은 Git 제외 경로에 보존하며 세션 코드·시각 품질·실제 주문 체결 검증은 남습니다. 운영 공개 저장소 점검은 루트 `scripts/check_public_tick_readiness.py`입니다.
 
 [틱 입력·실제 기준 자료 대조](../../docs/tick-reference-validation.md)는 `python -m app.replay audit-ticks`와 `python -m app.replay.daily_reference`로 실행합니다. 원본/해시·추정 날짜·수신/가용 시각·중복/누락을 구분하며 공개 체결 일치를 계좌 체결 증명으로 표시하지 않습니다. 실제 KIS 730일 재감사·KRX 1일 OHLCV 대조와 합성 4행 감사를 분리하며, 실제 틱/호가 확보는 남습니다.
