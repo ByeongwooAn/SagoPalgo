@@ -30,15 +30,28 @@ public class MarketStreamHub {
         if(!"CONNECTED".equals(state)) {generation++;trades.clear();quotes.clear();}
     }
     public void accept(MarketStreamEvent event) {
-        if(!policy.enabled() || !policy.stockCodes().contains(event.stockCode())) throw new IllegalArgumentException("UNSUBSCRIBED_SYMBOL");
         final long epoch;
         synchronized(this) {epoch=generation;}
-        store.appendCommitted(event,()->{
+        accept(event,epoch);
+    }
+    synchronized long generation() {return generation;}
+    synchronized boolean freshInputs(Instant now) {
+        return policy.enabled() && "CONNECTED".equals(connection) && policy.stockCodes().stream().allMatch(stock->{
+            var trade=trades.get(stock);var quote=quotes.get(stock);
+            return trade!=null && quote!=null && fresh(trade,now) && fresh(quote,now);
+        });
+    }
+    boolean accept(MarketStreamEvent event,long epoch) {
+        if(!policy.enabled() || !policy.stockCodes().contains(event.stockCode())) throw new IllegalArgumentException("UNSUBSCRIBED_SYMBOL");
+        synchronized(this) {if(epoch!=generation)return false;}
+        return store.appendCommitted(event,()->{
             try {
                 if(availability==null) publish(event,epoch);
                 else availability.publish(event,()->publish(event,epoch));
             } catch(RuntimeException error) {
-                connection("FAILED","AVAILABILITY_RECORD_FAILED");
+                synchronized(MarketStreamHub.this) {
+                    if(epoch==generation)connection("FAILED","AVAILABILITY_RECORD_FAILED");
+                }
                 throw new IllegalStateException("AVAILABILITY_RECORD_FAILED");
             }
         });
@@ -54,22 +67,30 @@ public class MarketStreamHub {
             {target.put(event.stockCode(),event);return true;}
         return false;
     }
-    public synchronized Snapshot snapshot(String stock,Instant now) {
+    public Snapshot snapshot(String stock,Instant now) {
         if(stock==null || !stock.matches("[0-9]{6}")) throw new IllegalArgumentException("INVALID_STOCK_CODE");
+        List<StreamMinuteBar> bars=List.of();
+        if(policy.enabled() && policy.stockCodes().contains(stock)) {
+            Cached value;
+            synchronized(this) {value=cached.get(stock);}
+            if(value==null || !now.isBefore(value.at().plusSeconds(1))) {
+                // No database I/O under the publication/lifecycle monitor.
+                var loaded=new Cached(now,store.minutes(stock,now.minusSeconds(7200)));
+                synchronized(this) {
+                    value=cached.get(stock);
+                    if(value==null || !value.at().isAfter(now)) {value=loaded;cached.put(stock,value);}
+                }
+            }
+            bars=value.bars();
+        }
+        synchronized(this) {
         var trade=trades.get(stock);var quote=quotes.get(stock);
         String state=!policy.enabled()?"DISABLED":!policy.stockCodes().contains(stock)?"NOT_SUBSCRIBED":
             !"CONNECTED".equals(connection)?connection:trade==null || quote==null?"WAITING_DATA":
             fresh(trade,now)&&fresh(quote,now)?"LIVE":"STALE";
-        List<StreamMinuteBar> bars=List.of();
-        if(policy.enabled() && policy.stockCodes().contains(stock)) {
-            Cached value=cached.get(stock);
-            if(value==null || !now.isBefore(value.at().plusSeconds(1))) {
-                value=new Cached(now,store.minutes(stock,now.minusSeconds(7200)));cached.put(stock,value);
-            }
-            bars=value.bars();
-        }
         return new Snapshot("KIS_KRX_STREAM_V1",policy.enabled(),policy.staleSeconds(),"KIS","KRX","KRW",stock,connection,state,
             diagnostic,now,trade,quote,bars,true,false,"NOT_SUBSCRIBED");
+        }
     }
     private boolean fresh(MarketStreamEvent e,Instant now) {
         return !e.receivedAt().isBefore(now.minusSeconds(policy.staleSeconds())) &&
