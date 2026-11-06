@@ -15,102 +15,202 @@ import java.util.concurrent.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-/** 공개 시세 전용 단일 서버 연결. 승인키/프레임/외부 오류 원문을 로그에 남기지 않습니다. */
+/** Public market data only. Lifecycle receipts never contain credentials or frames. */
 @Component
 public class KisStreamConnection {
+    static final URI ENDPOINT=URI.create("ws://ops.koreainvestment.com:21000/tryitout");
+    private static final List<String> TRS=List.of("H0STCNT0","H0STASP0");
+    record Timing(Duration idle,Duration acknowledgement,Duration connect,Duration send,
+                  Duration subscriptionInterval,Duration watchdogInterval,Duration backoffBase,
+                  Duration backoffMaximum,Duration stableReset) {
+        Timing {
+            for(var duration:List.of(idle,acknowledgement,connect,send,subscriptionInterval,watchdogInterval,backoffBase,backoffMaximum,stableReset))
+                if(duration.isNegative() || duration.isZero() || duration.toMillis()<1 || duration.compareTo(Duration.ofDays(1))>0)
+                    throw new IllegalArgumentException("INVALID_STREAM_TIMING");
+            if(backoffBase.compareTo(backoffMaximum)>0)throw new IllegalArgumentException("INVALID_STREAM_TIMING");
+        }
+        static Timing production() {return new Timing(Duration.ofSeconds(60),Duration.ofSeconds(60),Duration.ofSeconds(15),
+            Duration.ofSeconds(10),Duration.ofSeconds(1),Duration.ofSeconds(10),Duration.ofSeconds(5),Duration.ofSeconds(60),Duration.ofSeconds(60));}
+    }
+    record Receipt(long sequence,long generation,String state,String code,Instant observedAt,long elapsedNanos) {}
+    record RecoverySnapshot(String clockDomain,boolean utcSynchronized,boolean stopped,boolean terminal,
+                            int attempts,int failures,List<Receipt> receipts) {}
     private final KisMarketProperties kis;
     private final MarketStreamProperties policy;
     private final MarketStreamHub hub;
     private final RestClient rest;
     private final ObjectMapper json;
     private final HttpClient http;
+    private final URI endpoint;
+    private final Timing timing;
+    private final Clock clock;
     private final KisStreamDecoder decoder=new KisStreamDecoder();
-    private final ScheduledExecutorService worker=Executors.newSingleThreadScheduledExecutor(r -> {var t=new Thread(r,"kis-public-stream");t.setDaemon(true);return t;});
-    private volatile WebSocket socket;
-    private volatile boolean stopped=false,hardFailure=false;
-    private volatile long generation=0;
-    private volatile Instant lastActivity=Instant.EPOCH;
-    private volatile Instant subscriptionStarted=Instant.EPOCH;
-    private volatile boolean awaitingAcknowledgement=false;
-    private int failures=0;
+    private final ScheduledExecutorService worker=Executors.newSingleThreadScheduledExecutor(r -> daemon(r,"kis-public-control"));
+    private final ExecutorService connector=Executors.newSingleThreadExecutor(r -> daemon(r,"kis-public-connect"));
+    private final Object approvalLock=new Object();
+    private final ArrayDeque<Receipt> receipts=new ArrayDeque<>();
+    private final String clockDomain=UUID.randomUUID().toString();
+    private final long origin=System.nanoTime();
+    private WebSocket socket;
+    private CompletableFuture<WebSocket> opening,sending;
+    private Future<?> approvalTask;
+    private ScheduledFuture<?> retryTask;
+    private boolean stopped,hardFailure,started,connecting;
+    private long generation,activityNanos,attemptNanos;
+    private int failures,attempts;
+    private long receiptSequence;
+    private Listener current;
     private String approval;
     private Instant approvalUntil=Instant.EPOCH;
+
     @org.springframework.beans.factory.annotation.Autowired
     public KisStreamConnection(KisMarketProperties kis,MarketStreamProperties policy,MarketStreamHub hub,RestClient rest,ObjectMapper json) {
         this(kis,policy,hub,rest,json,HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build());
     }
     KisStreamConnection(KisMarketProperties kis,MarketStreamProperties policy,MarketStreamHub hub,RestClient rest,ObjectMapper json,HttpClient http) {
+        this(kis,policy,hub,rest,json,http,ENDPOINT,Timing.production(),Clock.systemUTC());
+    }
+    // Package-only test seam; no environment/property can redirect the production endpoint or timings.
+    KisStreamConnection(KisMarketProperties kis,MarketStreamProperties policy,MarketStreamHub hub,RestClient rest,ObjectMapper json,
+                        HttpClient http,URI endpoint,Timing timing,Clock clock) {
         this.kis=kis;this.policy=policy;this.hub=hub;this.rest=rest;this.json=json;this.http=http;
+        this.endpoint=endpoint;this.timing=timing;this.clock=clock;
+    }
+    private static Thread daemon(Runnable task,String name) {var thread=new Thread(task,name);thread.setDaemon(true);return thread;}
+    private boolean active(long epoch) {return !stopped && !hardFailure && epoch==generation;}
+    private void state(String state,String code) {
+        hub.connection(state,code);
+        recordReceipt(state,code);
+    }
+    private void recordReceipt(String state,String code) {
+        if(receipts.size()==128)receipts.removeFirst();
+        receipts.addLast(new Receipt(++receiptSequence,generation,state,code,clock.instant(),System.nanoTime()-origin));
+    }
+    synchronized RecoverySnapshot recoverySnapshot() {
+        return new RecoverySnapshot(clockDomain,false,stopped,hardFailure,attempts,failures,List.copyOf(receipts));
     }
     @PostConstruct void start() {
-        if(!policy.enabled()) return;
-        try {hub.verifyStorage();} catch(RuntimeException e) {hub.connection("FAILED","STORAGE_025_REQUIRED");return;}
-        if(!kis.isEnabled() || kis.getAppKey().isBlank() || kis.getAppSecret().isBlank() ||
-            !"https://openapi.koreainvestment.com:9443".equals(kis.getBaseUrl().replaceAll("/+$",""))) {
-            hub.connection("FAILED","CONFIGURATION_REQUIRED");return;
+        synchronized(this) {if(started || stopped)return;started=true;}
+        if(!policy.enabled())return;
+        try {hub.verifyStorage();} catch(RuntimeException e) {synchronized(this) {if(!stopped) {hardFailure=true;state("FAILED","STORAGE_025_REQUIRED");}}return;}
+        synchronized(this) {
+            if(stopped)return;
+            if(!kis.isEnabled() || kis.getAppKey().isBlank() || kis.getAppSecret().isBlank() ||
+                !"https://openapi.koreainvestment.com:9443".equals(kis.getBaseUrl().replaceAll("/+$",""))) {
+                hardFailure=true;state("FAILED","CONFIGURATION_REQUIRED");return;
+            }
+            worker.execute(this::connect);
+            worker.scheduleWithFixedDelay(this::checkHealth,timing.watchdogInterval().toMillis(),timing.watchdogInterval().toMillis(),TimeUnit.MILLISECONDS);
         }
-        worker.execute(this::connect);
-        worker.scheduleWithFixedDelay(() -> {
-            if(socket!=null && Instant.now().isAfter(lastActivity.plusSeconds(60))) failed(generation,"HEARTBEAT_TIMEOUT",false);
-            else if(socket!=null && awaitingAcknowledgement && Instant.now().isAfter(subscriptionStarted.plusSeconds(60))) failed(generation,"SUBSCRIBE_TIMEOUT",false);
-        },10,10,TimeUnit.SECONDS);
     }
     private void connect() {
-        if(stopped || hardFailure) return;
-        long epoch=++generation;
-        hub.connection("CONNECTING",null);
+        final long epoch;
+        synchronized(this) {
+            if(stopped || hardFailure || connecting || socket!=null)return;
+            epoch=++generation;attempts++;connecting=true;attemptNanos=System.nanoTime();state("CONNECTING",null);
+            approvalTask=connector.submit(()->open(epoch));
+        }
+    }
+    private void open(long epoch) {
         try {
+            synchronized(this) {if(!active(epoch))return;}
             String key=approval();
-            var listener=new Listener(epoch,key);
-            WebSocket ws=http.newWebSocketBuilder().connectTimeout(Duration.ofSeconds(10))
-                .buildAsync(URI.create("ws://ops.koreainvestment.com:21000/tryitout"),listener).get(15,TimeUnit.SECONDS);
-            if(stopped || epoch!=generation) ws.abort(); else socket=ws;
+            synchronized(this) {
+                if(!active(epoch))return;
+                var listener=new Listener(epoch,key);
+                current=listener;
+                opening=http.newWebSocketBuilder().connectTimeout(timing.connect()).buildAsync(endpoint,listener);
+                opening.orTimeout(timing.connect().toMillis(),TimeUnit.MILLISECONDS).whenComplete((ws,error)->{
+                    if(error!=null)failed(epoch,"CONNECTION_FAILED",false);
+                    else {synchronized(KisStreamConnection.this) {if(!active(epoch))ws.abort();}}
+                });
+            }
         } catch(Exception e) {failed(epoch,"CONNECTION_FAILED",false);}
     }
-    private synchronized String approval() {
-        if(approval!=null && Instant.now().isBefore(approvalUntil)) return approval;
-        var body=rest.post().uri(kis.getBaseUrl().replaceAll("/+$","")+"/oauth2/Approval")
-            .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-            .body(Map.of("grant_type","client_credentials","appkey",kis.getAppKey(),"secretkey",kis.getAppSecret()))
-            .retrieve().body(com.fasterxml.jackson.databind.JsonNode.class);
-        if(body==null || !body.path("approval_key").isTextual() || body.path("approval_key").asText().isBlank())
-            throw new IllegalStateException("APPROVAL_FAILED");
-        approval=body.path("approval_key").asText();approvalUntil=Instant.now().plusSeconds(23*3600);return approval;
+    private String approval() {
+        synchronized(approvalLock) {
+            if(approval!=null && clock.instant().isBefore(approvalUntil))return approval;
+            var body=rest.post().uri(kis.getBaseUrl().replaceAll("/+$","")+"/oauth2/Approval")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(Map.of("grant_type","client_credentials","appkey",kis.getAppKey(),"secretkey",kis.getAppSecret()))
+                .retrieve().body(com.fasterxml.jackson.databind.JsonNode.class);
+            if(body==null || !body.path("approval_key").isTextual() || body.path("approval_key").asText().isBlank())
+                throw new IllegalStateException("APPROVAL_FAILED");
+            approval=body.path("approval_key").asText();approvalUntil=clock.instant().plusSeconds(23*3600);return approval;
+        }
+    }
+    private synchronized void checkHealth() {
+        if(stopped || hardFailure)return;
+        long now=System.nanoTime();
+        if(connecting && now-attemptNanos>=timing.connect().toNanos()) {failed(generation,"CONNECT_TIMEOUT",false);return;}
+        if(socket==null || current==null)return;
+        // Subscription timeout is independent of ping traffic, including healthy control frames.
+        if(current.awaiting && now-current.openedNanos>=timing.acknowledgement().toNanos()) {failed(generation,"SUBSCRIBE_TIMEOUT",false);return;}
+        if(now-activityNanos>=timing.idle().toNanos()) {failed(generation,"HEARTBEAT_TIMEOUT",false);return;}
+        if(!current.awaiting && now-current.acknowledgedNanos>=timing.stableReset().toNanos() &&
+            current.dataAt.size()==policy.stockCodes().size()*2 && current.dataAt.values().stream().allMatch(at->now-at<Duration.ofSeconds(policy.staleSeconds()).toNanos()) &&
+            hub.freshInputs(clock.instant())) {
+            if(failures>0) {failures=0;recordReceipt("STABLE","RETRY_BUDGET_RESET");}
+        }
     }
     private synchronized void failed(long epoch,String code,boolean fatal) {
-        if(stopped || epoch!=generation) return;
-        generation++;
-        WebSocket old=socket;socket=null;if(old!=null) old.abort();
-        hardFailure=fatal;
-        failures++;
-        if(fatal || failures>=8) {hub.connection("FAILED",code);return;}
-        hub.connection("RECONNECTING",code);
-        worker.schedule(this::connect,Math.min(60,5L << Math.min(failures-1,4)),TimeUnit.SECONDS);
+        if(!active(epoch))return;
+        generation++;connecting=false;failures++;
+        hardFailure=fatal || failures>=8;
+        // Retire the publication generation before closing a socket or cancelling its futures.
+        state(hardFailure?"FAILED":"RECONNECTING",code);
+        cancelPending();
+        WebSocket old=socket;socket=null;current=null;if(old!=null)old.abort();
+        if(!hardFailure) {
+            long token=generation;
+            long delay=Math.min(timing.backoffMaximum().toMillis(),timing.backoffBase().toMillis()*(1L<<Math.min(failures-1,4)));
+            retryTask=worker.schedule(()->{synchronized(KisStreamConnection.this) {if(!active(token))return;connect();}},delay,TimeUnit.MILLISECONDS);
+        }
+    }
+    private void cancelPending() {
+        if(retryTask!=null)retryTask.cancel(false);
+        if(approvalTask!=null)approvalTask.cancel(true);
+        if(opening!=null && !opening.isDone())opening.cancel(true);
+        if(sending!=null && !sending.isDone())sending.cancel(true);
     }
     private class Listener implements WebSocket.Listener {
         private final long epoch;
         private final String key;
         private final StringBuilder fragments=new StringBuilder();
-        private final Set<String> acknowledgements=new HashSet<>();
+        private final Set<String> sent=new HashSet<>(),acknowledgements=new HashSet<>();
+        private final Map<String,Long> dataAt=new HashMap<>();
+        private long openedNanos,acknowledgedNanos,publicationGeneration;
+        private boolean awaiting=true,dataReady;
         Listener(long epoch,String key) {this.epoch=epoch;this.key=key;}
         public void onOpen(WebSocket ws) {
-            if(stopped || epoch!=generation) {ws.abort();return;}
-            socket=ws;lastActivity=Instant.now();subscriptionStarted=lastActivity;awaitingAcknowledgement=true;hub.connection("SUBSCRIBING",null);
-            // 하나씩 전송해 공급자 요청 순서를 유지하며 무한 요청 큐를 만들지 않습니다.
-            worker.execute(() -> {
+            synchronized(KisStreamConnection.this) {
+                if(!active(epoch)) {ws.abort();return;}
+                socket=ws;connecting=false;openedNanos=activityNanos=System.nanoTime();state("SUBSCRIBING",null);
+                publicationGeneration=hub.generation();
+                worker.execute(()->subscribe(ws,0));
+                ws.request(1);
+            }
+        }
+        private void subscribe(WebSocket ws,int index) {
+            if(index>=policy.stockCodes().size()*2)return;
+            String stock=policy.stockCodes().get(index/2),tr=TRS.get(index%2);
+            synchronized(KisStreamConnection.this) {
+                if(!active(epoch) || socket!=ws)return;
                 try {
-                    for(String stock:policy.stockCodes()) for(String tr:List.of("H0STCNT0","H0STASP0")) {
-                        if(stopped || epoch!=generation) return;
-                        ws.sendText(subscription(key,tr,stock),true).get(10,TimeUnit.SECONDS);
-                        Thread.sleep(1000);
-                    }
-                } catch(Exception e) {failed(epoch,"SUBSCRIBE_FAILED",false);}
-            });
-            ws.request(1);
+                    sent.add(tr+stock);
+                    sending=ws.sendText(subscription(key,tr,stock),true);
+                    sending.orTimeout(timing.send().toMillis(),TimeUnit.MILLISECONDS).whenComplete((ignored,error)->{
+                        synchronized(KisStreamConnection.this) {
+                            if(!active(epoch))return;
+                            if(error!=null) {failed(epoch,"SUBSCRIBE_FAILED",false);return;}
+                            worker.schedule(()->subscribe(ws,index+1),timing.subscriptionInterval().toMillis(),TimeUnit.MILLISECONDS);
+                        }
+                    });
+                } catch(Exception error) {failed(epoch,"SUBSCRIBE_FAILED",false);}
+            }
         }
         public CompletionStage<?> onText(WebSocket ws,CharSequence part,boolean last) {
-            if(stopped || epoch!=generation) return null;
-            lastActivity=Instant.now();
+            synchronized(KisStreamConnection.this) {if(!active(epoch))return null;activityNanos=System.nanoTime();}
             if(fragments.length()+part.length()>262144) {failed(epoch,"FRAME_LIMIT",true);return null;}
             fragments.append(part);
             if(last) {
@@ -118,36 +218,54 @@ public class KisStreamConnection {
                 try {
                     if(frame.startsWith("{")) {
                         var message=json.readTree(frame);String tr=message.path("header").path("tr_id").asText();
-                        if("PINGPONG".equals(tr)) {
-                            byte[] ping=frame.getBytes(StandardCharsets.UTF_8);
-                            if(ping.length>125) throw new IllegalArgumentException();
-                            ws.sendPong(ByteBuffer.wrap(ping));
-                        } else {
-                            String stock=message.path("header").path("tr_key").asText();
-                            if(!policy.stockCodes().contains(stock) || !List.of("H0STCNT0","H0STASP0").contains(tr) ||
-                                !"0".equals(message.path("body").path("rt_cd").asText())) {
-                                failed(epoch,"SUBSCRIPTION_REJECTED",true);return null;
-                            }
-                            acknowledgements.add(tr+stock);
-                            if(acknowledgements.size()==policy.stockCodes().size()*2) {
-                                failures=0;awaitingAcknowledgement=false;hub.connection("CONNECTED",null);
+                        synchronized(KisStreamConnection.this) {
+                            if(!active(epoch))return null;
+                            if("PINGPONG".equals(tr)) {
+                                byte[] ping=frame.getBytes(StandardCharsets.UTF_8);
+                                if(ping.length>125)throw new IllegalArgumentException();
+                                ws.sendPong(ByteBuffer.wrap(ping)).whenComplete((ignored,error)->{if(error!=null)failed(epoch,"PONG_FAILED",false);});
+                            } else {
+                                String stock=message.path("header").path("tr_key").asText();
+                                if(!sent.contains(tr+stock) || !"0".equals(message.path("body").path("rt_cd").asText())) {
+                                    failed(epoch,"SUBSCRIPTION_REJECTED",true);return null;
+                                }
+                                acknowledgements.add(tr+stock);
+                                if(awaiting && acknowledgements.size()==policy.stockCodes().size()*2) {
+                                    awaiting=false;acknowledgedNanos=System.nanoTime();state("CONNECTED",null);
+                                }
                             }
                         }
                     } else {
-                        for(var event:decoder.decode(frame,Instant.now())) {
-                            if(!acknowledgements.contains(("TRADE".equals(event.type())?"H0STCNT0":"H0STASP0")+event.stockCode()))
-                                throw new IllegalArgumentException();
-                            hub.accept(event);
+                        for(var event:decoder.decode(frame,clock.instant())) {
+                            String tr="TRADE".equals(event.type())?"H0STCNT0":"H0STASP0";
+                            synchronized(KisStreamConnection.this) {
+                                if(!active(epoch))return null;
+                                if(!acknowledgements.contains(tr+event.stockCode()))throw new IllegalArgumentException();
+                            }
+                            boolean added=hub.accept(event,publicationGeneration);
+                            synchronized(KisStreamConnection.this) {
+                                if(active(epoch) && added && !event.marketTime().isBefore(clock.instant().minusSeconds(policy.staleSeconds())))
+                                    dataAt.put(tr+event.stockCode(),System.nanoTime());
+                                if(active(epoch) && !dataReady && dataAt.size()==policy.stockCodes().size()*2) {
+                                    dataReady=true;recordReceipt("DATA_READY",null);
+                                }
+                            }
                         }
                     }
                 } catch(IllegalArgumentException e) {failed(epoch,"INVALID_FRAME",true);return null;}
                 catch(Exception e) {failed(epoch,"STORAGE_OR_PROTOCOL_FAILURE",true);return null;}
             }
-            ws.request(1);return null;
+            synchronized(KisStreamConnection.this) {if(active(epoch))ws.request(1);}
+            return null;
         }
         public CompletionStage<?> onClose(WebSocket ws,int code,String reason) {failed(epoch,"CONNECTION_CLOSED",false);return null;}
-        public CompletionStage<?> onPing(WebSocket ws,ByteBuffer message) {if(epoch==generation) lastActivity=Instant.now();ws.request(1);return null;}
-        public CompletionStage<?> onPong(WebSocket ws,ByteBuffer message) {if(epoch==generation) lastActivity=Instant.now();ws.request(1);return null;}
+        public CompletionStage<?> onPing(WebSocket ws,ByteBuffer message) {return activity(ws);}
+        public CompletionStage<?> onPong(WebSocket ws,ByteBuffer message) {return activity(ws);}
+        private CompletionStage<?> activity(WebSocket ws) {
+            synchronized(KisStreamConnection.this) {if(active(epoch)) {activityNanos=System.nanoTime();ws.request(1);}}
+            return null; // JDK WebSocket automatically replies to protocol Ping with Pong.
+        }
+        public CompletionStage<?> onBinary(WebSocket ws,ByteBuffer bytes,boolean last) {failed(epoch,"UNSUPPORTED_BINARY_FRAME",true);return null;}
         public void onError(WebSocket ws,Throwable error) {failed(epoch,"CONNECTION_FAILED",false);}
     }
     String subscription(String approval,String tr,String stock) {
@@ -155,5 +273,9 @@ public class KisStreamConnection {
             "body",Map.of("input",Map.of("tr_id",tr,"tr_key",stock))));}
         catch(Exception e) {throw new IllegalStateException("SUBSCRIBE_FAILED");}
     }
-    @PreDestroy void stop() {stopped=true;generation++;var ws=socket;if(ws!=null) ws.abort();worker.shutdownNow();}
+    @PreDestroy synchronized void stop() {
+        if(stopped)return;
+        stopped=true;generation++;connecting=false;state("DISABLED","COLLECTOR_STOPPED");cancelPending();
+        var ws=socket;socket=null;current=null;if(ws!=null)ws.abort();worker.shutdownNow();connector.shutdownNow();
+    }
 }
