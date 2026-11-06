@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+최신 U04: [결제일 기준 비용·세금 팩](../../docs/actual-cost-tax-rules.md)의 `python -m app.replay.cost_rules`를 추가했습니다. 공개 KB 요율과 실제 계좌 프로필을 분리하고 미확인 비용 합계는 null/차단합니다. 반올림은 명시적 연구 시나리오이며 기존 호가 엔진의 가정값을 자동 교체하지 않습니다. 전체 AI 1,271건 통과·실제 징수액 대조는 대기입니다.
+
 U03 후속: [과거 공식 호가 단위·엔진 연결](../../docs/historical-tick-rules.md). `quote-scenario --tick-rules <팩>`은 가격별 단위를 검사하고, 기본 주문 판단 시각보다 나중에 확보한 근거는 차단합니다. 명시적 `--rules-known-at` 사후 대조는 거래/전략 검증과 구분합니다. 전체 1,233건 통과입니다.
 
 최신 후속은 [U02 연구용 입력 수신·시계 연결](../../docs/strategy-input-receipts.md)입니다. `python -m app.replay.input_receipts --base-url http://127.0.0.1:18081 --config tick-config.json --output research-artifacts/새-영수증`으로 명시적 로컬 수신·해시 검증·시계 연결·영수증 게시를 수행합니다. 기존 `app.replay` CLI는 오프라인으로 유지합니다. 실제 123건 수신·프로세스 재시작, 최종 전체 1,196건 통과이며 모델 실행·전역 UTC 판단과 구분합니다.
@@ -83,6 +85,8 @@ Invoke-RestMethod -Uri 'http://localhost:8000/health'
 ```
 
 Spring Boot는 `POST /internal/ai/analyze-investment`를 호출합니다. 모델 버전 `WEIGHTED_SIGNAL_V1`과 추천 유형, 상태, 0~100 점수, 요약, 개별 점수 근거를 반환합니다.
+
+실제 비용의 제한 대조는 별도 오프라인 `app.replay.cost_reconciliation`에서 수행합니다. [거래내역 관찰·실사용 기록 절차](../../docs/cost-statement-reconciliation.md)를 따르며 API·주문·확정 비용 프로필을 변경하지 않습니다.
 
 관심 종목 분석은 `analysisType=WATCHLIST`와 실제 현재가를 보내고, 매수가·수익률·손절·익절 필드는 생략하거나 `null`로 둡니다. 기본 `HOLDING` 분석은 해당 보유 손익 필드를 모두 요구합니다. 관심 종목의 낮은 점수는 보유 주식 매도가 아니라 신규 진입 보류로 해석합니다.
 
