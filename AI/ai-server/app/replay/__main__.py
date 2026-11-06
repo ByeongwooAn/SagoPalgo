@@ -10,6 +10,7 @@ from .engine import replay
 from .models import ReplayConfig, ResearchError, utc
 from .temporal import SplitRequest, temporal_split
 from .stored import convert_file
+from .intraday import load_policy
 
 
 def write_report(path: Path, report):
@@ -35,6 +36,10 @@ def main(argv=None) -> int:
     run.add_argument("--dataset", required=True, type=Path)
     run.add_argument("--config", required=True, type=Path)
     run.add_argument("--output", required=True, type=Path)
+    run.add_argument('--intraday-timeline', type=Path)
+    run.add_argument('--timeline-sha256')
+    run.add_argument('--market', choices=['KOSPI', 'KOSDAQ'])
+    run.add_argument('--order-class', choices=['ORDINARY', 'PROGRAM'])
     split = commands.add_parser("split")
     split.add_argument("--config", required=True, type=Path)
     split.add_argument("--output", required=True, type=Path)
@@ -43,6 +48,9 @@ def main(argv=None) -> int:
     stored.add_argument("--config", required=True, type=Path)
     stored.add_argument("--output", required=True, type=Path)
     args = parser.parse_args(argv)
+    if args.command == 'replay':
+        binding = [args.intraday_timeline, args.timeline_sha256, args.market, args.order_class]
+        if any(binding) and not all(binding):parser.error('intraday replay requires --intraday-timeline --timeline-sha256 --market --order-class together')
     try:
         if args.command == "convert-stored":
             report = convert_file(args.input, args.config, args.output)
@@ -66,7 +74,8 @@ def main(argv=None) -> int:
                 result = {"status": "CREATED", "records": len(items)}
             else:
                 config = ReplayConfig.model_validate(read_json(read_bytes(args.config)))
-                report = replay(manifest, spec, records, quality, config)
+                intraday = load_policy(args.intraday_timeline, args.timeline_sha256, args.market, args.order_class) if args.intraday_timeline else None
+                report = replay(manifest, spec, records, quality, config, intraday)
                 write_report(args.output, report)
                 result = {"status": report["status"], "reportId": report["reportId"], "fills": len(report["fills"])}
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
