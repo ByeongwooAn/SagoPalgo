@@ -1,0 +1,535 @@
+{
+  "schemaVersion": "SAGOPALGO_SESSION_NOTICE_REVIEW_SCOPE_V1",
+  "inventorySha256": "2f705264ea03b085a25c24682aedbd061e35a8165e17a9244b17d53ad22b91ee",
+  "reviewedAt": "2026-11-06T00:10:41.059111+00:00",
+  "decisions": [
+    {
+      "market": "KOSDAQ",
+      "document": "20231228001406",
+      "bodySha256": "47a9e48b32ddc3842bee5950d8692f0caa183913a30ad9ed050a826945766355",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20231214000422",
+      "bodySha256": "efe735f3de532c161f9e5d0c53ef1968c577ef629c15289ff80dc86763c43d90",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20231129000946",
+      "bodySha256": "0ce70ce5cdb64b2f8e04efa07510f0fdd62d5c8d0d82aed988c574b12902f0b8",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20231106000007",
+      "bodySha256": "55527f4931352fe1a3139d07a783c2f8f02649319b5ee8d29e7e97c01298b4cb",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20231105000005",
+      "bodySha256": "a37e8c214a7c84530bea15f45ab00f91312e8bc2b317d4137e013f9377bcacc1",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20231101001384",
+      "bodySha256": "cd1bc5a1f8ccf65eeb89329b02e292a55da696c028415666222d2283932e1498",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230927000455",
+      "bodySha256": "12d5de812e671c1d859e558992d8beed4be00bef6a909221669d4304a5d85535",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230914000920",
+      "bodySha256": "7c7bf73e8e501cc7da58a70be410da061587036f75160eea4f767ea117cc0592",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230907001536",
+      "bodySha256": "69731737ae809a26f1ec2de9bf50aee28134ee95f519e15ce52c886ef930e97b",
+      "classification": "LOCKUP_POLICY",
+      "reason": "개별 회사 주식의 의무보유 예외·기간 승계 안내이며 시장 전체 정규장 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230807000964",
+      "bodySha256": "f9446655bdcd8ae9d5131b16cfb00d662550048f7c2b1e1014a728bb63bb145c",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230726000002",
+      "bodySha256": "bdd3718594271d85139b64ddf917e812d110f9be0b920aac3fab6850d757e744",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230630001602",
+      "bodySha256": "a0573fd04bdbdb7ddf27e975e4bbe727638a5d047a1b70f145d3ccb1009fd99f",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230619000981",
+      "bodySha256": "81dbb5a75f9d69c5440331ae281876912b13f016f12fd60bad55261f19edea91",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230608000902",
+      "bodySha256": "e152a83a751e7f2ddf53d3df8562d3ad267867e0ab71d04d2cff76f36e2677ba",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230602000054",
+      "bodySha256": "5e47aae0172264ef26e4f5f35cde2a814d08feba7427b7d83e9f1b25e595685c",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230518001299",
+      "bodySha256": "d23492fc84547f6abac418e03a6c98274acec9a3fac665a89a9e0c7077bbe125",
+      "classification": "LOCKUP_POLICY",
+      "reason": "개별 회사 주식의 의무보유 예외·기간 승계 안내이며 시장 전체 정규장 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230418000173",
+      "bodySha256": "5e1068e4c95322104f433305e9a0cfd38fd09ab106b55ea01c29ed02a5314fb4",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230414001488",
+      "bodySha256": "2c338020ebfa2321ec8c0c67c21b80a58c221637bede39c86b7e0cf3638f8dee",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230405001747",
+      "bodySha256": "e29348c7b35bc1dc8ebe975ec6ab4ed5fad8d66a88d3718ca24ee3a5772892d5",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20230324000582",
+      "bodySha256": "732e5e4ffd665d7ba82fe11ded3462fd37ea238705765d5a095cbb4727e77e1e",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20241227001771",
+      "bodySha256": "e4d21060453da68afa9225c83b2e0d3e81fb22482b5f6253c92dc17260bec67c",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20241216000236",
+      "bodySha256": "05c52f5315c1558b487b46a59f3e00858b2e9912a5d9447b0133a3bf339a8403",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20241021000338",
+      "bodySha256": "6b47bb488dac0f727fcf5509d639b1aa1b4bfb94d8e6210edb55827259797923",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20240924001251",
+      "bodySha256": "de9046fb4faf6d0d724bec836e345c2631cc094b862a22038b32b6adaf03aa23",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20240624000152",
+      "bodySha256": "ed8b877d81cc7c085558582f5f38af65e83a5ab2b202e2df21629e60bf3a0751",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20240613000224",
+      "bodySha256": "d40b5494fdb4f0d30997d2f634a976fc782c6c193a18cce907e99534c91d2242",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20240318000523",
+      "bodySha256": "8f7f1766d6149a0b82d565ee735a3188af84c52f05f972d0c05a41013884df10",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20251230000352",
+      "bodySha256": "c37b4a2f57b39cc45b3e297069e16ac393f2a950561924b30983d7ea39fcc398",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20251204000985",
+      "bodySha256": "42b887ed62c272ac9f031977e90961e78e931db1ef97d06e92324b3e5ae7ed9b",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20251021000455",
+      "bodySha256": "d87a51de2a3f23f83e48ba736d9c55752a5f597871cd741f8e2577978ac99385",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20250929000551",
+      "bodySha256": "a9aa149b0cb2eb427378c83f29d36349d9909ca2465ae5d3ea31124364afc0a0",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20250919000903",
+      "bodySha256": "8f24514f1c6fa96de518634fbc0431c494891ec59e8cc3423afcb3c3e0c6b2cc",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20250825000802",
+      "bodySha256": "5da267c10e9f77de362579f0af6dc94d32755d915e634a2330ed2c658b721509",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20250627001674",
+      "bodySha256": "e1633d4e4dfa38397daf457345e47c17066e1cd3d26e337bf8f7166a1f2d7c02",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20250627000896",
+      "bodySha256": "f8b7a87e3b98b2db4fde8af75f23c6529d333ba1b94a83fca984358cf6c9f625",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20250328002687",
+      "bodySha256": "be098fe7dcac18c869489480e93172180de7d9eed423c01c8d744823cceff7be",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20261104001218",
+      "bodySha256": "113480e87af555694f5169f0df763a6048927d162cfd36ee85a9545df96c8b91",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20261028001340",
+      "bodySha256": "4c132953cb9da5ace8730b2bd00a3d57cdaf977ad9840e79c2d39c17dacd8489",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20261006001359",
+      "bodySha256": "9b8847660aea745f1ab096f60c0f4a68ebc679e966cdfb6eabf48f62b48ac78e",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260928000342",
+      "bodySha256": "770afafda5c247677ad3257923655ff09f37a3035ae1e80c60dafc74ddc027c7",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260911000360",
+      "bodySha256": "e2e389bc61719ccb2a7543bcd2fd357320c7ccc7094ef0d11742badd5248250b",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260629001279",
+      "bodySha256": "fddabcac938a0fc78529f0c8d46812e21dbb3b405671e5b788a7b5bc961558d3",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSDAQ",
+      "document": "20260326002970",
+      "bodySha256": "17a87d051021298c08006e40dd289d79851069b71733a2aa4a42725d51acfe53",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231227000856",
+      "bodySha256": "2c25bb95656092a6067e6825e1ef5d6ca6cdb9b4e67809f2189d5a41c81c1ea1",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231213000752",
+      "bodySha256": "a313f6c4c73f4e2b77031a3aa6c965c3cc3906fd28e5c0627aec3cfe71844ec0",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231121000233",
+      "bodySha256": "c0fae4423e2c0570440df0685a07347fd810a28771ae63c84ca7e70553f5828a",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231106000005",
+      "bodySha256": "0eb2f391fa371b0862e95ca9fb6b7bb07a0ee4ccb2e8103b3a9fd80a0f0a2f17",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231105000003",
+      "bodySha256": "c7ca54b90ceec83d43109ab99b304659db3e2425300d961af92db3d0a9258811",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20231102000001",
+      "bodySha256": "499a01e2465201168050caa42cd21d782e4fe98d94bbca7aece8c18bfe15b9b3",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230926000388",
+      "bodySha256": "1aacee8c1ad1dee73546ccf58ef8afc0c6e5ff0db601a8e6bb2784de1ef2cd2c",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230629000617",
+      "bodySha256": "55bfed2bb5b68101df60bf22be8fa2a2b78cd67be8d479aaf3894de18e058421",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230620000003",
+      "bodySha256": "899d1df7d93b20a05dbf63bf56ba510e2630126f6991ac6607a2a53442d10487",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230608000083",
+      "bodySha256": "bb1cbc033f44ad940d6a64225d3101ef6093c613701576cf7473f0d4ef81905b",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230524001219",
+      "bodySha256": "b4e46364bff05a7cec7866e2cbe972729f2be21b5b2fa6d135475b32d4d5b794",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230411000227",
+      "bodySha256": "caed9922d7a704248ff97cd00eb021e5a70f9bb7894f7943bb702665814ed8bd",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230331001821",
+      "bodySha256": "3aa9566dfe03de7991e1558c7d823dbe0c9dc14fe958011b8f52309583faa8ad",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20230127000007",
+      "bodySha256": "6c603282bb0fe0035ba1138c81aca3dd3e791b8df7de6906362ffdc98b4acf15",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20241227001328",
+      "bodySha256": "657f51e04b36237d155b43e95bfece6132f40ec0441fca0a7269455a51f785b9",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20241217000237",
+      "bodySha256": "56cf85779e6fce536df5643806af2f0e48374a7bc265686ad9756906351a7157",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20241031000185",
+      "bodySha256": "63f9382beb1ff8594cd041b04a11960c4d808afa75fbc09f66569732f902f2c4",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240628000309",
+      "bodySha256": "451f8e8a51d398f85641e96fd783b1f7bea3486b233e101865f2db3623d0c97c",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20240613000689",
+      "bodySha256": "62baecfcfcbdc5209ce012deeeeec1ddd98c4ad1281135cb1a98cd7cf3f9c57f",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20251230000060",
+      "bodySha256": "08bd69b72163f38d7b0a0ecd5e9d7ca10ae9c09c4e0a03edb8c6e6df6f915244",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20251217000864",
+      "bodySha256": "4a505b22cc27e440327ab6089592ddd896e4621a8f8621a92ffea00cc88def61",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20251030000137",
+      "bodySha256": "bbc8b4356af7feae1ed69e2892782f807c1c04d2b3e8c8ab40cb5854b707da33",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250930000185",
+      "bodySha256": "657893120f94f443727d822fef9cd071848cf9123daa1bba559d4eaa9d7956e4",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250901000021",
+      "bodySha256": "09043acad201349f7afcf82d9369f2e4f3f03a96494c6dca5b5ae5c8a30e3226",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250630001952",
+      "bodySha256": "e503dfb70bbbfec5e26af20cfb89221a287d330986850554d7e4e68cfaad4370",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250327004940",
+      "bodySha256": "b4762cc5fe4ebb5b29329dd71b9c635c891269aa5526357c63b803a90801f643",
+      "classification": "SHORT_SELLING_POLICY",
+      "reason": "공매도 허용·금지 대상이나 적용 기간·과열 지정 기준이며 정규장 예정 시간 변경과 구분한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250318002918",
+      "bodySha256": "bf698985c98942791d40f31ddefc2352ef5bf3ccacafd5310542e672d2c9dcf9",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "동양철관 한 종목의 전산장애 정지·제목 정정·재개 안내이며 시장 전체 정규 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "동양철관"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250318001348",
+      "bodySha256": "4e662510f9399de932cdce9fae69cba34d0e0ff21e2936406dd1cd46942820ed",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "동양철관 한 종목의 전산장애 정지·제목 정정·재개 안내이며 시장 전체 정규 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "동양철관"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20250318001877",
+      "bodySha256": "a2e1cb782cacba93ab0e4285b5af9abc98be047e3b9cb9a944bed505b260b4dd",
+      "classification": "ISSUER_SPECIFIC_HALT",
+      "reason": "동양철관 한 종목의 전산장애 정지·제목 정정·재개 안내이며 시장 전체 정규 세션을 덮어쓰지 않는다.",
+      "subjectIssuer": "동양철관"
+    },
+    {
+      "market": "KOSPI",
+      "document": "20261105000216",
+      "bodySha256": "75da004fe99147713d337ed49639c231030dc362d14b2d0c63a937d55dd9e2a9",
+      "classification": "REGULAR_SESSION_CHANGE",
+      "reason": "정규시장 변경 전후 시각 또는 연초 개장일 시각을 원문에서 대조한다. 적용일과 발표일을 분리한다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260911000864",
+      "bodySha256": "f9c5b4288a07b9efd2120f0834042b00a38e0af9f85ca6e9e54beccb7c281e6f",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    },
+    {
+      "market": "KOSPI",
+      "document": "20260630000227",
+      "bodySha256": "a9550fb5090fa9acc3c7d831cb6014473efb1ae4948f71c659028612afcb5b3c",
+      "classification": "MARKET_MAKING_POLICY",
+      "reason": "시장조성 계약 기간·대상 종목·회원사 변경이며 정규장 시작/종료 시각 변경 공지가 아니다. 첨부 종목표의 완전성은 이 검토 범위 밖이다."
+    }
+  ]
+}
