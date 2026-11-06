@@ -49,3 +49,10 @@ tasks.withType<Test> {
     // JUnit 5 플랫폼을 사용하도록 지정합니다.
     useJUnitPlatform()
 }
+
+tasks.register<JavaExec>("inspectStreamOperationsJournal") {
+    group = "verification"
+    description = "Read-only integrity/session inspection of the local stream operations journal."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("com.sagopalgo.api.market.stream.StreamOperationsJournalInspector")
+}

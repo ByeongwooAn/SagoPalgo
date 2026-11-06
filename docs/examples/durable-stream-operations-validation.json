@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "SAGOPALGO_STREAM_OPERATIONS_VALIDATION_V1",
+  "asOf": "2026-11-06",
+  "scope": "U07-A_OFFLINE_SYNTHETIC_DURABLE_METADATA",
+  "tests": {
+    "backend": {
+      "tests": 819,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "newJournal": {
+      "tests": 23,
+      "unit": 20,
+      "loopbackSocket": 3
+    },
+    "relatedInFullSuite": 53,
+    "isolatedMysqlSuitesEnabled": [
+      "MARKET_RESEARCH",
+      "ACCOUNT_OBSERVATION",
+      "ORDER"
+    ]
+  },
+  "verified": [
+    "DISABLED_NO_FILES",
+    "DISTINCT_RESTART_SESSION_AND_CLOCK_DOMAIN",
+    "NO_PREVIOUS_LIVE_REPLAY",
+    "OLD_SESSION_BYTES_PRESERVED",
+    "SINGLE_WRITER_LOCK",
+    "START_FAILURE_NO_APPROVAL_OR_SOCKET",
+    "ASYNC_FAILURE_STOPS_COLLECTOR",
+    "PARTIAL_WRITE_PREFIX_ONLY",
+    "QUEUE_SESSION_DIRECTORY_LIMITS",
+    "WRITE_AND_CLOSE_TIMEOUT",
+    "HASH_SEQUENCE_DUPLICATE_KEYS_AND_END_VALIDATION",
+    "READ_ONLY_PAGING_AND_EXCLUSIVE_REPORT",
+    "OWNED_CHILD_JVM_RUNTIME_HALT"
+  ],
+  "loopbackCounters": {
+    "receivedPublicFrames": 3,
+    "decodedEvents": 3,
+    "storageInsertions": 2,
+    "nonInsertions": 1,
+    "areObservationSnapshots": true,
+    "areTransactionLedger": false
+  },
+  "standaloneCli": {
+    "gradleTask": "inspectStreamOperationsJournal",
+    "exitCode": 0,
+    "source": "OWNED_CHILD_JVM_SYNTHETIC",
+    "status": "NO_END_MARKER",
+    "verifiedEntries": 2,
+    "fileSha256": "6822fad4d50094d8a0c0eaea251628b510f9dcdee6462293c9759bde3664487e",
+    "repairPerformed": false,
+    "writerActivity": "NOT_DETERMINED",
+    "crossSessionOrder": "UNCONFIRMED"
+  },
+  "realKisCalls": 0,
+  "realOrders": 0,
+  "productionDeploymentPerformed": false,
+  "journalDefaultEnabled": false,
+  "priorOperatingContainersPreserved": 4,
+  "remaining": [
+    "U07-B_OPERATIONAL_STATUS_REPORT",
+    "U07-C_ISOLATED_DB_FAILURE_AND_PROCESS_RESTART_COMPARISON",
+    "U06-B_KIS_INTRADAY_RECOVERY",
+    "U07-D_FULL_SESSION_LONG_RUN"
+  ],
+  "limitations": [
+    "QUEUED_TAIL_NOT_DURABLE",
+    "COUNTERS_NOT_TRANSACTION_LEDGER",
+    "NO_END_DOES_NOT_PROVE_CRASH",
+    "NO_GLOBAL_UTC_ORDER",
+    "NO_POWER_LOSS_OR_REMOTE_STORAGE_ATTESTATION"
+  ],
+  "fixedProgress": {
+    "overallCompleted": 27,
+    "overallTotal": 48,
+    "stage5Completed": 7,
+    "stage5Total": 18,
+    "item5_08": "IN_PROGRESS"
+  },
+  "usableForTrading": false
+}
