@@ -12,6 +12,9 @@ from .temporal import SplitRequest, temporal_split
 from .stored import convert_file
 from .intraday import load_policy
 from .ticks import audit_tick_files
+from .ticks import TickAuditConfig, audit_ticks
+from .tick_quality import quality_profile
+from .quote_execution import QuoteExecutionPolicy, QuoteOrder, estimate_quotes
 
 
 def write_report(path: Path, report):
@@ -53,12 +56,43 @@ def main(argv=None) -> int:
     ticks.add_argument("--config", required=True, type=Path)
     ticks.add_argument("--claims", type=Path)
     ticks.add_argument("--output", required=True, type=Path)
+    for command in ["profile-ticks", "quote-scenario"]:
+        command_parser = commands.add_parser(command)
+        command_parser.add_argument("--input", required=True, type=Path)
+        command_parser.add_argument("--config", required=True, type=Path)
+        command_parser.add_argument("--session-evidence", required=True, type=Path)
+        command_parser.add_argument("--output", required=True, type=Path)
+        if command == "quote-scenario":
+            command_parser.add_argument("--policy", required=True, type=Path)
+            command_parser.add_argument("--orders", required=True, type=Path)
+            command_parser.add_argument('--intraday-timeline', type=Path)
+            command_parser.add_argument('--timeline-sha256')
+            command_parser.add_argument('--market', choices=['KOSPI', 'KOSDAQ'])
+            command_parser.add_argument('--order-class', choices=['ORDINARY', 'PROGRAM'])
     args = parser.parse_args(argv)
-    if args.command == 'replay':
+    if args.command in {'replay', 'quote-scenario'}:
         binding = [args.intraday_timeline, args.timeline_sha256, args.market, args.order_class]
         if any(binding) and not all(binding):parser.error('intraday replay requires --intraday-timeline --timeline-sha256 --market --order-class together')
     try:
-        if args.command == "audit-ticks":
+        if args.command in {"profile-ticks", "quote-scenario"}:
+            raw = read_bytes(args.input)
+            config = TickAuditConfig.model_validate(read_json(read_bytes(args.config)))
+            evidence = read_bytes(args.session_evidence)
+            if args.command == "quote-scenario":
+                values = read_json(read_bytes(args.orders))
+                if not isinstance(values, list) or len(values) > 10000: raise ResearchError("ORDER_ID_OR_COUNT_INVALID")
+                report = estimate_quotes(raw, config, evidence,
+                    QuoteExecutionPolicy.model_validate(read_json(read_bytes(args.policy))),
+                    [QuoteOrder.model_validate(value) for value in values],
+                    load_policy(args.intraday_timeline,args.timeline_sha256,args.market,args.order_class) if args.intraday_timeline else None)
+                result = {"status": "CREATED", "statusCounts": report["statusCounts"], "reportId": report["reportId"]}
+            else:
+                records, audit_report = audit_ticks(raw, config, [])
+                records, report = quality_profile(records, evidence)
+                report.update(sourceExportSha256=audit_report["sourceExportSha256"], records=records)
+                result = {"status": "CREATED", "records": len(records), "dateEvidenceCounts": report["dateEvidenceCounts"]}
+            write_report(args.output, report)
+        elif args.command == "audit-ticks":
             report = audit_tick_files(args.input, args.config, args.output, args.claims)
             result = {k: report[k] for k in ["status", "counts", "comparisonCounts", "reportId"]}
         elif args.command == "convert-stored":
