@@ -1,5 +1,7 @@
 # SagoPalgo AI Analysis Server
 
+[임시 거래시간 변경 공지 목록·본문 검토](../../docs/session-exception-notice-inventory.md)는 `app.replay.session_notice_inventory`의 plan/extend/collect/status/build/audit와 `app.replay.session_notice_review`의 build/audit/as-of로 실행합니다. 16개 검색·40페이지·공시 2,622건·본문 75개를 검토하고 기존 특수 세션 12개를 대조했습니다. 검토 명세는 `docs/examples/session-notice-review.json`입니다. 8개 구간의 선택 범위 검토이며 전체 공지/정정 계보 완성은 아닙니다. 일반 후보 1,448개와 기존 ReferencePack을 보존합니다. 회귀 984건 통과, 상세 재현·예산·한계는 연결 문서를 따릅니다.
+
 [코스닥 과거 전문·위임 시행일과 규정 V2](../../docs/kosdaq-rule-effective-evidence.md)는 `app.replay.rule_effective_evidence`의 capture/build/audit/as-of로 실행합니다. `docs/examples/kosdaq-rule-effective-evidence.json`에 V1 해시·세 원문 식별을 고정하고 과거 전문과 위임 부칙을 연결합니다. 제2280호의 2025-03-04 시행일·15/15개 규정 연결을 확인하되 이전 불일치·자리표시자와 실제 세션 미확인 상태를 보존합니다. 임시 변경 검토 8구간은 대기 상태입니다.
 
 [과거 일반 정규장 규정 판본 검증](../../docs/historical-ordinary-session-rules.md)은 `app.replay.historical_session_rules`의 capture/build/audit/as-of로 실행합니다. `docs/examples/historical-session-rules.json`에 판본과 이전 달력 해시를 고정합니다. 15개 중 14개 일치·코스닥 제53차 본문 불일치 1건을 보존하며, KOSPI 규정 7구간 확인과 실제 세션 확정을 구분합니다. 일반 후보는 실제 세션에서 계속 제외합니다.

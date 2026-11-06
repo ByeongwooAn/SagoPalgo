@@ -3,3 +3,4 @@ docs/examples/name-alias-cases.json text eol=lf
 docs/examples/market-calendar-sources.json text eol=lf
 docs/examples/historical-session-rules.json text eol=lf
 docs/examples/kosdaq-rule-effective-evidence.json text eol=lf
+docs/examples/session-notice-review.json text eol=lf
