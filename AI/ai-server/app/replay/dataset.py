@@ -8,6 +8,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from .models import Bar, DatasetSpec, Membership, Record, ResearchContent, ResearchError
+from .file_publish import publish_directory
 
 VERSION = "SAGOPALGO_REPLAY_V1"
 MAX_BYTES = 128 * 1024 * 1024
@@ -175,6 +176,7 @@ def build_bundle(spec_path: Path, input_path: Path, output: Path) -> dict:
         raise ResearchError("OUTPUT_EXISTS")
     output.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix=".replay-build-", dir=output.parent))
+    prepared = False
     try:
         for name, data in contents.items():
             (staging / name).write_bytes(data)
@@ -182,9 +184,12 @@ def build_bundle(spec_path: Path, input_path: Path, output: Path) -> dict:
         # Rename publishes a complete bundle, never a partially written manifest.
         if output.exists():
             raise ResearchError("OUTPUT_EXISTS")
-        os.rename(staging, output)
+        prepared = True
+        publish_directory(staging, output)
     finally:
-        if staging.exists():
+        # Keep a fully prepared bundle if publication fails. No partial output
+        # becomes visible, and the exact bytes remain available for diagnosis.
+        if staging.exists() and not prepared:
             shutil.rmtree(staging)
     return manifest
 

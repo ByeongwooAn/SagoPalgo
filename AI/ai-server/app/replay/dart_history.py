@@ -15,6 +15,7 @@ from .dataset import canonical, digest, read_bytes, read_json
 from .history import NoRedirect, atomic_json, audit as history_audit, day, job_lock, now
 from .local_use import load_local_use
 from .models import ResearchError, StrictModel, utc
+from .file_publish import replace_file
 
 BASE = "https://opendart.fss.or.kr/api/"
 LIMIT = 2 * 1024 * 1024
@@ -260,7 +261,7 @@ def collect(folder: Path, transport, sleeper=time.sleep):
             report.update(planId=plan["planId"], callsUsed=len(journal["attempts"]), maxRequests=config.maxRequests, recordsSha256=digest(records))
             temporary = folder / "disclosures.jsonl.tmp"
             temporary.write_bytes(records)
-            os.replace(temporary, folder / "disclosures.jsonl")
+            replace_file(temporary, folder / "disclosures.jsonl")
             atomic_json(folder / "report.json", report)
             journal["status"] = "COLLECTED"
             journal.pop("diagnostic", None)

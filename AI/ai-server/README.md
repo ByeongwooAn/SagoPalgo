@@ -1,6 +1,6 @@
 # SagoPalgo AI Analysis Server
 
-[장중 거래구간·재현 엔진 연결](../../docs/intraday-session-replay.md)은 `app.replay.intraday` build/audit와 `app.replay replay --intraday-timeline --timeline-sha256 --market --order-class`로 실행합니다. CB 17쌍·프로그램 정지 100개를 제한 구간 134개로 연결하고 당시 미확인·부분 근거 및 단일가 체결을 보류합니다. 명시적 적용 보고서는 R5_FOUNDATION_3, 기존 무타임라인 보고서는 바이트를 보존합니다. 신규 44건 통과이며 전체 회귀의 기존 간헐 파일 교체 실패는 연결 문서에 기록합니다.
+[장중 거래구간·재현 엔진 연결](../../docs/intraday-session-replay.md)은 `app.replay.intraday` build/audit와 `app.replay replay --intraday-timeline --timeline-sha256 --market --order-class`로 실행합니다. CB 17쌍·프로그램 정지 100개를 제한 구간 134개로 연결하고 당시 미확인·부분 근거 및 단일가 체결을 보류합니다. 명시적 적용 보고서는 R5_FOUNDATION_3, 기존 무타임라인 보고서는 바이트를 보존합니다. [Windows 게시 복구](../../docs/windows-file-publication.md)로 일지/JSONL/준비 폴더의 잠금 복구를 통일했으며 전체 **1,079건 통과·실패/오류/제외 0건**입니다. 과거 실패 로그는 보존합니다.
 
 [추가 양식·발표 경계·정정과 세션 판단](../../docs/session-coverage-boundary-review.md)은 `app.replay.session_coverage_review`의 plan/extend/collect/build/audit/review/audit-review/decide/audit-decision/as-of로 실행합니다. 170개 검색·176페이지·고유 본문 235개, CB 18쌍과 원본/정정 본문 차이를 대조합니다. 1,448개 일반 후보에 날짜별 규정·보류 사유를 기록하고 기존 ReferencePack은 보존합니다. 검토 명세는 `session-boundary-review.json`, `session-category-review.json`이며 전체 회귀 1,018건 통과입니다.
 
