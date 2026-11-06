@@ -14,25 +14,45 @@ public class MarketStreamHub {
     private record Cached(Instant at,List<StreamMinuteBar> bars) {}
     private final MarketStreamProperties policy;
     private final MarketStreamStore store;
+    private final MarketAvailabilityJournal availability;
     private final Map<String,MarketStreamEvent> trades=new HashMap<>(),quotes=new HashMap<>();
     private final Map<String,Cached> cached=new HashMap<>();
     private String connection="DISABLED",diagnostic=null;
-    public MarketStreamHub(MarketStreamProperties policy,MarketStreamStore store) {this.policy=policy;this.store=store;}
-    public void verifyStorage() {store.verify();}
+    private long generation;
+    MarketStreamHub(MarketStreamProperties policy,MarketStreamStore store) {this(policy,store,null);}
+    @org.springframework.beans.factory.annotation.Autowired
+    public MarketStreamHub(MarketStreamProperties policy,MarketStreamStore store,MarketAvailabilityJournal availability) {
+        this.policy=policy;this.store=store;this.availability=availability;
+    }
+    public void verifyStorage() {store.verify();if(availability!=null)availability.verify();}
     public synchronized void connection(String state,String code) {
         connection=state;diagnostic=code;
-        if(!"CONNECTED".equals(state)) {trades.clear();quotes.clear();}
+        if(!"CONNECTED".equals(state)) {generation++;trades.clear();quotes.clear();}
     }
-    public synchronized void accept(MarketStreamEvent event) {
+    public void accept(MarketStreamEvent event) {
         if(!policy.enabled() || !policy.stockCodes().contains(event.stockCode())) throw new IllegalArgumentException("UNSUBSCRIBED_SYMBOL");
-        if(!store.append(event)) return;
+        final long epoch;
+        synchronized(this) {epoch=generation;}
+        store.appendCommitted(event,()->{
+            try {
+                if(availability==null) publish(event,epoch);
+                else availability.publish(event,()->publish(event,epoch));
+            } catch(RuntimeException error) {
+                connection("FAILED","AVAILABILITY_RECORD_FAILED");
+                throw new IllegalStateException("AVAILABILITY_RECORD_FAILED");
+            }
+        });
+    }
+    private synchronized boolean publish(MarketStreamEvent event,long epoch) {
+        if(epoch!=generation) return false;
         var target="TRADE".equals(event.type()) ? trades : quotes;
         var old=target.get(event.stockCode());
         if(old==null || event.marketTime().isAfter(old.marketTime()) ||
             (event.marketTime().equals(old.marketTime()) && (("TRADE".equals(event.type()) &&
                 new java.math.BigInteger(event.cumulativeVolume()).compareTo(new java.math.BigInteger(old.cumulativeVolume()))>0) ||
                 ("QUOTE".equals(event.type()) && event.receivedAt().isAfter(old.receivedAt())))))
-            target.put(event.stockCode(),event);
+            {target.put(event.stockCode(),event);return true;}
+        return false;
     }
     public synchronized Snapshot snapshot(String stock,Instant now) {
         if(stock==null || !stock.matches("[0-9]{6}")) throw new IllegalArgumentException("INVALID_STOCK_CODE");

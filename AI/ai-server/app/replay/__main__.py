@@ -12,7 +12,7 @@ from .temporal import SplitRequest, temporal_split
 from .stored import convert_file
 from .intraday import load_policy
 from .ticks import audit_tick_files
-from .ticks import TickAuditConfig, audit_ticks
+from .ticks import TickAuditConfig, audit_ticks, observed_snapshot
 from .tick_quality import quality_profile
 from .quote_execution import QuoteExecutionPolicy, QuoteOrder, estimate_quotes
 
@@ -56,6 +56,12 @@ def main(argv=None) -> int:
     ticks.add_argument("--config", required=True, type=Path)
     ticks.add_argument("--claims", type=Path)
     ticks.add_argument("--output", required=True, type=Path)
+    publication=commands.add_parser("snapshot-inputs")
+    publication.add_argument("--input",required=True,type=Path)
+    publication.add_argument("--config",required=True,type=Path)
+    publication.add_argument("--at",required=True)
+    publication.add_argument("--clock-domain",required=True)
+    publication.add_argument("--output",required=True,type=Path)
     for command in ["profile-ticks", "quote-scenario"]:
         command_parser = commands.add_parser(command)
         command_parser.add_argument("--input", required=True, type=Path)
@@ -74,7 +80,11 @@ def main(argv=None) -> int:
         binding = [args.intraday_timeline, args.timeline_sha256, args.market, args.order_class]
         if any(binding) and not all(binding):parser.error('intraday replay requires --intraday-timeline --timeline-sha256 --market --order-class together')
     try:
-        if args.command in {"profile-ticks", "quote-scenario"}:
+        if args.command=="snapshot-inputs":
+            report=observed_snapshot(read_bytes(args.input),TickAuditConfig.model_validate(read_json(read_bytes(args.config))),utc(args.at),args.clock_domain)
+            write_report(args.output,report)
+            result={"status":"CREATED","records":len(report["records"]),"clockDomain":report["clockDomain"]}
+        elif args.command in {"profile-ticks", "quote-scenario"}:
             raw = read_bytes(args.input)
             config = TickAuditConfig.model_validate(read_json(read_bytes(args.config)))
             evidence = read_bytes(args.session_evidence)

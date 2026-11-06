@@ -348,3 +348,10 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 [025](../Back/database/migrations/025_market_stream.sql)는 `market_stream_events`와 `market_stream_minutes`, [026](../Back/database/migrations/026_research_incremental.sql)은 `research_journal_clock`·`research_item_heads`·`research_versions`·`research_checkpoints`를 추가합니다. 기존 DB에는 schema.sql 수정만으로 자동 적용되지 않습니다. 계약은 [실시간 수집](realtime-data-pipeline.md)과 [저장 자료 내보내기](stored-dataset-export.md)를 따릅니다.
 
 2026-11-06 메인 PC에서 전체 DB 백업·압축 검증 후 두 마이그레이션을 적용했습니다. [복구 기록](public-tick-collection-recovery.md)에서 원래 32개 테이블 보존·새 공개 테이블 6개·공개 API 200·실제 표본 1,081행 입력 대조를 확인했습니다. Ubuntu 별도 DB·장기 수집·주문 체결을 검증한 결과가 아니며 운영 수집 설정은 OFF입니다.
+
+
+## 027. 커밋 이후 로컬 입력 공개 관측
+
+[027](../Back/database/migrations/027_market_input_availability.sql)은 `market_stream_availability`에 event_id PK/FK·원문 해시·JVM clock_domain·커밋/공개 관측 DATETIME(6)·단조 경과 ns·시계 품질과 순서 CHECK를 추가합니다. 기존 025/026 행은 수정하지 않으며 과거 공개 시각을 소급 생성하지 않습니다. [공개 순서·V2 계약·시계 한계](committed-input-availability.md)를 따릅니다.
+
+2026-11-06 메인 PC에서 전체 DB 백업/압축 검증 후 적용했습니다. 기존 이벤트 1,199건 해시와 비스트림 테이블 36개 불변, 신규 실제 이벤트/공개 관측 5건을 확인했습니다. 관측은 기본 OFF이며 Ubuntu 적용·운영 백엔드 재배포·외부 전략 수신 검증을 뜻하지 않습니다.

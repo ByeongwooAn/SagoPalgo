@@ -91,6 +91,44 @@ class StoredExport(StrictModel):
         return self
 
 
+class AvailabilityObservation(StrictModel):
+    contentHash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    clockDomain: str = Field(pattern=r"^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$")
+    commitObservedAt: Timestamp
+    inputPublishedAt: Timestamp
+    commitElapsedNanos: int = Field(ge=0)
+    publishedElapsedNanos: int = Field(ge=0)
+    clockQuality: Literal["MONOTONIC_STABLE", "CLOCK_STEP_DETECTED"]
+    clockBasis: Literal["JVM_MONOTONIC_ANCHORED_UTC"]
+    utcSynchronized: Literal[False]
+
+    @model_validator(mode="after")
+    def chronology(self):
+        if self.commitObservedAt > self.inputPublishedAt or self.commitElapsedNanos > self.publishedElapsedNanos:
+            raise ValueError("availability observations out of causal order")
+        return self
+
+
+class StreamRowV2(StreamRow):
+    availability: AvailabilityObservation | None = None
+
+    @model_validator(mode="after")
+    def binding(self):
+        if self.availability and self.availability.contentHash != self.contentHash:
+            raise ValueError("availability must bind to the original source payload")
+        return self
+
+
+class StoredExportV2(StoredExport):
+    schemaVersion: Literal["SAGOPALGO_STORED_EXPORT_V2"]
+    streamEvents: list[StreamRowV2] = Field(max_length=10000)
+
+
+def parse_export(value):
+    return (StoredExportV2 if isinstance(value, dict) and value.get("schemaVersion")=="SAGOPALGO_STORED_EXPORT_V2"
+            else StoredExport).model_validate(value)
+
+
 def precise_time(value):
     """Conservatively CEIL source nanoseconds to supported microseconds; never round earlier."""
     if not isinstance(value, str):
@@ -120,7 +158,7 @@ def convert(raw: bytes, config: ConversionConfig):
         if set(value) - {"success", "data", "error", "message"} or value.get("success") is not True or value.get("error") is not None:
             raise ResearchError("STORED_EXPORT_FAILED")
         value = value.get("data")
-    export = StoredExport.model_validate(value)
+    export = parse_export(value)
     skipped = Counter()
     trades = defaultdict(list)
     sources = {}

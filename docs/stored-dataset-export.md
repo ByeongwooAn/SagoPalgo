@@ -1,5 +1,7 @@
 # R2·R3 저장 자료 → R5 데이터셋 연결
 
+2026-11-06 후속: 기존 V1을 유지하고 [선택적 커밋/로컬 공개 관측 V2](committed-input-availability.md)를 추가했습니다. `GET /api/v1/research/dataset-export/availability`는 027 관측을 함께 반환하며, 없으면 null입니다. 실제 UTC 동기화·외부 전략 수신을 주장하지 않습니다. Python은 V1/V2를 지원하고 기본 변환의 보수적 가용 시각은 유지합니다. 아래는 V1의 원래 계약과 당시 검증 기록입니다.
+
 후속 [틱 감사·대조 계약](tick-reference-validation.md)은 export V1의 체결/호가를 별도 감사 폴더로 보존합니다. 기존 BAR 변환이나 엔진 정책은 변경하지 않으며, 빈 호가·추정 날짜·거래소 순번/과거 가용 시각 부재를 표시합니다.
 
 기준일: 2026-11-03. [R5](historical-data-replay.md) 후속이며 [고정 체크리스트](numbered-work-progress.md)의 5-05/5-06입니다. 제품 코드·격리 검증 단계입니다. 운영 025/026 적용·배포·실제 자료 수집/대조는 후속이며 수집 OFF·주문 설정·Windows 앱은 유지했습니다.

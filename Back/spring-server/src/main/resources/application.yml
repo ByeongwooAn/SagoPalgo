@@ -118,6 +118,7 @@ sagopalgo:
       approved-subscriptions: ${SAGOPALGO_MARKET_STREAM_APPROVED_SUBSCRIPTIONS:0}
       symbols: ${SAGOPALGO_MARKET_STREAM_SYMBOLS:}
       stale-seconds: ${SAGOPALGO_MARKET_STREAM_STALE_SECONDS:15}
+      availability-enabled: ${SAGOPALGO_MARKET_AVAILABILITY_ENABLED:false}
     kis:
       # 한국투자증권 Open API 현재가 조회 사용 여부입니다. 키를 설정한 환경에서만 true로 켭니다.
       enabled: ${SAGOPALGO_KIS_ENABLED:false}

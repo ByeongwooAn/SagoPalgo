@@ -12,7 +12,7 @@ from pydantic import Field, model_validator
 from .dataset import canonical, digest, read_bytes, read_json
 from .file_publish import publish_directory
 from .models import Identifier, ResearchError, StrictModel, Timestamp
-from .stored import StoredExport, payload, precise_time
+from .stored import parse_export, payload, precise_time
 
 Price = Annotated[str, Field(pattern=r"^[0-9]{1,24}(?:\.[0-9]{1,6})?$")]
 Quantity = Annotated[str, Field(pattern=r"^[0-9]{1,24}$")]
@@ -98,7 +98,7 @@ def audit_ticks(raw: bytes, config: TickAuditConfig, claims: list[ExecutionClaim
         if set(value) - {"success", "data", "error", "message"} or value.get("success") is not True or value.get("error") is not None:
             raise ResearchError("STORED_EXPORT_FAILED")
         value = value.get("data")
-    export = StoredExport.model_validate(value)
+    export = parse_export(value)
     if (export.stockCode, export.start, export.end) != (config.stockCode, config.startAt, config.endAt):
         raise ResearchError("TICK_SCOPE_MISMATCH")
     if len({c.claimId for c in claims}) != len(claims):
@@ -153,6 +153,9 @@ def audit_ticks(raw: bytes, config: TickAuditConfig, claims: list[ExecutionClaim
             "asks": [x.model_dump() for x in item.asks], "bids": [x.model_dump() for x in item.bids],
             "rawSha256": row.contentHash, "sourceExportSha256": digest(raw), "flags": flags,
         })
+        observation=getattr(row,"availability",None)
+        if observation is not None:
+            normalized[-1]["availabilityObservation"]=observation.model_dump(mode="json")
     # Export order is market_at,event_id, NOT provider sequence or arrival order.
     trades = [x for x in normalized if x["type"] == "TRADE"]
     by_market = sorted(trades, key=lambda x: (x["marketAt"], int(x["cumulativeVolume"])))
@@ -226,6 +229,21 @@ def audit_ticks(raw: bytes, config: TickAuditConfig, claims: list[ExecutionClaim
               "declarations": "MARKET_PROVENANCE_RIGHTS_SESSION_CODES_ARE_CALLER_EVIDENCE_NOT_AUTOMATIC_VERIFICATION",
               "usableForTrading": False, "usableForStrategyValidation": False}
     return normalized, report
+
+
+def observed_snapshot(raw,config,at,clock_domain):
+    records,report=audit_ticks(raw,config,[])
+    if not clock_domain:raise ResearchError("AVAILABILITY_CLOCK_DOMAIN_REQUIRED")
+    visible=[]
+    for row in records:
+        observation=row.get("availabilityObservation")
+        if observation and observation["clockDomain"]==clock_domain and observation["clockQuality"]=="MONOTONIC_STABLE" and precise_time(observation["inputPublishedAt"])<=at:
+            visible.append({**row,"knownAt":observation["inputPublishedAt"],"exportObservedAt":row["knownAt"],
+                            "knownAtBasis":"INPUT_PUBLICATION_SAME_CLOCK_DOMAIN"})
+    return {"schemaVersion":"SAGOPALGO_OBSERVED_INPUT_SNAPSHOT_V1","sourceExportSha256":report["sourceExportSha256"],
+            "at":at.isoformat(),"clockDomain":clock_domain,"records":visible,
+            "basis":"LOCAL_INPUT_PUBLICATION_UPPER_BOUND","utcSynchronized":False,
+            "usableForTrading":False,"usableForStrategyValidation":False}
 
 
 def audit_tick_files(input_path: Path, config_path: Path, output: Path, claims_path: Path | None = None):

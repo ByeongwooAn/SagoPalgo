@@ -29,6 +29,38 @@ public class StoredDatasetExportService {
     public record Snapshot(String schemaVersion, String stockCode, Instant from, Instant to, Instant exportedAt,
         boolean readOnly, boolean usableForTrading, String consistency, String streamCoverage, String researchScope,
         List<StreamRow> streamEvents, List<VersionRow> researchVersions) {}
+    public record Availability(String contentHash,String clockDomain,Instant commitObservedAt,Instant inputPublishedAt,
+        long commitElapsedNanos,long publishedElapsedNanos,String clockQuality,String clockBasis,boolean utcSynchronized) {}
+    public record StreamRowV2(String eventId,String stockCode,String type,Instant marketAt,Instant receivedAt,
+        String payloadJson,String contentHash,Availability availability) {}
+    public record SnapshotV2(String schemaVersion,String stockCode,Instant from,Instant to,Instant exportedAt,
+        boolean readOnly,boolean usableForTrading,String consistency,String streamCoverage,String researchScope,
+        List<StreamRowV2> streamEvents,List<VersionRow> researchVersions) {}
+
+    @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ,timeout=30)
+    public SnapshotV2 exportAvailability(String stock,Instant from,Instant to) {
+        Snapshot base=export(stock,from,to);
+        try {
+            record Bound(String hash,Availability value) {}
+            var values=jdbc.query("SELECT a.event_id,a.content_hash,a.clock_domain,a.commit_observed_at,a.input_published_at,a.commit_elapsed_ns,a.published_elapsed_ns,a.clock_quality FROM market_stream_availability a JOIN market_stream_events e ON e.event_id=a.event_id WHERE e.stock_code=? AND e.market_at>=? AND e.market_at<? ORDER BY e.market_at,e.event_id LIMIT 10001",
+                (r,n)->Map.entry(r.getString(1),new Bound(r.getString(2),new Availability(r.getString(2),r.getString(3),
+                    r.getObject(4,LocalDateTime.class).toInstant(ZoneOffset.UTC),r.getObject(5,LocalDateTime.class).toInstant(ZoneOffset.UTC),
+                    r.getLong(6),r.getLong(7),r.getString(8),"JVM_MONOTONIC_ANCHORED_UTC",false))),
+                stock,LocalDateTime.ofInstant(from,ZoneOffset.UTC),LocalDateTime.ofInstant(to,ZoneOffset.UTC));
+            Map<String,Bound> byId=new HashMap<>();
+            for(var entry:values) if(byId.put(entry.getKey(),entry.getValue())!=null) throw new IllegalStateException();
+            List<StreamRowV2> events=new ArrayList<>();
+            for(var row:base.streamEvents()) {
+                Bound bound=byId.remove(row.eventId());
+                if(bound!=null && (!bound.hash().equals(row.contentHash()) || bound.value().commitObservedAt().isAfter(bound.value().inputPublishedAt())
+                    || bound.value().commitElapsedNanos()<0 || bound.value().publishedElapsedNanos()<bound.value().commitElapsedNanos())) throw new IllegalStateException();
+                events.add(new StreamRowV2(row.eventId(),row.stockCode(),row.type(),row.marketAt(),row.receivedAt(),row.payloadJson(),row.contentHash(),bound==null?null:bound.value()));
+            }
+            if(!byId.isEmpty())throw new IllegalStateException();
+            return new SnapshotV2("SAGOPALGO_STORED_EXPORT_V2",stock,from,to,now(),true,false,base.consistency(),base.streamCoverage(),base.researchScope(),List.copyOf(events),base.researchVersions());
+        } catch(ApiException e) {throw e;}
+        catch(Exception e) {throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR,"공개 시세 가용 시각 027 적용 상태와 무결성을 확인하세요.");}
+    }
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ, timeout = 30)
     public Snapshot export(String stock, Instant from, Instant to) {
