@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "SAGOPALGO_H03_AUDIT_SCOPE_V1",
+  "startDate": "2023-11-01",
+  "endDate": "2026-11-02",
+  "publicationSearchStart": "2022-01-01",
+  "publicationSearchEnd": "2026-11-07",
+  "reviewedAt": "2026-11-07T20:27:00+09:00",
+  "inputs": {
+    "decisions": {
+      "file": "session-coverage-20261106/session-decisions.json",
+      "sha256": "4afeb63678c80ac6521df34428c8d7e7949201ea87c88480f869dc2500c9b9dc"
+    },
+    "rules": {
+      "file": "kosdaq-rule-effective-20261105/report-v2.json",
+      "sha256": "e60174c567c80a07f5c7f2377342ba257316fa7fbcfed9134ceda8ebdb803715"
+    },
+    "boundary": {
+      "file": "session-coverage-20261106/boundary-review.json",
+      "sha256": "9e8a79a078c08cea5b3fce88d7fc3af13e085c10ab4f8b4ed033c06f1357065b"
+    },
+    "calendar": {
+      "file": "calendar-settlement-exceptions-20261107/report.json",
+      "sha256": "62808e30779df6d6e19fa16dd44fd4200ca9b0e592a1be9def13b293a6b0a55b"
+    },
+    "timeline": {
+      "file": "intraday-replay-20261106/timeline.json",
+      "sha256": "876f349993f30ce428041f08f1e9a5a4d5355e0dbe725f6f6d8e856860788875"
+    },
+    "kindOriginal": {
+      "file": "session-inventory-20261105/inventory.json",
+      "sha256": "2f705264ea03b085a25c24682aedbd061e35a8165e17a9244b17d53ad22b91ee"
+    },
+    "kindBoundary": {
+      "file": "session-coverage-20261106/inventory.json",
+      "sha256": "40594bd94a8d0a3e3013fd67aa71cc942caa39452af98f8dbac0cf9a7fa8276b"
+    },
+    "kindCategory": {
+      "file": "session-coverage-20261106/category-inventory.json",
+      "sha256": "0a7ea55f0fde93adb0c5b7a409ec9fb9ae8b1579de8c8f419174fb4eac07897c"
+    },
+    "originalReview": {
+      "file": "session-inventory-20261105/review-report.json",
+      "sha256": "0193a6a016058d024073e60325c1657f0f514055b49b45bd74bee9655d59ecd4"
+    }
+  },
+  "pressReceipts": {
+    "list-circuit-breaker": "c86714660d96cfef4459813577b7f4271475562fa4529e8df04f28e8bb72a031",
+    "list-correction": "699cb0ba88b941977705762392cd5f02887750d9e0084d3119493b58c226d86d",
+    "list-disruption": "e885bd3908be0ac886a78a0b1fabbf12e3023214c72e1398f6763fa07e38fc7e",
+    "list-market-closure": "d31dee3ef61ea76f37efb079d0ebd9bbcde9eb607417493234be01d36f4b427d",
+    "list-market-operation": "eea01d3159bec4a65f0bb512aa4e19f7a478f1257aed481cbf0ca46a5ea8bc75",
+    "list-pre-market": "4c8c5cfa2fe5d73cf2157d0a84240bcd94d5e7b1009e0d692d094525eec605d1",
+    "list-stock-trading": "4b8fe82f3db704d1c36f2e4264102fd94a28cdba197e09b847313f71c10fc656",
+    "list-trading-hours": "14461cc0d09760928c839adfecd008caa7d002caf93ad7f912726753651d4d39",
+    "view-2023110201": "dd7f00dae9d5174d22f5829897d90b314e50073db95029c28b02fff02cdd54f2",
+    "view-2023121402": "ab2d6855626fb80f7f730d4238fd17753d4d2b82af95e80304b3d59d4825a452",
+    "view-2024103104": "d6d6fe17bd571ee54bccfd7d68d2dd078507c5e009f17b9a96edb73aeb59d731",
+    "view-2024121701": "04fd599d9a63f486862793192e053123f07bd8962a8ad6aca357a067ffe71174",
+    "view-2025103001": "01f02c2f29f0552f6a513926d974b4c0dc163eb5e355ba289ed2711cbf948eed",
+    "view-2025121801": "0f7abae2b1937f5a50df78265876685fd23517dd1ac53bc3c4d3f08ab113c17a",
+    "view-2026030409": "0e65ca71180fd4b0d309806601ea470ffbb581155d32c81a94dbddb58d2b9fc8",
+    "view-2026031203": "b150098d74745e1262da32401a248f2651dfd6d2fefec964cc6e5c36ecf063bc",
+    "view-2026041506": "c5442d73f9cb4a1b8b592aeaa16cb4fa74c85635bc889b3498bff82c3a2d7505",
+    "view-25968": "0a86b332803ac68912a10d77d7612b8c6cbcf256b2a0d5e5731900174b3bc2ca",
+    "view-26043": "6c67e64c80997b2939ab3ce5b7a1c1675d58aa6be6737f5478921c60a5b16ac2",
+    "view-261115880": "d2bb3f685a8457d208b3ad1db07abc3680de49df7ef59d1c37a282acfe6cf095"
+  },
+  "reviewedPressSchedules": {
+    "2023110201": {
+      "businessDate": "2023-11-16",
+      "page": 2,
+      "open": "10:00",
+      "close": "16:30",
+      "attachmentListSha256": "011dcc340d9f20e794e8a53a4f00d0ff275045e5b94b053d6a8edd9d7721675e",
+      "pdfSha256": "6048fa254a8ef66f2ebb8a00edf874f834cd6104f0b3693900210578c6f96975"
+    },
+    "2023121402": {
+      "businessDate": "2024-01-02",
+      "page": 3,
+      "open": "10:00",
+      "close": "15:30",
+      "attachmentListSha256": "1509b39edb1bfbcb064beafda32f3db86b14cb90fd81faa7d1a4b10629c50a58",
+      "pdfSha256": "8fa6835588b0b7caad0497bae8a5c00eac9e2cab953062ed32ec941f98966e28"
+    },
+    "2024103104": {
+      "businessDate": "2024-11-14",
+      "page": 2,
+      "open": "10:00",
+      "close": "16:30",
+      "attachmentListSha256": "c99ddc3f3999843e5b9772331bc2588dc3458dd58748c1b7165483b359bdcd35",
+      "pdfSha256": "d598442e0d3d640c1bd74191bffb62054ca40ab9038afdbda430412c13dc8504"
+    },
+    "2024121701": {
+      "businessDate": "2025-01-02",
+      "page": 3,
+      "open": "10:00",
+      "close": "15:30",
+      "attachmentListSha256": "9a8f717808534c4732a0387e3c7677597469e31535afdad7fa241584efcbe865",
+      "pdfSha256": "ccb1c42d528fe45ff246d0f4c441778cc72680c25a39a754422092443afbaa54"
+    },
+    "2025103001": {
+      "businessDate": "2025-11-13",
+      "page": 2,
+      "open": "10:00",
+      "close": "16:30",
+      "attachmentListSha256": "e61860a234b43d374b7fefc08e4b353e6f68752570009b12569f6b3e99410fa8",
+      "pdfSha256": "6ba46be44328d40719349ddfec1eb6ef2be5d7b5aa151fbff21e9879f283ee01"
+    },
+    "2025121801": {
+      "businessDate": "2026-01-02",
+      "page": 3,
+      "open": "10:00",
+      "close": "15:30",
+      "attachmentListSha256": "c8fe169b9ff24a841c0ccd5eae43ea4248086469f19d93082b755455ce2fdb49",
+      "pdfSha256": "fac96a1043317987fcc0320902ba71e333f9277c7f451d11f0342d2469e7a6b2"
+    },
+    "261115880": {
+      "businessDate": "2026-11-19",
+      "page": 2,
+      "open": "10:00",
+      "close": "16:30",
+      "attachmentListSha256": "178cd40cb55319bc46d3d486513f6e68f2af2471e8bd8fa56a6b1de96f311c45",
+      "pdfSha256": "7e2065d6e907eb8ad217f6d80bff3c2c782fe30f2681c1db438bdc6b58c6611c"
+    }
+  }
+}

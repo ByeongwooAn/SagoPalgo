@@ -6,4 +6,5 @@ docs/examples/kosdaq-rule-effective-evidence.json text eol=lf
 docs/examples/session-notice-review.json text eol=lf
 docs/examples/session-boundary-review.json text eol=lf
 docs/examples/session-category-review.json text eol=lf
+docs/examples/session-final-audit.json text eol=lf
 docs/examples/intraday-evidence.json text eol=lf
