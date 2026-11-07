@@ -2,15 +2,34 @@ package com.sagopalgo.api.market.stream;
 
 import com.sagopalgo.api.common.util.ContentHash;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.security.*;
 import java.util.*;
+import java.util.function.Consumer;
 
 /** Bounded read-only verification. Never repairs/truncates an old run or resumes its connection. */
 public final class StreamOperationsJournalInspector {
+    record SessionScan(UUID sessionId, String fileSha256, String status, long verifiedEntries,
+                       String lastVerifiedHash, StreamOperationsJournal.Operation lastOperation, UUID clockDomain) {}
+
     static Map<String,Object> inspect(Path directory,UUID selected,long after,int limit) throws IOException {
-        if(after<0 || limit<1 || limit>1000 || Files.isSymbolicLink(directory) || !Files.isDirectory(directory))
+        if(after<0 || limit<1 || limit>1000)
+            throw new IllegalArgumentException("JOURNAL_INSPECTION_INPUT_INVALID");
+        var page = new ArrayList<StreamOperationsJournal.Entry>();
+        var scanned = scanDirectory(directory, selected, record -> {
+            if (selected != null && record.entry().index() > after && page.size() < limit) {
+                page.add(record);
+            }
+        });
+        var sessions = scanned.stream().map(session -> inspectionSession(session, page, after)).toList();
+        return Map.of("schemaVersion","SAGOPALGO_STREAM_OPERATIONS_INSPECTION_V1","sessions",sessions,
+            "crossSessionOrder","UNCONFIRMED","writerActivity","NOT_DETERMINED","repairPerformed",false,
+            "durabilityAttestedByReader",false,"usableForTrading",false);
+    }
+
+    static List<SessionScan> scanDirectory(Path directory, UUID selected,
+                                           Consumer<StreamOperationsJournal.Entry> onVerifiedEntry) throws IOException {
+        if (Files.isSymbolicLink(directory) || !Files.isDirectory(directory))
             throw new IllegalArgumentException("JOURNAL_INSPECTION_INPUT_INVALID");
         var files=new ArrayList<Path>();long total=0;
         try(var stream=Files.newDirectoryStream(directory,"session-*.jsonl")) {
@@ -23,19 +42,17 @@ public final class StreamOperationsJournalInspector {
             }
         }
         files.sort(Comparator.comparing(path->path.getFileName().toString()));
-        var sessions=new ArrayList<Map<String,Object>>();
+        var sessions = new ArrayList<SessionScan>();
         for(Path path:files) {
             String name=path.getFileName().toString();
             UUID id=UUID.fromString(name.substring(8,name.length()-6));
             if(!name.equals("session-"+id+".jsonl"))throw new IllegalArgumentException("JOURNAL_FILENAME_INVALID");
-            if(selected==null || id.equals(selected))sessions.add(scan(path,id,selected!=null,after,limit));
+            if(selected==null || id.equals(selected))sessions.add(scan(path,id,onVerifiedEntry));
         }
         if(selected!=null && sessions.isEmpty())throw new IllegalArgumentException("JOURNAL_SESSION_MISSING");
-        return Map.of("schemaVersion","SAGOPALGO_STREAM_OPERATIONS_INSPECTION_V1","sessions",sessions,
-            "crossSessionOrder","UNCONFIRMED","writerActivity","NOT_DETERMINED","repairPerformed",false,
-            "durabilityAttestedByReader",false,"usableForTrading",false);
+        return sessions;
     }
-    private static Map<String,Object> scan(Path path,UUID session,boolean include,long after,int limit) throws IOException {
+    private static SessionScan scan(Path path, UUID session, Consumer<StreamOperationsJournal.Entry> onVerifiedEntry) throws IOException {
         byte[] raw;
         try(var input=Files.newInputStream(path,LinkOption.NOFOLLOW_LINKS)) {
             raw=input.readNBytes((int)StreamOperationsJournal.READ_FILE_LIMIT+1);
@@ -45,13 +62,13 @@ public final class StreamOperationsJournalInspector {
         String previous=StreamOperationsJournal.ZERO,status="NO_END_MARKER";
         StreamOperationsJournal.Operation last=null;
         var counters=StreamOperationsJournal.Counters.zero();
-        var page=new ArrayList<StreamOperationsJournal.Entry>();
         boolean ended=false;int begin=0;
         for(int i=0;i<raw.length;i++) {
             if(raw[i]!='\n')continue;
+            StreamOperationsJournal.Entry record;
             try {
                 if(i-begin<=0 || i-begin>StreamOperationsJournal.MAX_LINE || index>=100000)throw new IllegalArgumentException();
-                var record=StreamOperationsJournal.JSON.readValue(Arrays.copyOfRange(raw,begin,i),StreamOperationsJournal.Entry.class);
+                record=StreamOperationsJournal.JSON.readValue(Arrays.copyOfRange(raw,begin,i),StreamOperationsJournal.Entry.class);
                 var body=record.entry();var operation=body.operation();
                 if(ended || body.kind()==null || !body.schemaVersion().equals(StreamOperationsJournal.VERSION) || body.utcSynchronized() ||
                     !session.equals(body.sessionId()) || body.clockDomain()==null || body.index()!=index+1 ||
@@ -71,16 +88,20 @@ public final class StreamOperationsJournalInspector {
                 }
                 index=body.index();sourceSequence=operation.sourceSequence();elapsed=operation.elapsedNanos();generation=operation.generation();
                 counters=operation.counters();last=operation;previous=record.hash();ended=body.kind()==StreamOperationsJournal.Kind.END;
-                if(include && index>after && page.size()<limit)page.add(record);
             } catch(Exception error) {status="CORRUPT";begin=i+1;break;}
+            onVerifiedEntry.accept(record);
             begin=i+1;
         }
         if(!status.equals("CORRUPT"))status=begin<raw.length?"PARTIAL_TAIL":ended?"CLEAN_END":"NO_END_MARKER";
         if(raw.length==0)status="EMPTY";
+        return new SessionScan(session, hash(raw), status, index, previous, last, domain);
+    }
+    private static Map<String,Object> inspectionSession(SessionScan session, List<StreamOperationsJournal.Entry> page, long after) {
         var result=new LinkedHashMap<String,Object>();
-        result.put("sessionId",session);result.put("fileSha256",hash(raw));result.put("status",status);
-        result.put("verifiedEntries",index);result.put("lastVerifiedHash",previous);result.put("lastOperation",last);
-        result.put("clockDomain",domain);result.put("utcSynchronized",false);result.put("entries",page);
+        result.put("sessionId",session.sessionId());result.put("fileSha256",session.fileSha256());result.put("status",session.status());
+        result.put("verifiedEntries",session.verifiedEntries());result.put("lastVerifiedHash",session.lastVerifiedHash());
+        result.put("lastOperation",session.lastOperation());result.put("clockDomain",session.clockDomain());
+        result.put("utcSynchronized",false);result.put("entries",page);
         result.put("nextAfterIndex",page.isEmpty()?after:page.get(page.size()-1).entry().index());
         result.put("countersAreObservationSnapshots",true);result.put("missingOperationsReconstructed",false);
         return result;
@@ -89,16 +110,28 @@ public final class StreamOperationsJournalInspector {
         try {return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(raw));}
         catch(NoSuchAlgorithmException e) {throw new IllegalStateException(e);}
     }
+    static Map<String,String> parseOptions(String[] args, Set<String> allowed) {
+        var values = new HashMap<String,String>();
+        if (args.length % 2 != 0) throw new IllegalArgumentException();
+        for (int i = 0; i < args.length; i += 2) {
+            if (!allowed.contains(args[i]) || values.put(args[i], args[i + 1]) != null) {
+                throw new IllegalArgumentException();
+            }
+        }
+        return values;
+    }
+    static void writeNewReport(Path path, Object report) throws IOException {
+        byte[] data = StreamOperationsJournal.JSON.writeValueAsBytes(report);
+        try (var output = Files.newOutputStream(path, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
+            output.write(data);
+        }
+    }
     static int run(String[] args) {
         try {
-            var values=new HashMap<String,String>();
-            if(args.length%2!=0)throw new IllegalArgumentException();
-            for(int i=0;i<args.length;i+=2)if(!Set.of("--directory","--output","--session","--after-index","--limit").contains(args[i]) || values.put(args[i],args[i+1])!=null)throw new IllegalArgumentException();
+            var values = parseOptions(args, Set.of("--directory", "--output", "--session", "--after-index", "--limit"));
             var report=inspect(Path.of(values.get("--directory")),values.containsKey("--session")?UUID.fromString(values.get("--session")):null,
                 Long.parseLong(values.getOrDefault("--after-index","0")),Integer.parseInt(values.getOrDefault("--limit","100")));
-            try(var output=Files.newOutputStream(Path.of(values.get("--output")),StandardOpenOption.CREATE_NEW,StandardOpenOption.WRITE)) {
-                output.write(StreamOperationsJournal.JSON.writeValueAsBytes(report));
-            }
+            writeNewReport(Path.of(values.get("--output")), report);
             return 0;
         } catch(Exception e) {System.err.println("{\"status\":\"FAILED\",\"code\":\"JOURNAL_INSPECTION_FAILED\"}");return 2;}
     }

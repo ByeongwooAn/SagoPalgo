@@ -56,3 +56,10 @@ tasks.register<JavaExec>("inspectStreamOperationsJournal") {
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.sagopalgo.api.market.stream.StreamOperationsJournalInspector")
 }
+
+tasks.register<JavaExec>("reportStreamOperationsStatus") {
+    group = "verification"
+    description = "Summarize the verified stream operations journal without starting the server."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("com.sagopalgo.api.market.stream.StreamOperationsStatusReport")
+}
