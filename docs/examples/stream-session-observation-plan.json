@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "SAGOPALGO_STREAM_SESSION_PLAN_V1",
+  "declaredSource": "SYNTHETIC",
+  "stockCode": "005930",
+  "approvedSubscriptions": 2,
+  "days": [
+    {"date": "2026-11-06", "marketDay": "OPEN", "opensAt": "09:00", "closesAt": "15:30", "scheduleEvidence": "SYNTHETIC_REGULAR"},
+    {"date": "2026-11-07", "marketDay": "CLOSED", "opensAt": null, "closesAt": null, "scheduleEvidence": "SYNTHETIC_CLOSED"},
+    {"date": "2026-11-08", "marketDay": "CLOSED", "opensAt": null, "closesAt": null, "scheduleEvidence": "SYNTHETIC_CLOSED"},
+    {"date": "2026-11-09", "marketDay": "UNKNOWN", "opensAt": null, "closesAt": null, "scheduleEvidence": null}
+  ]
+}

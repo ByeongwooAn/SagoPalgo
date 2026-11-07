@@ -41,4 +41,4 @@ Java 17 환경의 `Back/spring-server`에서 실행합니다. 아래 날짜는 �
 
 주말 날짜를 지정해 실제 Gradle 명령을 실행했을 때 `KIS_RECOVERY_PROBE_OUTSIDE_KRX_WINDOW`와 프로브 종료 코드 2가 발생했고 실행 결과 폴더가 생성되지 않았습니다. Java 17 전체 백엔드 837건이 통과했습니다. 신규 실행기 9건을 포함하며 실패·오류·제외는 0건입니다. 시장 자료·계좌 관찰·주문의 전용 MySQL 회귀를 실행했습니다.
 
-실제 장중에 `receipt.json`과 저널을 확보해 U06-B를 판정합니다. U07-C 격리 DB 장애·재시작 대조는 사용자 요청에 따라 장중 실증 이후에 시작합니다. [남은 실행 단위](remaining-development-units.md)
+실제 장중에 `receipt.json`과 저널을 확보해 U06-B를 판정합니다. 사용자가 순서를 바꿔 U07-C 격리 DB 장애·재시작 대조와 U07-D 관찰 보고서는 별도 진행했습니다. 실제 전체 세션·장기 자료는 장중 복구 실증 이후에 확보합니다. [남은 실행 단위](remaining-development-units.md)
