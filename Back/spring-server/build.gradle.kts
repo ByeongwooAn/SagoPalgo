@@ -48,6 +48,7 @@ dependencies {
 tasks.withType<Test> {
     // JUnit 5 플랫폼을 사용하도록 지정합니다.
     useJUnitPlatform()
+    systemProperty("sagopalgo.test.runtimeClasspath", sourceSets.test.get().runtimeClasspath.asPath)
 }
 
 tasks.register<JavaExec>("inspectStreamOperationsJournal") {
@@ -69,4 +70,11 @@ tasks.register<JavaExec>("runKisIntradayRecoveryProbe") {
     description = "Explicit, time-gated public KIS stream recovery probe on the test classpath."
     classpath = sourceSets.test.get().runtimeClasspath
     mainClass.set("com.sagopalgo.api.market.stream.KisPublicRecoveryProbe")
+}
+
+tasks.register<JavaExec>("reportStreamSessionObservation") {
+    group = "verification"
+    description = "Compare verified stream journals with a declared multi-day market schedule."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("com.sagopalgo.api.market.stream.StreamSessionObservationReport")
 }
