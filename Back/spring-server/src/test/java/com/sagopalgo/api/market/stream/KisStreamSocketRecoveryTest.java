@@ -54,6 +54,9 @@ class KisStreamSocketRecoveryTest {
             this(timing,actualStore,server,Clock.fixed(NOW,ZoneOffset.UTC));
         }
         Fixture(KisStreamConnection.Timing timing,MarketStreamStore actualStore,LoopbackWebSocketServer server,Clock clock) throws Exception {
+            this(timing,actualStore,server,clock,StreamOperationsJournal.disabled());
+        }
+        Fixture(KisStreamConnection.Timing timing,MarketStreamStore actualStore,LoopbackWebSocketServer server,Clock clock,StreamOperationsJournal journal) throws Exception {
             this.server=server;
             store=actualStore==null?mock(MarketStreamStore.class):actualStore;
             hub=new MarketStreamHub(MarketStreamTest.enabled(),store);
@@ -71,7 +74,7 @@ class KisStreamSocketRecoveryTest {
             approval.expect(requestTo("https://openapi.koreainvestment.com:9443/oauth2/Approval"))
                 .andRespond(withSuccess("{\"approval_key\":\"synthetic-approval-only\"}",MediaType.APPLICATION_JSON));
             connection=new KisStreamConnection(kis,MarketStreamTest.enabled(),hub,builder.build(),JSON,
-                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build(),server.endpoint(),timing,clock);
+                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build(),server.endpoint(),timing,clock,journal);
         }
         void start() {connection.start();}
         void subscriptions(LoopbackWebSocketServer.Peer peer,boolean quoteAck) throws Exception {

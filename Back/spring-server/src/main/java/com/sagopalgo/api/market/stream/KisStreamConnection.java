@@ -34,7 +34,7 @@ public class KisStreamConnection {
     }
     record Receipt(long sequence,long generation,String state,String code,Instant observedAt,long elapsedNanos) {}
     record RecoverySnapshot(String clockDomain,boolean utcSynchronized,boolean stopped,boolean terminal,
-                            int attempts,int failures,List<Receipt> receipts) {}
+                            int attempts,int failures,List<Receipt> receipts,StreamOperationsJournal.Status journal,StreamOperationsJournal.Counters counters) {}
     private final KisMarketProperties kis;
     private final MarketStreamProperties policy;
     private final MarketStreamHub hub;
@@ -44,6 +44,7 @@ public class KisStreamConnection {
     private final URI endpoint;
     private final Timing timing;
     private final Clock clock;
+    private final StreamOperationsJournal journal;
     private final KisStreamDecoder decoder=new KisStreamDecoder();
     private final ScheduledExecutorService worker=Executors.newSingleThreadScheduledExecutor(r -> daemon(r,"kis-public-control"));
     private final ExecutorService connector=Executors.newSingleThreadExecutor(r -> daemon(r,"kis-public-connect"));
@@ -59,13 +60,18 @@ public class KisStreamConnection {
     private long generation,activityNanos,attemptNanos;
     private int failures,attempts;
     private long receiptSequence;
+    private long receivedPublicFrames,decodedEvents,storageInsertions,nonInsertions,storageFailures,retiredCompletions,inFlightStorage;
+    private StreamOperationsJournal.Counters checkpoint=StreamOperationsJournal.Counters.zero();
     private Listener current;
     private String approval;
     private Instant approvalUntil=Instant.EPOCH;
 
-    @org.springframework.beans.factory.annotation.Autowired
     public KisStreamConnection(KisMarketProperties kis,MarketStreamProperties policy,MarketStreamHub hub,RestClient rest,ObjectMapper json) {
         this(kis,policy,hub,rest,json,HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build());
+    }
+    @org.springframework.beans.factory.annotation.Autowired
+    public KisStreamConnection(KisMarketProperties kis,MarketStreamProperties policy,MarketStreamHub hub,RestClient rest,ObjectMapper json,StreamOperationsJournal journal) {
+        this(kis,policy,hub,rest,json,HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build(),ENDPOINT,Timing.production(),Clock.systemUTC(),journal);
     }
     KisStreamConnection(KisMarketProperties kis,MarketStreamProperties policy,MarketStreamHub hub,RestClient rest,ObjectMapper json,HttpClient http) {
         this(kis,policy,hub,rest,json,http,ENDPOINT,Timing.production(),Clock.systemUTC());
@@ -73,11 +79,15 @@ public class KisStreamConnection {
     // Package-only test seam; no environment/property can redirect the production endpoint or timings.
     KisStreamConnection(KisMarketProperties kis,MarketStreamProperties policy,MarketStreamHub hub,RestClient rest,ObjectMapper json,
                         HttpClient http,URI endpoint,Timing timing,Clock clock) {
+        this(kis,policy,hub,rest,json,http,endpoint,timing,clock,StreamOperationsJournal.disabled());
+    }
+    KisStreamConnection(KisMarketProperties kis,MarketStreamProperties policy,MarketStreamHub hub,RestClient rest,ObjectMapper json,
+                        HttpClient http,URI endpoint,Timing timing,Clock clock,StreamOperationsJournal journal) {
         this.kis=kis;this.policy=policy;this.hub=hub;this.rest=rest;this.json=json;this.http=http;
-        this.endpoint=endpoint;this.timing=timing;this.clock=clock;
+        this.endpoint=endpoint;this.timing=timing;this.clock=clock;this.journal=journal;
     }
     private static Thread daemon(Runnable task,String name) {var thread=new Thread(task,name);thread.setDaemon(true);return thread;}
-    private boolean active(long epoch) {return !stopped && !hardFailure && epoch==generation;}
+    private boolean active(long epoch) {return !stopped && !hardFailure && epoch==generation && journal.healthy();}
     private void state(String state,String code) {
         hub.connection(state,code);
         recordReceipt(state,code);
@@ -85,13 +95,36 @@ public class KisStreamConnection {
     private void recordReceipt(String state,String code) {
         if(receipts.size()==128)receipts.removeFirst();
         receipts.addLast(new Receipt(++receiptSequence,generation,state,code,clock.instant(),System.nanoTime()-origin));
+        journal.append(StreamOperationsJournal.Kind.LIFECYCLE,operation(state,code));
+    }
+    private StreamOperationsJournal.Counters counters() {
+        return new StreamOperationsJournal.Counters(receivedPublicFrames,decodedEvents,storageInsertions,nonInsertions,storageFailures,retiredCompletions,inFlightStorage);
+    }
+    private StreamOperationsJournal.Operation operation(String state,String code) {
+        return new StreamOperationsJournal.Operation(receiptSequence,generation,state,code,clock.instant().toString(),System.nanoTime()-origin,counters());
+    }
+    private void journalFailed(String code) {
+        try {worker.execute(this::stopForJournalFailure);} catch(RejectedExecutionException ignored) {}
+    }
+    private synchronized void stopForJournalFailure() {
+        if(stopped || hardFailure)return;
+        generation++;hardFailure=true;connecting=false;state("FAILED","OPERATIONS_JOURNAL_FAILED");cancelPending();
+        var ws=socket;socket=null;current=null;if(ws!=null)ws.abort();
     }
     synchronized RecoverySnapshot recoverySnapshot() {
-        return new RecoverySnapshot(clockDomain,false,stopped,hardFailure,attempts,failures,List.copyOf(receipts));
+        return new RecoverySnapshot(clockDomain,false,stopped,hardFailure,attempts,failures,List.copyOf(receipts),journal.status(),counters());
     }
     @PostConstruct void start() {
         synchronized(this) {if(started || stopped)return;started=true;}
         if(!policy.enabled())return;
+        try {
+            StreamOperationsJournal.Operation initial;
+            synchronized(this) {if(stopped)return;initial=operation("SESSION_START",null);}
+            journal.start(UUID.fromString(clockDomain),initial,this::journalFailed);
+        } catch(RuntimeException error) {
+            synchronized(this) {if(!stopped) {hardFailure=true;state("FAILED","OPERATIONS_JOURNAL_REQUIRED");}}return;
+        }
+        synchronized(this) {if(stopped)return;}
         try {hub.verifyStorage();} catch(RuntimeException e) {synchronized(this) {if(!stopped) {hardFailure=true;state("FAILED","STORAGE_025_REQUIRED");}}return;}
         synchronized(this) {
             if(stopped)return;
@@ -141,6 +174,9 @@ public class KisStreamConnection {
     }
     private synchronized void checkHealth() {
         if(stopped || hardFailure)return;
+        if(!journal.healthy()) {stopForJournalFailure();return;}
+        var snapshot=counters();
+        if(!snapshot.equals(checkpoint)) {journal.append(StreamOperationsJournal.Kind.COUNTERS,operation("COUNTERS",null));checkpoint=snapshot;}
         long now=System.nanoTime();
         if(connecting && now-attemptNanos>=timing.connect().toNanos()) {failed(generation,"CONNECT_TIMEOUT",false);return;}
         if(socket==null || current==null)return;
@@ -236,14 +272,25 @@ public class KisStreamConnection {
                             }
                         }
                     } else {
-                        for(var event:decoder.decode(frame,clock.instant())) {
+                        synchronized(KisStreamConnection.this) {if(!active(epoch))return null;receivedPublicFrames++;}
+                        var decoded=decoder.decode(frame,clock.instant());
+                        synchronized(KisStreamConnection.this) {if(!active(epoch))return null;decodedEvents+=decoded.size();}
+                        for(var event:decoded) {
                             String tr="TRADE".equals(event.type())?"H0STCNT0":"H0STASP0";
                             synchronized(KisStreamConnection.this) {
                                 if(!active(epoch))return null;
                                 if(!acknowledgements.contains(tr+event.stockCode()))throw new IllegalArgumentException();
+                                inFlightStorage++;
                             }
-                            boolean added=hub.accept(event,publicationGeneration);
+                            boolean added;
+                            try {added=hub.accept(event,publicationGeneration);}
+                            catch(RuntimeException error) {
+                                synchronized(KisStreamConnection.this) {inFlightStorage--;if(!stopped) {storageFailures++;if(epoch!=generation)retiredCompletions++;}}
+                                throw error;
+                            }
                             synchronized(KisStreamConnection.this) {
+                                inFlightStorage--;
+                                if(!stopped) {if(added)storageInsertions++;else nonInsertions++;if(epoch!=generation)retiredCompletions++;}
                                 if(active(epoch) && added && !event.marketTime().isBefore(clock.instant().minusSeconds(policy.staleSeconds())))
                                     dataAt.put(tr+event.stockCode(),System.nanoTime());
                                 if(active(epoch) && !dataReady && dataAt.size()==policy.stockCodes().size()*2) {
@@ -273,9 +320,14 @@ public class KisStreamConnection {
             "body",Map.of("input",Map.of("tr_id",tr,"tr_key",stock))));}
         catch(Exception e) {throw new IllegalStateException("SUBSCRIBE_FAILED");}
     }
-    @PreDestroy synchronized void stop() {
+    @PreDestroy void stop() {
+        StreamOperationsJournal.Operation terminal;
+        synchronized(this) {
         if(stopped)return;
         stopped=true;generation++;connecting=false;state("DISABLED","COLLECTOR_STOPPED");cancelPending();
         var ws=socket;socket=null;current=null;if(ws!=null)ws.abort();worker.shutdownNow();connector.shutdownNow();
+        terminal=operation("SESSION_END",null);
+        }
+        journal.finish(terminal);
     }
 }

@@ -119,6 +119,11 @@ sagopalgo:
       symbols: ${SAGOPALGO_MARKET_STREAM_SYMBOLS:}
       stale-seconds: ${SAGOPALGO_MARKET_STREAM_STALE_SECONDS:15}
       availability-enabled: ${SAGOPALGO_MARKET_AVAILABILITY_ENABLED:false}
+      journal-enabled: ${SAGOPALGO_MARKET_STREAM_JOURNAL_ENABLED:false}
+      journal-directory: ${SAGOPALGO_MARKET_STREAM_JOURNAL_DIRECTORY:data/stream-operations}
+      journal-capacity: ${SAGOPALGO_MARKET_STREAM_JOURNAL_CAPACITY:256}
+      journal-max-session-bytes: ${SAGOPALGO_MARKET_STREAM_JOURNAL_MAX_SESSION_BYTES:16777216}
+      journal-max-directory-bytes: ${SAGOPALGO_MARKET_STREAM_JOURNAL_MAX_DIRECTORY_BYTES:268435456}
     kis:
       # 한국투자증권 Open API 현재가 조회 사용 여부입니다. 키를 설정한 환경에서만 true로 켭니다.
       enabled: ${SAGOPALGO_KIS_ENABLED:false}

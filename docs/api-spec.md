@@ -353,6 +353,8 @@ Toss 공식 `GET /api/v1/stocks?symbols=종목코드` 응답을 사용합니다.
 
 U06 수명 관리 후속: 수집기 중지는 `connectionState/state=DISABLED`, `diagnostic=COLLECTOR_STOPPED`로 최신 체결/호가 투영을 비웁니다. `enabled`는 설정값이므로 true일 수 있습니다. 재연결 ACK만 받은 상태는 WAITING_DATA이며 새로 저장한 자료가 필요합니다. 기존 응답 필드/버전은 유지하며 [장애 복구 검증과 KIS 실증 대기](socket-fault-recovery.md)를 따릅니다.
 
+U07-A 후속: 선택적 [운영 기록 저널](durable-stream-operations-journal.md)은 기본 OFF입니다. 활성화한 저널의 시작 실패는 `FAILED/OPERATIONS_JOURNAL_REQUIRED`, 실행 중 실패는 `FAILED/OPERATIONS_JOURNAL_FAILED`로 수집을 종결합니다. 스냅샷 DTO·SSE 계약은 유지하며 저널 원문을 반환하는 API는 추가하지 않습니다. 읽기 전용 로컬 CLI로 세션 무결성과 검증된 접두부를 확인합니다.
+
 #### 6.0.4 연구 데이터셋용 저장 자료 내보내기
 
 `GET /api/v1/research/dataset-export?stockCode=005930&from=2025-11-03T00:00:00Z&to=2025-11-03T00:02:00Z`는 [내보내기 계약](stored-dataset-export.md)을 따릅니다. no-store·읽기 전용 REPEATABLE_READ이며 외부 Provider/계좌/주문을 호출하지 않습니다. 025/026 필요, 종목별 분 단위 최대 24시간·각 종류 10,000행·원문 합계 32MiB 상한입니다. 시세는 시장 시각 구간, 연구 버전은 to 이전의 전체 관측 이력을 반환하고 상한 초과를 부분 성공으로 바꾸지 않습니다.

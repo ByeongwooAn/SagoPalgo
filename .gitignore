@@ -39,6 +39,7 @@ certs/
 **/GoogleService-Info.plist
 
 # Logs
+**/data/stream-operations/
 *.log
 logs/
 npm-debug.log*
