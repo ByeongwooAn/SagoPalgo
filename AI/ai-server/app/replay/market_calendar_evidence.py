@@ -190,9 +190,16 @@ def kind_newyear(source,receipt,raw):
 
 
 def build(scope_path,cache,year_job):
-    scope=load_scope(scope_path);plan,journal,latest=years.load(year_job)
+    report, _, _ = rebuild_with_notice_rows(scope_path, cache, year_job)
+    return report
+
+
+def rebuild_with_notice_rows(scope_path, cache, year_job):
+    """Rebuild the existing report and retain which market and notice supplied each calendar row."""
+    scope_bytes=read_bytes(scope_path)
+    scope=Scope.model_validate(read_json(scope_bytes));plan,journal,latest=years.load(year_job)
     if (scope.startDate,scope.endDate)!=(plan['startDate'],plan['endDate']):raise ResearchError('MARKET_CALENDAR_SCOPE_CONFLICT')
-    immutable_json(cache/'index.json',{'schemaVersion':'SAGOPALGO_PUBLIC_MARKET_CAPTURE_PLAN_V1','scopeSha256':digest(read_bytes(scope_path)),
+    immutable_json(cache/'index.json',{'schemaVersion':'SAGOPALGO_PUBLIC_MARKET_CAPTURE_PLAN_V1','scopeSha256':digest(scope_bytes),
         'sources':[s.model_dump(mode='json') for s in scope.sources]},True)
     closed={};year_sources=[];known=[]
     for year in plan['years']:
@@ -209,12 +216,17 @@ def build(scope_path,cache,year_job):
             'url':source.url,'sha256':receipt['bodySha256'],'knownAt':receipt['capturedAt']})
         if source.role in RULES:rules[source.markets[0]]=rule(source,receipt,raw);continue
         if source.role=='KIND_SESSION':
-            pack=kind_newyear(source,receipt,raw);values=[s.model_dump(mode='json') for s in pack.sessions]
-            notice_calendars += [v.model_dump(mode='json') for v in pack.calendar]
+            packs={source.markets[0]:kind_newyear(source,receipt,raw)}
         elif source.role=='KB_YEAR_END':
-            packs=[kb.notice_pack(receipt,raw,m,'OBSERVED_AT') for m in source.markets]
-            values=[s.model_dump(mode='json') for p in packs for s in p.sessions];notice_calendars += [v.model_dump(mode='json') for p in packs for v in p.calendar]
-        else:values=broker_exam(source,receipt,raw)
+            packs={market:kb.notice_pack(receipt,raw,market,'OBSERVED_AT') for market in source.markets}
+        else:
+            packs={}
+        if packs:
+            values=[session.model_dump(mode='json') for pack in packs.values() for session in pack.sessions]
+            for market,pack in packs.items():
+                notice_calendars.extend((market,source.sourceId,row.model_dump(mode='json')) for row in pack.calendar)
+        else:
+            values=broker_exam(source,receipt,raw)
         if len(values)!=len(source.markets) or {v['market'] for v in values}!=set(source.markets) or any(v['businessDate']!=source.expectedDate for v in values):
             raise ResearchError('MARKET_NOTICE_EXPECTED_SCOPE_CONFLICT')
         for v in values:
@@ -229,7 +241,7 @@ def build(scope_path,cache,year_job):
         cursor+=timedelta(days=1)
     by_date={v['businessDate']:v for v in days}
     if any(not by_date[v['businessDate']]['openDay'] for v in sessions.values()):raise ResearchError('MARKET_CLOSED_DAY_SESSION_CONFLICT')
-    for v in notice_calendars:
+    for _,_,v in notice_calendars:
         if v['businessDate'] in by_date and v['openDay']!=by_date[v['businessDate']]['openDay']:raise ResearchError('MARKET_NOTICE_CALENDAR_CONFLICT')
     packs={};candidates={};market_counts={}
     for market in ['KOSPI','KOSDAQ']:
@@ -243,12 +255,13 @@ def build(scope_path,cache,year_job):
             for v in days if v['openDay'] and (market,v['businessDate']) not in sessions]
         market_counts[market]={'calendarDates':len(days),'openDays':sum(v['openDay'] for v in days),'closedDays':sum(not v['openDay'] for v in days),
             'explicitSessionDates':len(selected),'generalSessionReviewRequired':len(candidates[market]),'partialCalendarFlags':len(days)}
-    return {'schemaVersion':'SAGOPALGO_MARKET_CALENDAR_REPORT_V1','scopeSha256':digest(read_bytes(scope_path)),'yearPlanId':plan['planId'],
+    report = {'schemaVersion':'SAGOPALGO_MARKET_CALENDAR_REPORT_V1','scopeSha256':digest(scope_bytes),'yearPlanId':plan['planId'],
         'startDate':scope.startDate,'endDate':scope.endDate,'sourceKind':plan['sourceKind'],'knownAt':known_at,'knowledgeBasis':'FETCH_TIME_ONLY',
         'calendarBasis':'KRX_ANNUAL_HOLIDAYS_AND_REVIEWED_WEEKEND_RULES','historicalRuleContinuityConfirmed':False,
         'days':days,'yearSources':year_sources,'sources':sources,'currentRules':rules,'referencePacks':packs,'sessionCandidates':candidates,
         'marketCounts':market_counts,'calendarReasonCounts':dict(Counter(v['basis'] for v in days)),
         'allCalendarFlagsComplete':False,'allHistoricalSessionsComplete':False,'marketUniverseComplete':False,'usableForTraining':False,'usableForTrading':False}
+    return report, notice_calendars, scope
 
 
 def as_of(report,at,market):

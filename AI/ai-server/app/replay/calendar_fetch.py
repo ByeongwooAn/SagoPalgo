@@ -5,7 +5,7 @@ from urllib import parse, request
 
 from .dataset import canonical, digest, read_bytes, read_json
 from .history import BASE, KST, LIMIT, atomic_json, day, now
-from .models import ResearchError
+from .models import ResearchError, utc
 from .reference import ReferencePack
 
 PATH = "/uapi/domestic-stock/v1/quotations/chk-holiday"
@@ -41,6 +41,30 @@ def calendar_reference(raw: bytes, captured_at: str, continuation: str):
         "observedAt": captured_at, "calendar": calendar, "sessions": [], "listings": [], "actions": [], "coverage": coverage})
 
 
+def audit_cached_calendar(folder: Path, receipt=None):
+    """Verify and reparse the captured page without constructing a transport."""
+    if receipt is None:
+        receipt = read_json(read_bytes(folder / "receipt.json"))
+    if not isinstance(receipt, dict) or receipt.get("status") != "COMPLETE":
+        raise ResearchError("CALENDAR_DAILY_REQUEST_RESERVED")
+    continuation = receipt.get("continuation")
+    if (receipt.get("schemaVersion") != "SAGOPALGO_CALENDAR_RECEIPT_V1"
+            or type(receipt.get("dailyLimit")) is not int or receipt["dailyLimit"] != 1
+            or receipt.get("autoPagination") is not False or not isinstance(continuation, str)
+            or len(continuation) > 8 or receipt.get("hasMore") is not (continuation in {"M", "F"})):
+        raise ResearchError("CALENDAR_CACHE_TAMPERED")
+    day(receipt["basisDate"])
+    utc(receipt["capturedAt"])
+    raw = read_bytes(folder / "body.json")
+    if len(raw) > LIMIT or digest(raw) != receipt.get("bodySha256"):
+        raise ResearchError("CALENDAR_CACHE_TAMPERED")
+    pack = calendar_reference(raw, receipt["capturedAt"], continuation)
+    normalized = read_bytes(folder / "reference.json")
+    if normalized != canonical(pack.model_dump(mode="json")) or digest(normalized) != receipt.get("referenceSha256"):
+        raise ResearchError("CALENDAR_CACHE_TAMPERED")
+    return pack, receipt
+
+
 def fetch_calendar_once(cache: Path, basis_date: str, transport, at=None):
     basis = day(basis_date)
     clock = at or datetime.now(timezone.utc)
@@ -54,15 +78,9 @@ def fetch_calendar_once(cache: Path, basis_date: str, transport, at=None):
         if not (folder / "receipt.json").is_file():
             raise ResearchError("CALENDAR_DAILY_REQUEST_RESERVED") from None
         receipt = read_json(read_bytes(folder / "receipt.json"))
-        if receipt.get("status") != "COMPLETE" or receipt.get("basisDate") != basis_date or receipt.get("keyFingerprint") != fingerprint:
+        if not isinstance(receipt, dict) or receipt.get("status") != "COMPLETE" or receipt.get("basisDate") != basis_date or receipt.get("keyFingerprint") != fingerprint:
             raise ResearchError("CALENDAR_DAILY_REQUEST_RESERVED") from None
-        raw = read_bytes(folder / "body.json")
-        if digest(raw) != receipt.get("bodySha256"):
-            raise ResearchError("CALENDAR_CACHE_TAMPERED")
-        pack = calendar_reference(raw, receipt["capturedAt"], receipt["continuation"])
-        normalized = read_bytes(folder / "reference.json")
-        if normalized != canonical(pack.model_dump(mode="json")) or digest(normalized) != receipt.get("referenceSha256"):
-            raise ResearchError("CALENDAR_CACHE_TAMPERED")
+        pack, _ = audit_cached_calendar(folder, receipt)
         return pack, folder, True
     receipt = {"schemaVersion": "SAGOPALGO_CALENDAR_RECEIPT_V1", "basisDate": basis_date, "localDay": local_day,
                "keyFingerprint": fingerprint, "startedAt": clock.isoformat(), "status": "IN_FLIGHT",
