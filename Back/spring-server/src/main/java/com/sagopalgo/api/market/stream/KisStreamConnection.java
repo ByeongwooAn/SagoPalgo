@@ -35,6 +35,10 @@ public class KisStreamConnection {
     record Receipt(long sequence,long generation,String state,String code,Instant observedAt,long elapsedNanos) {}
     record RecoverySnapshot(String clockDomain,boolean utcSynchronized,boolean stopped,boolean terminal,
                             int attempts,int failures,List<Receipt> receipts,StreamOperationsJournal.Status journal,StreamOperationsJournal.Counters counters) {}
+    @FunctionalInterface
+    interface PublicFrameObserver {
+        void observed(long generation, String frame, List<MarketStreamEvent> events);
+    }
     private final KisMarketProperties kis;
     private final MarketStreamProperties policy;
     private final MarketStreamHub hub;
@@ -45,6 +49,7 @@ public class KisStreamConnection {
     private final Timing timing;
     private final Clock clock;
     private final StreamOperationsJournal journal;
+    private final PublicFrameObserver frameObserver;
     private final KisStreamDecoder decoder=new KisStreamDecoder();
     private final ScheduledExecutorService worker=Executors.newSingleThreadScheduledExecutor(r -> daemon(r,"kis-public-control"));
     private final ExecutorService connector=Executors.newSingleThreadExecutor(r -> daemon(r,"kis-public-connect"));
@@ -83,8 +88,14 @@ public class KisStreamConnection {
     }
     KisStreamConnection(KisMarketProperties kis,MarketStreamProperties policy,MarketStreamHub hub,RestClient rest,ObjectMapper json,
                         HttpClient http,URI endpoint,Timing timing,Clock clock,StreamOperationsJournal journal) {
+        this(kis, policy, hub, rest, json, http, endpoint, timing, clock, journal, null);
+    }
+    KisStreamConnection(KisMarketProperties kis, MarketStreamProperties policy, MarketStreamHub hub, RestClient rest,
+                        ObjectMapper json, HttpClient http, URI endpoint, Timing timing, Clock clock,
+                        StreamOperationsJournal journal, PublicFrameObserver frameObserver) {
         this.kis=kis;this.policy=policy;this.hub=hub;this.rest=rest;this.json=json;this.http=http;
         this.endpoint=endpoint;this.timing=timing;this.clock=clock;this.journal=journal;
+        this.frameObserver=frameObserver;
     }
     private static Thread daemon(Runnable task,String name) {var thread=new Thread(task,name);thread.setDaemon(true);return thread;}
     private boolean active(long epoch) {return !stopped && !hardFailure && epoch==generation && journal.healthy();}
@@ -296,6 +307,11 @@ public class KisStreamConnection {
                                 if(active(epoch) && !dataReady && dataAt.size()==policy.stockCodes().size()*2) {
                                     dataReady=true;recordReceipt("DATA_READY",null);
                                 }
+                            }
+                        }
+                        if (frameObserver != null) {
+                            synchronized (KisStreamConnection.this) {
+                                if (active(epoch)) frameObserver.observed(epoch, frame, decoded);
                             }
                         }
                     }

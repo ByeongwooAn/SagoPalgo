@@ -63,3 +63,10 @@ tasks.register<JavaExec>("reportStreamOperationsStatus") {
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.sagopalgo.api.market.stream.StreamOperationsStatusReport")
 }
+
+tasks.register<JavaExec>("runKisIntradayRecoveryProbe") {
+    group = "verification"
+    description = "Explicit, time-gated public KIS stream recovery probe on the test classpath."
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.sagopalgo.api.market.stream.KisPublicRecoveryProbe")
+}
