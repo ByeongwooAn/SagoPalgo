@@ -1,0 +1,339 @@
+{
+  "schemaVersion": "SAGOPALGO_H05_DECEMBER_KOSPI_HALT_RECORD_REVIEW_V1",
+  "parentRecord": "historical-market-action-kospi-share-classes.json",
+  "parentCanonicalSha256": "6e07c448394eb4a080df450a9d42673a228fc85cbfcfaf5605570c17d447ba73",
+  "captureJob": "historical-market-action-kospi-halt-records-20261113",
+  "publicHistory": {
+    "screen": {
+      "bodySha256": "0acf6a59a6ae7169eb38086feb7522db1fae60dfca879ae634a853f617f2c0ea",
+      "finalUrl": "https://data.krx.co.kr/contents/MDC/STAT/issue/MDCSTAT213.jsp",
+      "httpStatus": 200,
+      "observedAt": "2026-11-13T13:55:37.641248+00:00",
+      "startedAt": "2026-11-13T13:55:37.450603+00:00",
+      "url": "https://data.krx.co.kr/contents/MDC/STAT/issue/MDCSTAT213.jsp",
+      "receiptSha256": "96a0b42d3e453f9c1a0ece7a22df2aa9dd05c2b908290f5ab8d2c6c5cc691c64"
+    },
+    "columns": [
+      "INDEX",
+      "BZ_DD",
+      "ISU_CD",
+      "ISU_NM",
+      "MKT_NM",
+      "HALT_YN"
+    ],
+    "scope": "ANY_HALT_DURING_THE_DATE",
+    "timeColumnsAvailable": false,
+    "publicAttempt": {
+      "bodySha256": "377b375adcc04b5ba5998c978372401a4c6327ccc218e17e383f72861085cb95",
+      "finalUrl": "https://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd",
+      "httpStatus": 400,
+      "method": "POST",
+      "observedAt": "2026-11-13T13:56:25.164637+00:00",
+      "parameters": {
+        "bld": "dbms/MDC/STAT/issue/MDCSTAT21301",
+        "endDd": "20231222",
+        "isuCd": "KR7336370002",
+        "isuCd2": "KR7336370002",
+        "locale": "ko_KR",
+        "strtDd": "20231221"
+      },
+      "startedAt": "2026-11-13T13:56:24.905047+00:00",
+      "url": "https://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd",
+      "receiptSha256": "f00c20a3f4f7a94ead569f3fce68d3c10d3fe26497837e722f6c64a6cdf412ac",
+      "result": "LOGIN_REQUIRED"
+    }
+  },
+  "kindCurrentStatus": {
+    "screen": {
+      "bodySha256": "749335d62c0fb9d17f8980b6628569fff5ce965ae70c732f592f900b59f6a81d",
+      "finalUrl": "https://kind.krx.co.kr/investwarn/tradinghaltissue.do?method=searchTradingHaltIssueMain",
+      "httpStatus": 200,
+      "observedAt": "2026-11-13T13:55:37.808623+00:00",
+      "startedAt": "2026-11-13T13:55:37.644248+00:00",
+      "url": "https://kind.krx.co.kr/investwarn/tradinghaltissue.do?method=searchTradingHaltIssueMain",
+      "receiptSha256": "60c673b463746596665fac4eb264d0db2d2e13843647179f70fdcbbcb8b72eb3"
+    },
+    "historicalLookupAvailable": false,
+    "checks": {
+      "336370": {
+        "referenceDate": "2026-11-13",
+        "rowCount": 0,
+        "evidence": {
+          "bodySha256": "703d5c1cc0c819869c6f7e75198077dd1dad69dd28df37b0c975c3c5604d85f3",
+          "httpStatus": 200,
+          "method": "POST",
+          "observedAt": "2026-11-13T14:01:05.850217+00:00",
+          "parameters": {
+            "currentPageSize": "15",
+            "forward": "tradinghaltissue_sub",
+            "marketType": "1",
+            "method": "searchTradingHaltIssueSub",
+            "outsvcno": "",
+            "pageIndex": "1",
+            "paxreq": "",
+            "repIsuSrtCd": "336370",
+            "searchCodeType": "",
+            "searchCorpName": "",
+            "searchCorpNameTmp": "",
+            "searchMode": ""
+          },
+          "startedAt": "2026-11-13T14:01:05.653123+00:00",
+          "url": "https://kind.krx.co.kr/investwarn/tradinghaltissue.do",
+          "receiptSha256": "724c7d56722d6555a398a821b337daf6e8c6fb9ec4523b0fd1f254d5c06bac8f"
+        }
+      },
+      "005500": {
+        "referenceDate": "2026-11-13",
+        "rowCount": 0,
+        "evidence": {
+          "bodySha256": "703d5c1cc0c819869c6f7e75198077dd1dad69dd28df37b0c975c3c5604d85f3",
+          "httpStatus": 200,
+          "method": "POST",
+          "observedAt": "2026-11-13T14:01:07.098524+00:00",
+          "parameters": {
+            "currentPageSize": "15",
+            "forward": "tradinghaltissue_sub",
+            "marketType": "1",
+            "method": "searchTradingHaltIssueSub",
+            "outsvcno": "",
+            "pageIndex": "1",
+            "paxreq": "",
+            "repIsuSrtCd": "005500",
+            "searchCodeType": "",
+            "searchCorpName": "",
+            "searchCorpNameTmp": "",
+            "searchMode": ""
+          },
+          "startedAt": "2026-11-13T14:01:06.962631+00:00",
+          "url": "https://kind.krx.co.kr/investwarn/tradinghaltissue.do",
+          "receiptSha256": "bc943e573b0687a52c521f8a75ac31a365ee70a1e48782951c37f7199f3d2467"
+        }
+      },
+      "000300": {
+        "referenceDate": "2026-11-13",
+        "rowCount": 1,
+        "evidence": {
+          "bodySha256": "17d48d40e63fcd8a280b62090e69d563f6be3a9bf165e6eb32e9d057680c7a47",
+          "httpStatus": 200,
+          "method": "POST",
+          "observedAt": "2026-11-13T14:01:08.410664+00:00",
+          "parameters": {
+            "currentPageSize": "15",
+            "forward": "tradinghaltissue_sub",
+            "marketType": "1",
+            "method": "searchTradingHaltIssueSub",
+            "outsvcno": "",
+            "pageIndex": "1",
+            "paxreq": "",
+            "repIsuSrtCd": "000300",
+            "searchCodeType": "",
+            "searchCorpName": "",
+            "searchCorpNameTmp": "",
+            "searchMode": ""
+          },
+          "startedAt": "2026-11-13T14:01:08.205569+00:00",
+          "url": "https://kind.krx.co.kr/investwarn/tradinghaltissue.do",
+          "receiptSha256": "b4ee32dd46b8cd376a8aafacf96345f56a7d889c7ab9dd6db25da2cbfa1c9835"
+        }
+      },
+      "009410": {
+        "referenceDate": "2026-11-13",
+        "rowCount": 0,
+        "evidence": {
+          "bodySha256": "703d5c1cc0c819869c6f7e75198077dd1dad69dd28df37b0c975c3c5604d85f3",
+          "httpStatus": 200,
+          "method": "POST",
+          "observedAt": "2026-11-13T14:01:09.536754+00:00",
+          "parameters": {
+            "currentPageSize": "15",
+            "forward": "tradinghaltissue_sub",
+            "marketType": "1",
+            "method": "searchTradingHaltIssueSub",
+            "outsvcno": "",
+            "pageIndex": "1",
+            "paxreq": "",
+            "repIsuSrtCd": "009410",
+            "searchCodeType": "",
+            "searchCorpName": "",
+            "searchCorpNameTmp": "",
+            "searchMode": ""
+          },
+          "startedAt": "2026-11-13T14:01:09.415880+00:00",
+          "url": "https://kind.krx.co.kr/investwarn/tradinghaltissue.do",
+          "receiptSha256": "0192843fa76c65ec35c4e8d7928182e65eddff5dee9801f993f2419433cd1e0a"
+        }
+      },
+      "009415": {
+        "referenceDate": "2026-11-13",
+        "rowCount": 0,
+        "evidence": {
+          "bodySha256": "703d5c1cc0c819869c6f7e75198077dd1dad69dd28df37b0c975c3c5604d85f3",
+          "httpStatus": 200,
+          "method": "POST",
+          "observedAt": "2026-11-13T14:01:10.787632+00:00",
+          "parameters": {
+            "currentPageSize": "15",
+            "forward": "tradinghaltissue_sub",
+            "marketType": "1",
+            "method": "searchTradingHaltIssueSub",
+            "outsvcno": "",
+            "pageIndex": "1",
+            "paxreq": "",
+            "repIsuSrtCd": "009415",
+            "searchCodeType": "",
+            "searchCorpName": "",
+            "searchCorpNameTmp": "",
+            "searchMode": ""
+          },
+          "startedAt": "2026-11-13T14:01:10.642642+00:00",
+          "url": "https://kind.krx.co.kr/investwarn/tradinghaltissue.do",
+          "receiptSha256": "90b16517beaba47361592931171243eddb3b6ac167757f14d352be10985563d1"
+        }
+      }
+    }
+  },
+  "officialIssueMarketActionCount": 0,
+  "actualExecutionConfirmed": false,
+  "historicalFirstAvailabilityConfirmed": false,
+  "notices": [
+    {
+      "receipt": "20231221000448",
+      "issuer": "솔루스첨단소재 주식회사",
+      "noticeBody": {
+        "bodySha256": "b3a61cca80a3ecef90e4113e340014cf9e95683d14cce6e057fd0cf1033a8133",
+        "observedAt": "2026-11-13T08:14:55.260737+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/external/2023/12/21/000448/20231221001197/99808.htm"
+      },
+      "noticeHaltKst": "2023-12-21T16:14:00+09:00",
+      "noticeReopeningKst": "2023-12-22T09:00:00+09:00",
+      "comparison": "NOTICE_WINDOW_ONLY",
+      "officialIssueMarketAction": null,
+      "officialIssueTimeComparison": null,
+      "issueQueries": [
+        {
+          "symbol": "336370",
+          "isin": "KR7336370002",
+          "shareClass": "보통주",
+          "firstDate": "2023-12-21",
+          "lastDate": "2023-12-22",
+          "publicHistoryRequest": "LOGIN_REQUIRED"
+        },
+        {
+          "symbol": "33637K",
+          "isin": "KR733637K010",
+          "shareClass": "구형우선주",
+          "firstDate": "2023-12-21",
+          "lastDate": "2023-12-22",
+          "publicHistoryRequest": "NOT_SUBMITTED_AFTER_LOGIN_REQUIRED"
+        },
+        {
+          "symbol": "33637L",
+          "isin": "KR733637K028",
+          "shareClass": "신형우선주",
+          "firstDate": "2023-12-21",
+          "lastDate": "2023-12-22",
+          "publicHistoryRequest": "NOT_SUBMITTED_AFTER_LOGIN_REQUIRED"
+        }
+      ]
+    },
+    {
+      "receipt": "20231226000464",
+      "issuer": "삼진제약(주)",
+      "noticeBody": {
+        "bodySha256": "046f69b75e995b12d3a34531258f77a31f7fe9a7b246329659feaac6ae4d6925",
+        "observedAt": "2026-11-13T08:15:07.410787+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/external/2023/12/26/000464/20231226001212/99808.htm"
+      },
+      "noticeHaltKst": "2023-12-26T16:14:00+09:00",
+      "noticeReopeningKst": "2023-12-27T09:00:00+09:00",
+      "comparison": "COMMON_SHARE_INFERRED_FROM_ONLY_LISTED_ISSUE",
+      "officialIssueMarketAction": null,
+      "officialIssueTimeComparison": null,
+      "issueQueries": [
+        {
+          "symbol": "005500",
+          "isin": "KR7005500004",
+          "shareClass": "보통주",
+          "firstDate": "2023-12-26",
+          "lastDate": "2023-12-27",
+          "publicHistoryRequest": "NOT_SUBMITTED_AFTER_LOGIN_REQUIRED"
+        }
+      ]
+    },
+    {
+      "receipt": "20231226000602",
+      "issuer": "(주)대유플러스",
+      "noticeBody": {
+        "bodySha256": "0d4a5e175be5620db5fd7da31db58458500c98bbdc5aabc6fea044cb9bb79fe9",
+        "observedAt": "2026-11-13T08:15:10.529843+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/external/2023/12/26/000602/20231226001584/99808.htm"
+      },
+      "noticeHaltKst": "2023-12-26T17:04:00+09:00",
+      "noticeReopeningKst": "2023-12-27T09:00:00+09:00",
+      "comparison": "COMMON_SHARE_INFERRED_FROM_ONLY_LISTED_ISSUE",
+      "officialIssueMarketAction": null,
+      "officialIssueTimeComparison": null,
+      "issueQueries": [
+        {
+          "symbol": "000300",
+          "isin": "KR7000300004",
+          "shareClass": "보통주",
+          "firstDate": "2023-12-26",
+          "lastDate": "2023-12-27",
+          "publicHistoryRequest": "NOT_SUBMITTED_AFTER_LOGIN_REQUIRED"
+        }
+      ]
+    },
+    {
+      "receipt": "20231228000100",
+      "issuer": "(주)태영건설",
+      "noticeBody": {
+        "bodySha256": "3ad2b51ad502eba69138e50852abd054c81cccf06ca6be434e4b2b10f9b49ffc",
+        "observedAt": "2026-11-13T08:15:58.784548+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/external/2023/12/28/000100/20231228000249/99808.htm"
+      },
+      "noticeHaltKst": "2023-12-28T10:08:00+09:00",
+      "noticeReopeningKst": "2023-12-28T10:38:00+09:00",
+      "comparison": "CONTEMPORARY_REPORT_MATCHES_NOTICE_WINDOW_FOR_BOTH_CLASSES",
+      "officialIssueMarketAction": null,
+      "officialIssueTimeComparison": null,
+      "issueQueries": [
+        {
+          "symbol": "009410",
+          "isin": "KR7009410002",
+          "shareClass": "보통주",
+          "firstDate": "2023-12-28",
+          "lastDate": "2023-12-28",
+          "publicHistoryRequest": "NOT_SUBMITTED_AFTER_LOGIN_REQUIRED"
+        },
+        {
+          "symbol": "009415",
+          "isin": "KR7009411000",
+          "shareClass": "구형우선주",
+          "firstDate": "2023-12-28",
+          "lastDate": "2023-12-28",
+          "publicHistoryRequest": "NOT_SUBMITTED_AFTER_LOGIN_REQUIRED"
+        }
+      ],
+      "publicCorroboration": {
+        "sourceType": "CONTEMPORARY_NEWS",
+        "evidence": {
+          "bodySha256": "50483cb9c56f22ba0c1d4831a3d1c97ade68c1d5d61183fc67754fa3eb99f856",
+          "finalUrl": "https://www.news2day.co.kr/article/20231228500108?site_preference=normal",
+          "httpStatus": 200,
+          "observedAt": "2026-11-13T14:01:12.267009+00:00",
+          "startedAt": "2026-11-13T14:01:11.897783+00:00",
+          "url": "https://www.news2day.co.kr/article/20231228500108?site_preference=normal",
+          "receiptSha256": "a5e114704fe5b98891d1b8a8d557300c5f6ecf2a28b72c0057fa46924cc58755"
+        },
+        "reportedPublishedMinuteKst": "2023-12-28 10:55",
+        "reportedSymbols": [
+          "009410",
+          "009415"
+        ],
+        "reportedHaltKst": "2023-12-28T10:08:00+09:00",
+        "reportedReopeningKst": "2023-12-28T10:38:00+09:00"
+      }
+    }
+  ]
+}
