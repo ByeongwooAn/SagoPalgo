@@ -1,0 +1,456 @@
+{
+  "schemaVersion": "SAGOPALGO_H05_DECEMBER_KOSPI_HALT_SHARE_CLASS_REVIEW_V1",
+  "timeZone": "Asia/Seoul",
+  "parentReport": {
+    "path": "historical-market-action-expansion-20261113/report.json",
+    "sha256": "8e229ae85fec4b35f5f39d56278344fb228708ce59ca1971bafff61e049e9d91"
+  },
+  "universeInventory": {
+    "path": "krx-history-20231101-20261102-20261104/derived/report.json",
+    "sha256": "538fade82d255f0dfa1f00f9e3b0174cd36c13a292a9ff7f748a792a1bfba239",
+    "jobPins": {
+      "plan.json": "b1ab93620a701c6bdddec80dab78096d47dd5ee4807568fa913df9b58e18222d",
+      "journal.json": "34769709629710142ff6485389073d8d5c96a945fe6ed9d28e8d6fafc2dbdf25"
+    }
+  },
+  "supplementalCaptureJob": "historical-market-action-kospi-classes-20261113",
+  "counts": {
+    "COMMON_SHARE_CONFIRMED_BY_LINKED_EXCHANGE_NOTICE": 1,
+    "MULTIPLE_LISTED_CLASSES_SCOPE_UNCONFIRMED": 2,
+    "COMMON_SHARE_INFERRED_FROM_ONLY_LISTED_ISSUE": 2
+  },
+  "notices": [
+    {
+      "receipt": "20231213000218",
+      "document": "20231213000725",
+      "listedMinuteKst": "2023-12-13 18:26",
+      "viewerIssuer": "엔에이치스팩19호",
+      "viewerSymbol": "380440",
+      "bodyIssuer": "엔에이치기업인수목적19호 주식회사",
+      "bodyShareDisplay": "주권",
+      "halt": "2023-12-14",
+      "reopening": "2023-12-19",
+      "precision": "DATE",
+      "reason": "- 기타공익과투자자보호및시장관리상",
+      "noticeEvidence": {
+        "viewer": {
+          "bodySha256": "562b8cb9ab39f03a78e3ac27594d343384c70f798dd5496978b19057852aacb4",
+          "observedAt": "2026-11-13T08:14:23.679038+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20231213000218&method=search"
+        },
+        "route": {
+          "bodySha256": "c9a74903f6eef1b2d7c0b21f0983ccc086fd4c7ff52ea0cc104ab9f249f25969",
+          "observedAt": "2026-11-13T08:14:24.271701+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do"
+        },
+        "body": {
+          "bodySha256": "5e1cfaafc1328a60fd2283917681ec67c88068a72150b2a9837725e8cb9eeb12",
+          "observedAt": "2026-11-13T08:14:24.897562+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/external/2023/12/13/000218/20231213000725/68054.htm"
+        }
+      },
+      "noticeReceiptSha256": {
+        "viewer": "ecd71785755e9139661168617b788a5825bd6662fe2c1c1b9d7727f38f198342",
+        "route": "3edfd5b7649817c6803cf3fc2e352882456234641d6f005e2bdf9b59306a89de",
+        "body": "c44321ddbdd0036b119e9f84118aaa88bbc8bbe5a36214ac94ef9b9cdd75f67f"
+      },
+      "krxSnapshots": [
+        {
+          "date": "2023-12-13",
+          "daySha256": "8d4cb7a7b101b61de2808d3fd3235675261c4b727f7eebf10e7856fc6f6912f5",
+          "marketSha256": "3790c3329d1dcc1ed6e0cf86e18d1272a1f820868f2a4772a48411c18348d0b9",
+          "marketObservedAt": "2026-11-04T05:51:58.683377+00:00",
+          "matchingIssues": [
+            {
+              "symbol": "380440",
+              "isin": "KR7380440008",
+              "name": "엔에이치기업인수목적19호보통주",
+              "abbreviation": "엔에이치스팩19호",
+              "shareClass": "보통주",
+              "sourceRowSha256": "15772ccece7fdd83684d2a25f7fe26102cfb99aa4e9b5cd33fe6e95dc2d9ba02"
+            }
+          ]
+        },
+        {
+          "date": "2023-12-14",
+          "daySha256": "1502cfa6b32b596ae7c71291b2ea8940d87a4ae2f752eee5d4af3dea795ba880",
+          "marketSha256": "8490750e3a7361faf65d50d9628069c59de690666b77e2d875599d3622bec6e7",
+          "marketObservedAt": "2026-11-04T05:52:01.315588+00:00",
+          "matchingIssues": [
+            {
+              "symbol": "380440",
+              "isin": "KR7380440008",
+              "name": "엔에이치기업인수목적19호보통주",
+              "abbreviation": "엔에이치스팩19호",
+              "shareClass": "보통주",
+              "sourceRowSha256": "15772ccece7fdd83684d2a25f7fe26102cfb99aa4e9b5cd33fe6e95dc2d9ba02"
+            }
+          ]
+        },
+        {
+          "date": "2023-12-19",
+          "daySha256": "670e97763956eadbabb131eedb886ae770e195eb500c791cf6d4ff8552ca52f5",
+          "marketSha256": "cdec38b0db48b0d220f4ac6c8406438d1c344453b6142043e7219705915864b3",
+          "marketObservedAt": "2026-11-04T05:52:14.663434+00:00",
+          "matchingIssues": [
+            {
+              "symbol": "380440",
+              "isin": "KR7380440008",
+              "name": "엔에이치기업인수목적19호보통주",
+              "abbreviation": "엔에이치스팩19호",
+              "shareClass": "보통주",
+              "sourceRowSha256": "15772ccece7fdd83684d2a25f7fe26102cfb99aa4e9b5cd33fe6e95dc2d9ba02"
+            }
+          ]
+        }
+      ],
+      "confirmedAffectedSymbols": [
+        "380440"
+      ],
+      "status": "COMMON_SHARE_CONFIRMED_BY_LINKED_EXCHANGE_NOTICE",
+      "supplementalEvidence": {
+        "sourceUrl": "https://kind.krx.co.kr/external/2023/12/13/000359/20231213001084/68051.htm",
+        "bodySha256": "0001a920c32460bc83adb1fdf4538f1a81b605b2c8e7b0ef4dd5541c78643099",
+        "observedAt": "2026-11-13T13:39:05.670023+00:00",
+        "receiptSha256": "29de48406a7940a3dea959b41c8d1647e82340b36cd5f9d1af39ce1e03730598",
+        "role": "DELISTING_NOTICE_WITH_CLASS_CODE_AND_MATCHING_DATES"
+      }
+    },
+    {
+      "receipt": "20231221000448",
+      "document": "20231221001197",
+      "listedMinuteKst": "2023-12-21 16:14",
+      "viewerIssuer": "솔루스첨단소재",
+      "viewerSymbol": "336370",
+      "bodyIssuer": "솔루스첨단소재 주식회사",
+      "bodyShareDisplay": "주권",
+      "halt": "2023-12-21T16:14:00+09:00",
+      "reopening": "2023-12-22T09:00:00+09:00",
+      "precision": "MINUTE",
+      "reason": "무상증자(10%이상)",
+      "noticeEvidence": {
+        "viewer": {
+          "bodySha256": "5a1eb0a8bed140dfa9d7b953ccdf6492507958b332ea26e4f09d2db2d683b5c5",
+          "observedAt": "2026-11-13T08:14:54.446983+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20231221000448&method=search"
+        },
+        "route": {
+          "bodySha256": "aafe551a8c939f6c8b85a309a738f313b17aeba0f56b0305b339b63c9fc7fe09",
+          "observedAt": "2026-11-13T08:14:54.867658+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do"
+        },
+        "body": {
+          "bodySha256": "b3a61cca80a3ecef90e4113e340014cf9e95683d14cce6e057fd0cf1033a8133",
+          "observedAt": "2026-11-13T08:14:55.260737+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/external/2023/12/21/000448/20231221001197/99808.htm"
+        }
+      },
+      "noticeReceiptSha256": {
+        "viewer": "86b307d64b22530eec0cd67114796c41894407a2693926a378219a79633697ad",
+        "route": "297258b40fad1edcbd2e569b0fe376413dcfb175403454ff0d2920bee7704fdd",
+        "body": "5d5df759ff3f088515a8288ae0a08016ae0285b8b8742e05c8c04de3ed485c89"
+      },
+      "krxSnapshots": [
+        {
+          "date": "2023-12-21",
+          "daySha256": "e8e025630c66a565f9b988a93b7a7c9eb9adc4979fa8568c3de3e0563b36d04f",
+          "marketSha256": "448a8db106eace21478bd88e9e7d528ef3cdc3a94272f34dbbfb13add89893e5",
+          "marketObservedAt": "2026-11-04T05:52:19.425599+00:00",
+          "matchingIssues": [
+            {
+              "symbol": "336370",
+              "isin": "KR7336370002",
+              "name": "솔루스첨단소재보통주",
+              "abbreviation": "솔루스첨단소재",
+              "shareClass": "보통주",
+              "sourceRowSha256": "9ba9cf5359aa9c231875aeaed00ec80b2829053ef79d0c85d9043ef2dd72d405"
+            },
+            {
+              "symbol": "33637K",
+              "isin": "KR733637K010",
+              "name": "솔루스첨단소재1우선주",
+              "abbreviation": "솔루스첨단소재1우",
+              "shareClass": "구형우선주",
+              "sourceRowSha256": "0de72429c8e667ad7741027f266615f589895a59250f79c09c69936f925d5792"
+            },
+            {
+              "symbol": "33637L",
+              "isin": "KR733637K028",
+              "name": "솔루스첨단소재2우선주(신형)",
+              "abbreviation": "솔루스첨단소재2우B",
+              "shareClass": "신형우선주",
+              "sourceRowSha256": "3a30d128224f641523a6451ea8284cd32328dff439db8955f924a135a7ddcb45"
+            }
+          ]
+        },
+        {
+          "date": "2023-12-22",
+          "daySha256": "5fbfaeae535fc46fa8140aea512ae4b06a77495390399f606c1aa0fb348d93e4",
+          "marketSha256": "5d26723a7789c329f9bc8ff34fd57d712cddaaeff8424dc96f7827b045adf29d",
+          "marketObservedAt": "2026-11-04T05:52:21.750312+00:00",
+          "matchingIssues": [
+            {
+              "symbol": "336370",
+              "isin": "KR7336370002",
+              "name": "솔루스첨단소재보통주",
+              "abbreviation": "솔루스첨단소재",
+              "shareClass": "보통주",
+              "sourceRowSha256": "9ba9cf5359aa9c231875aeaed00ec80b2829053ef79d0c85d9043ef2dd72d405"
+            },
+            {
+              "symbol": "33637K",
+              "isin": "KR733637K010",
+              "name": "솔루스첨단소재1우선주",
+              "abbreviation": "솔루스첨단소재1우",
+              "shareClass": "구형우선주",
+              "sourceRowSha256": "0de72429c8e667ad7741027f266615f589895a59250f79c09c69936f925d5792"
+            },
+            {
+              "symbol": "33637L",
+              "isin": "KR733637K028",
+              "name": "솔루스첨단소재2우선주(신형)",
+              "abbreviation": "솔루스첨단소재2우B",
+              "shareClass": "신형우선주",
+              "sourceRowSha256": "3a30d128224f641523a6451ea8284cd32328dff439db8955f924a135a7ddcb45"
+            }
+          ]
+        }
+      ],
+      "confirmedAffectedSymbols": [],
+      "status": "MULTIPLE_LISTED_CLASSES_SCOPE_UNCONFIRMED",
+      "supplementalEvidence": {
+        "sourceUrl": "https://kind.krx.co.kr/external/2023/12/21/000422/20231221001162/11307.htm",
+        "bodySha256": "a38f4d7a14e146ebc42f8d38f1792dc33652769a82034d88fc6fcb2cf0a74d3f",
+        "observedAt": "2026-11-13T13:39:06.804640+00:00",
+        "receiptSha256": "48d7603e6445d0d1cf3463cafc5bc2f161df92bb23e1178d3faedb6cee00cdf6",
+        "role": "BONUS_ISSUE_CLASSES_ONLY"
+      },
+      "evidenceNeeded": "336370·33637K·33637L별로 12월 21일 16:14 정지 및 22일 09:00 해제 대상이 표시된 거래소 기록"
+    },
+    {
+      "receipt": "20231226000464",
+      "document": "20231226001212",
+      "listedMinuteKst": "2023-12-26 16:14",
+      "viewerIssuer": "삼진제약",
+      "viewerSymbol": "005500",
+      "bodyIssuer": "삼진제약(주)",
+      "bodyShareDisplay": "주권",
+      "halt": "2023-12-26T16:14:00+09:00",
+      "reopening": "2023-12-27T09:00:00+09:00",
+      "precision": "MINUTE",
+      "reason": "중요내용공시(영업정지)",
+      "noticeEvidence": {
+        "viewer": {
+          "bodySha256": "b3400768b48e92efa883a716962756b9af56d3e84ea5b0c2a97eb5845d77781a",
+          "observedAt": "2026-11-13T08:15:06.581465+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20231226000464&method=search"
+        },
+        "route": {
+          "bodySha256": "3d03f4c5f34ae5d96971474602b8328d2136aa407abca07ebde1fb9d5f841b94",
+          "observedAt": "2026-11-13T08:15:06.908850+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do"
+        },
+        "body": {
+          "bodySha256": "046f69b75e995b12d3a34531258f77a31f7fe9a7b246329659feaac6ae4d6925",
+          "observedAt": "2026-11-13T08:15:07.410787+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/external/2023/12/26/000464/20231226001212/99808.htm"
+        }
+      },
+      "noticeReceiptSha256": {
+        "viewer": "cce143d68401ef2ee91957fea4021cb011bbd2661f6caae73f376ce3f991bcd9",
+        "route": "a30ceb5d02992d268e1d03f5f0aaf28357fc796070bcba476440afce4a699516",
+        "body": "15e6c3593ad20ed5a674b4d02c70b141636a5b0fc4c188867c398a942b0625bf"
+      },
+      "krxSnapshots": [
+        {
+          "date": "2023-12-26",
+          "daySha256": "8a78778449228cc562f3d43ec1a8799afadd446fc0c6ed917093313c248d0740",
+          "marketSha256": "6ca621c7afc77514c39f77f6ceda42cfd091ff4be433736e69978e6bc2056b78",
+          "marketObservedAt": "2026-11-04T05:52:32.130222+00:00",
+          "matchingIssues": [
+            {
+              "symbol": "005500",
+              "isin": "KR7005500004",
+              "name": "삼진제약보통주",
+              "abbreviation": "삼진제약",
+              "shareClass": "보통주",
+              "sourceRowSha256": "1587ea83a745b1e2cbd81a4e59477cfd4d753d5f9006e8e17e4733089ca2f81d"
+            }
+          ]
+        },
+        {
+          "date": "2023-12-27",
+          "daySha256": "ebd19d00720f127db324ce5a36a8ce0aeb71b0f80ca1dc2ff517b7ac0679c015",
+          "marketSha256": "f8be8fe73b73665b0b4a7a6d09dbeba500bd2cfbf3bbcea055f2e9f3a797abce",
+          "marketObservedAt": "2026-11-04T05:52:34.803286+00:00",
+          "matchingIssues": [
+            {
+              "symbol": "005500",
+              "isin": "KR7005500004",
+              "name": "삼진제약보통주",
+              "abbreviation": "삼진제약",
+              "shareClass": "보통주",
+              "sourceRowSha256": "1587ea83a745b1e2cbd81a4e59477cfd4d753d5f9006e8e17e4733089ca2f81d"
+            }
+          ]
+        }
+      ],
+      "confirmedAffectedSymbols": [],
+      "status": "COMMON_SHARE_INFERRED_FROM_ONLY_LISTED_ISSUE",
+      "inferredAffectedSymbols": [
+        "005500"
+      ],
+      "evidenceNeeded": "같은 정지·해제 일시와 단축코드 또는 ISIN이 함께 표시된 거래소 종목별 시장조치 기록"
+    },
+    {
+      "receipt": "20231226000602",
+      "document": "20231226001584",
+      "listedMinuteKst": "2023-12-26 17:04",
+      "viewerIssuer": "DH오토넥스",
+      "viewerSymbol": "000300",
+      "bodyIssuer": "(주)대유플러스",
+      "bodyShareDisplay": "주권",
+      "halt": "2023-12-26T17:04:00+09:00",
+      "reopening": "2023-12-27T09:00:00+09:00",
+      "precision": "MINUTE",
+      "reason": "중요내용공시(영업정지)",
+      "noticeEvidence": {
+        "viewer": {
+          "bodySha256": "c634c3dcb0eab7eaeca18a8f19c7d7c208cb4b1951fce9f0e027b1665cb46656",
+          "observedAt": "2026-11-13T08:15:09.569012+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20231226000602&method=search"
+        },
+        "route": {
+          "bodySha256": "1fed5ca0cd23179cea8f34455954690d6f78f0ba43ed804ad393355401dc88f5",
+          "observedAt": "2026-11-13T08:15:10.011676+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do"
+        },
+        "body": {
+          "bodySha256": "0d4a5e175be5620db5fd7da31db58458500c98bbdc5aabc6fea044cb9bb79fe9",
+          "observedAt": "2026-11-13T08:15:10.529843+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/external/2023/12/26/000602/20231226001584/99808.htm"
+        }
+      },
+      "noticeReceiptSha256": {
+        "viewer": "3fdcec01a427fe81a312f514c6b648e822e4a339c76a5d63b74fe86a906add17",
+        "route": "b32e3c4207036dccd87df6ac4d6e6ea17d9789c671e48b1614a34f4b7dd364f8",
+        "body": "f1f8a0193ad8be703cf4a062a6bd80ad1a7d0f87ce2b9686b9dc408202965e45"
+      },
+      "krxSnapshots": [
+        {
+          "date": "2023-12-26",
+          "daySha256": "8a78778449228cc562f3d43ec1a8799afadd446fc0c6ed917093313c248d0740",
+          "marketSha256": "6ca621c7afc77514c39f77f6ceda42cfd091ff4be433736e69978e6bc2056b78",
+          "marketObservedAt": "2026-11-04T05:52:32.130222+00:00",
+          "matchingIssues": [
+            {
+              "symbol": "000300",
+              "isin": "KR7000300004",
+              "name": "대유플러스보통주",
+              "abbreviation": "대유플러스",
+              "shareClass": "보통주",
+              "sourceRowSha256": "36b177b6d2f571b92a7ba72b2765a5cd3b71d355156b5254d4a0298d945e702f"
+            }
+          ]
+        },
+        {
+          "date": "2023-12-27",
+          "daySha256": "ebd19d00720f127db324ce5a36a8ce0aeb71b0f80ca1dc2ff517b7ac0679c015",
+          "marketSha256": "f8be8fe73b73665b0b4a7a6d09dbeba500bd2cfbf3bbcea055f2e9f3a797abce",
+          "marketObservedAt": "2026-11-04T05:52:34.803286+00:00",
+          "matchingIssues": [
+            {
+              "symbol": "000300",
+              "isin": "KR7000300004",
+              "name": "대유플러스보통주",
+              "abbreviation": "대유플러스",
+              "shareClass": "보통주",
+              "sourceRowSha256": "36b177b6d2f571b92a7ba72b2765a5cd3b71d355156b5254d4a0298d945e702f"
+            }
+          ]
+        }
+      ],
+      "confirmedAffectedSymbols": [],
+      "status": "COMMON_SHARE_INFERRED_FROM_ONLY_LISTED_ISSUE",
+      "inferredAffectedSymbols": [
+        "000300"
+      ],
+      "evidenceNeeded": "같은 정지·해제 일시와 단축코드 또는 ISIN이 함께 표시된 거래소 종목별 시장조치 기록"
+    },
+    {
+      "receipt": "20231228000100",
+      "document": "20231228000249",
+      "listedMinuteKst": "2023-12-28 10:08",
+      "viewerIssuer": "태영건설",
+      "viewerSymbol": "009410",
+      "bodyIssuer": "(주)태영건설",
+      "bodyShareDisplay": "주권",
+      "halt": "2023-12-28T10:08:00+09:00",
+      "reopening": "2023-12-28T10:38:00+09:00",
+      "precision": "MINUTE",
+      "reason": "중요내용공시(채권은행 등의 관리절차 개시 신청)",
+      "noticeEvidence": {
+        "viewer": {
+          "bodySha256": "8cb431091642c49bc7bb2dfbaf3c7d2f5f2f6c7f961c3deacdc1644722648b58",
+          "observedAt": "2026-11-13T08:15:57.852260+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20231228000100&method=search"
+        },
+        "route": {
+          "bodySha256": "43d1cfe484adf0f7c1e65d4a7f05e7a90851c76d47c4f23853aedb795bd7199a",
+          "observedAt": "2026-11-13T08:15:58.275017+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do"
+        },
+        "body": {
+          "bodySha256": "3ad2b51ad502eba69138e50852abd054c81cccf06ca6be434e4b2b10f9b49ffc",
+          "observedAt": "2026-11-13T08:15:58.784548+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/external/2023/12/28/000100/20231228000249/99808.htm"
+        }
+      },
+      "noticeReceiptSha256": {
+        "viewer": "79bb7952bbbb1240766e281a3dcdcd01ce2b14ea9b6bb5042f8cc8f9d2d5355d",
+        "route": "63f73e222570e386f88abea9fd883d9c2b6c174c4d97d17be5ccdc69bc3b969b",
+        "body": "91dd9914f202096c0d976ebecc380506f439ce535e2701b09986f5ed547afa54"
+      },
+      "krxSnapshots": [
+        {
+          "date": "2023-12-28",
+          "daySha256": "e20b474851bcbf5087a253e1372daf9c002d1062ca5a1387b3a154a90b36c1c4",
+          "marketSha256": "d5088a45c8d73d910c9f083e172b6b13bb0efe7445564e6edb5d602c639427be",
+          "marketObservedAt": "2026-11-04T05:52:37.218941+00:00",
+          "matchingIssues": [
+            {
+              "symbol": "009410",
+              "isin": "KR7009410002",
+              "name": "태영건설보통주",
+              "abbreviation": "태영건설",
+              "shareClass": "보통주",
+              "sourceRowSha256": "a27913ad159d4370247c3e3c41b741f665376c2af347b480e89b7eae55373a25"
+            },
+            {
+              "symbol": "009415",
+              "isin": "KR7009411000",
+              "name": "태영건설우선주",
+              "abbreviation": "태영건설우",
+              "shareClass": "구형우선주",
+              "sourceRowSha256": "4e271bc598a233bc2177d4a61e5f54b97684aeb6e1b0c1aed9b4333dc683c883"
+            }
+          ]
+        }
+      ],
+      "confirmedAffectedSymbols": [],
+      "status": "MULTIPLE_LISTED_CLASSES_SCOPE_UNCONFIRMED",
+      "supplementalEvidence": {
+        "sourceUrl": "https://kind.krx.co.kr/external/2024/08/05/000091/20240805000121/10601.htm",
+        "bodySha256": "50b1b56c24840e2736af6df13371a4e105f6fc73f8549a6f6ac301930becd361",
+        "observedAt": "2026-11-13T13:46:47.312991+00:00",
+        "receiptSha256": "7689a7ce8fb386af98f7d47d785ee9a67e6f04cf4052028afbf83a2e155e7d38",
+        "role": "ISSUER_REPRINT_RETAINS_GENERIC_SHARE_LABEL"
+      },
+      "evidenceNeeded": "009410·009415별로 12월 28일 10:08 정지 및 10:38 해제 대상이 표시된 거래소 기록"
+    }
+  ],
+  "actualExecutionConfirmed": false,
+  "historicalFirstAvailabilityConfirmed": false,
+  "usableForTrading": false,
+  "usableForTraining": false
+}
