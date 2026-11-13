@@ -12,4 +12,6 @@
 
 보통주 1건을 거래소 공지로 확인했고, 2건은 유일한 상장 주권을 근거로 보통주로 추론했습니다. 복수 주권 2건은 보통주와 우선주 각각의 적용 여부를 보류했습니다. 실제 체결 재개 시각과 당시 최초 공개 시각은 미확인입니다. 엔에이치스팩19호 해제일은 정리매매 시작일에 해당합니다.
 
+[종목코드별 후속 조회](historical-market-action-kospi-halt-records.md)에서 태영건설의 보통주·우선주가 같은 시간대에 정지됐다는 당일 보도를 확인했습니다. KRX 개별종목 조회는 로그인 상태에서 일자별 정지 여부를 제공합니다. 네 공지의 공식 종목코드별 과거 정지 이력 행은 미확보입니다.
+
 기존 KIND 화면·경로·본문 15개와 보조 원문 3개, 게시일·정지일·해제일에 해당하는 KRX 일별 목록 8개의 해시를 로컬에서 검증했습니다. 보조 원문과 영수증은 로컬 `AI/ai-server/research-artifacts/historical-market-action-kospi-classes-20261113/captures`에 보관했습니다. [검증 기록](examples/historical-market-action-kospi-share-classes.json)
