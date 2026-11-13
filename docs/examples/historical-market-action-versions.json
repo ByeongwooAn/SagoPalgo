@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "SAGOPALGO_H05_MARKET_ACTION_VERSIONS_V1",
+  "reviewedAt": "2026-11-13T11:26:28.983051+00:00",
+  "timeZone": "Asia/Seoul",
+  "parentReport": {
+    "job": "historical-market-action-expansion-20261113",
+    "sha256": "8e229ae85fec4b35f5f39d56278344fb228708ce59ca1971bafff61e049e9d91"
+  },
+  "captureJob": "historical-market-action-versions-20261113",
+  "captureReceiptSha256": {
+    "proof-route-20231205001557": "6e2a7914b22fc3b1acd0556653d8256cd444e11651e582dca23a8dcdce6ed7d3",
+    "proof-body-20231205001557": "3faf63c02dc21b4f3403e6d02ed2ccbbb3008ed3faf412be93a160169192047a",
+    "proof-route-20231205001630": "430a2ade424836f342d7c3b075bc77d31d230f4b6509c9628817c7a229dbe13c",
+    "proof-body-20231205001630": "82a8775a4bc5f98974adde6b5c9e443914625cf925bc0021bb02e5ff8dba57fe",
+    "proof-route-20231207000305": "da50e9a2bbffd46c437ad475d1ee10c66944f1a03125752f39cf601a9344b365",
+    "proof-body-20231207000305": "20696efe425318b427ed80e7d87613272674f22319292666c715810214458375",
+    "proof-route-20231207000326": "abb85a0ba7fa3d54d028967f35de1bc81322c5fcf272a854fdf9edbe392b6b63",
+    "proof-body-20231207000326": "afc0c1a3f813f3a9695caa16035d3338a8b4e59fc01dd0683d2a9136898d321a"
+  },
+  "viewerNotices": [
+    {
+      "receipt": "20231205000605",
+      "listedMinuteKst": "2023-12-05 18:26",
+      "documentNumbers": [
+        "20231205001557",
+        "20231205001630"
+      ],
+      "viewer": {
+        "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20231205000605&method=search",
+        "bodySha256": "478c633f15e7b508dac5f842041eead49a9c70026482e30a3131b15de2196a28",
+        "observedAt": "2026-11-13T08:13:53.805736+00:00"
+      },
+      "viewerReceiptSha256": "dc6127f707e2563c623fb47468869690b3fcbc9676afb6573e1b2990ad0b4f20"
+    },
+    {
+      "receipt": "20231207000078",
+      "listedMinuteKst": "2023-12-07 11:14",
+      "documentNumbers": [
+        "20231207000305",
+        "20231207000326"
+      ],
+      "viewer": {
+        "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20231207000078&method=search",
+        "bodySha256": "19b525848d26ff362eddf0f09b598e6259dab5b2d0d16a4afc48c44fda2b3f7d",
+        "observedAt": "2026-11-13T08:14:00.988129+00:00"
+      },
+      "viewerReceiptSha256": "1eaecb29a08fff7a25db44a1ef4cff580acabbeffa0619d916f7291eea16dc74"
+    },
+    {
+      "receipt": "20231207000088",
+      "listedMinuteKst": "2023-12-07 11:25",
+      "documentNumbers": [
+        "20231207000305",
+        "20231207000326"
+      ],
+      "viewer": {
+        "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20231207000088&method=search",
+        "bodySha256": "d9b50beb27fa367a3f057077ac7b2f113305c4086d10f45257ddbe3d14d0a121",
+        "observedAt": "2026-11-13T08:14:01.632753+00:00"
+      },
+      "viewerReceiptSha256": "3e09f0f76ef32dca777edf65c7ca0d80bea1c97adc13f3c1877a8b3128753926"
+    }
+  ],
+  "versionPairs": [
+    {
+      "market": "KOSDAQ",
+      "issuer": "리메드",
+      "symbol": "302550",
+      "legalName": "리메드",
+      "original": {
+        "document": "20231205001557",
+        "issuerDisplay": "(주)리메드",
+        "shareClass": "보통주",
+        "haltDate": "2023-12-08",
+        "haltClockKst": null,
+        "haltReason": "주식의 병합, 분할 등 전자등록 변경, 말소",
+        "expiryDisplay": "신주권 변경상장일 전일까지",
+        "ruleDisplay": "코스닥시장업무규정 제25조 및 동규정시행세칙 제30조",
+        "route": {
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do",
+          "bodySha256": "bafdb1f27038431c4483ba579802af49622fc90a94aae3c9bb8f55c3848f0aae",
+          "observedAt": "2026-11-13T11:24:18.313082+00:00"
+        },
+        "body": {
+          "sourceUrl": "https://kind.krx.co.kr/external/2023/12/05/000557/20231205001557/70797.htm",
+          "bodySha256": "12324ca849a480bdca7490da146ed7634e4c8017ed566f0941ee9b95d0251b32",
+          "observedAt": "2026-11-13T11:24:19.517926+00:00"
+        }
+      },
+      "corrected": {
+        "document": "20231205001630",
+        "issuerDisplay": "(주)리메드",
+        "shareClass": "보통주",
+        "haltDate": "2023-12-07",
+        "haltClockKst": null,
+        "haltReason": "주식의 병합, 분할 등 전자등록 변경, 말소",
+        "expiryDisplay": "신주권 변경상장일 전일까지",
+        "ruleDisplay": "코스닥시장업무규정 제25조 및 동규정시행세칙 제30조",
+        "route": {
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do",
+          "bodySha256": "d2e53a294d955549bb61fa5c429caf10cbfd4cc1240f8a55043b0d92d57fa4b8",
+          "observedAt": "2026-11-13T11:24:20.799673+00:00"
+        },
+        "body": {
+          "sourceUrl": "https://kind.krx.co.kr/external/2023/12/05/000605/20231205001630/70797.htm",
+          "bodySha256": "03a7b523b2df74334a1bd79a865456021bca6382d23fe02b67e2383c4778604f",
+          "observedAt": "2026-11-13T11:24:21.988639+00:00"
+        }
+      },
+      "comparison": {
+        "targetChanged": false,
+        "haltDateChanged": true,
+        "haltClockComparison": "UNSPECIFIED_IN_BOTH",
+        "expiryChanged": false,
+        "haltReasonChanged": false,
+        "ruleChanged": false
+      },
+      "correctionSummaryNote": null
+    },
+    {
+      "market": "KOSDAQ",
+      "issuer": "한화플러스제2호스팩",
+      "symbol": "386580",
+      "legalName": "한화플러스제2호기업인수목적",
+      "original": {
+        "document": "20231207000305",
+        "issuerDisplay": "한화플러스제2호기업인수목적(주)",
+        "shareClass": "보통주",
+        "haltDate": "2023-12-07",
+        "haltClockKst": "11:14:00",
+        "haltReason": "SPAC 소멸합병",
+        "expiryDisplay": "상장폐지시까지",
+        "ruleDisplay": "코스닥시장업무규정 제25조 및 동규정시행세칙 제30조",
+        "route": {
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do",
+          "bodySha256": "d70629d0ea7de986e7b71f08ae6bf741e544c4ab9da68366b9113a2c51410968",
+          "observedAt": "2026-11-13T11:24:23.185363+00:00"
+        },
+        "body": {
+          "sourceUrl": "https://kind.krx.co.kr/external/2023/12/07/000078/20231207000305/70797.htm",
+          "bodySha256": "5e7277c39c089ecc390acabc17950297a457d0b5f15a4fec4abf7a29741231f0",
+          "observedAt": "2026-11-13T11:24:24.476169+00:00"
+        }
+      },
+      "corrected": {
+        "document": "20231207000326",
+        "issuerDisplay": "한화플러스제2호기업인수목적(주)",
+        "shareClass": "보통주",
+        "haltDate": "2023-12-07",
+        "haltClockKst": "11:14:00",
+        "haltReason": "SPAC 합병(예비심사청구대상)",
+        "expiryDisplay": "상장예비심사결과 통지일까지 또는 부적격의 심사결과를 통지한 경우에는 합병대상법인과의 합병을 중단하는 결의 또는 결정일까지",
+        "ruleDisplay": "코스닥시장상장규정 제18조 및 동규정시행세칙 제19조",
+        "route": {
+          "sourceUrl": "https://kind.krx.co.kr/common/disclsviewer.do",
+          "bodySha256": "78ca20f7e125665e027151fd7726e124278b655fb0aade0bb44ca9f4c53ebfb8",
+          "observedAt": "2026-11-13T11:24:25.616630+00:00"
+        },
+        "body": {
+          "sourceUrl": "https://kind.krx.co.kr/external/2023/12/07/000088/20231207000326/70797.htm",
+          "bodySha256": "df183530448f7e69e94ee3d2848178205fcb19a023ac3e11d97fe071fb6c61ed",
+          "observedAt": "2026-11-13T11:24:26.926184+00:00"
+        }
+      },
+      "comparison": {
+        "targetChanged": false,
+        "haltDateChanged": false,
+        "haltClockComparison": "UNCHANGED",
+        "expiryChanged": true,
+        "haltReasonChanged": true,
+        "ruleChanged": true
+      },
+      "correctionSummaryNote": "정정표의 만료일시 정정 전 칸에는 원본 기타란의 합병상장 설명이 실려 있습니다."
+    }
+  ],
+  "historicalFirstAvailabilityConfirmed": false,
+  "actualHaltOrReopeningConfirmed": false,
+  "usableForTrading": false,
+  "usableForTraining": false
+}
