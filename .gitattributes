@@ -1,6 +1,7 @@
 # Reviewed manifests are byte-hash bound by acquisition plans.
 docs/examples/cancellation-share-class-census.json text eol=lf
 docs/examples/historical-actions-followup.json text eol=lf
+docs/examples/historical-market-action-monthly.jsonl text eol=lf
 docs/examples/name-alias-cases.json text eol=lf
 docs/examples/market-calendar-sources.json text eol=lf
 docs/examples/historical-session-rules.json text eol=lf
