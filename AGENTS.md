@@ -23,6 +23,7 @@
 - 목표·설계가 필요할 때만 `docs/realtime-trading-roadmap.md`, `docs/target-system-architecture.md`를 읽는다.
 - API·DB 변경 시 `docs/trading-api-contract-matrix.md`, `docs/api-spec.md`, `docs/database-schema.md` 중 해당 계약과 사용처를 확인한다.
 - 기존 구조와 명명을 따르고 원인을 해결하는 크기로 변경한다. 동작·계약·운영 변경은 기준 문서를 갱신하고 중복 설명은 링크한다.
+- 현재 목표에 필요한 작업은 개발 진척도에서 추적한다. 당장 필요하지 않은 작업은 [보류 작업과 진척도](docs/deferred-work.md)에 사유·상태·재개 및 완료 조건과 함께 등록하고, 전체 번호 항목이 이동하면 현재 진척도의 분모를 갱신한다. 필수 작업의 선행 조건 대기는 실행 목록에 남긴다.
 - 비밀값·실제 `.env`·계좌정보를 출력하거나 커밋하지 않는다. 기존 데이터와 사용자 변경을 덮어쓰지 않는다.
 
 ## 검증과 보고
