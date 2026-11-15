@@ -1,0 +1,4461 @@
+{
+  "schemaVersion": "SAGOPALGO_H05_KOSPI_HALT_SCOPE_V1",
+  "expectedNotices": 390,
+  "monthlyLedgerSha256": "ea60614da213fd71b782f4367f0001f347632d8da6aa7828d4cd1b3d1e3d5e82",
+  "inputs": {
+    "historyPlan": {
+      "path": "krx-history-20231101-20261102-20261104/job/plan.json",
+      "sha256": "b1ab93620a701c6bdddec80dab78096d47dd5ee4807568fa913df9b58e18222d"
+    },
+    "historyJournal": {
+      "path": "krx-history-20231101-20261102-20261104/job/journal.json",
+      "sha256": "34769709629710142ff6485389073d8d5c96a945fe6ed9d28e8d6fafc2dbdf25"
+    },
+    "nameChanges": {
+      "path": "name-change-20261104/facts.json",
+      "sha256": "26ec8b14d19377cf4a6e3edf4e3cd9f75ce23acb21c052ca0a0f52883331c882"
+    },
+    "aliasChanges": {
+      "path": "name-alias-20261104/facts.json",
+      "sha256": "a2218b1bfc31300d7da7f5bb71cd2300a4c055a4509d37d3913974412c748559"
+    }
+  },
+  "dailySources": [
+    {
+      "path": "authenticated-daily/000040-2024-02-23-2024-03-18-3105f69eece6.csv",
+      "sha256": "3105f69eece6822d3e8430d6d421d7d83a02fc89863362845ac8cb4716827b64",
+      "symbol": "000040",
+      "from": "2024-02-23",
+      "through": "2024-03-18",
+      "requestedIsin": "KR7000040006",
+      "downloadName": "data_1139_20261115.csv",
+      "downloadedAt": "2026-11-15T22:11:38.993202+09:00",
+      "returnedRows": 16
+    },
+    {
+      "path": "authenticated-daily/000040-2026-07-03-2026-09-08-c6a1591332da.csv",
+      "sha256": "c6a1591332da4d4233aae9ee68dd6a6daac429c223d8c7e08d06bcb42c463ed0",
+      "symbol": "000040",
+      "from": "2026-07-03",
+      "through": "2026-09-08",
+      "requestedIsin": "KR7000040006",
+      "downloadName": "data_1142_20261115.csv",
+      "downloadedAt": "2026-11-15T22:11:42.133636+09:00",
+      "returnedRows": 46
+    },
+    {
+      "path": "authenticated-daily/000070-2025-05-30-2025-10-30-7741c6256356.csv",
+      "sha256": "7741c62563560b7c8bcb874721c7333f559118f0678071e00ee0b05660dd5e06",
+      "symbol": "000070",
+      "from": "2025-05-30",
+      "through": "2025-10-30",
+      "requestedIsin": "KR7000070003",
+      "downloadName": "data_1202_20261115.csv",
+      "downloadedAt": "2026-11-15T22:12:02.552532+09:00",
+      "returnedRows": 102
+    },
+    {
+      "path": "authenticated-daily/000150-2026-09-17-2026-09-17-d080ea1132d0.csv",
+      "sha256": "d080ea1132d041c37d9161c273b57ed6f3e9a1069db57c861ebd227d96b070d5",
+      "symbol": "000150",
+      "from": "2026-09-17",
+      "through": "2026-09-17",
+      "requestedIsin": "KR7000150003",
+      "downloadName": "data_1442_20261115.csv",
+      "downloadedAt": "2026-11-15T22:14:42.089246+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/000155-2026-09-17-2026-09-17-ccde7e3e8ada.csv",
+      "sha256": "ccde7e3e8adad12d56f1982768a60cb4ac04e2b6504c81587cb42b350f8935cc",
+      "symbol": "000155",
+      "from": "2026-09-17",
+      "through": "2026-09-17",
+      "requestedIsin": "KR7000151001",
+      "downloadName": "data_1447_20261115.csv",
+      "downloadedAt": "2026-11-15T22:14:47.640194+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/000157-2026-09-17-2026-09-17-a20a50696cae.csv",
+      "sha256": "a20a50696cae5abc47ddc0925faf6ff2c63d74e910d558b244a5000c7f17c796",
+      "symbol": "000157",
+      "from": "2026-09-17",
+      "through": "2026-09-17",
+      "requestedIsin": "KR7000152009",
+      "downloadName": "data_1453_20261115.csv",
+      "downloadedAt": "2026-11-15T22:14:53.179464+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/000180-2026-04-08-2026-04-27-62feacac6e83.csv",
+      "sha256": "62feacac6e83303b5bf5f6e468588f116f541156338fac4b8b9b2a10f68a15e8",
+      "symbol": "000180",
+      "from": "2026-04-08",
+      "through": "2026-04-27",
+      "requestedIsin": "KR7000180000",
+      "downloadName": "data_1459_20261115.csv",
+      "downloadedAt": "2026-11-15T22:14:59.535865+09:00",
+      "returnedRows": 14
+    },
+    {
+      "path": "authenticated-daily/000300-2024-02-23-2024-02-23-3d04aa1eb0b3.csv",
+      "sha256": "3d04aa1eb0b31a93b45957aa788a96bf2eadd60921b0e90fffab1dafbf6a6104",
+      "symbol": "000300",
+      "from": "2024-02-23",
+      "through": "2024-02-23",
+      "requestedIsin": "KR7000300004",
+      "downloadName": "data_1506_20261115.csv",
+      "downloadedAt": "2026-11-15T22:15:06.639882+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/000500-2026-06-16-2026-06-17-c67d631d9e27.csv",
+      "sha256": "c67d631d9e27688c44de9372567d8d53874ae2275cdde5ae62053f0b372de8a7",
+      "symbol": "000500",
+      "from": "2026-06-16",
+      "through": "2026-06-17",
+      "requestedIsin": "KR7000500009",
+      "downloadName": "data_1512_20261115.csv",
+      "downloadedAt": "2026-11-15T22:15:12.854591+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/000670-2025-04-14-2025-04-14-d39af50d3dd3.csv",
+      "sha256": "d39af50d3dd348847039ef35c77728921392dc9837adc7e957907323e0ec3311",
+      "symbol": "000670",
+      "from": "2025-04-14",
+      "through": "2025-04-14",
+      "requestedIsin": "KR7000670000",
+      "downloadName": "data_1519_20261115.csv",
+      "downloadedAt": "2026-11-15T22:15:18.993332+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/000860-2025-04-17-2025-04-17-4d8a1dfb28f4.csv",
+      "sha256": "4d8a1dfb28f45a006144b821118d29171f2f6b0491d0bf6d0f1ea15a2df99926",
+      "symbol": "000860",
+      "from": "2025-04-17",
+      "through": "2025-04-17",
+      "requestedIsin": "KR7000860007",
+      "downloadName": "data_1525_20261115.csv",
+      "downloadedAt": "2026-11-15T22:15:25.792608+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/000880-2026-07-30-2026-07-30-e5e5ff9f9b53.csv",
+      "sha256": "e5e5ff9f9b538202c0e04081e19a1ad93993cb5498f24a696ab3219d5fab5ac0",
+      "symbol": "000880",
+      "from": "2026-07-30",
+      "through": "2026-07-30",
+      "requestedIsin": "KR7000880005",
+      "downloadName": "data_1532_20261115.csv",
+      "downloadedAt": "2026-11-15T22:15:32.118245+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/00088K-2026-07-30-2026-07-30-15e802f8bd6d.csv",
+      "sha256": "15e802f8bd6d1ea767a859a794a4a6e84ccc4b982ab1461909b3c9bc94661d45",
+      "symbol": "00088K",
+      "from": "2026-07-30",
+      "through": "2026-07-30",
+      "requestedIsin": "KR700088K015",
+      "downloadName": "data_1759_20261115.csv",
+      "downloadedAt": "2026-11-15T22:17:59.771042+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/000890-2026-04-27-2026-05-20-513f21aae536.csv",
+      "sha256": "513f21aae536951b0766cef05d29835bf0e36adc7be4daa186b0735a8219d8ad",
+      "symbol": "000890",
+      "from": "2026-04-27",
+      "through": "2026-05-20",
+      "requestedIsin": "KR7000890004",
+      "downloadName": "data_1910_20261115.csv",
+      "downloadedAt": "2026-11-15T22:19:10.908831+09:00",
+      "returnedRows": 16
+    },
+    {
+      "path": "authenticated-daily/001020-2026-04-29-2026-05-28-6bed2e6d617a.csv",
+      "sha256": "6bed2e6d617ac554100584e4bd9317ee1a051c2762221ab087fd27e6eeabd3d2",
+      "symbol": "001020",
+      "from": "2026-04-29",
+      "through": "2026-05-28",
+      "requestedIsin": "KR7001020007",
+      "downloadName": "data_1917_20261115.csv",
+      "downloadedAt": "2026-11-15T22:19:17.279622+09:00",
+      "returnedRows": 19
+    },
+    {
+      "path": "authenticated-daily/001060-2026-04-30-2026-05-04-56894e5e0c6d.csv",
+      "sha256": "56894e5e0c6dad2bd7c0d2ebc4653de268a321b6ca262c2b6d5699f56a7283dc",
+      "symbol": "001060",
+      "from": "2026-04-30",
+      "through": "2026-05-04",
+      "requestedIsin": "KR7001060003",
+      "downloadName": "data_1923_20261115.csv",
+      "downloadedAt": "2026-11-15T22:19:23.667094+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/001065-2026-04-30-2026-05-04-525401144cab.csv",
+      "sha256": "525401144cab846af687bdd1e0cc8418218460777306b2a236c568b18123d45c",
+      "symbol": "001065",
+      "from": "2026-04-30",
+      "through": "2026-05-04",
+      "requestedIsin": "KR7001061001",
+      "downloadName": "data_1929_20261115.csv",
+      "downloadedAt": "2026-11-15T22:19:29.031757+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/001067-2026-04-30-2026-05-04-1d82d12986a2.csv",
+      "sha256": "1d82d12986a25d259227f700664d88a5d00457a18fef0edc9195af5916ef52b8",
+      "symbol": "001067",
+      "from": "2026-04-30",
+      "through": "2026-05-04",
+      "requestedIsin": "KR7001062009",
+      "downloadName": "data_1934_20261115.csv",
+      "downloadedAt": "2026-11-15T22:19:34.728040+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/001080-2024-09-23-2026-07-02-1f32abebc618.csv",
+      "sha256": "1f32abebc618839b71e3116dfc1b9e8edc7e9eea2b9fc853cc5414c6d845780c",
+      "symbol": "001080",
+      "from": "2024-09-23",
+      "through": "2026-07-02",
+      "requestedIsin": "KR7001080001",
+      "downloadName": "data_1941_20261115.csv",
+      "downloadedAt": "2026-11-15T22:19:41.189651+09:00",
+      "returnedRows": 431
+    },
+    {
+      "path": "authenticated-daily/001130-2026-04-22-2026-05-18-160ce994ec5c.csv",
+      "sha256": "160ce994ec5c12d060ecb8d5719ef853e6521b0512f0a07f5d22662489701375",
+      "symbol": "001130",
+      "from": "2026-04-22",
+      "through": "2026-05-18",
+      "requestedIsin": "KR7001130004",
+      "downloadName": "data_1947_20261115.csv",
+      "downloadedAt": "2026-11-15T22:19:47.675722+09:00",
+      "returnedRows": 17
+    },
+    {
+      "path": "authenticated-daily/001210-2026-07-15-2026-07-31-0192a9653065.csv",
+      "sha256": "0192a96530654982b580a4e84daccafb60ddf39c3fbb138369229ddf7c75b536",
+      "symbol": "001210",
+      "from": "2026-07-15",
+      "through": "2026-07-31",
+      "requestedIsin": "KR7001210004",
+      "downloadName": "data_5304_20261115.csv",
+      "downloadedAt": "2026-11-15T22:53:04.885144+09:00",
+      "returnedRows": 12
+    },
+    {
+      "path": "authenticated-daily/001230-2026-02-11-2026-04-24-48d0acd45475.csv",
+      "sha256": "48d0acd4547551432fac73975bd4d13605b2c1b246ccbeb0af26083ed9aeb7d7",
+      "symbol": "001230",
+      "from": "2026-02-11",
+      "through": "2026-04-24",
+      "requestedIsin": "KR7001230002",
+      "downloadName": "data_2000_20261115.csv",
+      "downloadedAt": "2026-11-15T22:20:00.909735+09:00",
+      "returnedRows": 49
+    },
+    {
+      "path": "authenticated-daily/001290-2026-08-21-2026-08-21-646c030046d2.csv",
+      "sha256": "646c030046d2fa88f0744739781fca6d8042aff5671794340ff6b3e6204c050d",
+      "symbol": "001290",
+      "from": "2026-08-21",
+      "through": "2026-08-21",
+      "requestedIsin": "KR7001290006",
+      "downloadName": "data_2015_20261115.csv",
+      "downloadedAt": "2026-11-15T22:20:15.553152+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/001340-2024-04-22-2024-04-22-ec2165cdfa22.csv",
+      "sha256": "ec2165cdfa22f71fff7cc95860501c2b7c8e6a89838bea2908bde29e7578db7f",
+      "symbol": "001340",
+      "from": "2024-04-22",
+      "through": "2024-04-22",
+      "requestedIsin": "KR7001340009",
+      "downloadName": "data_2021_20261115.csv",
+      "downloadedAt": "2026-11-15T22:20:21.582091+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/001380-2026-04-10-2026-10-08-c10ba929f18a.csv",
+      "sha256": "c10ba929f18a48d68271b62201d8608a8c405367a08cb62334bf179a40382d5d",
+      "symbol": "001380",
+      "from": "2026-04-10",
+      "through": "2026-10-08",
+      "requestedIsin": "KR7001380005",
+      "downloadName": "data_2028_20261115.csv",
+      "downloadedAt": "2026-11-15T22:20:28.275109+09:00",
+      "returnedRows": 121
+    },
+    {
+      "path": "authenticated-daily/001420-2026-08-13-2026-08-14-b1773476355a.csv",
+      "sha256": "b1773476355a77a230aa42e33c979f0d698178f348d3365898e52797d8c3f82c",
+      "symbol": "001420",
+      "from": "2026-08-13",
+      "through": "2026-08-14",
+      "requestedIsin": "KR7001420009",
+      "downloadName": "data_2109_20261115.csv",
+      "downloadedAt": "2026-11-15T22:21:09.388103+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/001460-2024-04-09-2024-04-17-3a5d5d817143.csv",
+      "sha256": "3a5d5d817143a650e6143e02ec88513322ffa58acc24125a64bdd6bf359b6ab4",
+      "symbol": "001460",
+      "from": "2024-04-09",
+      "through": "2024-04-17",
+      "requestedIsin": "KR7001460005",
+      "downloadName": "data_2116_20261115.csv",
+      "downloadedAt": "2026-11-15T22:21:16.208003+09:00",
+      "returnedRows": 6
+    },
+    {
+      "path": "authenticated-daily/001465-2024-04-09-2024-04-17-219a5afcadd8.csv",
+      "sha256": "219a5afcadd83cfde34c07a90fa55cacf3064d36ea569b296d3da5c4436b1052",
+      "symbol": "001465",
+      "from": "2024-04-09",
+      "through": "2024-04-17",
+      "requestedIsin": "KR7001461003",
+      "downloadName": "data_2121_20261115.csv",
+      "downloadedAt": "2026-11-15T22:21:21.293799+09:00",
+      "returnedRows": 6
+    },
+    {
+      "path": "authenticated-daily/001470-2024-08-16-2025-04-01-5425acc25286.csv",
+      "sha256": "5425acc252863d2f6290e29066ef7cd8bf2c4b9b28f9927c15c0542483677a93",
+      "symbol": "001470",
+      "from": "2024-08-16",
+      "through": "2025-04-01",
+      "requestedIsin": "KR7001470004",
+      "downloadName": "data_2127_20261115.csv",
+      "downloadedAt": "2026-11-15T22:21:27.976137+09:00",
+      "returnedRows": 149
+    },
+    {
+      "path": "authenticated-daily/001510-2026-04-07-2026-04-27-077a10030473.csv",
+      "sha256": "077a10030473599703a76b8ca3f46bf37b4f2187044fd50fcff1e7b1915b35de",
+      "symbol": "001510",
+      "from": "2026-04-07",
+      "through": "2026-04-27",
+      "requestedIsin": "KR7001510007",
+      "downloadName": "data_2135_20261115.csv",
+      "downloadedAt": "2026-11-15T22:21:35.997421+09:00",
+      "returnedRows": 15
+    },
+    {
+      "path": "authenticated-daily/001515-2026-04-07-2026-04-27-d58988a855fb.csv",
+      "sha256": "d58988a855fb7ad7ea5a94181f0d1169e86c5234bdc2619d68f367e550be8be6",
+      "symbol": "001515",
+      "from": "2026-04-07",
+      "through": "2026-04-27",
+      "requestedIsin": "KR7001511005",
+      "downloadName": "data_2141_20261115.csv",
+      "downloadedAt": "2026-11-15T22:21:41.283363+09:00",
+      "returnedRows": 15
+    },
+    {
+      "path": "authenticated-daily/001520-2026-06-02-2026-07-20-282547357545.csv",
+      "sha256": "2825473575457b855d4fc78aa12db5005861d083f1145656c69ef71d636e030c",
+      "symbol": "001520",
+      "from": "2026-06-02",
+      "through": "2026-07-20",
+      "requestedIsin": "KR7001520006",
+      "downloadName": "data_2147_20261115.csv",
+      "downloadedAt": "2026-11-15T22:21:47.427076+09:00",
+      "returnedRows": 33
+    },
+    {
+      "path": "authenticated-daily/001525-2026-06-02-2026-07-20-48d691730ac7.csv",
+      "sha256": "48d691730ac726822e702de0083a76ca73ac8c78ec32aefcb6147cf3bc1da219",
+      "symbol": "001525",
+      "from": "2026-06-02",
+      "through": "2026-07-20",
+      "requestedIsin": "KR7001521004",
+      "downloadName": "data_2153_20261115.csv",
+      "downloadedAt": "2026-11-15T22:21:53.219707+09:00",
+      "returnedRows": 33
+    },
+    {
+      "path": "authenticated-daily/001527-2026-06-02-2026-08-28-4f7aa71583a2.csv",
+      "sha256": "4f7aa71583a20abd7147fa10051845aaab1af95e967fd97d51e315099423413b",
+      "symbol": "001527",
+      "from": "2026-06-02",
+      "through": "2026-08-28",
+      "requestedIsin": "KR7001522002",
+      "downloadName": "data_5311_20261115.csv",
+      "downloadedAt": "2026-11-15T22:53:11.987729+09:00",
+      "returnedRows": 61
+    },
+    {
+      "path": "authenticated-daily/001530-2024-11-14-2024-12-12-2c23900da68d.csv",
+      "sha256": "2c23900da68d60b8b800eff240deff5c9313002dffd870f8d57335f9367e859a",
+      "symbol": "001530",
+      "from": "2024-11-14",
+      "through": "2024-12-12",
+      "requestedIsin": "KR7001530005",
+      "downloadName": "data_2218_20261115.csv",
+      "downloadedAt": "2026-11-15T22:22:18.735646+09:00",
+      "returnedRows": 21
+    },
+    {
+      "path": "authenticated-daily/001560-2026-03-03-2026-03-03-384268ee035d.csv",
+      "sha256": "384268ee035dd4b612fead3e95e1ab4383729516cb738e9409e8a9c77819648b",
+      "symbol": "001560",
+      "from": "2026-03-03",
+      "through": "2026-03-03",
+      "requestedIsin": "KR7001560002",
+      "downloadName": "data_2225_20261115.csv",
+      "downloadedAt": "2026-11-15T22:22:25.293377+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/001570-2024-10-29-2025-03-21-e975bb4da945.csv",
+      "sha256": "e975bb4da945b1ee18ae33ab628658fa001da31a461e3799a7383c25695a1297",
+      "symbol": "001570",
+      "from": "2024-10-29",
+      "through": "2025-03-21",
+      "requestedIsin": "KR7001570001",
+      "downloadName": "data_2231_20261115.csv",
+      "downloadedAt": "2026-11-15T22:22:31.494992+09:00",
+      "returnedRows": 96
+    },
+    {
+      "path": "authenticated-daily/001620-2026-04-24-2026-05-18-0848df80182c.csv",
+      "sha256": "0848df80182c05f36f71ded567204b52b1bfe0ada8dabb47e992da889e748657",
+      "symbol": "001620",
+      "from": "2026-04-24",
+      "through": "2026-05-18",
+      "requestedIsin": "KR7001620004",
+      "downloadName": "data_2310_20261115.csv",
+      "downloadedAt": "2026-11-15T22:23:10.457791+09:00",
+      "returnedRows": 15
+    },
+    {
+      "path": "authenticated-daily/001770-2026-06-26-2026-10-02-13f8d9f8fc5b.csv",
+      "sha256": "13f8d9f8fc5b3898c0a190a88cd37247f87dd241fdfd670523774e167bb63f8a",
+      "symbol": "001770",
+      "from": "2026-06-26",
+      "through": "2026-10-02",
+      "requestedIsin": "KR7001770007",
+      "downloadName": "data_5318_20261115.csv",
+      "downloadedAt": "2026-11-15T22:53:18.953249+09:00",
+      "returnedRows": 67
+    },
+    {
+      "path": "authenticated-daily/001940-2024-12-13-2026-11-02-d178f00878f6.csv",
+      "sha256": "d178f00878f6de69778c64b40f88f6c6d337cd482e7dd706db22deb1db874e58",
+      "symbol": "001940",
+      "from": "2024-12-13",
+      "through": "2026-11-02",
+      "requestedIsin": "KR7001940006",
+      "downloadName": "data_2323_20261115.csv",
+      "downloadedAt": "2026-11-15T22:23:23.906991+09:00",
+      "returnedRows": 456
+    },
+    {
+      "path": "authenticated-daily/002070-2026-03-13-2026-09-18-5b7cc9f0f9af.csv",
+      "sha256": "5b7cc9f0f9af81baedccaba14a3d26eeb062c39e57f322f41593827157a1dfec",
+      "symbol": "002070",
+      "from": "2026-03-13",
+      "through": "2026-09-18",
+      "requestedIsin": "KR7002070001",
+      "downloadName": "data_2331_20261115.csv",
+      "downloadedAt": "2026-11-15T22:23:31.135435+09:00",
+      "returnedRows": 130
+    },
+    {
+      "path": "authenticated-daily/002200-2026-04-21-2026-04-22-a11ace5aa33c.csv",
+      "sha256": "a11ace5aa33cb3db6bb1e4b7024969617425769e0b8be30d88ae1c9bf2bfb7db",
+      "symbol": "002200",
+      "from": "2026-04-21",
+      "through": "2026-04-22",
+      "requestedIsin": "KR7002200004",
+      "downloadName": "data_2339_20261115.csv",
+      "downloadedAt": "2026-11-15T22:23:39.101203+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/002210-2025-05-07-2026-07-30-3794fd5d18c4.csv",
+      "sha256": "3794fd5d18c4c1b50a1ce00a3e7417d4f1e409366ccc1be2bf91f122aa7a2eab",
+      "symbol": "002210",
+      "from": "2025-05-07",
+      "through": "2026-07-30",
+      "requestedIsin": "KR7002210003",
+      "downloadName": "data_2345_20261115.csv",
+      "downloadedAt": "2026-11-15T22:23:45.646060+09:00",
+      "returnedRows": 302
+    },
+    {
+      "path": "authenticated-daily/002310-2024-04-05-2024-04-19-1bffb920a9ce.csv",
+      "sha256": "1bffb920a9ceb212416c606c99598e033877dcb1a7c2b6c71bbff369a594ff3f",
+      "symbol": "002310",
+      "from": "2024-04-05",
+      "through": "2024-04-19",
+      "requestedIsin": "KR7002310001",
+      "downloadName": "data_2352_20261115.csv",
+      "downloadedAt": "2026-11-15T22:23:52.206445+09:00",
+      "returnedRows": 10
+    },
+    {
+      "path": "authenticated-daily/002360-2026-04-28-2026-08-06-dffca604a07e.csv",
+      "sha256": "dffca604a07e889d10ae54e8991788e0a526c25927fecfe11e63426b2c3b5bd0",
+      "symbol": "002360",
+      "from": "2026-04-28",
+      "through": "2026-08-06",
+      "requestedIsin": "KR7002360006",
+      "downloadName": "data_2401_20261115.csv",
+      "downloadedAt": "2026-11-15T22:24:01.846207+09:00",
+      "returnedRows": 68
+    },
+    {
+      "path": "authenticated-daily/002410-2025-03-20-2025-03-20-1cc33a88a1ff.csv",
+      "sha256": "1cc33a88a1ff2fabe77d8d9d7aaa31daf52463fcfeddce69d8965af719d77950",
+      "symbol": "002410",
+      "from": "2025-03-20",
+      "through": "2025-03-20",
+      "requestedIsin": "KR7002410009",
+      "downloadName": "data_2408_20261115.csv",
+      "downloadedAt": "2026-11-15T22:24:08.353501+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/002420-2024-12-16-2026-05-22-7104e848f0d0.csv",
+      "sha256": "7104e848f0d0604b657ed70261ebbef261edc2a1399dc69de672f591102bb263",
+      "symbol": "002420",
+      "from": "2024-12-16",
+      "through": "2026-05-22",
+      "requestedIsin": "KR7002420008",
+      "downloadName": "data_2415_20261115.csv",
+      "downloadedAt": "2026-11-15T22:24:15.070788+09:00",
+      "returnedRows": 347
+    },
+    {
+      "path": "authenticated-daily/002630-2026-05-20-2026-09-03-ee453c576151.csv",
+      "sha256": "ee453c576151490b3ae5f7d33651bd98e477d2ef00229e9203b36ae1811a3147",
+      "symbol": "002630",
+      "from": "2026-05-20",
+      "through": "2026-09-03",
+      "requestedIsin": "KR7002630002",
+      "downloadName": "data_2421_20261115.csv",
+      "downloadedAt": "2026-11-15T22:24:21.711022+09:00",
+      "returnedRows": 73
+    },
+    {
+      "path": "authenticated-daily/002780-2026-08-14-2026-08-14-4c5419216361.csv",
+      "sha256": "4c541921636173413a9af75f26869cb6b7d299d4e1d55152ce0cf2fae810fc67",
+      "symbol": "002780",
+      "from": "2026-08-14",
+      "through": "2026-08-14",
+      "requestedIsin": "KR7002780005",
+      "downloadName": "data_2428_20261115.csv",
+      "downloadedAt": "2026-11-15T22:24:28.519941+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/002820-2026-08-13-2026-08-14-2d02d2176133.csv",
+      "sha256": "2d02d217613310d5992e805e2a044a16d39c8d5a4288ecb6cede628860c38a62",
+      "symbol": "002820",
+      "from": "2026-08-13",
+      "through": "2026-08-14",
+      "requestedIsin": "KR7002820009",
+      "downloadName": "data_2441_20261115.csv",
+      "downloadedAt": "2026-11-15T22:24:41.003435+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/002880-2026-08-25-2026-09-11-ca2e0083ed3f.csv",
+      "sha256": "ca2e0083ed3f3d8989ceccf7c94d707b000d3fe7981069014e16e5db76ff11da",
+      "symbol": "002880",
+      "from": "2026-08-25",
+      "through": "2026-09-11",
+      "requestedIsin": "KR7002880003",
+      "downloadName": "data_2446_20261115.csv",
+      "downloadedAt": "2026-11-15T22:24:46.911649+09:00",
+      "returnedRows": 14
+    },
+    {
+      "path": "authenticated-daily/003060-2024-01-12-2024-03-27-bdd8b42ff69c.csv",
+      "sha256": "bdd8b42ff69c251bbdd4e2ec64978ecf1a9fd1699ce7382a63df94f40b6ba7e2",
+      "symbol": "003060",
+      "from": "2024-01-12",
+      "through": "2024-03-27",
+      "requestedIsin": "KR7003060001",
+      "downloadName": "data_2521_20261115.csv",
+      "downloadedAt": "2026-11-15T22:25:21.470013+09:00",
+      "returnedRows": 51
+    },
+    {
+      "path": "authenticated-daily/003060-2026-02-23-2026-04-13-35abdb3579b6.csv",
+      "sha256": "35abdb3579b66f97d378fce0a80443fe4809b6e89b575691864ace8b9dba76ee",
+      "symbol": "003060",
+      "from": "2026-02-23",
+      "through": "2026-04-13",
+      "requestedIsin": "KR7003060001",
+      "downloadName": "data_2526_20261115.csv",
+      "downloadedAt": "2026-11-15T22:25:26.207824+09:00",
+      "returnedRows": 35
+    },
+    {
+      "path": "authenticated-daily/003070-2025-07-01-2025-07-02-ca98686a0807.csv",
+      "sha256": "ca98686a080795c27c78accff71cd5edcc3adcadd6ea2a757e9c530317318753",
+      "symbol": "003070",
+      "from": "2025-07-01",
+      "through": "2025-07-02",
+      "requestedIsin": "KR7003070000",
+      "downloadName": "data_2532_20261115.csv",
+      "downloadedAt": "2026-11-15T22:25:32.680107+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/003075-2025-07-01-2025-07-02-b2b1e7e6e49d.csv",
+      "sha256": "b2b1e7e6e49d2573c029f3f448b4163599cb8adcf64aa89f448f86dcac0d0cba",
+      "symbol": "003075",
+      "from": "2025-07-01",
+      "through": "2025-07-02",
+      "requestedIsin": "KR7003071008",
+      "downloadName": "data_2538_20261115.csv",
+      "downloadedAt": "2026-11-15T22:25:38.116373+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/003120-2026-09-30-2026-10-01-9cac3373eee3.csv",
+      "sha256": "9cac3373eee39ad8c49904cf1a5e24b7e78aa6177f80f8d88fb7e2ee05a75e79",
+      "symbol": "003120",
+      "from": "2026-09-30",
+      "through": "2026-10-01",
+      "requestedIsin": "KR7003120003",
+      "downloadName": "data_2544_20261115.csv",
+      "downloadedAt": "2026-11-15T22:25:44.457054+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/003350-2026-04-13-2026-04-13-1c4f16692530.csv",
+      "sha256": "1c4f16692530b794285055694926cb64db230941b6369e9265f1151a97def6b8",
+      "symbol": "003350",
+      "from": "2026-04-13",
+      "through": "2026-04-13",
+      "requestedIsin": "KR7003350006",
+      "downloadName": "data_2550_20261115.csv",
+      "downloadedAt": "2026-11-15T22:25:50.374073+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/003570-2026-09-29-2026-09-29-ea40dbece769.csv",
+      "sha256": "ea40dbece769bde66b3829cbd8c1c245189fb9ec9d5440d0d0eceac9748d1e52",
+      "symbol": "003570",
+      "from": "2026-09-29",
+      "through": "2026-09-29",
+      "requestedIsin": "KR7003570009",
+      "downloadName": "data_5535_20261115.csv",
+      "downloadedAt": "2026-11-15T22:55:35.845248+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/003580-2025-06-20-2025-06-23-0398e4fb0c0c.csv",
+      "sha256": "0398e4fb0c0cc18b78e8605f841f0c8832945728b76bd7e8e67cbaa24c1305e2",
+      "symbol": "003580",
+      "from": "2025-06-20",
+      "through": "2025-06-23",
+      "requestedIsin": "KR7003580008",
+      "downloadName": "data_2602_20261115.csv",
+      "downloadedAt": "2026-11-15T22:26:02.889245+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/003610-2026-05-06-2026-05-06-03e74e070606.csv",
+      "sha256": "03e74e070606f901d61713fcbebb311fc063edc3d75b88fed589a2b09a02a842",
+      "symbol": "003610",
+      "from": "2026-05-06",
+      "through": "2026-05-06",
+      "requestedIsin": "KR7003610003",
+      "downloadName": "data_2628_20261115.csv",
+      "downloadedAt": "2026-11-15T22:26:28.600388+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/003620-2025-03-10-2025-04-10-7585da55ed2c.csv",
+      "sha256": "7585da55ed2c8475fc00c8220d87527efffd85034e0892a68e66a5499b29cdbe",
+      "symbol": "003620",
+      "from": "2025-03-10",
+      "through": "2025-04-10",
+      "requestedIsin": "KR7003620002",
+      "downloadName": "data_2634_20261115.csv",
+      "downloadedAt": "2026-11-15T22:26:34.943552+09:00",
+      "returnedRows": 24
+    },
+    {
+      "path": "authenticated-daily/003680-2026-11-02-2026-11-02-fcabcdf38d97.csv",
+      "sha256": "fcabcdf38d97c052ff7283e247fcf5d04cf4497e9b256808f278cd44a7e3e851",
+      "symbol": "003680",
+      "from": "2026-11-02",
+      "through": "2026-11-02",
+      "requestedIsin": "KR7003680006",
+      "downloadName": "data_2641_20261115.csv",
+      "downloadedAt": "2026-11-15T22:26:41.319436+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/003690-2024-10-23-2024-10-24-0cf685d5cde7.csv",
+      "sha256": "0cf685d5cde7e420995bf9f9d5c868dcf78064df74d2e01538847b287cbdb106",
+      "symbol": "003690",
+      "from": "2024-10-23",
+      "through": "2024-10-24",
+      "requestedIsin": "KR7003690005",
+      "downloadName": "data_2647_20261115.csv",
+      "downloadedAt": "2026-11-15T22:26:47.142204+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/003920-2024-11-08-2024-11-20-679774aae235.csv",
+      "sha256": "679774aae235a4b3340cf724a1463e15eff1cde332f69f4b181d00f64a7a8a1c",
+      "symbol": "003920",
+      "from": "2024-11-08",
+      "through": "2024-11-20",
+      "requestedIsin": "KR7003920006",
+      "downloadName": "data_2653_20261115.csv",
+      "downloadedAt": "2026-11-15T22:26:53.485649+09:00",
+      "returnedRows": 9
+    },
+    {
+      "path": "authenticated-daily/003925-2024-11-08-2024-11-20-14600705fc04.csv",
+      "sha256": "14600705fc04a26be4dbf2b00b7552b06cdea4f8172c56748041f866db866497",
+      "symbol": "003925",
+      "from": "2024-11-08",
+      "through": "2024-11-20",
+      "requestedIsin": "KR7003921004",
+      "downloadName": "data_2658_20261115.csv",
+      "downloadedAt": "2026-11-15T22:26:58.811215+09:00",
+      "returnedRows": 9
+    },
+    {
+      "path": "authenticated-daily/004060-2026-04-13-2026-04-13-16fe7526a17d.csv",
+      "sha256": "16fe7526a17d328727798f32130973a64e9a0bfbaf3fca5b279d3ba382338f8e",
+      "symbol": "004060",
+      "from": "2026-04-13",
+      "through": "2026-04-13",
+      "requestedIsin": "KR7004060000",
+      "downloadName": "data_2705_20261115.csv",
+      "downloadedAt": "2026-11-15T22:27:05.010286+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/004270-2026-04-13-2026-08-14-31bc0cfdf46c.csv",
+      "sha256": "31bc0cfdf46cc46b1dcf078abdf5c2d54be3caaa469863bef0b8f45fc0694563",
+      "symbol": "004270",
+      "from": "2026-04-13",
+      "through": "2026-08-14",
+      "requestedIsin": "KR7004270005",
+      "downloadName": "data_2711_20261115.csv",
+      "downloadedAt": "2026-11-15T22:27:11.324076+09:00",
+      "returnedRows": 85
+    },
+    {
+      "path": "authenticated-daily/004380-2025-05-09-2026-04-09-4541057cd97d.csv",
+      "sha256": "4541057cd97d6d24c2876909b8dac70371263281e199fa6c26db8e043603f1c0",
+      "symbol": "004380",
+      "from": "2025-05-09",
+      "through": "2026-04-09",
+      "requestedIsin": "KR7004380002",
+      "downloadName": "data_2718_20261115.csv",
+      "downloadedAt": "2026-11-15T22:27:18.477490+09:00",
+      "returnedRows": 225
+    },
+    {
+      "path": "authenticated-daily/004410-2026-04-27-2026-05-21-8fb1505cfd73.csv",
+      "sha256": "8fb1505cfd7394216740efebbffdb0e4d48de15e7dc56099ae2d4121cc5571c1",
+      "symbol": "004410",
+      "from": "2026-04-27",
+      "through": "2026-05-21",
+      "requestedIsin": "KR7004410007",
+      "downloadName": "data_2728_20261115.csv",
+      "downloadedAt": "2026-11-15T22:27:28.078718+09:00",
+      "returnedRows": 17
+    },
+    {
+      "path": "authenticated-daily/004545-2026-09-01-2026-09-02-7a632d52529e.csv",
+      "sha256": "7a632d52529e6e58e7288703e4ef162379f680c4bf9c9807ccd15b45e171c679",
+      "symbol": "004545",
+      "from": "2026-09-01",
+      "through": "2026-09-02",
+      "requestedIsin": "KR7004541009",
+      "downloadName": "data_5332_20261115.csv",
+      "downloadedAt": "2026-11-15T22:53:32.910595+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/004690-2026-03-05-2026-03-06-85d3415e618b.csv",
+      "sha256": "85d3415e618b677c570a815d7798b03b442ecd8fefe663b475c22f86769ad35b",
+      "symbol": "004690",
+      "from": "2026-03-05",
+      "through": "2026-03-06",
+      "requestedIsin": "KR7004690004",
+      "downloadName": "data_2741_20261115.csv",
+      "downloadedAt": "2026-11-15T22:27:41.282439+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/004710-2025-06-20-2025-09-04-ec454e9c89be.csv",
+      "sha256": "ec454e9c89be924ba41eb773efc54c5add730611f8a037341b43695c7e65d464",
+      "symbol": "004710",
+      "from": "2025-06-20",
+      "through": "2025-09-04",
+      "requestedIsin": "KR7004710000",
+      "downloadName": "data_2747_20261115.csv",
+      "downloadedAt": "2026-11-15T22:27:47.607193+09:00",
+      "returnedRows": 54
+    },
+    {
+      "path": "authenticated-daily/004800-2024-02-23-2024-06-27-9dd642b77737.csv",
+      "sha256": "9dd642b7773786443c287701fcd35645d0490bb7b2ec2680dead2eff2fda7760",
+      "symbol": "004800",
+      "from": "2024-02-23",
+      "through": "2024-06-27",
+      "requestedIsin": "KR7004800009",
+      "downloadName": "data_2754_20261115.csv",
+      "downloadedAt": "2026-11-15T22:27:54.727422+09:00",
+      "returnedRows": 84
+    },
+    {
+      "path": "authenticated-daily/004870-2026-04-22-2026-09-21-6c0bd60f3a39.csv",
+      "sha256": "6c0bd60f3a39b515b1f1422cac53e3b6bfd0a18f95212b5917a58de172980404",
+      "symbol": "004870",
+      "from": "2026-04-22",
+      "through": "2026-09-21",
+      "requestedIsin": "KR7004870002",
+      "downloadName": "data_2802_20261115.csv",
+      "downloadedAt": "2026-11-15T22:28:02.368460+09:00",
+      "returnedRows": 103
+    },
+    {
+      "path": "authenticated-daily/004920-2026-09-09-2026-10-02-a99beb10c396.csv",
+      "sha256": "a99beb10c39628d150cab1b16764b4894bfb4ac1521a7bb6475e4a784138d853",
+      "symbol": "004920",
+      "from": "2026-09-09",
+      "through": "2026-10-02",
+      "requestedIsin": "KR7004920005",
+      "downloadName": "data_2809_20261115.csv",
+      "downloadedAt": "2026-11-15T22:28:09.035999+09:00",
+      "returnedRows": 16
+    },
+    {
+      "path": "authenticated-daily/004970-2025-12-19-2025-12-22-deefc5df906f.csv",
+      "sha256": "deefc5df906f3576cef3dc071229cd3a5e1c4b290b7443e180bc51a52136e541",
+      "symbol": "004970",
+      "from": "2025-12-19",
+      "through": "2025-12-22",
+      "requestedIsin": "KR7004970000",
+      "downloadName": "data_2815_20261115.csv",
+      "downloadedAt": "2026-11-15T22:28:15.384184+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/005180-2024-11-22-2024-11-25-4716cc58718d.csv",
+      "sha256": "4716cc58718d2263d6e64e75f14a8846ab074e71d26e934d2aa1c65d8cbfb1b5",
+      "symbol": "005180",
+      "from": "2024-11-22",
+      "through": "2024-11-25",
+      "requestedIsin": "KR7005180005",
+      "downloadName": "data_2902_20261115.csv",
+      "downloadedAt": "2026-11-15T22:29:02.081007+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/005320-2026-04-28-2026-08-14-541d2d58d011.csv",
+      "sha256": "541d2d58d0112da24c3413e928ff23544826a3e834df0f7f39805bf123d5c639",
+      "symbol": "005320",
+      "from": "2026-04-28",
+      "through": "2026-08-14",
+      "requestedIsin": "KR7005320007",
+      "downloadName": "data_2908_20261115.csv",
+      "downloadedAt": "2026-11-15T22:29:08.889810+09:00",
+      "returnedRows": 74
+    },
+    {
+      "path": "authenticated-daily/005360-2026-10-02-2026-10-06-b011774b189c.csv",
+      "sha256": "b011774b189c78fba74612bf78bea8360b8039f374e2116ff28066e26c08a82f",
+      "symbol": "005360",
+      "from": "2026-10-02",
+      "through": "2026-10-06",
+      "requestedIsin": "KR7005360003",
+      "downloadName": "data_2915_20261115.csv",
+      "downloadedAt": "2026-11-15T22:29:15.576945+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/005810-2024-02-14-2024-02-15-553c9bfd8d1c.csv",
+      "sha256": "553c9bfd8d1cf69767d0f4c6b1247d7afdc8a512b51b434ffa9c1ce7526f744f",
+      "symbol": "005810",
+      "from": "2024-02-14",
+      "through": "2024-02-15",
+      "requestedIsin": "KR7005810007",
+      "downloadName": "data_5339_20261115.csv",
+      "downloadedAt": "2026-11-15T22:53:39.252718+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/005940-2024-03-21-2025-11-07-fa4ac5fc5f42.csv",
+      "sha256": "fa4ac5fc5f42b09caac00ab9d85a84aa9c6c15756e76315a8f8dcede0b7e07a2",
+      "symbol": "005940",
+      "from": "2024-03-21",
+      "through": "2025-11-07",
+      "requestedIsin": "KR7005940002",
+      "downloadName": "data_2928_20261115.csv",
+      "downloadedAt": "2026-11-15T22:29:28.378112+09:00",
+      "returnedRows": 396
+    },
+    {
+      "path": "authenticated-daily/005945-2024-03-21-2025-11-07-29ab0b7fe3c9.csv",
+      "sha256": "29ab0b7fe3c9c6e3606d6c736783732fdf9bff9f752829ba0f9111e6d201bb13",
+      "symbol": "005945",
+      "from": "2024-03-21",
+      "through": "2025-11-07",
+      "requestedIsin": "KR7005941000",
+      "downloadName": "data_2934_20261115.csv",
+      "downloadedAt": "2026-11-15T22:29:34.911498+09:00",
+      "returnedRows": 396
+    },
+    {
+      "path": "authenticated-daily/005960-2024-02-01-2024-10-31-482b22c4d176.csv",
+      "sha256": "482b22c4d1764105f1075bccfe4aaf7e91b0f0a93a7188bf5b320e0fe0e205ec",
+      "symbol": "005960",
+      "from": "2024-02-01",
+      "through": "2024-10-31",
+      "requestedIsin": "KR7005960000",
+      "downloadName": "data_2942_20261115.csv",
+      "downloadedAt": "2026-11-15T22:29:42.358279+09:00",
+      "returnedRows": 181
+    },
+    {
+      "path": "authenticated-daily/005965-2024-02-01-2024-10-31-dbdb1a04ba21.csv",
+      "sha256": "dbdb1a04ba2182190fcb4f3b704c31976e00b317e20b3c6d2795b65725629245",
+      "symbol": "005965",
+      "from": "2024-02-01",
+      "through": "2024-10-31",
+      "requestedIsin": "KR7005961008",
+      "downloadName": "data_2949_20261115.csv",
+      "downloadedAt": "2026-11-15T22:29:49.264342+09:00",
+      "returnedRows": 181
+    },
+    {
+      "path": "authenticated-daily/006040-2024-01-16-2025-04-15-14a0b2a00cde.csv",
+      "sha256": "14a0b2a00cdeaa57e669285bd4aba7115898239c15b59c036401888583a9c426",
+      "symbol": "006040",
+      "from": "2024-01-16",
+      "through": "2025-04-15",
+      "requestedIsin": "KR7006040000",
+      "downloadName": "data_3001_20261115.csv",
+      "downloadedAt": "2026-11-15T22:30:01.108097+09:00",
+      "returnedRows": 303
+    },
+    {
+      "path": "authenticated-daily/006200-2026-04-28-2026-08-14-9352da4919ab.csv",
+      "sha256": "9352da4919ab216b44325af011e00274ed4c1dc3bfb93c8991582b3614586600",
+      "symbol": "006200",
+      "from": "2026-04-28",
+      "through": "2026-08-14",
+      "requestedIsin": "KR7006200000",
+      "downloadName": "data_3007_20261115.csv",
+      "downloadedAt": "2026-11-15T22:30:08.055691+09:00",
+      "returnedRows": 74
+    },
+    {
+      "path": "authenticated-daily/006360-2024-02-01-2024-10-02-a2304cf02cf0.csv",
+      "sha256": "a2304cf02cf0721af6890e8ba6933657ed4dfda52448e36b373a7b7716c8d660",
+      "symbol": "006360",
+      "from": "2024-02-01",
+      "through": "2024-10-02",
+      "requestedIsin": "KR7006360002",
+      "downloadName": "data_3015_20261115.csv",
+      "downloadedAt": "2026-11-15T22:30:15.989728+09:00",
+      "returnedRows": 162
+    },
+    {
+      "path": "authenticated-daily/006490-2025-08-14-2026-09-18-a824a438f057.csv",
+      "sha256": "a824a438f057f638e695a0c4bbe28ae7a64a255186892ef63733f1c6b24e98a4",
+      "symbol": "006490",
+      "from": "2025-08-14",
+      "through": "2026-09-18",
+      "requestedIsin": "KR7006490007",
+      "downloadName": "data_3031_20261115.csv",
+      "downloadedAt": "2026-11-15T22:30:31.229712+09:00",
+      "returnedRows": 268
+    },
+    {
+      "path": "authenticated-daily/006740-2026-02-25-2026-08-28-5de8824ceb44.csv",
+      "sha256": "5de8824ceb44a2cad8f1f9a7cdd19275f45ab738d5f633fe8f695c8d26cb729d",
+      "symbol": "006740",
+      "from": "2026-02-25",
+      "through": "2026-08-28",
+      "requestedIsin": "KR7006740005",
+      "downloadName": "data_3039_20261115.csv",
+      "downloadedAt": "2026-11-15T22:30:39.365792+09:00",
+      "returnedRows": 126
+    },
+    {
+      "path": "authenticated-daily/006980-2026-09-04-2026-09-07-5da2ec8f04c6.csv",
+      "sha256": "5da2ec8f04c6ca95bc87f61299377a2b4579a0b7bd4aaca188ddfec4ebb531be",
+      "symbol": "006980",
+      "from": "2026-09-04",
+      "through": "2026-09-07",
+      "requestedIsin": "KR7006980007",
+      "downloadName": "data_3046_20261115.csv",
+      "downloadedAt": "2026-11-15T22:30:46.435582+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/007070-2024-06-03-2024-11-28-c7fc181b6ebb.csv",
+      "sha256": "c7fc181b6ebb3556874c40879a8675c4ce3f4cf7fe045cc7bde7e8a742766916",
+      "symbol": "007070",
+      "from": "2024-06-03",
+      "through": "2024-11-28",
+      "requestedIsin": "KR7007070006",
+      "downloadName": "data_3052_20261115.csv",
+      "downloadedAt": "2026-11-15T22:30:52.931895+09:00",
+      "returnedRows": 121
+    },
+    {
+      "path": "authenticated-daily/007110-2026-08-13-2026-10-01-0f135b856b87.csv",
+      "sha256": "0f135b856b878045a0f616a14d09fff287e42566ef12373d22720d2006d61cdc",
+      "symbol": "007110",
+      "from": "2026-08-13",
+      "through": "2026-10-01",
+      "requestedIsin": "KR7007110000",
+      "downloadName": "data_3117_20261115.csv",
+      "downloadedAt": "2026-11-15T22:31:17.451871+09:00",
+      "returnedRows": 33
+    },
+    {
+      "path": "authenticated-daily/007280-2026-04-15-2026-05-07-5450ae0f2ea8.csv",
+      "sha256": "5450ae0f2ea88f86601a41bc091eca9b9b2b9eea6453d39eb3ca1828852f8c68",
+      "symbol": "007280",
+      "from": "2026-04-15",
+      "through": "2026-05-07",
+      "requestedIsin": "KR7007280001",
+      "downloadName": "data_3124_20261115.csv",
+      "downloadedAt": "2026-11-15T22:31:24.526269+09:00",
+      "returnedRows": 15
+    },
+    {
+      "path": "authenticated-daily/007340-2024-06-12-2024-09-25-2f537ff40f2f.csv",
+      "sha256": "2f537ff40f2fc9ac6aafe9948c5a1157007cbb31a152d0b365b4ccf59803d6b7",
+      "symbol": "007340",
+      "from": "2024-06-12",
+      "through": "2024-09-25",
+      "requestedIsin": "KR7007340003",
+      "downloadName": "data_3130_20261115.csv",
+      "downloadedAt": "2026-11-15T22:31:30.804072+09:00",
+      "returnedRows": 72
+    },
+    {
+      "path": "authenticated-daily/007460-2026-02-23-2026-04-14-b4a0328b607e.csv",
+      "sha256": "b4a0328b607e42a9d97a5e4eb3475c8604df146b2541d12b50da0d443eb95a9c",
+      "symbol": "007460",
+      "from": "2026-02-23",
+      "through": "2026-04-14",
+      "requestedIsin": "KR7007460009",
+      "downloadName": "data_3138_20261115.csv",
+      "downloadedAt": "2026-11-15T22:31:38.108717+09:00",
+      "returnedRows": 36
+    },
+    {
+      "path": "authenticated-daily/007540-2026-09-09-2026-11-02-dbe5153b6cdf.csv",
+      "sha256": "dbe5153b6cdfdc4384d44e73b01b5f79f47740c5e8c135022e47b82309691f7e",
+      "symbol": "007540",
+      "from": "2026-09-09",
+      "through": "2026-11-02",
+      "requestedIsin": "KR7007540008",
+      "downloadName": "data_3145_20261115.csv",
+      "downloadedAt": "2026-11-15T22:31:45.072379+09:00",
+      "returnedRows": 35
+    },
+    {
+      "path": "authenticated-daily/007570-2025-09-10-2026-03-26-2af09ecd1990.csv",
+      "sha256": "2af09ecd199088df11ebfc9451b92361fdfea940507b6672dce3924fac205ac6",
+      "symbol": "007570",
+      "from": "2025-09-10",
+      "through": "2026-03-26",
+      "requestedIsin": "KR7007570005",
+      "downloadName": "data_3151_20261115.csv",
+      "downloadedAt": "2026-11-15T22:31:51.909265+09:00",
+      "returnedRows": 130
+    },
+    {
+      "path": "authenticated-daily/007575-2024-07-01-2026-03-26-850758a7565f.csv",
+      "sha256": "850758a7565f1f4247c6c238a0c48ec876fa5f3954a6bd8f5533242d1343693a",
+      "symbol": "007575",
+      "from": "2024-07-01",
+      "through": "2026-03-26",
+      "requestedIsin": "KR7007571003",
+      "downloadName": "data_3158_20261115.csv",
+      "downloadedAt": "2026-11-15T22:31:58.577506+09:00",
+      "returnedRows": 421
+    },
+    {
+      "path": "authenticated-daily/007610-2026-04-29-2026-04-29-a7a5e765cd80.csv",
+      "sha256": "a7a5e765cd800d4f2d7bac59eaefaa4b4d5b18065cb2e64b1b5c832b2f276a12",
+      "symbol": "007610",
+      "from": "2026-04-29",
+      "through": "2026-04-29",
+      "requestedIsin": "KR7007610009",
+      "downloadName": "data_3205_20261115.csv",
+      "downloadedAt": "2026-11-15T22:32:05.461582+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/008040-2026-08-11-2026-09-02-f86660463ff7.csv",
+      "sha256": "f86660463ff78c9c8be238ad5cb34c727a437e1eecde6bea9ae7e5f5d472b069",
+      "symbol": "008040",
+      "from": "2026-08-11",
+      "through": "2026-09-02",
+      "requestedIsin": "KR7008040008",
+      "downloadName": "data_3212_20261115.csv",
+      "downloadedAt": "2026-11-15T22:32:12.065817+09:00",
+      "returnedRows": 16
+    },
+    {
+      "path": "authenticated-daily/008600-2026-03-04-2026-03-23-d38e998c42c5.csv",
+      "sha256": "d38e998c42c541e17be482978b1a8307727feb76706e5ebd1e3bd9658155e7d7",
+      "symbol": "008600",
+      "from": "2026-03-04",
+      "through": "2026-03-23",
+      "requestedIsin": "KR7008600009",
+      "downloadName": "data_5542_20261115.csv",
+      "downloadedAt": "2026-11-15T22:55:42.765290+09:00",
+      "returnedRows": 14
+    },
+    {
+      "path": "authenticated-daily/008770-2025-09-18-2025-09-19-8075d4b8f63b.csv",
+      "sha256": "8075d4b8f63b5ce64d4bcae0c1e296ac201947534f4c6e6f81d031c31ea874a7",
+      "symbol": "008770",
+      "from": "2025-09-18",
+      "through": "2025-09-19",
+      "requestedIsin": "KR7008770000",
+      "downloadName": "data_3314_20261115.csv",
+      "downloadedAt": "2026-11-15T22:33:14.026078+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/008775-2025-09-18-2025-09-19-26cb55c8542b.csv",
+      "sha256": "26cb55c8542bd91a11d952dd063410c6d679e4ce720315affa78194aec4f615d",
+      "symbol": "008775",
+      "from": "2025-09-18",
+      "through": "2025-09-19",
+      "requestedIsin": "KR7008771008",
+      "downloadName": "data_3319_20261115.csv",
+      "downloadedAt": "2026-11-15T22:33:19.734762+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/008970-2025-08-22-2025-08-22-269bd40b2b29.csv",
+      "sha256": "269bd40b2b2951d1e8175aeb4378e79cfb839796e4b3c563b13d992afbf13335",
+      "symbol": "008970",
+      "from": "2025-08-22",
+      "through": "2025-08-22",
+      "requestedIsin": "KR7008970006",
+      "downloadName": "data_3325_20261115.csv",
+      "downloadedAt": "2026-11-15T22:33:25.665544+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/009140-2026-09-21-2026-10-06-04ff4a05c024.csv",
+      "sha256": "04ff4a05c024d449e49639b7bdc85aaf88417d2f5402fa84b1644a60d4f54eed",
+      "symbol": "009140",
+      "from": "2026-09-21",
+      "through": "2026-10-06",
+      "requestedIsin": "KR7009140005",
+      "downloadName": "data_3331_20261115.csv",
+      "downloadedAt": "2026-11-15T22:33:31.674155+09:00",
+      "returnedRows": 9
+    },
+    {
+      "path": "authenticated-daily/009160-2024-06-17-2025-10-10-6c8cc6ee0df5.csv",
+      "sha256": "6c8cc6ee0df510e22178f17340ad725bff2733ea474e005e64da2bc846d565aa",
+      "symbol": "009160",
+      "from": "2024-06-17",
+      "through": "2025-10-10",
+      "requestedIsin": "KR7009160003",
+      "downloadName": "data_3338_20261115.csv",
+      "downloadedAt": "2026-11-15T22:33:38.739864+09:00",
+      "returnedRows": 319
+    },
+    {
+      "path": "authenticated-daily/009190-2026-09-21-2026-10-28-0a130a3d14d0.csv",
+      "sha256": "0a130a3d14d05f503a351ccb2fb85f684cc58f7ebe84bfdd5624bb533dc6440c",
+      "symbol": "009190",
+      "from": "2026-09-21",
+      "through": "2026-10-28",
+      "requestedIsin": "KR7009190000",
+      "downloadName": "data_3348_20261115.csv",
+      "downloadedAt": "2026-11-15T22:33:48.775314+09:00",
+      "returnedRows": 24
+    },
+    {
+      "path": "authenticated-daily/009310-2025-03-11-2026-03-12-48254beff19f.csv",
+      "sha256": "48254beff19fecae4bcef565153a8c62e0ef8a8f63d3eec210f2c1be433bf6ac",
+      "symbol": "009310",
+      "from": "2025-03-11",
+      "through": "2026-03-12",
+      "requestedIsin": "KR7009310004",
+      "downloadName": "data_3356_20261115.csv",
+      "downloadedAt": "2026-11-15T22:33:56.193096+09:00",
+      "returnedRows": 245
+    },
+    {
+      "path": "authenticated-daily/009410-2024-03-13-2024-10-31-48edefa699ab.csv",
+      "sha256": "48edefa699ab2d0e23d70e5d5ebd33e0f06fb6d1583a16a35f590abe5d7085bc",
+      "symbol": "009410",
+      "from": "2024-03-13",
+      "through": "2024-10-31",
+      "requestedIsin": "KR7009410002",
+      "downloadName": "data_3403_20261115.csv",
+      "downloadedAt": "2026-11-15T22:34:03.481285+09:00",
+      "returnedRows": 155
+    },
+    {
+      "path": "authenticated-daily/009415-2024-03-13-2024-10-31-114a9b2c8adb.csv",
+      "sha256": "114a9b2c8adb84b0587a09ab4cae813070def634e39a9ba2008adf0f22f7aae8",
+      "symbol": "009415",
+      "from": "2024-03-13",
+      "through": "2024-10-31",
+      "requestedIsin": "KR7009411000",
+      "downloadName": "data_3409_20261115.csv",
+      "downloadedAt": "2026-11-15T22:34:09.925059+09:00",
+      "returnedRows": 155
+    },
+    {
+      "path": "authenticated-daily/009440-2024-08-14-2025-03-19-f04764844472.csv",
+      "sha256": "f04764844472c2b79c33a3a2513111f094c2ac946767b3b6621545982dec7317",
+      "symbol": "009440",
+      "from": "2024-08-14",
+      "through": "2025-03-19",
+      "requestedIsin": "KR7009440009",
+      "downloadName": "data_3418_20261115.csv",
+      "downloadedAt": "2026-11-15T22:34:18.326191+09:00",
+      "returnedRows": 141
+    },
+    {
+      "path": "authenticated-daily/009450-2024-05-08-2024-05-09-ad85a0705ec4.csv",
+      "sha256": "ad85a0705ec404b06e76775cfb7e699cd35f2b2f93428e891b737dc11bdd3f14",
+      "symbol": "009450",
+      "from": "2024-05-08",
+      "through": "2024-05-09",
+      "requestedIsin": "KR7009450008",
+      "downloadName": "data_3426_20261115.csv",
+      "downloadedAt": "2026-11-15T22:34:26.416237+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/009460-2026-04-27-2026-05-18-808e72e544e7.csv",
+      "sha256": "808e72e544e7a50bf243520622ee2bb709ceef521514d0d5c290c2ef17a45574",
+      "symbol": "009460",
+      "from": "2026-04-27",
+      "through": "2026-05-18",
+      "requestedIsin": "KR7009460007",
+      "downloadName": "data_3432_20261115.csv",
+      "downloadedAt": "2026-11-15T22:34:32.723660+09:00",
+      "returnedRows": 14
+    },
+    {
+      "path": "authenticated-daily/009680-2025-02-03-2026-03-11-dcf2fe748e18.csv",
+      "sha256": "dcf2fe748e18f9b635235b842453738f9cba074e1c41af6787c24a2c69d49d7f",
+      "symbol": "009680",
+      "from": "2025-02-03",
+      "through": "2026-03-11",
+      "requestedIsin": "KR7009680000",
+      "downloadName": "data_3439_20261115.csv",
+      "downloadedAt": "2026-11-15T22:34:39.405791+09:00",
+      "returnedRows": 269
+    },
+    {
+      "path": "authenticated-daily/009810-2026-01-19-2026-05-19-b540d7765386.csv",
+      "sha256": "b540d7765386dc3a151cf58e44c6fc3c4f941f826611eff65faae81bd970611d",
+      "symbol": "009810",
+      "from": "2026-01-19",
+      "through": "2026-05-19",
+      "requestedIsin": "KR7009810003",
+      "downloadName": "data_3446_20261115.csv",
+      "downloadedAt": "2026-11-15T22:34:46.533496+09:00",
+      "returnedRows": 81
+    },
+    {
+      "path": "authenticated-daily/010120-2026-04-08-2026-04-13-210b879cc9b5.csv",
+      "sha256": "210b879cc9b50d728adda4476657f2b0ae31ecef82cca3c01219a8765fe9b5ae",
+      "symbol": "010120",
+      "from": "2026-04-08",
+      "through": "2026-04-13",
+      "requestedIsin": "KR7010120004",
+      "downloadName": "data_3458_20261115.csv",
+      "downloadedAt": "2026-11-15T22:34:58.991217+09:00",
+      "returnedRows": 4
+    },
+    {
+      "path": "authenticated-daily/010130-2024-10-02-2024-10-02-3bed66a57c33.csv",
+      "sha256": "3bed66a57c3352e0c89000f503cb81a5bb63f87407a79a9b154780e426ce45b0",
+      "symbol": "010130",
+      "from": "2024-10-02",
+      "through": "2024-10-02",
+      "requestedIsin": "KR7010130003",
+      "downloadName": "data_3505_20261115.csv",
+      "downloadedAt": "2026-11-15T22:35:05.123923+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/010780-2026-08-13-2026-08-13-cd62e72d161c.csv",
+      "sha256": "cd62e72d161cf9f2192ad3db1736223429df7297a513cd4ddf54a18ac1c1bdfb",
+      "symbol": "010780",
+      "from": "2026-08-13",
+      "through": "2026-08-13",
+      "requestedIsin": "KR7010780005",
+      "downloadName": "data_5549_20261115.csv",
+      "downloadedAt": "2026-11-15T22:55:49.302969+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/011000-2026-03-20-2026-06-25-0887926498e6.csv",
+      "sha256": "0887926498e6c94582cd0e039d277485119cdd0c2e1b508e1665fe2ab024a804",
+      "symbol": "011000",
+      "from": "2026-03-20",
+      "through": "2026-06-25",
+      "requestedIsin": "KR7011000007",
+      "downloadName": "data_3524_20261115.csv",
+      "downloadedAt": "2026-11-15T22:35:24.961604+09:00",
+      "returnedRows": 66
+    },
+    {
+      "path": "authenticated-daily/011090-2026-04-24-2026-09-02-cbfe1739dc31.csv",
+      "sha256": "cbfe1739dc31fde3600589f44acfd94b57eb8e74df177d1866444d1f4efa6029",
+      "symbol": "011090",
+      "from": "2026-04-24",
+      "through": "2026-09-02",
+      "requestedIsin": "KR7011090008",
+      "downloadName": "data_3532_20261115.csv",
+      "downloadedAt": "2026-11-15T22:35:32.294374+09:00",
+      "returnedRows": 88
+    },
+    {
+      "path": "authenticated-daily/011210-2026-10-19-2026-10-19-1e6a7eb169e5.csv",
+      "sha256": "1e6a7eb169e5244de26f2ad695b250baf04ab8b886323f087facea16c650cc96",
+      "symbol": "011210",
+      "from": "2026-10-19",
+      "through": "2026-10-19",
+      "requestedIsin": "KR7011210002",
+      "downloadName": "data_5414_20261115.csv",
+      "downloadedAt": "2026-11-15T22:54:14.136325+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/011300-2024-12-12-2026-04-13-dbe164567d42.csv",
+      "sha256": "dbe164567d424ee4d35ca5f988eb827a8b4da65dc124b2e58a5990f88c803353",
+      "symbol": "011300",
+      "from": "2024-12-12",
+      "through": "2026-04-13",
+      "requestedIsin": "KR7011300001",
+      "downloadName": "data_3604_20261115.csv",
+      "downloadedAt": "2026-11-15T22:36:04.893831+09:00",
+      "returnedRows": 322
+    },
+    {
+      "path": "authenticated-daily/011330-2026-06-12-2026-06-12-00527ea19e77.csv",
+      "sha256": "00527ea19e777b4df94c4199e1b257877dcca84e33ecf32123fb92032b7404f1",
+      "symbol": "011330",
+      "from": "2026-06-12",
+      "through": "2026-06-12",
+      "requestedIsin": "KR7011330008",
+      "downloadName": "data_3612_20261115.csv",
+      "downloadedAt": "2026-11-15T22:36:11.970762+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/011810-2025-07-03-2025-07-03-fd0f48527c1a.csv",
+      "sha256": "fd0f48527c1a0faba06d9f026bf826dd26ae71a2e49003eb1daab341b53cac93",
+      "symbol": "011810",
+      "from": "2025-07-03",
+      "through": "2025-07-03",
+      "requestedIsin": "KR7011810009",
+      "downloadName": "data_3618_20261115.csv",
+      "downloadedAt": "2026-11-15T22:36:18.195636+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/011930-2026-04-24-2026-05-15-d171ee05d944.csv",
+      "sha256": "d171ee05d9447449e2212a48282e3ffe2400276e59fe58ef7706e8106133c1c3",
+      "symbol": "011930",
+      "from": "2026-04-24",
+      "through": "2026-05-15",
+      "requestedIsin": "KR7011930005",
+      "downloadName": "data_3624_20261115.csv",
+      "downloadedAt": "2026-11-15T22:36:24.516398+09:00",
+      "returnedRows": 14
+    },
+    {
+      "path": "authenticated-daily/012160-2026-02-23-2026-06-29-1b07ed83e78e.csv",
+      "sha256": "1b07ed83e78e1de215e5df3cc616fea9b550ec4c1867392a9072ab303877ac4f",
+      "symbol": "012160",
+      "from": "2026-02-23",
+      "through": "2026-06-29",
+      "requestedIsin": "KR7012160008",
+      "downloadName": "data_3631_20261115.csv",
+      "downloadedAt": "2026-11-15T22:36:31.334548+09:00",
+      "returnedRows": 86
+    },
+    {
+      "path": "authenticated-daily/012170-2025-02-14-2026-08-28-cbf2ad06a163.csv",
+      "sha256": "cbf2ad06a1631d1057d4af8ce134cb9beb93a2920ba564e20d3b9927dc9638bb",
+      "symbol": "012170",
+      "from": "2025-02-14",
+      "through": "2026-08-28",
+      "requestedIsin": "KR7012170007",
+      "downloadName": "data_3638_20261115.csv",
+      "downloadedAt": "2026-11-15T22:36:38.734470+09:00",
+      "returnedRows": 376
+    },
+    {
+      "path": "authenticated-daily/012280-2026-08-11-2026-08-28-a7fb5677302d.csv",
+      "sha256": "a7fb5677302d6f1f4dbd7dc93715b2d2f9ca7fd00a6c8d396214d515da1ae77f",
+      "symbol": "012280",
+      "from": "2026-08-11",
+      "through": "2026-08-28",
+      "requestedIsin": "KR7012280004",
+      "downloadName": "data_3648_20261115.csv",
+      "downloadedAt": "2026-11-15T22:36:48.289589+09:00",
+      "returnedRows": 13
+    },
+    {
+      "path": "authenticated-daily/012450-2024-04-05-2024-08-29-8c5e7576240e.csv",
+      "sha256": "8c5e7576240e47f9ca5ea3cf623b2bce6b80bbbb34b4a3f62061ee5272070169",
+      "symbol": "012450",
+      "from": "2024-04-05",
+      "through": "2024-08-29",
+      "requestedIsin": "KR7012450003",
+      "downloadName": "data_3655_20261115.csv",
+      "downloadedAt": "2026-11-15T22:36:55.493192+09:00",
+      "returnedRows": 99
+    },
+    {
+      "path": "authenticated-daily/013890-2024-11-04-2024-11-04-13e5d04d0ff4.csv",
+      "sha256": "13e5d04d0ff4ce5294c89209a5647a46d210cbde1a1c02377519bf93ce41ad61",
+      "symbol": "013890",
+      "from": "2024-11-04",
+      "through": "2024-11-04",
+      "requestedIsin": "KR7013890009",
+      "downloadName": "data_5421_20261115.csv",
+      "downloadedAt": "2026-11-15T22:54:21.305545+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/014160-2026-08-13-2026-10-12-296603585402.csv",
+      "sha256": "296603585402bd911354c7600c0180fc5a491d52ae158c5e07bedebf48607bbe",
+      "symbol": "014160",
+      "from": "2026-08-13",
+      "through": "2026-10-12",
+      "requestedIsin": "KR7014160006",
+      "downloadName": "data_3709_20261115.csv",
+      "downloadedAt": "2026-11-15T22:37:09.262825+09:00",
+      "returnedRows": 38
+    },
+    {
+      "path": "authenticated-daily/014990-2026-06-05-2026-06-26-0fe14ceac7b6.csv",
+      "sha256": "0fe14ceac7b6d329845de65dd345a7546ac0aa543e3bafc5ec7db7a248530d51",
+      "symbol": "014990",
+      "from": "2026-06-05",
+      "through": "2026-06-26",
+      "requestedIsin": "KR7014990006",
+      "downloadName": "data_3716_20261115.csv",
+      "downloadedAt": "2026-11-15T22:37:16.327045+09:00",
+      "returnedRows": 16
+    },
+    {
+      "path": "authenticated-daily/015020-2026-03-16-2026-03-16-49707b28abd1.csv",
+      "sha256": "49707b28abd1498365f77a8f2e76516af8da17f8826de9c28f25794394f20f20",
+      "symbol": "015020",
+      "from": "2026-03-16",
+      "through": "2026-03-16",
+      "requestedIsin": "KR7015020001",
+      "downloadName": "data_3722_20261115.csv",
+      "downloadedAt": "2026-11-15T22:37:22.498988+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/015260-2026-08-10-2026-10-26-d179a5d55619.csv",
+      "sha256": "d179a5d556194859ae943101bfc31bf656acc7587511363262ea6fa8eee99068",
+      "symbol": "015260",
+      "from": "2026-08-10",
+      "through": "2026-10-26",
+      "requestedIsin": "KR7015260003",
+      "downloadName": "data_3728_20261115.csv",
+      "downloadedAt": "2026-11-15T22:37:28.792954+09:00",
+      "returnedRows": 51
+    },
+    {
+      "path": "authenticated-daily/015360-2026-04-06-2026-04-06-d78ce44f4639.csv",
+      "sha256": "d78ce44f4639d1606e335df8b2049d3a5e108cc8bec7cfc0ec842b9ee81ef425",
+      "symbol": "015360",
+      "from": "2026-04-06",
+      "through": "2026-04-06",
+      "requestedIsin": "KR7015360001",
+      "downloadName": "data_3742_20261115.csv",
+      "downloadedAt": "2026-11-15T22:37:42.321414+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/015590-2024-11-27-2026-05-15-305cc38ac38c.csv",
+      "sha256": "305cc38ac38ce96aee23f78ffd2436db981ad55e124c90eb79ddeaa436df5be3",
+      "symbol": "015590",
+      "from": "2024-11-27",
+      "through": "2026-05-15",
+      "requestedIsin": "KR7015590003",
+      "downloadName": "data_3749_20261115.csv",
+      "downloadedAt": "2026-11-15T22:37:49.374209+09:00",
+      "returnedRows": 355
+    },
+    {
+      "path": "authenticated-daily/017040-2026-03-16-2026-04-07-5230c419b994.csv",
+      "sha256": "5230c419b9949a2dcdd58a44a55547f9ebaad7cdcf82c50cb1c3e11f0135006e",
+      "symbol": "017040",
+      "from": "2026-03-16",
+      "through": "2026-04-07",
+      "requestedIsin": "KR7017040007",
+      "downloadName": "data_3756_20261115.csv",
+      "downloadedAt": "2026-11-15T22:37:57.057451+09:00",
+      "returnedRows": 17
+    },
+    {
+      "path": "authenticated-daily/017860-2024-11-11-2024-11-11-3f497ff11439.csv",
+      "sha256": "3f497ff1143995fd62b6c15909777ba694ed1df646e28a75bbf5b1cf5d688c10",
+      "symbol": "017860",
+      "from": "2024-11-11",
+      "through": "2024-11-11",
+      "requestedIsin": "KR7017860008",
+      "downloadName": "data_3803_20261115.csv",
+      "downloadedAt": "2026-11-15T22:38:03.519848+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/018470-2026-08-21-2026-09-11-a226047b410b.csv",
+      "sha256": "a226047b410b76282868d6ec7ab82bb9a271ebd0ef3e24c5b5a7d7a93a4fc3a3",
+      "symbol": "018470",
+      "from": "2026-08-21",
+      "through": "2026-09-11",
+      "requestedIsin": "KR7018470005",
+      "downloadName": "data_3809_20261115.csv",
+      "downloadedAt": "2026-11-15T22:38:09.144317+09:00",
+      "returnedRows": 16
+    },
+    {
+      "path": "authenticated-daily/019180-2025-03-31-2025-03-31-b2dd55491f20.csv",
+      "sha256": "b2dd55491f20192a92fe59eba55dba1df1eec3db333b45e73414ebbfd2ac4b5e",
+      "symbol": "019180",
+      "from": "2025-03-31",
+      "through": "2025-03-31",
+      "requestedIsin": "KR7019180009",
+      "downloadName": "data_3815_20261115.csv",
+      "downloadedAt": "2026-11-15T22:38:15.571745+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/019490-2025-11-24-2025-11-24-b8a8d2170833.csv",
+      "sha256": "b8a8d2170833f6923ac3fdded1458d0169a086eb4f0c0db71f1fd51f9bbd30a6",
+      "symbol": "019490",
+      "from": "2025-11-24",
+      "through": "2025-11-24",
+      "requestedIsin": "KR7019490002",
+      "downloadName": "data_5427_20261115.csv",
+      "downloadedAt": "2026-11-15T22:54:27.641656+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/019680-2026-08-14-2026-08-14-350044ff9652.csv",
+      "sha256": "350044ff9652f0b68495a143c56e6cf0bcbb6095edbb34650d8df8edc051eb93",
+      "symbol": "019680",
+      "from": "2026-08-14",
+      "through": "2026-08-14",
+      "requestedIsin": "KR7019680008",
+      "downloadName": "data_3830_20261115.csv",
+      "downloadedAt": "2026-11-15T22:38:30.833117+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/019685-2026-08-14-2026-08-14-798826e324ac.csv",
+      "sha256": "798826e324ac0408422f4e1603fe97af0135f3e9f2bbd371f55864b53e27c01c",
+      "symbol": "019685",
+      "from": "2026-08-14",
+      "through": "2026-08-14",
+      "requestedIsin": "KR7019681006",
+      "downloadName": "data_3836_20261115.csv",
+      "downloadedAt": "2026-11-15T22:38:36.272744+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/020560-2026-05-13-2026-05-14-a16643e3fc36.csv",
+      "sha256": "a16643e3fc363a41d48d9a2b9c6f94a7d0c479b84b3303c0754460ba2a379072",
+      "symbol": "020560",
+      "from": "2026-05-13",
+      "through": "2026-05-14",
+      "requestedIsin": "KR7020560009",
+      "downloadName": "data_3842_20261115.csv",
+      "downloadedAt": "2026-11-15T22:38:42.530414+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/020760-2025-09-12-2025-09-12-11c3dea7ff04.csv",
+      "sha256": "11c3dea7ff04fb7ef3d6d14db52d77d456f11403133b0983a6c69e86e06c8f3b",
+      "symbol": "020760",
+      "from": "2025-09-12",
+      "through": "2025-09-12",
+      "requestedIsin": "KR7020760005",
+      "downloadName": "data_3848_20261115.csv",
+      "downloadedAt": "2026-11-15T22:38:48.350062+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/023150-2026-08-25-2026-10-01-cd5139f46cd3.csv",
+      "sha256": "cd5139f46cd351a9de53c8d6b4c04edb8d325900da1180cb16d61485cff82b38",
+      "symbol": "023150",
+      "from": "2026-08-25",
+      "through": "2026-10-01",
+      "requestedIsin": "KR7023150006",
+      "downloadName": "data_3854_20261115.csv",
+      "downloadedAt": "2026-11-15T22:38:54.933697+09:00",
+      "returnedRows": 26
+    },
+    {
+      "path": "authenticated-daily/024890-2026-04-24-2026-08-14-3cde9f175657.csv",
+      "sha256": "3cde9f175657009f471a1bd1b18fcd8a6a6ab61988fef030510faf3b3ef5aefb",
+      "symbol": "024890",
+      "from": "2026-04-24",
+      "through": "2026-08-14",
+      "requestedIsin": "KR7024890006",
+      "downloadName": "data_3901_20261115.csv",
+      "downloadedAt": "2026-11-15T22:39:01.680290+09:00",
+      "returnedRows": 76
+    },
+    {
+      "path": "authenticated-daily/025000-2025-08-28-2025-11-27-b71558aaff1a.csv",
+      "sha256": "b71558aaff1ad665e4b871299eaf5c33717542b33aab418ffd0b796bcec8d1f6",
+      "symbol": "025000",
+      "from": "2025-08-28",
+      "through": "2025-11-27",
+      "requestedIsin": "KR7025000001",
+      "downloadName": "data_3908_20261115.csv",
+      "downloadedAt": "2026-11-15T22:39:08.909281+09:00",
+      "returnedRows": 61
+    },
+    {
+      "path": "authenticated-daily/025560-2025-04-16-2026-07-27-acd82d1201ff.csv",
+      "sha256": "acd82d1201ffc96a54eb1445bc2e8081095e1819d574ded3575906866af0d8c6",
+      "symbol": "025560",
+      "from": "2025-04-16",
+      "through": "2026-07-27",
+      "requestedIsin": "KR7025560004",
+      "downloadName": "data_3916_20261115.csv",
+      "downloadedAt": "2026-11-15T22:39:16.640108+09:00",
+      "returnedRows": 311
+    },
+    {
+      "path": "authenticated-daily/025750-2026-04-01-2026-04-30-23fd7eabc0c5.csv",
+      "sha256": "23fd7eabc0c51179d99bb70912243f69ad7d54ee66457c2a23fe1403730ede4d",
+      "symbol": "025750",
+      "from": "2026-04-01",
+      "through": "2026-04-30",
+      "requestedIsin": "KR7025750001",
+      "downloadName": "data_4015_20261115.csv",
+      "downloadedAt": "2026-11-15T22:40:15.371979+09:00",
+      "returnedRows": 22
+    },
+    {
+      "path": "authenticated-daily/027740-2026-04-24-2026-05-18-6ece68d639d2.csv",
+      "sha256": "6ece68d639d2cddebc9681752f6c782df3ce0c0e62692f6871487d307a0c6680",
+      "symbol": "027740",
+      "from": "2026-04-24",
+      "through": "2026-05-18",
+      "requestedIsin": "KR7027740000",
+      "downloadName": "data_4021_20261115.csv",
+      "downloadedAt": "2026-11-15T22:40:21.910395+09:00",
+      "returnedRows": 15
+    },
+    {
+      "path": "authenticated-daily/027970-2026-07-27-2026-08-14-a229a46782a4.csv",
+      "sha256": "a229a46782a43d9927a932ace3b07096eb47f9eecf746eadda0640e4c77b9ff5",
+      "symbol": "027970",
+      "from": "2026-07-27",
+      "through": "2026-08-14",
+      "requestedIsin": "KR7027970003",
+      "downloadName": "data_4028_20261115.csv",
+      "downloadedAt": "2026-11-15T22:40:28.121655+09:00",
+      "returnedRows": 15
+    },
+    {
+      "path": "authenticated-daily/029460-2026-03-24-2026-03-25-52788461f285.csv",
+      "sha256": "52788461f285b94ac55a3751c6758d6a7a8cdcca14511712e59206153a49d6af",
+      "symbol": "029460",
+      "from": "2026-03-24",
+      "through": "2026-03-25",
+      "requestedIsin": "KR7029460003",
+      "downloadName": "data_4034_20261115.csv",
+      "downloadedAt": "2026-11-15T22:40:34.242627+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/030000-2026-09-30-2026-09-30-01111ff171db.csv",
+      "sha256": "01111ff171dbbdecb2882a51fa58f461809919e4156da34d79de064bcc67c034",
+      "symbol": "030000",
+      "from": "2026-09-30",
+      "through": "2026-09-30",
+      "requestedIsin": "KR7030000004",
+      "downloadName": "data_4040_20261115.csv",
+      "downloadedAt": "2026-11-15T22:40:40.736098+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/030720-2026-08-31-2026-09-01-4795dd713124.csv",
+      "sha256": "4795dd71312471f27e026fb53320dc2262cae2c6e27cd0984846f20e670734af",
+      "symbol": "030720",
+      "from": "2026-08-31",
+      "through": "2026-09-01",
+      "requestedIsin": "KR7030720007",
+      "downloadName": "data_4046_20261115.csv",
+      "downloadedAt": "2026-11-15T22:40:46.575401+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/031430-2025-10-28-2025-10-29-5c479fdc19c2.csv",
+      "sha256": "5c479fdc19c2781455dc1cc9a031569e985c79513910f7dffac31478fd3688e4",
+      "symbol": "031430",
+      "from": "2025-10-28",
+      "through": "2025-10-29",
+      "requestedIsin": "KR7031430002",
+      "downloadName": "data_4052_20261115.csv",
+      "downloadedAt": "2026-11-15T22:40:52.755188+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/031820-2026-04-13-2026-04-13-1aabcfbb2e90.csv",
+      "sha256": "1aabcfbb2e90cfc44dfcce84fe6eb565b4341c5aa5b639f05205c6af2275a6f9",
+      "symbol": "031820",
+      "from": "2026-04-13",
+      "through": "2026-04-13",
+      "requestedIsin": "KR7031820004",
+      "downloadName": "data_4108_20261115.csv",
+      "downloadedAt": "2026-11-15T22:41:08.472867+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/033250-2026-04-14-2026-05-07-dbe48b8a868a.csv",
+      "sha256": "dbe48b8a868a516826dddd121f11bcf5c2088ca9abffc52c3ebb2f17a5ec2f50",
+      "symbol": "033250",
+      "from": "2026-04-14",
+      "through": "2026-05-07",
+      "requestedIsin": "KR7033250002",
+      "downloadName": "data_4114_20261115.csv",
+      "downloadedAt": "2026-11-15T22:41:14.111629+09:00",
+      "returnedRows": 16
+    },
+    {
+      "path": "authenticated-daily/034020-2024-07-11-2024-07-12-ccb1a32fd387.csv",
+      "sha256": "ccb1a32fd3874a31ed6a88965b62263bb036a31d842a1dad59cdc5c9ee561107",
+      "symbol": "034020",
+      "from": "2024-07-11",
+      "through": "2024-07-12",
+      "requestedIsin": "KR7034020008",
+      "downloadName": "data_4120_20261115.csv",
+      "downloadedAt": "2026-11-15T22:41:20.446887+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/034730-2026-03-10-2026-03-11-e614948389e0.csv",
+      "sha256": "e614948389e0851101fdf4a00a5f4e8da96fdf7aa743d77087c6a20ced213b50",
+      "symbol": "034730",
+      "from": "2026-03-10",
+      "through": "2026-03-11",
+      "requestedIsin": "KR7034730002",
+      "downloadName": "data_5433_20261115.csv",
+      "downloadedAt": "2026-11-15T22:54:33.517693+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/035510-2024-09-26-2024-09-27-47fc8a81d476.csv",
+      "sha256": "47fc8a81d476578ee29a29ba04183d913a3d31a99087d454132db35bf0205252",
+      "symbol": "035510",
+      "from": "2024-09-26",
+      "through": "2024-09-27",
+      "requestedIsin": "KR7035510007",
+      "downloadName": "data_4203_20261115.csv",
+      "downloadedAt": "2026-11-15T22:42:03.510090+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/035720-2026-08-21-2026-08-21-1766134a9e99.csv",
+      "sha256": "1766134a9e99fb47ca82bd511f8c10a9a83e625d96083c78e866df2aa949002c",
+      "symbol": "035720",
+      "from": "2026-08-21",
+      "through": "2026-08-21",
+      "requestedIsin": "KR7035720002",
+      "downloadName": "data_4210_20261115.csv",
+      "downloadedAt": "2026-11-15T22:42:10.162257+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/036420-2026-06-15-2026-07-01-45d5b148bf02.csv",
+      "sha256": "45d5b148bf02b9506639f0edeff3a6d85c9b14260e9cded7e1158f3f9d6bb529",
+      "symbol": "036420",
+      "from": "2026-06-15",
+      "through": "2026-07-01",
+      "requestedIsin": "KR7036420008",
+      "downloadName": "data_4216_20261115.csv",
+      "downloadedAt": "2026-11-15T22:42:16.195796+09:00",
+      "returnedRows": 13
+    },
+    {
+      "path": "authenticated-daily/037710-2024-02-28-2024-02-29-a6511a10e086.csv",
+      "sha256": "a6511a10e0863080bc26349fb1ce09be3f726d273a91fa3c857db385952e957f",
+      "symbol": "037710",
+      "from": "2024-02-28",
+      "through": "2024-02-29",
+      "requestedIsin": "KR7037710001",
+      "downloadName": "data_4222_20261115.csv",
+      "downloadedAt": "2026-11-15T22:42:22.854817+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/044380-2026-04-27-2026-09-29-9697739a1242.csv",
+      "sha256": "9697739a12422130d8a20728bed4873ac96c8fe5b4d6c4f31bb0d615306618a1",
+      "symbol": "044380",
+      "from": "2026-04-27",
+      "through": "2026-09-29",
+      "requestedIsin": "KR7044380004",
+      "downloadName": "data_5448_20261115.csv",
+      "downloadedAt": "2026-11-15T22:54:48.731441+09:00",
+      "returnedRows": 104
+    },
+    {
+      "path": "authenticated-daily/047040-2025-12-16-2025-12-17-da7b6757dab3.csv",
+      "sha256": "da7b6757dab3ea2f99d1040433ea69ba26deae7cea12b225f8bf8cea6f0380c5",
+      "symbol": "047040",
+      "from": "2025-12-16",
+      "through": "2025-12-17",
+      "requestedIsin": "KR7047040001",
+      "downloadName": "data_4234_20261115.csv",
+      "downloadedAt": "2026-11-15T22:42:34.876134+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/047400-2026-10-08-2026-10-27-5f78584d8712.csv",
+      "sha256": "5f78584d87129ffe815ce3cd6f4334b93c1f873c235ea3d9f017951f7106ae6a",
+      "symbol": "047400",
+      "from": "2026-10-08",
+      "through": "2026-10-27",
+      "requestedIsin": "KR7047400007",
+      "downloadName": "data_4241_20261115.csv",
+      "downloadedAt": "2026-11-15T22:42:41.445868+09:00",
+      "returnedRows": 13
+    },
+    {
+      "path": "authenticated-daily/051630-2024-12-27-2024-12-27-480983ee0155.csv",
+      "sha256": "480983ee01557ed6c7d50af568bb973e0bfa3a1c80b491621558c35ec2414fc2",
+      "symbol": "051630",
+      "from": "2024-12-27",
+      "through": "2024-12-27",
+      "requestedIsin": "KR7051630002",
+      "downloadName": "data_5456_20261115.csv",
+      "downloadedAt": "2026-11-15T22:54:56.426232+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/058430-2026-04-08-2026-04-23-62276649c475.csv",
+      "sha256": "62276649c4759b7889b0d4dda12caae159d7f0a0faffe6c892454ccc62dbb032",
+      "symbol": "058430",
+      "from": "2026-04-08",
+      "through": "2026-04-23",
+      "requestedIsin": "KR7058430000",
+      "downloadName": "data_5502_20261115.csv",
+      "downloadedAt": "2026-11-15T22:55:02.871957+09:00",
+      "returnedRows": 12
+    },
+    {
+      "path": "authenticated-daily/064960-2025-01-14-2026-09-28-9c281a7df301.csv",
+      "sha256": "9c281a7df3014bc45a084d20f2976209fb1c0e0e9fed01fb8fe8e06165756fee",
+      "symbol": "064960",
+      "from": "2025-01-14",
+      "through": "2026-09-28",
+      "requestedIsin": "KR7064960008",
+      "downloadName": "data_4310_20261115.csv",
+      "downloadedAt": "2026-11-15T22:43:10.681993+09:00",
+      "returnedRows": 414
+    },
+    {
+      "path": "authenticated-daily/069460-2026-03-23-2026-03-23-6a100013520e.csv",
+      "sha256": "6a100013520ee8a26e2f21b3759dbae013691eb84601b7ad435d0073c43fa16c",
+      "symbol": "069460",
+      "from": "2026-03-23",
+      "through": "2026-03-23",
+      "requestedIsin": "KR7069460004",
+      "downloadName": "data_4318_20261115.csv",
+      "downloadedAt": "2026-11-15T22:43:18.183706+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/069640-2026-04-24-2026-05-13-11879d2b7656.csv",
+      "sha256": "11879d2b765698e2b43e8a533cce47868ee2fd0237d88221c5e28c78bb00536b",
+      "symbol": "069640",
+      "from": "2026-04-24",
+      "through": "2026-05-13",
+      "requestedIsin": "KR7069640001",
+      "downloadName": "data_4324_20261115.csv",
+      "downloadedAt": "2026-11-15T22:43:24.592103+09:00",
+      "returnedRows": 12
+    },
+    {
+      "path": "authenticated-daily/071950-2024-06-21-2025-10-13-d1e017a19c49.csv",
+      "sha256": "d1e017a19c493de9bb27e7e5a8deb1b019c84ee41911573f76953134eb40c55c",
+      "symbol": "071950",
+      "from": "2024-06-21",
+      "through": "2025-10-13",
+      "requestedIsin": "KR7071950000",
+      "downloadName": "data_4331_20261115.csv",
+      "downloadedAt": "2026-11-15T22:43:31.271300+09:00",
+      "returnedRows": 316
+    },
+    {
+      "path": "authenticated-daily/071950-2026-10-30-2026-11-02-c8a92c8d9bb4.csv",
+      "sha256": "c8a92c8d9bb4538d34c014ffe1e5e8bc2b1511312a855606a11a363d831b59e6",
+      "symbol": "071950",
+      "from": "2026-10-30",
+      "through": "2026-11-02",
+      "requestedIsin": "KR7071950000",
+      "downloadName": "data_4403_20261115.csv",
+      "downloadedAt": "2026-11-15T22:44:03.178529+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/074610-2025-02-28-2025-04-07-f326ab3de71c.csv",
+      "sha256": "f326ab3de71ce8c54fa59e4f38fe8be255d77d3fa531502f2e00c1603ed52156",
+      "symbol": "074610",
+      "from": "2025-02-28",
+      "through": "2025-04-07",
+      "requestedIsin": "KR7074610007",
+      "downloadName": "data_4410_20261115.csv",
+      "downloadedAt": "2026-11-15T22:44:10.016487+09:00",
+      "returnedRows": 26
+    },
+    {
+      "path": "authenticated-daily/078520-2025-12-11-2025-12-12-cd1fe8828e3d.csv",
+      "sha256": "cd1fe8828e3d56891de6bd7d1476d308900d03429952f8dfb860a07620458de9",
+      "symbol": "078520",
+      "from": "2025-12-11",
+      "through": "2025-12-12",
+      "requestedIsin": "KR7078520004",
+      "downloadName": "data_4416_20261115.csv",
+      "downloadedAt": "2026-11-15T22:44:16.691255+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/081660-2025-12-16-2025-12-17-075a18f02c64.csv",
+      "sha256": "075a18f02c64357867f746a1018c75b1316949275396d19a3089f3adde4c0af2",
+      "symbol": "081660",
+      "from": "2025-12-16",
+      "through": "2025-12-17",
+      "requestedIsin": "KR7081660003",
+      "downloadName": "data_4422_20261115.csv",
+      "downloadedAt": "2026-11-15T22:44:22.951522+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/084010-2025-12-22-2025-12-22-76987725c995.csv",
+      "sha256": "76987725c995d757806d1b871ff782a1964e4c7bad79130dd7b2909c15f3b198",
+      "symbol": "084010",
+      "from": "2025-12-22",
+      "through": "2025-12-22",
+      "requestedIsin": "KR7084010008",
+      "downloadName": "data_5555_20261115.csv",
+      "downloadedAt": "2026-11-15T22:55:55.384986+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/084680-2026-08-20-2026-10-02-40f0dd80f664.csv",
+      "sha256": "40f0dd80f6644fcac22e1fde67b5ac4872a6735dcc7624d74cd80b0ffdd2f470",
+      "symbol": "084680",
+      "from": "2026-08-20",
+      "through": "2026-10-02",
+      "requestedIsin": "KR7084680008",
+      "downloadName": "data_4435_20261115.csv",
+      "downloadedAt": "2026-11-15T22:44:35.843754+09:00",
+      "returnedRows": 30
+    },
+    {
+      "path": "authenticated-daily/085310-2026-04-28-2026-06-01-c1dd6f4b9829.csv",
+      "sha256": "c1dd6f4b982995c905e2c2b6fcbd64708961780272ea5c97638498cc00c8baf0",
+      "symbol": "085310",
+      "from": "2026-04-28",
+      "through": "2026-06-01",
+      "requestedIsin": "KR7085310001",
+      "downloadName": "data_4442_20261115.csv",
+      "downloadedAt": "2026-11-15T22:44:42.088373+09:00",
+      "returnedRows": 22
+    },
+    {
+      "path": "authenticated-daily/085620-2026-03-04-2026-03-27-a7bbe3b2895e.csv",
+      "sha256": "a7bbe3b2895e54338a8981627311bbbe81628db4905827abae14bd471d74fb7a",
+      "symbol": "085620",
+      "from": "2026-03-04",
+      "through": "2026-03-27",
+      "requestedIsin": "KR7085620003",
+      "downloadName": "data_4451_20261115.csv",
+      "downloadedAt": "2026-11-15T22:44:51.862653+09:00",
+      "returnedRows": 18
+    },
+    {
+      "path": "authenticated-daily/086280-2024-06-28-2024-06-28-e419df465fc8.csv",
+      "sha256": "e419df465fc8e739ffab8d85bbde86f3435a7a63d6d847188b6a2bfd6dc36f48",
+      "symbol": "086280",
+      "from": "2024-06-28",
+      "through": "2024-06-28",
+      "requestedIsin": "KR7086280005",
+      "downloadName": "data_4458_20261115.csv",
+      "downloadedAt": "2026-11-15T22:44:58.153811+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/091810-2025-08-07-2026-08-31-506c1a8287d0.csv",
+      "sha256": "506c1a8287d06fbee22b98e36bc9a68d21b627e7e53edf9c204dc2609ec5b8a0",
+      "symbol": "091810",
+      "from": "2025-08-07",
+      "through": "2026-08-31",
+      "requestedIsin": "KR7091810002",
+      "downloadName": "data_4504_20261115.csv",
+      "downloadedAt": "2026-11-15T22:45:04.620393+09:00",
+      "returnedRows": 259
+    },
+    {
+      "path": "authenticated-daily/092220-2026-04-28-2026-05-20-f38a7ed30aba.csv",
+      "sha256": "f38a7ed30aba8228b14ec543af47062e99f1f068016efafd9d63c3c8e295fb0f",
+      "symbol": "092220",
+      "from": "2026-04-28",
+      "through": "2026-05-20",
+      "requestedIsin": "KR7092220003",
+      "downloadName": "data_4511_20261115.csv",
+      "downloadedAt": "2026-11-15T22:45:11.895213+09:00",
+      "returnedRows": 15
+    },
+    {
+      "path": "authenticated-daily/093240-2026-08-13-2026-10-20-c3f8767af32b.csv",
+      "sha256": "c3f8767af32bcac869ad5d2650a1d7004ce55ef902f5dbf4cc927d9c5e612406",
+      "symbol": "093240",
+      "from": "2026-08-13",
+      "through": "2026-10-20",
+      "requestedIsin": "KR7093240000",
+      "downloadName": "data_4517_20261115.csv",
+      "downloadedAt": "2026-11-15T22:45:17.929162+09:00",
+      "returnedRows": 44
+    },
+    {
+      "path": "authenticated-daily/095720-2026-04-24-2026-04-24-ccd80e74ed55.csv",
+      "sha256": "ccd80e74ed550f0ffc1eaee0fb7644b46b5fe1bc00c09b43c24e4d23e8fb33f4",
+      "symbol": "095720",
+      "from": "2026-04-24",
+      "through": "2026-04-24",
+      "requestedIsin": "KR7095720009",
+      "downloadName": "data_4524_20261115.csv",
+      "downloadedAt": "2026-11-15T22:45:24.746888+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/096770-2024-07-17-2024-07-18-46ebab305609.csv",
+      "sha256": "46ebab305609da0b3c9a4a63cd8a13a1c79a13c346c85b1e4d26f66b469b6a8e",
+      "symbol": "096770",
+      "from": "2024-07-17",
+      "through": "2024-07-18",
+      "requestedIsin": "KR7096770003",
+      "downloadName": "data_4531_20261115.csv",
+      "downloadedAt": "2026-11-15T22:45:31.179892+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/096775-2024-07-17-2024-07-18-33dedf22e5c1.csv",
+      "sha256": "33dedf22e5c140d6c9010838177d02c26b7e030bb73c03ce974391330a4284b3",
+      "symbol": "096775",
+      "from": "2024-07-17",
+      "through": "2024-07-18",
+      "requestedIsin": "KR7096771001",
+      "downloadName": "data_4536_20261115.csv",
+      "downloadedAt": "2026-11-15T22:45:36.254357+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/100840-2024-03-29-2024-03-29-48b0f494fa01.csv",
+      "sha256": "48b0f494fa01a73e520c01c13b8bf4bb28e66af879b2b3bcc4608801d53e3020",
+      "symbol": "100840",
+      "from": "2024-03-29",
+      "through": "2024-03-29",
+      "requestedIsin": "KR7100840008",
+      "downloadName": "data_4557_20261115.csv",
+      "downloadedAt": "2026-11-15T22:45:57.485924+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/101530-2026-09-16-2026-10-26-932c0e41d733.csv",
+      "sha256": "932c0e41d733d270c397e60b3429c73aff3aea6c5ba5ca224269c535df398089",
+      "symbol": "101530",
+      "from": "2026-09-16",
+      "through": "2026-10-26",
+      "requestedIsin": "KR7101530004",
+      "downloadName": "data_4603_20261115.csv",
+      "downloadedAt": "2026-11-15T22:46:03.913281+09:00",
+      "returnedRows": 25
+    },
+    {
+      "path": "authenticated-daily/104700-2024-12-13-2026-11-02-94c235b91caf.csv",
+      "sha256": "94c235b91cafcfba9e19d9579d3105e29cf6063bd9f710be28b01dc099af189c",
+      "symbol": "104700",
+      "from": "2024-12-13",
+      "through": "2026-11-02",
+      "requestedIsin": "KR7104700000",
+      "downloadName": "data_4610_20261115.csv",
+      "downloadedAt": "2026-11-15T22:46:10.597302+09:00",
+      "returnedRows": 456
+    },
+    {
+      "path": "authenticated-daily/109070-2025-03-26-2026-08-31-4bb0bb453aa1.csv",
+      "sha256": "4bb0bb453aa1aa7eaa03007aa6dc10fb79aba1d28f4511849dc53b31fd355673",
+      "symbol": "109070",
+      "from": "2025-03-26",
+      "through": "2026-08-31",
+      "requestedIsin": "KR7109070003",
+      "downloadName": "data_4617_20261115.csv",
+      "downloadedAt": "2026-11-15T22:46:17.807884+09:00",
+      "returnedRows": 350
+    },
+    {
+      "path": "authenticated-daily/118000-2026-03-06-2026-10-30-10982dd793b5.csv",
+      "sha256": "10982dd793b5224006b9d583ccadee1a01596f9f2ca9333df5e9d97adddec874",
+      "symbol": "118000",
+      "from": "2026-03-06",
+      "through": "2026-10-30",
+      "requestedIsin": "KR7118000009",
+      "downloadName": "data_5602_20261115.csv",
+      "downloadedAt": "2026-11-15T22:56:02.031698+09:00",
+      "returnedRows": 161
+    },
+    {
+      "path": "authenticated-daily/119650-2024-08-14-2025-03-19-14334aa2726d.csv",
+      "sha256": "14334aa2726d0065bb3aa8ae54379f7befe504eca5c69bf850be370a3beeb182",
+      "symbol": "119650",
+      "from": "2024-08-14",
+      "through": "2025-03-19",
+      "requestedIsin": "KR7119650000",
+      "downloadName": "data_4632_20261115.csv",
+      "downloadedAt": "2026-11-15T22:46:32.548413+09:00",
+      "returnedRows": 141
+    },
+    {
+      "path": "authenticated-daily/128820-2025-03-12-2025-05-02-b185930c3545.csv",
+      "sha256": "b185930c3545e4f90069b913c6cdca4b682a4ea9e3a7dee6a34c95a25f805097",
+      "symbol": "128820",
+      "from": "2025-03-12",
+      "through": "2025-05-02",
+      "requestedIsin": "KR7128820008",
+      "downloadName": "data_4640_20261115.csv",
+      "downloadedAt": "2026-11-15T22:46:40.252058+09:00",
+      "returnedRows": 37
+    },
+    {
+      "path": "authenticated-daily/134380-2026-03-31-2026-03-31-0dc9d6f27545.csv",
+      "sha256": "0dc9d6f2754548bdd283e0425fd75d78f1a8680dc70a3a90cc6d3b4d42081321",
+      "symbol": "134380",
+      "from": "2026-03-31",
+      "through": "2026-03-31",
+      "requestedIsin": "KR7134380005",
+      "downloadName": "data_4650_20261115.csv",
+      "downloadedAt": "2026-11-15T22:46:50.449572+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/145210-2024-09-11-2026-03-23-3ec253ecef92.csv",
+      "sha256": "3ec253ecef927aa0268e97ea127fa0ddc45e81b82b3eb296fbd868058796f416",
+      "symbol": "145210",
+      "from": "2024-09-11",
+      "through": "2026-03-23",
+      "requestedIsin": "KR7145210001",
+      "downloadName": "data_4703_20261115.csv",
+      "downloadedAt": "2026-11-15T22:47:03.152223+09:00",
+      "returnedRows": 367
+    },
+    {
+      "path": "authenticated-daily/145720-2026-03-04-2026-03-05-0ccc38e2c78f.csv",
+      "sha256": "0ccc38e2c78f5a28c55bb81a1faa58529988e69d8a547829f4ba8f20b0038b72",
+      "symbol": "145720",
+      "from": "2026-03-04",
+      "through": "2026-03-05",
+      "requestedIsin": "KR7145720009",
+      "downloadName": "data_4710_20261115.csv",
+      "downloadedAt": "2026-11-15T22:47:10.393136+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/194370-2025-03-19-2025-03-19-cd840d080d77.csv",
+      "sha256": "cd840d080d77e95848be170c0847cfbc63e1752b64f8ba3af4b2a55f435f7a06",
+      "symbol": "194370",
+      "from": "2025-03-19",
+      "through": "2025-03-19",
+      "requestedIsin": "KR7194370003",
+      "downloadName": "data_5640_20261115.csv",
+      "downloadedAt": "2026-11-15T22:56:40.363360+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/207940-2025-05-22-2025-10-30-717529eb88f0.csv",
+      "sha256": "717529eb88f0056efc9b82b2eb318739fbeb0df50ce4dc326dd47bed0f80705f",
+      "symbol": "207940",
+      "from": "2025-05-22",
+      "through": "2025-10-30",
+      "requestedIsin": "KR7207940008",
+      "downloadName": "data_4736_20261115.csv",
+      "downloadedAt": "2026-11-15T22:47:36.815069+09:00",
+      "returnedRows": 108
+    },
+    {
+      "path": "authenticated-daily/210980-2024-02-28-2024-02-28-7f39f5d81903.csv",
+      "sha256": "7f39f5d819034e9859c062639cd77efb910034a9763ca3eb97505c3e2f6e5617",
+      "symbol": "210980",
+      "from": "2024-02-28",
+      "through": "2024-02-28",
+      "requestedIsin": "KR7210980009",
+      "downloadName": "data_4744_20261115.csv",
+      "downloadedAt": "2026-11-15T22:47:44.173283+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/214330-2026-03-06-2026-07-08-ff99c984bdfd.csv",
+      "sha256": "ff99c984bdfd62b6980c41a3c3b4f68be535e8c93829e6c8861f98d779dc5aca",
+      "symbol": "214330",
+      "from": "2026-03-06",
+      "through": "2026-07-08",
+      "requestedIsin": "KR7214330003",
+      "downloadName": "data_4750_20261115.csv",
+      "downloadedAt": "2026-11-15T22:47:50.317773+09:00",
+      "returnedRows": 85
+    },
+    {
+      "path": "authenticated-daily/214390-2024-03-28-2025-06-13-7a27a51decac.csv",
+      "sha256": "7a27a51decac3056dbe0c26ce01cc4814a7fbf3d0ab46df87d18faed0932d824",
+      "symbol": "214390",
+      "from": "2024-03-28",
+      "through": "2025-06-13",
+      "requestedIsin": "KR7214390007",
+      "downloadName": "data_4757_20261115.csv",
+      "downloadedAt": "2026-11-15T22:47:57.461698+09:00",
+      "returnedRows": 292
+    },
+    {
+      "path": "authenticated-daily/241560-2024-07-11-2024-07-12-c2d66f4b10ae.csv",
+      "sha256": "c2d66f4b10ae099157ba4432bcc26f6db749bdf4b724e2723b30fdda061cb9ff",
+      "symbol": "241560",
+      "from": "2024-07-11",
+      "through": "2024-07-12",
+      "requestedIsin": "KR7241560002",
+      "downloadName": "data_4804_20261115.csv",
+      "downloadedAt": "2026-11-15T22:48:04.652121+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/248170-2026-10-30-2026-11-02-4f328517d6b6.csv",
+      "sha256": "4f328517d6b6261a8e718ca0692b73d8d41eb34327240826299ac8ed6748eadf",
+      "symbol": "248170",
+      "from": "2026-10-30",
+      "through": "2026-11-02",
+      "requestedIsin": "KR7248170003",
+      "downloadName": "data_4810_20261115.csv",
+      "downloadedAt": "2026-11-15T22:48:10.365514+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/267270-2025-07-01-2025-07-02-464ad071336d.csv",
+      "sha256": "464ad071336d6f1e210cde9416f496e66e3df7f01f451b2e86c79702d393c4e0",
+      "symbol": "267270",
+      "from": "2025-07-01",
+      "through": "2025-07-02",
+      "requestedIsin": "KR7267270007",
+      "downloadName": "data_4816_20261115.csv",
+      "downloadedAt": "2026-11-15T22:48:16.231213+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/272450-2026-08-21-2026-08-24-bd5d43648a0a.csv",
+      "sha256": "bd5d43648a0af00fb289cfee16e6071f4176da87642337c79747d0da5f3e141d",
+      "symbol": "272450",
+      "from": "2026-08-21",
+      "through": "2026-08-24",
+      "requestedIsin": "KR7272450008",
+      "downloadName": "data_4822_20261115.csv",
+      "downloadedAt": "2026-11-15T22:48:22.769908+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/278470-2024-10-18-2024-10-31-2201a490c9aa.csv",
+      "sha256": "2201a490c9aa7572985e87e053c8aa4b0cb408752d8edefaf682b5b54b6779a8",
+      "symbol": "278470",
+      "from": "2024-10-18",
+      "through": "2024-10-31",
+      "requestedIsin": "KR7278470000",
+      "downloadName": "data_4832_20261115.csv",
+      "downloadedAt": "2026-11-15T22:48:32.753788+09:00",
+      "returnedRows": 10
+    },
+    {
+      "path": "authenticated-daily/294870-2025-05-16-2025-05-16-05c3d2e3b068.csv",
+      "sha256": "05c3d2e3b068acbf1fc0ba1cc088f02017c36320564246e02e4d9a44dfd5401b",
+      "symbol": "294870",
+      "from": "2025-05-16",
+      "through": "2025-05-16",
+      "requestedIsin": "KR7294870001",
+      "downloadName": "data_5623_20261115.csv",
+      "downloadedAt": "2026-11-15T22:56:23.461361+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/298000-2024-12-12-2026-06-15-a59202a0a5eb.csv",
+      "sha256": "a59202a0a5ebe4dc919a91367c4330e01d79f5d4f3429a67321b6fab0da77e3e",
+      "symbol": "298000",
+      "from": "2024-12-12",
+      "through": "2026-06-15",
+      "requestedIsin": "KR7298000001",
+      "downloadName": "data_4845_20261115.csv",
+      "downloadedAt": "2026-11-15T22:48:46.001469+09:00",
+      "returnedRows": 363
+    },
+    {
+      "path": "authenticated-daily/298020-2024-12-12-2024-12-13-05173a5fa42f.csv",
+      "sha256": "05173a5fa42f55f9e492d548065a88f1698ba73a3269fbfaaebcfe81c2d01a98",
+      "symbol": "298020",
+      "from": "2024-12-12",
+      "through": "2024-12-13",
+      "requestedIsin": "KR7298020009",
+      "downloadName": "data_4852_20261115.csv",
+      "downloadedAt": "2026-11-15T22:48:52.005750+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/298690-2026-08-21-2026-08-24-23748eff2794.csv",
+      "sha256": "23748eff2794db030da2e3fda40ffb9070700cbea4317e37171f4f53be84b9a5",
+      "symbol": "298690",
+      "from": "2026-08-21",
+      "through": "2026-08-24",
+      "requestedIsin": "KR7298690009",
+      "downloadName": "data_4858_20261115.csv",
+      "downloadedAt": "2026-11-15T22:48:58.642203+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/329180-2025-08-27-2025-08-28-e15ebd60fe6a.csv",
+      "sha256": "e15ebd60fe6a7dc3bcc1453b20bcadf85c8c2ab3dc678b1fc7f238244b1a6b19",
+      "symbol": "329180",
+      "from": "2025-08-27",
+      "through": "2025-08-28",
+      "requestedIsin": "KR7329180004",
+      "downloadName": "data_4904_20261115.csv",
+      "downloadedAt": "2026-11-15T22:49:04.683876+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/339770-2024-12-13-2024-12-13-dab2f9e95d05.csv",
+      "sha256": "dab2f9e95d05708fbe90b44c914ec3923c25de11425f8c40089cfb35e8b7dd6d",
+      "symbol": "339770",
+      "from": "2024-12-13",
+      "through": "2024-12-13",
+      "requestedIsin": "KR7339770000",
+      "downloadName": "data_4910_20261115.csv",
+      "downloadedAt": "2026-11-15T22:49:10.865653+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/348950-2026-04-28-2026-04-28-ec74c1a18be5.csv",
+      "sha256": "ec74c1a18be5c587ad89a633dc78ced44ae1b902c1213b2d3b96493c634f3e59",
+      "symbol": "348950",
+      "from": "2026-04-28",
+      "through": "2026-04-28",
+      "requestedIsin": "KR7348950007",
+      "downloadName": "data_4922_20261115.csv",
+      "downloadedAt": "2026-11-15T22:49:22.974395+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/361610-2026-08-25-2026-08-26-01706ed4d4f9.csv",
+      "sha256": "01706ed4d4f938236bbe655b0a58a499c83f3a024d56bd166311aa08b64619f4",
+      "symbol": "361610",
+      "from": "2026-08-25",
+      "through": "2026-08-26",
+      "requestedIsin": "KR7361610009",
+      "downloadName": "data_4928_20261115.csv",
+      "downloadedAt": "2026-11-15T22:49:28.868437+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/363280-2024-03-22-2024-03-25-dfe0742e1adf.csv",
+      "sha256": "dfe0742e1adf97528d5111ceb4090c1a5a7710a72f29d2af89e613c4e557e477",
+      "symbol": "363280",
+      "from": "2024-03-22",
+      "through": "2024-03-25",
+      "requestedIsin": "KR7363280009",
+      "downloadName": "data_4935_20261115.csv",
+      "downloadedAt": "2026-11-15T22:49:34.976655+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/454910-2024-07-11-2024-07-12-cd57549a1b16.csv",
+      "sha256": "cd57549a1b16305d46150509fa2ed491a55d8a8d94fef12eb9e2197fc21b4efd",
+      "symbol": "454910",
+      "from": "2024-07-11",
+      "through": "2024-07-12",
+      "requestedIsin": "KR7454910001",
+      "downloadName": "data_5630_20261115.csv",
+      "downloadedAt": "2026-11-15T22:56:30.320987+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/456040-2026-09-29-2026-09-29-d2eb4d34652b.csv",
+      "sha256": "d2eb4d34652be347c78747e5badad7026dd3755cba053cffc947f6f21daeed5b",
+      "symbol": "456040",
+      "from": "2026-09-29",
+      "through": "2026-09-29",
+      "requestedIsin": "KR7456040005",
+      "downloadName": "data_4947_20261115.csv",
+      "downloadedAt": "2026-11-15T22:49:47.195428+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/457190-2024-04-23-2024-04-23-c18b9a399170.csv",
+      "sha256": "c18b9a3991702ea9b636b83015f7f7ecd1fec65dabd0ce0485912c9cd6204997",
+      "symbol": "457190",
+      "from": "2024-04-23",
+      "through": "2024-04-23",
+      "requestedIsin": "KR7457190007",
+      "downloadName": "data_4953_20261115.csv",
+      "downloadedAt": "2026-11-15T22:49:53.356883+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/465770-2025-07-03-2026-09-09-3a4f825ee24f.csv",
+      "sha256": "3a4f825ee24f3a4de4dc8b7d0dbb97d8142b475b0713e01e086d974ab759691d",
+      "symbol": "465770",
+      "from": "2025-07-03",
+      "through": "2026-09-09",
+      "requestedIsin": "KR7465770006",
+      "downloadName": "data_4959_20261115.csv",
+      "downloadedAt": "2026-11-15T22:49:59.533000+09:00",
+      "returnedRows": 291
+    },
+    {
+      "path": "authenticated-daily/475150-2024-08-05-2024-08-06-1622d19dd57b.csv",
+      "sha256": "1622d19dd57b4f728697ea55b4947b87b8b3e9da5af2f2fc3a6db56cd8e066c4",
+      "symbol": "475150",
+      "from": "2024-08-05",
+      "through": "2024-08-06",
+      "requestedIsin": "KR7475150009",
+      "downloadName": "data_5011_20261115.csv",
+      "downloadedAt": "2026-11-15T22:50:11.587755+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/480370-2026-02-12-2026-02-12-93e7e6b1ca99.csv",
+      "sha256": "93e7e6b1ca99b22073a68fc885f67810829b23ba71d7824eb008e8746fcbc36d",
+      "symbol": "480370",
+      "from": "2026-02-12",
+      "through": "2026-02-12",
+      "requestedIsin": "KR7480370006",
+      "downloadName": "data_5018_20261115.csv",
+      "downloadedAt": "2026-11-15T22:50:18.038054+09:00",
+      "returnedRows": 1
+    },
+    {
+      "path": "authenticated-daily/481850-2025-11-20-2025-11-21-8994ce8d8ba9.csv",
+      "sha256": "8994ce8d8ba919e4f416fd068437e3cd0101928ff23e5cc5955b408484cb2dbc",
+      "symbol": "481850",
+      "from": "2025-11-20",
+      "through": "2025-11-21",
+      "requestedIsin": "KR7481850006",
+      "downloadName": "data_5024_20261115.csv",
+      "downloadedAt": "2026-11-15T22:50:24.011884+09:00",
+      "returnedRows": 2
+    },
+    {
+      "path": "authenticated-daily/484870-2026-06-12-2026-06-12-d13a4a6ec468.csv",
+      "sha256": "d13a4a6ec46841d79aa1f060dbb512e7c3aebb4a6d578bc73f8861992b402e76",
+      "symbol": "484870",
+      "from": "2026-06-12",
+      "through": "2026-06-12",
+      "requestedIsin": "KR7484870001",
+      "downloadName": "data_5029_20261115.csv",
+      "downloadedAt": "2026-11-15T22:50:29.787685+09:00",
+      "returnedRows": 1
+    }
+  ],
+  "publicCaptures": {
+    "body-20240313000849": {
+      "receiptSha256": "073534fe75d542f830195fd3b51105269b6b36d2b26754173f3f0954dd8b806c",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2024/03/13/000218/20240313000849/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20240416000223": {
+      "receiptSha256": "b79b23eed2e83d4eada510ab56ddf942051b94cea81c5462f393fe3f72ab2c96",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2024/04/16/000097/20240416000223/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20240416000168": {
+      "receiptSha256": "107d539c9df877e7d810de1abab9f132318683be0a2ce10b8b837531b481b948",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2024/04/16/000079/20240416000168/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20240927000306": {
+      "receiptSha256": "6937bf59c33992f9f6b65efb525b54a0fb1818696db5db4dc964ae40307beca9",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2024/09/27/000173/20240927000306/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20241028000655": {
+      "receiptSha256": "e2054c00b621afa2e817d69c61cf369ddd47e96aeb47538ac64172d6b752f6eb",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2024/10/28/000245/20241028000655/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20241115000180": {
+      "receiptSha256": "bb5961d39d37180d357ff067300e5637c2fdde27949851f8c81675723de6d885",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2024/11/15/000107/20241115000180/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20250228000712": {
+      "receiptSha256": "ae5a1be10550c58336170acf30888282c84afa408b1f4d0cef9afb82414197b1",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2025/02/28/000250/20250228000712/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20250502000143": {
+      "receiptSha256": "3cd338534cb7ca89d2b022d3ed8cf175152cf7d480a2a205d2c49aabdc6c5898",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2025/05/02/000078/20250502000143/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20250717000422": {
+      "receiptSha256": "25e99bbe2662c16deb111de7430a2b7200a26c3d517e40f33fcd6fbad7f62c1a",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2025/07/17/000138/20250717000422/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20251210000587": {
+      "receiptSha256": "0dbdd4922dbf84cb4cfb1a8011bc396a2ddec201714b40aa9175f0f9d204fd86",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2025/12/10/000145/20251210000587/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260205000435": {
+      "receiptSha256": "47875d28219317ace753637073900d9f24e4753908c9bf0ccfd75ddc2a9d3b24",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/02/05/000139/20260205000435/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260317004509": {
+      "receiptSha256": "84007246d37ee7496014aaed70d66456b7fbb0352d131172946a09ec1341c822",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/03/17/001220/20260317004509/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260427000154": {
+      "receiptSha256": "cf9a5f7f905a35b9420ca60e4bf3c03933692bab7624deb4abb1d02e19719ab4",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/04/27/000107/20260427000154/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260422000598": {
+      "receiptSha256": "dc8f5f60a57f6a4b8a6451531c2cd6795138e25ad53cd356c701cb087308e0ae",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/04/22/000186/20260422000598/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260420000442": {
+      "receiptSha256": "b3511793ef4601aacd13bc23c0fdc050670dc593e042484cdf90c9401c17d573",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/04/20/000154/20260420000442/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260410001941": {
+      "receiptSha256": "203ffe822d64be34a96d489b92b527247e065c3d530da4bb1b46cff26314c349",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/04/10/000814/20260410001941/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260422000522": {
+      "receiptSha256": "0b279494a712efea5545942b288917c2f1aec15335154fa0f2439a43cb3f803e",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/04/22/000170/20260422000522/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260428000501": {
+      "receiptSha256": "21474415767708cae2dc4a6fee620890bc19045a0fca9d46351456f8fd5461aa",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/04/28/000181/20260428000501/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260506000288": {
+      "receiptSha256": "2968cbf3078975689c4447ddb0b094c5c6ed8fd41d3ae43f7565a712386b8739",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/06/000170/20260506000288/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260429000462": {
+      "receiptSha256": "508f278e8f4ce745dab9641eeabb71aece67b6b5cc9930b752fed8d843e14db6",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/04/29/000206/20260429000462/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260429000378": {
+      "receiptSha256": "7baa40ce3a8f00710cc6b8d3a48cc2441a71cc9d8abe969e41573de7a59f3210",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/04/29/000184/20260429000378/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260430000424": {
+      "receiptSha256": "00f914a55cf2a48f3f3b7cd8e288af4b4341dc624f0714a5b275c46891a58ff8",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/04/30/000198/20260430000424/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260430000700": {
+      "receiptSha256": "d0047747e47eae483ad9ee389974604fedffbaf13f5c1e0a27b1fb6ffbf3e68a",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/04/30/000294/20260430000700/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260513000420": {
+      "receiptSha256": "56b221ecfaa4480a370a2a14b3a1c18b6569305fe6c6b867905a525be8dc0a10",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/13/000240/20260513000420/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260513000386": {
+      "receiptSha256": "1841d6963f65226255653a0b34c0c366cc81782aee92ac025327a8998d8f4e9d",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/13/000216/20260513000386/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260508000631": {
+      "receiptSha256": "a5d2fbe0cd478af8dc86a8f1a7ccfc3a3b5638564c6ef2070cde0386bc86a1d4",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/08/000255/20260508000631/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260518000407": {
+      "receiptSha256": "0f8d2f05e25af5f5813c5529c21b4068b1b6e5fcb0593f0cd3f97ab29b1b12a7",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/18/000290/20260518000407/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260513000413": {
+      "receiptSha256": "a0110e76edd6c3743e611dd8e1fcf5ff47cdfb9594bdbfb3245000d9745451f1",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/13/000235/20260513000413/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260515000294": {
+      "receiptSha256": "d7ffeb5fadfd281b2403ef569cd1fb9fb2a5a1e9f62858630a3ba2cd55101aff",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/15/000180/20260515000294/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260512000240": {
+      "receiptSha256": "952edf286a74838187152bc63be5139d229bf1596c315a4d4b295d3557e84f81",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/12/000134/20260512000240/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260515000360": {
+      "receiptSha256": "561b28583522d4410d349b67bb612c099636400f7eceb6f2b236d4ed1dd02a64",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/15/000216/20260515000360/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260514000300": {
+      "receiptSha256": "68d3abe2e86e55d16a41bcd01e942e6c77c25b8c932eda754782c152c1f7829d",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/14/000179/20260514000300/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260513000720": {
+      "receiptSha256": "4bec2f100f632e6c2a5209ffdfd4baefe707a7442e1b115df2f1830b8df056e1",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/13/000363/20260513000720/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260518000404": {
+      "receiptSha256": "90a9c0b5c89b1e40bb7ad99d13ffae0af8f9d9e8ca81acb111902be47ae619c7",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/18/000288/20260518000404/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260513000285": {
+      "receiptSha256": "f5b3bf4cb923e259b220c803e1f4ad6f91ff7c1e8a72ac4b4404187a3a9b52e5",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/13/000177/20260513000285/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260515000625": {
+      "receiptSha256": "3fd520a807a938927c6d1916b7c5fef165af09e860a2dc3c14c078c219beda00",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/15/000331/20260515000625/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260515000516": {
+      "receiptSha256": "ec3c89df18cc20a77117b52541c50d5b115dab44d236a6ae3086f7ae46a66434",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/15/000281/20260515000516/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260527000225": {
+      "receiptSha256": "ad2dbff0767d4607124c00c2b99353f9384b7b12398e8b33fc58203ab4d5e94e",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/27/000138/20260527000225/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260519000149": {
+      "receiptSha256": "dc9f5ad9c33583653602ada0293d08e1027d7d53b82f4b20d4de4d3e62344bef",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/19/000092/20260519000149/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260522001231": {
+      "receiptSha256": "d531232d347d96c89433b93795e1cc3bfc1a8bee65d2e92345a257a1c89fbfb4",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/05/22/000500/20260522001231/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260604000497": {
+      "receiptSha256": "c202cc298024e6fa1fefe97ee9b00ba755b2dc5a226348ee87da711b4ae3282c",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/06/04/000211/20260604000497/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260623000228": {
+      "receiptSha256": "954a82371a101fdbd36061ed0cacbaef30bff9591967f04f66aa5056529828f9",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/06/23/000120/20260623000228/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260703000612": {
+      "receiptSha256": "9bbad29f505fc2a8ef7fbe6f4abda0a9622d6bd22c303eb750faf8a014ebd89e",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/07/03/000318/20260703000612/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260624000332": {
+      "receiptSha256": "b8ccdd51d2e27ad7e8e886b6ed846a69e19982de8c583f66bd3c106e7781740d",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/06/24/000263/20260624000332/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260713000532": {
+      "receiptSha256": "7e43326e81c00eb5186529dca9c91444f55bfa00df549a9faf811e3aaeb24f12",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/07/13/000220/20260713000532/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260723000183": {
+      "receiptSha256": "c9a16632d975cbae6c551d86788cc1671baeec95be06092ab740c8f82647da91",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/07/23/000110/20260723000183/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260714000679": {
+      "receiptSha256": "06d00a9fedbb8d2fe12a34cad687c1ff87207a72fe493a2e4be6b6b81e022ada",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/07/14/000323/20260714000679/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260722002054": {
+      "receiptSha256": "1de609ccb9b171a7dae099550d108a0ed6d316763709f8ed7fbb69f429016928",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/07/22/000848/20260722002054/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260728000370": {
+      "receiptSha256": "2c87dbecc5a83b1565d87d8256a5171e620380810c73889febc74c2f56ad8c86",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/07/28/000205/20260728000370/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260811000128": {
+      "receiptSha256": "5bf8739a5352c6babcae05182cc09b57fa65039b5fb7e0aa609c80191feb8bc0",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/08/11/000072/20260811000128/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260825000124": {
+      "receiptSha256": "f66efcf8a5b47a01878a8131ffca381ef049daaa54ef460922b438d524a7f2c1",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/08/25/000071/20260825000124/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260825000193": {
+      "receiptSha256": "cb0f9967e876b92f5dd7c2d9f802d2e89de9e5346bbe69429f13895906f0e24a",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/08/25/000095/20260825000193/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260826000617": {
+      "receiptSha256": "5ffd3566aecc1733e288a9bd00cfca69b4ff87f7a8d7ef386092ece501927efe",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/08/26/000196/20260826000617/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260907000331": {
+      "receiptSha256": "cf4d441094279dd2655589622d20783e1e14bed18e1d5826d095a32b5f50b430",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/09/07/000142/20260907000331/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260828000246": {
+      "receiptSha256": "a7a3e34f1e37b8fd4909dbc478f03a5795fd34c4ad2c1d268ce52dbed5e7bcfb",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/08/28/000126/20260828000246/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260825001019": {
+      "receiptSha256": "22d76d66c8556cbab8b34c5fba3e5c968ca6309937d46236cfee0c8da94514e0",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/08/25/000362/20260825001019/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260908000155": {
+      "receiptSha256": "d95ca4245c1fa5eb16550382e4e49b622945e73df44e957bea8cd7d86a3ea6fe",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/09/08/000087/20260908000155/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260908000244": {
+      "receiptSha256": "4ff07a74acbc6791a35bfc676af5ae335a519faba45e127aff11fa47c71a19d0",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/09/08/000119/20260908000244/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260928000185": {
+      "receiptSha256": "7d5fd651c1797f4d0c1d0b0bcdde49dc30e04c8e40b96f7e87802f8a05d79b5e",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/09/28/000093/20260928000185/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260929000429": {
+      "receiptSha256": "3265b54ff7b2909c5a75a5f788d5f02db03bb31037aa016b5455cebc6770d91c",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/09/29/000187/20260929000429/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20260929000344": {
+      "receiptSha256": "b675055be8d19c6aac3492a1074d74ef21ea8428f21171140e49adc7e78f975c",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/09/29/000144/20260929000344/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20261006000736": {
+      "receiptSha256": "e5568359f30a6c5c4b2510dd85fd02a0e484d4814ffbdce2264ec3ccd6cdbd7c",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/10/06/000235/20261006000736/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "body-20261015000299": {
+      "receiptSha256": "981ac0d1cb139587b79a3565a53ef32e50f64c61c6bcea50bee32f9eae95d3c3",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/10/15/000129/20261015000299/68155.htm"
+      },
+      "requiredText": [
+        "변경상장일",
+        "매매거래정지 해제됨"
+      ]
+    },
+    "hanwha-preferred-delisting": {
+      "receiptSha256": "19b2f0174521a9dfa2167ba50715d071f901a70ad6c7a0811afa6de2dd4d6c1f",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2025/06/30/001081/20250630002033/68051.htm"
+      },
+      "requiredText": [
+        "한화1우선주 199,033 A000885",
+        "상장폐지 예고기간 : '25.07.01",
+        "정리매매기간 : '25.07.04"
+      ]
+    },
+    "seoul-food-preferred-watch": {
+      "receiptSha256": "4d0751acfec6d877288e7e42cbe670b25ae0dece8865c3c273c33ed5f406c927",
+      "request": {
+        "method": "GET",
+        "parameters": null,
+        "url": "https://kind.krx.co.kr/external/2026/07/13/000587/20260713001306/68052.htm"
+      },
+      "requiredText": [
+        "1.종목명 서울식품공업1우선주",
+        "관리종목 지정일 2026년 07월 14일",
+        "보통주는 관리종목으로 지정되지 않음"
+      ]
+    }
+  },
+  "publicLinks": [
+    {
+      "receipt": "20240216000270",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20240313000849",
+      "listingReceipt": "20240313000218",
+      "listingDocument": "20240313000849",
+      "originalPublishedHaltDate": "2024-02-23",
+      "release": {
+        "reopeningDate": "2024-03-18",
+        "symbols": {
+          "000040": "KR7000040006"
+        }
+      }
+    },
+    {
+      "receipt": "20240329000650",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20240416000223",
+      "listingReceipt": "20240416000097",
+      "listingDocument": "20240416000223",
+      "originalPublishedHaltDate": "2024-04-05",
+      "release": {
+        "reopeningDate": "2024-04-19",
+        "symbols": {
+          "002310": "KR7002310001"
+        }
+      }
+    },
+    {
+      "receipt": "20240402000585",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20240416000168",
+      "listingReceipt": "20240416000079",
+      "listingDocument": "20240416000168",
+      "originalPublishedHaltDate": "2024-04-09",
+      "release": {
+        "reopeningDate": "2024-04-17",
+        "symbols": {
+          "001460": "KR7001460005",
+          "001465": "KR7001461003"
+        }
+      }
+    },
+    {
+      "receipt": "20240830000163",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20240927000306",
+      "listingReceipt": "20240927000173",
+      "listingDocument": "20240927000306",
+      "originalPublishedHaltDate": "2024-09-06",
+      "release": {
+        "reopeningDate": "2024-10-04",
+        "symbols": {
+          "071950": "KR7071950000"
+        }
+      }
+    },
+    {
+      "receipt": "20241011000088",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20241028000655",
+      "listingReceipt": "20241028000245",
+      "listingDocument": "20241028000655",
+      "originalPublishedHaltDate": "2024-10-18",
+      "release": {
+        "reopeningDate": "2024-10-31",
+        "symbols": {
+          "278470": "KR7278470000"
+        }
+      }
+    },
+    {
+      "receipt": "20241101000030",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20241115000180",
+      "listingReceipt": "20241115000107",
+      "listingDocument": "20241115000180",
+      "originalPublishedHaltDate": "2024-11-08",
+      "release": {
+        "reopeningDate": "2024-11-20",
+        "symbols": {
+          "003920": "KR7003920006",
+          "003925": "KR7003921004"
+        }
+      }
+    },
+    {
+      "receipt": "20250207000172",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20250228000712",
+      "listingReceipt": "20250228000250",
+      "listingDocument": "20250228000712",
+      "originalPublishedHaltDate": "2025-02-14",
+      "release": {
+        "reopeningDate": "2025-03-06",
+        "symbols": {
+          "012170": "KR7012170007"
+        }
+      }
+    },
+    {
+      "receipt": "20250402000091",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20250502000143",
+      "listingReceipt": "20250502000078",
+      "listingDocument": "20250502000143",
+      "originalPublishedHaltDate": "2025-04-09",
+      "release": {
+        "reopeningDate": "2025-05-09",
+        "symbols": {
+          "009310": "KR7009310004"
+        }
+      }
+    },
+    {
+      "receipt": "20250620000055",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20250717000422",
+      "listingReceipt": "20250717000138",
+      "listingDocument": "20250717000422",
+      "originalPublishedHaltDate": "2025-06-27",
+      "release": {
+        "reopeningDate": "2025-07-22",
+        "symbols": {
+          "025560": "KR7025560004"
+        }
+      }
+    },
+    {
+      "receipt": "20251119000050",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20251210000587",
+      "listingReceipt": "20251210000145",
+      "listingDocument": "20251210000587",
+      "originalPublishedHaltDate": "2025-11-26",
+      "release": {
+        "reopeningDate": "2025-12-15",
+        "symbols": {
+          "008500": "KR7008500001"
+        }
+      }
+    },
+    {
+      "receipt": "20260112000088",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260205000435",
+      "listingReceipt": "20260205000139",
+      "listingDocument": "20260205000435",
+      "originalPublishedHaltDate": "2026-01-19",
+      "release": {
+        "reopeningDate": "2026-02-10",
+        "symbols": {
+          "009810": "KR7009810003"
+        }
+      }
+    },
+    {
+      "receipt": "20260224000136",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260317004509",
+      "listingReceipt": "20260317001220",
+      "listingDocument": "20260317004509",
+      "originalPublishedHaltDate": "2026-03-04",
+      "release": {
+        "reopeningDate": "2026-03-20",
+        "symbols": {
+          "008600": "KR7008600009"
+        }
+      }
+    },
+    {
+      "receipt": "20260325000114",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260427000154",
+      "listingReceipt": "20260427000107",
+      "listingDocument": "20260427000154",
+      "originalPublishedHaltDate": "2026-04-01",
+      "release": {
+        "reopeningDate": "2026-04-30",
+        "symbols": {
+          "025750": "KR7025750001"
+        }
+      }
+    },
+    {
+      "receipt": "20260331000238",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260422000598",
+      "listingReceipt": "20260422000186",
+      "listingDocument": "20260422000598",
+      "originalPublishedHaltDate": "2026-04-07",
+      "release": {
+        "reopeningDate": "2026-04-27",
+        "symbols": {
+          "001510": "KR7001510007",
+          "001515": "KR7001511005"
+        }
+      }
+    },
+    {
+      "receipt": "20260401000177",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260420000442",
+      "listingReceipt": "20260420000154",
+      "listingDocument": "20260420000442",
+      "originalPublishedHaltDate": "2026-04-08",
+      "release": {
+        "reopeningDate": "2026-04-23",
+        "symbols": {
+          "058430": "KR7058430000"
+        }
+      }
+    },
+    {
+      "receipt": "20260401000275",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260410001941",
+      "listingReceipt": "20260410000814",
+      "listingDocument": "20260410001941",
+      "originalPublishedHaltDate": "2026-04-08",
+      "release": {
+        "reopeningDate": "2026-04-13",
+        "symbols": {
+          "010120": "KR7010120004"
+        }
+      }
+    },
+    {
+      "receipt": "20260401000168",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260422000522",
+      "listingReceipt": "20260422000170",
+      "listingDocument": "20260422000522",
+      "originalPublishedHaltDate": "2026-04-08",
+      "release": {
+        "reopeningDate": "2026-04-27",
+        "symbols": {
+          "000180": "KR7000180000"
+        }
+      }
+    },
+    {
+      "receipt": "20260402000160",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260428000501",
+      "listingReceipt": "20260428000181",
+      "listingDocument": "20260428000501",
+      "originalPublishedHaltDate": "2026-04-09",
+      "release": {
+        "reopeningDate": "2026-05-04",
+        "symbols": {
+          "214330": "KR7214330003"
+        }
+      }
+    },
+    {
+      "receipt": "20260403000368",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260506000288",
+      "listingReceipt": "20260506000170",
+      "listingDocument": "20260506000288",
+      "originalPublishedHaltDate": "2026-04-10",
+      "release": {
+        "reopeningDate": "2026-05-11",
+        "symbols": {
+          "001380": "KR7001380005"
+        }
+      }
+    },
+    {
+      "receipt": "20260406000158",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260429000462",
+      "listingReceipt": "20260429000206",
+      "listingDocument": "20260429000462",
+      "originalPublishedHaltDate": "2026-04-13",
+      "release": {
+        "reopeningDate": "2026-05-06",
+        "symbols": {
+          "004270": "KR7004270005"
+        }
+      }
+    },
+    {
+      "receipt": "20260407000142",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260429000378",
+      "listingReceipt": "20260429000184",
+      "listingDocument": "20260429000378",
+      "originalPublishedHaltDate": "2026-04-14",
+      "release": {
+        "reopeningDate": "2026-05-06",
+        "symbols": {
+          "002070": "KR7002070001"
+        }
+      }
+    },
+    {
+      "receipt": "20260407000146",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260430000424",
+      "listingReceipt": "20260430000198",
+      "listingDocument": "20260430000424",
+      "originalPublishedHaltDate": "2026-04-14",
+      "release": {
+        "reopeningDate": "2026-05-07",
+        "symbols": {
+          "033250": "KR7033250002"
+        }
+      }
+    },
+    {
+      "receipt": "20260408000095",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260430000700",
+      "listingReceipt": "20260430000294",
+      "listingDocument": "20260430000700",
+      "originalPublishedHaltDate": "2026-04-15",
+      "release": {
+        "reopeningDate": "2026-05-07",
+        "symbols": {
+          "007280": "KR7007280001"
+        }
+      }
+    },
+    {
+      "receipt": "20260415000292",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260513000420",
+      "listingReceipt": "20260513000240",
+      "listingDocument": "20260513000420",
+      "originalPublishedHaltDate": "2026-04-22",
+      "release": {
+        "reopeningDate": "2026-05-18",
+        "symbols": {
+          "001130": "KR7001130004"
+        }
+      }
+    },
+    {
+      "receipt": "20260417000183",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260513000386",
+      "listingReceipt": "20260513000216",
+      "listingDocument": "20260513000386",
+      "originalPublishedHaltDate": "2026-04-24",
+      "release": {
+        "reopeningDate": "2026-05-18",
+        "symbols": {
+          "001620": "KR7001620004"
+        }
+      }
+    },
+    {
+      "receipt": "20260417000069",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260508000631",
+      "listingReceipt": "20260508000255",
+      "listingDocument": "20260508000631",
+      "originalPublishedHaltDate": "2026-04-24",
+      "release": {
+        "reopeningDate": "2026-05-13",
+        "symbols": {
+          "069640": "KR7069640001"
+        }
+      }
+    },
+    {
+      "receipt": "20260417000095",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260518000407",
+      "listingReceipt": "20260518000290",
+      "listingDocument": "20260518000407",
+      "originalPublishedHaltDate": "2026-04-24",
+      "release": {
+        "reopeningDate": "2026-05-21",
+        "symbols": {
+          "024890": "KR7024890006"
+        }
+      }
+    },
+    {
+      "receipt": "20260417000155",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260513000413",
+      "listingReceipt": "20260513000235",
+      "listingDocument": "20260513000413",
+      "originalPublishedHaltDate": "2026-04-24",
+      "release": {
+        "reopeningDate": "2026-05-18",
+        "symbols": {
+          "027740": "KR7027740000"
+        }
+      }
+    },
+    {
+      "receipt": "20260417000089",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260515000294",
+      "listingReceipt": "20260515000180",
+      "listingDocument": "20260515000294",
+      "originalPublishedHaltDate": "2026-04-24",
+      "release": {
+        "reopeningDate": "2026-05-20",
+        "symbols": {
+          "011090": "KR7011090008"
+        }
+      }
+    },
+    {
+      "receipt": "20260417000092",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260512000240",
+      "listingReceipt": "20260512000134",
+      "listingDocument": "20260512000240",
+      "originalPublishedHaltDate": "2026-04-24",
+      "release": {
+        "reopeningDate": "2026-05-15",
+        "symbols": {
+          "011930": "KR7011930005"
+        }
+      }
+    },
+    {
+      "receipt": "20260420000092",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260515000360",
+      "listingReceipt": "20260515000216",
+      "listingDocument": "20260515000360",
+      "originalPublishedHaltDate": "2026-04-27",
+      "release": {
+        "reopeningDate": "2026-05-20",
+        "symbols": {
+          "000890": "KR7000890004"
+        }
+      }
+    },
+    {
+      "receipt": "20260420000093",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260514000300",
+      "listingReceipt": "20260514000179",
+      "listingDocument": "20260514000300",
+      "originalPublishedHaltDate": "2026-04-27",
+      "release": {
+        "reopeningDate": "2026-05-19",
+        "symbols": {
+          "009810": "KR7009810003"
+        }
+      }
+    },
+    {
+      "receipt": "20260420000097",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260513000720",
+      "listingReceipt": "20260513000363",
+      "listingDocument": "20260513000720",
+      "originalPublishedHaltDate": "2026-04-27",
+      "release": {
+        "reopeningDate": "2026-05-18",
+        "symbols": {
+          "044380": "KR7044380004"
+        }
+      }
+    },
+    {
+      "receipt": "20260420000111",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260518000404",
+      "listingReceipt": "20260518000288",
+      "listingDocument": "20260518000404",
+      "originalPublishedHaltDate": "2026-04-27",
+      "release": {
+        "reopeningDate": "2026-05-21",
+        "symbols": {
+          "004410": "KR7004410007",
+          "004415": "KR7004411005"
+        }
+      }
+    },
+    {
+      "receipt": "20260420000132",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260513000285",
+      "listingReceipt": "20260513000177",
+      "listingDocument": "20260513000285",
+      "originalPublishedHaltDate": "2026-04-27",
+      "release": {
+        "reopeningDate": "2026-05-18",
+        "symbols": {
+          "009460": "KR7009460007"
+        }
+      }
+    },
+    {
+      "receipt": "20260421000126",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260515000625",
+      "listingReceipt": "20260515000331",
+      "listingDocument": "20260515000625",
+      "originalPublishedHaltDate": "2026-04-28",
+      "release": {
+        "reopeningDate": "2026-05-20",
+        "symbols": {
+          "005320": "KR7005320007"
+        }
+      }
+    },
+    {
+      "receipt": "20260421000143",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260515000516",
+      "listingReceipt": "20260515000281",
+      "listingDocument": "20260515000516",
+      "originalPublishedHaltDate": "2026-04-28",
+      "release": {
+        "reopeningDate": "2026-05-20",
+        "symbols": {
+          "092220": "KR7092220003"
+        }
+      }
+    },
+    {
+      "receipt": "20260421000066",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260527000225",
+      "listingReceipt": "20260527000138",
+      "listingDocument": "20260527000225",
+      "originalPublishedHaltDate": "2026-04-28",
+      "release": {
+        "reopeningDate": "2026-06-01",
+        "symbols": {
+          "085310": "KR7085310001"
+        }
+      }
+    },
+    {
+      "receipt": "20260421000081",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260519000149",
+      "listingReceipt": "20260519000092",
+      "listingDocument": "20260519000149",
+      "originalPublishedHaltDate": "2026-04-28",
+      "release": {
+        "reopeningDate": "2026-05-22",
+        "symbols": {
+          "002360": "KR7002360006"
+        }
+      }
+    },
+    {
+      "receipt": "20260422000064",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260522001231",
+      "listingReceipt": "20260522000500",
+      "listingDocument": "20260522001231",
+      "originalPublishedHaltDate": "2026-04-29",
+      "release": {
+        "reopeningDate": "2026-05-28",
+        "symbols": {
+          "001020": "KR7001020007"
+        }
+      }
+    },
+    {
+      "receipt": "20260513000372",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260604000497",
+      "listingReceipt": "20260604000211",
+      "listingDocument": "20260604000497",
+      "originalPublishedHaltDate": "2026-05-20",
+      "release": {
+        "reopeningDate": "2026-06-09",
+        "symbols": {
+          "002630": "KR7002630002"
+        }
+      }
+    },
+    {
+      "receipt": "20260528000147",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260623000228",
+      "listingReceipt": "20260623000120",
+      "listingDocument": "20260623000228",
+      "originalPublishedHaltDate": "2026-06-05",
+      "release": {
+        "reopeningDate": "2026-06-26",
+        "symbols": {
+          "014990": "KR7014990006"
+        }
+      }
+    },
+    {
+      "receipt": "20260601000315",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260703000612",
+      "listingReceipt": "20260703000318",
+      "listingDocument": "20260703000612",
+      "originalPublishedHaltDate": "2026-06-08",
+      "release": {
+        "reopeningDate": "2026-07-08",
+        "symbols": {
+          "214330": "KR7214330003"
+        }
+      }
+    },
+    {
+      "receipt": "20260605000122",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260624000332",
+      "listingReceipt": "20260624000263",
+      "listingDocument": "20260624000332",
+      "originalPublishedHaltDate": "2026-06-12",
+      "release": {
+        "reopeningDate": "2026-06-29",
+        "symbols": {
+          "012160": "KR7012160008"
+        }
+      }
+    },
+    {
+      "receipt": "20260618000091",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260713000532",
+      "listingReceipt": "20260713000220",
+      "listingDocument": "20260713000532",
+      "originalPublishedHaltDate": "2026-06-25",
+      "release": {
+        "reopeningDate": "2026-07-16",
+        "symbols": {
+          "006490": "KR7006490007"
+        }
+      }
+    },
+    {
+      "receipt": "20260626000202",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260723000183",
+      "listingReceipt": "20260723000110",
+      "listingDocument": "20260723000183",
+      "originalPublishedHaltDate": "2026-07-03",
+      "release": {
+        "reopeningDate": "2026-07-28",
+        "symbols": {
+          "000040": "KR7000040006"
+        }
+      }
+    },
+    {
+      "receipt": "20260626000254",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260714000679",
+      "listingReceipt": "20260714000323",
+      "listingDocument": "20260714000679",
+      "originalPublishedHaltDate": "2026-07-03",
+      "release": {
+        "reopeningDate": "2026-07-20",
+        "symbols": {
+          "001520": "KR7001520006",
+          "001525": "KR7001521004",
+          "001527": "KR7001522002"
+        }
+      }
+    },
+    {
+      "receipt": "20260630000118",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260722002054",
+      "listingReceipt": "20260722000848",
+      "listingDocument": "20260722002054",
+      "originalPublishedHaltDate": "2026-07-07",
+      "release": {
+        "reopeningDate": "2026-07-27",
+        "symbols": {
+          "025560": "KR7025560004"
+        }
+      }
+    },
+    {
+      "receipt": "20260708000145",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260728000370",
+      "listingReceipt": "20260728000205",
+      "listingDocument": "20260728000370",
+      "originalPublishedHaltDate": "2026-07-15",
+      "release": {
+        "reopeningDate": "2026-07-31",
+        "symbols": {
+          "001210": "KR7001210004"
+        }
+      }
+    },
+    {
+      "receipt": "20260720000142",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260811000128",
+      "listingReceipt": "20260811000072",
+      "listingDocument": "20260811000128",
+      "originalPublishedHaltDate": "2026-07-27",
+      "release": {
+        "reopeningDate": "2026-08-14",
+        "symbols": {
+          "027970": "KR7027970003"
+        }
+      }
+    },
+    {
+      "receipt": "20260729000140",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260825000124",
+      "listingReceipt": "20260825000071",
+      "listingDocument": "20260825000124",
+      "originalPublishedHaltDate": "2026-08-05",
+      "release": {
+        "reopeningDate": "2026-08-28",
+        "symbols": {
+          "006740": "KR7006740005"
+        }
+      }
+    },
+    {
+      "receipt": "20260730000484",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260825000193",
+      "listingReceipt": "20260825000095",
+      "listingDocument": "20260825000193",
+      "originalPublishedHaltDate": "2026-08-06",
+      "release": {
+        "reopeningDate": "2026-08-28",
+        "symbols": {
+          "012170": "KR7012170007"
+        }
+      }
+    },
+    {
+      "receipt": "20260731000133",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260826000617",
+      "listingReceipt": "20260826000196",
+      "listingDocument": "20260826000617",
+      "originalPublishedHaltDate": "2026-08-07",
+      "release": {
+        "reopeningDate": "2026-08-31",
+        "symbols": {
+          "091810": "KR7091810002"
+        }
+      }
+    },
+    {
+      "receipt": "20260804000071",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260907000331",
+      "listingReceipt": "20260907000142",
+      "listingDocument": "20260907000331",
+      "originalPublishedHaltDate": "2026-08-11",
+      "release": {
+        "reopeningDate": "2026-09-10",
+        "symbols": {
+          "006490": "KR7006490007"
+        }
+      }
+    },
+    {
+      "receipt": "20260804000084",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260828000246",
+      "listingReceipt": "20260828000126",
+      "listingDocument": "20260828000246",
+      "originalPublishedHaltDate": "2026-08-11",
+      "release": {
+        "reopeningDate": "2026-09-02",
+        "symbols": {
+          "008040": "KR7008040008"
+        }
+      }
+    },
+    {
+      "receipt": "20260804000675",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260825001019",
+      "listingReceipt": "20260825000362",
+      "listingDocument": "20260825001019",
+      "originalPublishedHaltDate": "2026-08-11",
+      "release": {
+        "reopeningDate": "2026-08-28",
+        "symbols": {
+          "012280": "KR7012280004"
+        }
+      }
+    },
+    {
+      "receipt": "20260813000149",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260908000155",
+      "listingReceipt": "20260908000087",
+      "listingDocument": "20260908000155",
+      "originalPublishedHaltDate": "2026-08-21",
+      "release": {
+        "reopeningDate": "2026-09-11",
+        "symbols": {
+          "018470": "KR7018470005"
+        }
+      }
+    },
+    {
+      "receipt": "20260818000057",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260908000244",
+      "listingReceipt": "20260908000119",
+      "listingDocument": "20260908000244",
+      "originalPublishedHaltDate": "2026-08-25",
+      "release": {
+        "reopeningDate": "2026-09-11",
+        "symbols": {
+          "002880": "KR7002880003"
+        }
+      }
+    },
+    {
+      "receipt": "20260827000060",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260928000185",
+      "listingReceipt": "20260928000093",
+      "listingDocument": "20260928000185",
+      "originalPublishedHaltDate": "2026-09-03",
+      "release": {
+        "reopeningDate": "2026-10-01",
+        "symbols": {
+          "007110": "KR7007110000"
+        }
+      }
+    },
+    {
+      "receipt": "20260902000055",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260929000429",
+      "listingReceipt": "20260929000187",
+      "listingDocument": "20260929000429",
+      "originalPublishedHaltDate": "2026-09-09",
+      "release": {
+        "reopeningDate": "2026-10-02",
+        "symbols": {
+          "004920": "KR7004920005"
+        }
+      }
+    },
+    {
+      "receipt": "20260903000052",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20260929000344",
+      "listingReceipt": "20260929000144",
+      "listingDocument": "20260929000344",
+      "originalPublishedHaltDate": "2026-09-10",
+      "release": {
+        "reopeningDate": "2026-10-02",
+        "symbols": {
+          "084680": "KR7084680008"
+        }
+      }
+    },
+    {
+      "receipt": "20260910000171",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20261006000736",
+      "listingReceipt": "20261006000235",
+      "listingDocument": "20261006000736",
+      "originalPublishedHaltDate": "2026-09-17",
+      "release": {
+        "reopeningDate": "2026-10-12",
+        "symbols": {
+          "014160": "KR7014160006"
+        }
+      }
+    },
+    {
+      "receipt": "20260916000256",
+      "kind": "CHANGED_LISTING_STATES_RELEASE_DATE_AND_CODES",
+      "captureKey": "body-20261015000299",
+      "listingReceipt": "20261015000129",
+      "listingDocument": "20261015000299",
+      "originalPublishedHaltDate": "2026-09-23",
+      "release": {
+        "reopeningDate": "2026-10-20",
+        "symbols": {
+          "093240": "KR7093240000"
+        }
+      }
+    },
+    {
+      "receipt": "20250630001090",
+      "kind": "DELISTING_NOTICE_NAMES_PREFERRED_AND_STATES_SCHEDULE",
+      "captureKey": "hanwha-preferred-delisting",
+      "symbol": "000885",
+      "publishedHaltDate": "2025-07-01",
+      "publishedReleaseDate": "2025-07-04"
+    },
+    {
+      "receipt": "20260713000599",
+      "kind": "WATCH_DESIGNATION_IDENTIFIES_PREFERRED_CLASS",
+      "captureKey": "seoul-food-preferred-watch",
+      "symbol": "004415",
+      "designationDate": "2026-07-14"
+    }
+  ],
+  "reviewedAt": "2026-11-15T09:53:26.130792+00:00",
+  "publicListingSearch": {
+    "path": "listing-candidates.json",
+    "sha256": "1bb37618015dcf1ad54d6237cfb82da9f44e7efffd8ab489cb8921450dbeebce",
+    "receiptCount": 105
+  },
+  "dailyUnavailableRanges": [
+    {
+      "symbol": "000075",
+      "requestedIsin": "KR7000071001",
+      "from": "2024-07-01",
+      "through": "2025-07-02",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "000885",
+      "requestedIsin": "KR7000881003",
+      "from": "2025-01-02",
+      "through": "2025-07-04",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "001140",
+      "requestedIsin": "KR7001140003",
+      "from": "2024-02-13",
+      "through": "2024-03-21",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "001725",
+      "requestedIsin": "KR7001721000",
+      "from": "2024-04-04",
+      "through": "2024-04-04",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "002785",
+      "requestedIsin": "KR7002781003",
+      "from": "2026-08-14",
+      "through": "2026-10-19",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "002787",
+      "requestedIsin": "KR7002782001",
+      "from": "2026-08-10",
+      "through": "2026-10-19",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "003410",
+      "requestedIsin": "KR7003410008",
+      "from": "2024-04-23",
+      "through": "2024-06-21",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "004415",
+      "requestedIsin": "KR7004411005",
+      "from": "2026-04-27",
+      "through": "2026-10-21",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "005390",
+      "requestedIsin": "KR7005390000",
+      "from": "2025-07-17",
+      "through": "2025-08-26",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "006380",
+      "requestedIsin": "KR7006380000",
+      "from": "2024-01-26",
+      "through": "2024-01-26",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "006390",
+      "requestedIsin": "KR7006390009",
+      "from": "2025-07-17",
+      "through": "2025-10-30",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "008110",
+      "requestedIsin": "KR7008110009",
+      "from": "2024-06-18",
+      "through": "2024-06-18",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "008500",
+      "requestedIsin": "KR7008500001",
+      "from": "2024-03-22",
+      "through": "2026-03-17",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "008500",
+      "requestedIsin": "KR7008500001",
+      "from": "2026-06-15",
+      "through": "2026-06-15",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "010420",
+      "requestedIsin": "KR7010420008",
+      "from": "2025-06-10",
+      "through": "2025-09-04",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "010600",
+      "requestedIsin": "KR7010600005",
+      "from": "2024-04-08",
+      "through": "2024-04-08",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "010620",
+      "requestedIsin": "KR7010620003",
+      "from": "2025-08-27",
+      "through": "2025-11-27",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "011155",
+      "requestedIsin": "KR7011151008",
+      "from": "2026-07-20",
+      "through": "2026-10-26",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "012510",
+      "requestedIsin": "KR7012510004",
+      "from": "2026-06-26",
+      "through": "2026-06-26",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "019440",
+      "requestedIsin": "KR7019440007",
+      "from": "2025-10-30",
+      "through": "2025-10-31",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "031440",
+      "requestedIsin": "KR7031440001",
+      "from": "2025-08-28",
+      "through": "2026-07-21",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "034300",
+      "requestedIsin": "KR7034300004",
+      "from": "2024-02-14",
+      "through": "2024-11-15",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "042670",
+      "requestedIsin": "KR7042670000",
+      "from": "2025-07-01",
+      "through": "2025-12-29",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "049770",
+      "requestedIsin": "KR7049770001",
+      "from": "2025-04-14",
+      "through": "2025-07-10",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "057050",
+      "requestedIsin": "KR7057050007",
+      "from": "2026-02-11",
+      "through": "2026-06-26",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "082640",
+      "requestedIsin": "KR7082640004",
+      "from": "2026-04-24",
+      "through": "2026-08-07",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "115390",
+      "requestedIsin": "KR7115390007",
+      "from": "2024-08-30",
+      "through": "2024-11-20",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "138490",
+      "requestedIsin": "KR7138490008",
+      "from": "2025-11-24",
+      "through": "2025-11-25",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "140910",
+      "requestedIsin": "KR7140910001",
+      "from": "2024-02-02",
+      "through": "2024-02-02",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "152550",
+      "requestedIsin": "KR7152550000",
+      "from": "2026-04-29",
+      "through": "2026-04-29",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "204210",
+      "requestedIsin": "KR7204210009",
+      "from": "2025-02-11",
+      "through": "2025-02-11",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "282690",
+      "requestedIsin": "KR7282690007",
+      "from": "2024-06-12",
+      "through": "2024-09-05",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    },
+    {
+      "symbol": "450140",
+      "requestedIsin": "KR7450140009",
+      "from": "2025-08-07",
+      "through": "2025-12-15",
+      "reason": "STOCK_FINDER_NO_RESULT",
+      "observedOnKst": "2026-11-15"
+    }
+  ]
+}
