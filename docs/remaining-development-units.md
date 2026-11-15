@@ -44,7 +44,7 @@ U02는 ①-06의 남은 시각·소비 근거를 좁혀 처리하는 작업입�
 
 완료 기준은 [5-08의 기존 7개 조건](multi-company-reference-cases.md)을 그대로 사용합니다. 개별 표본·문서·테스트 증가를 5-08 전체 완료율로 환산하지 않습니다.
 
-H05 거래소 조치는 [2023년 12월 후보 93건 확대 대조](historical-market-action-expansion.md)를 반영해 기존 목록 4,033건 중 163건을 검토했습니다. 복수 버전 공지 3건과 [본문 필드·대상 확인을 보류한 30건](historical-market-action-unconfirmed.md)의 후속 대조를 마쳤습니다. [코스피 정지·해제 5건](historical-market-action-kospi-share-classes.md)은 보통주 1건을 확인했고, 나머지 4건은 [종목코드별 조회 범위와 공개 근거](historical-market-action-kospi-halt-records.md)를 기록했습니다. 공식 과거 정지 이력 행과 시각이 포함된 시장조치 기록, 정지기간 변경 6건의 별도 적용일시, 다른 게시 월 후보 3,870건이 남았습니다. 당시 최초 공개 시각은 H06 근거로 확인해야 합니다.
+H05 거래소 조치는 [2023년 12월 후보 93건 확대 대조](historical-market-action-expansion.md)를 반영해 기존 목록 4,033건 중 163건을 검토했습니다. 복수 버전 공지 3건과 [본문 필드·대상 확인을 보류한 30건](historical-market-action-unconfirmed.md)의 후속 대조를 마쳤습니다. [코스피 정지·해제 5건](historical-market-action-kospi-share-classes.md)은 보통주 1건의 공지 적용 대상을 확인했고, 나머지 4건은 [KRX 7종목의 일자별 이력 12행](historical-market-action-kospi-halt-records.md#2026-11-15-krx-일자별-정지-이력-대조)을 공지 날짜와 대조했습니다. 시각이 포함된 종목별 시장조치 기록, 정지기간 변경 6건의 별도 적용일시, 다른 게시 월 후보 3,870건이 남았습니다. 당시 최초 공개 시각은 H06 근거로 확인해야 합니다.
 
 ## 계좌·수집·실시간 확장의 잔여 단위
 
