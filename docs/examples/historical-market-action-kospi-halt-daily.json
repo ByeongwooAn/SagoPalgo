@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "SAGOPALGO_H05_DECEMBER_KOSPI_HALT_DAILY_V1",
+  "parentRecord": "historical-market-action-kospi-halt-records.json",
+  "captureJob": "historical-market-action-kospi-halt-daily-20261115",
+  "source": {
+    "url": "https://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC02020602",
+    "screenNumber": "20011",
+    "market": "KOSPI",
+    "csvEncoding": "CP949",
+    "csvColumns": [
+      "번호",
+      "일자",
+      "종목코드",
+      "종목명",
+      "시장구분",
+      "정지여부"
+    ],
+    "scope": "ANY_HALT_DURING_THE_DATE",
+    "timeColumnsAvailable": false
+  },
+  "summary": {
+    "noticeCount": 4,
+    "issueCount": 7,
+    "rowCount": 12,
+    "haltYes": 7,
+    "haltNo": 5
+  },
+  "officialIssueTimeComparison": null,
+  "actualExecutionConfirmed": false,
+  "historicalFirstAvailabilityConfirmed": false,
+  "notices": [
+    {
+      "receipt": "20231221000448",
+      "kindNoticeUrl": "https://kind.krx.co.kr/external/2023/12/21/000448/20231221001197/99808.htm",
+      "noticeHaltKst": "2023-12-21T16:14:00+09:00",
+      "noticeReopeningKst": "2023-12-22T09:00:00+09:00",
+      "comparison": "HALT_DATE_Y_REOPENING_DATE_N",
+      "issues": [
+        {
+          "symbol": "336370",
+          "isin": "KR7336370002",
+          "shareClass": "보통주",
+          "krxIssueName": "솔루스첨단소재",
+          "firstDate": "2023-12-21",
+          "lastDate": "2023-12-22",
+          "haltByDate": {
+            "2023-12-21": "Y",
+            "2023-12-22": "N"
+          },
+          "csv": {
+            "fileName": "data_0048_20261115.csv",
+            "downloadedAtUtc": "2026-11-15T07:00:50+00:00",
+            "byteLength": 153,
+            "sha256": "6e9825925f97f5b940cc2b86222dfa190d6bb86f1214fc5b198f0ed57b83a805"
+          }
+        },
+        {
+          "symbol": "33637K",
+          "isin": "KR733637K010",
+          "shareClass": "구형우선주",
+          "krxIssueName": "솔루스첨단소재1우",
+          "firstDate": "2023-12-21",
+          "lastDate": "2023-12-22",
+          "haltByDate": {
+            "2023-12-21": "Y",
+            "2023-12-22": "N"
+          },
+          "csv": {
+            "fileName": "data_0127_20261115.csv",
+            "downloadedAtUtc": "2026-11-15T07:01:27+00:00",
+            "byteLength": 159,
+            "sha256": "b8b9fbe9964bac5f29f368b23518bcd0cdacbb71c7bc084c124dd28cc91256db"
+          }
+        },
+        {
+          "symbol": "33637L",
+          "isin": "KR733637K028",
+          "shareClass": "신형우선주",
+          "krxIssueName": "솔루스첨단소재2우B",
+          "firstDate": "2023-12-21",
+          "lastDate": "2023-12-22",
+          "haltByDate": {
+            "2023-12-21": "Y",
+            "2023-12-22": "N"
+          },
+          "csv": {
+            "fileName": "data_0204_20261115.csv",
+            "downloadedAtUtc": "2026-11-15T07:02:04+00:00",
+            "byteLength": 161,
+            "sha256": "deff650123bccf6ea89344cb444296aab1a8ec537a8c52c5cb518a5df1846f08"
+          }
+        }
+      ]
+    },
+    {
+      "receipt": "20231226000464",
+      "kindNoticeUrl": "https://kind.krx.co.kr/external/2023/12/26/000464/20231226001212/99808.htm",
+      "noticeHaltKst": "2023-12-26T16:14:00+09:00",
+      "noticeReopeningKst": "2023-12-27T09:00:00+09:00",
+      "comparison": "HALT_DATE_Y_REOPENING_DATE_N",
+      "issues": [
+        {
+          "symbol": "005500",
+          "isin": "KR7005500004",
+          "shareClass": "보통주",
+          "krxIssueName": "삼진제약",
+          "firstDate": "2023-12-26",
+          "lastDate": "2023-12-27",
+          "haltByDate": {
+            "2023-12-26": "Y",
+            "2023-12-27": "N"
+          },
+          "csv": {
+            "fileName": "data_0243_20261115.csv",
+            "downloadedAtUtc": "2026-11-15T07:02:43+00:00",
+            "byteLength": 141,
+            "sha256": "c4a3fe14381efb5a4048ffaee68930a1f1424d372c98ab04b71c434c98850a0a"
+          }
+        }
+      ]
+    },
+    {
+      "receipt": "20231226000602",
+      "kindNoticeUrl": "https://kind.krx.co.kr/external/2023/12/26/000602/20231226001584/99808.htm",
+      "noticeHaltKst": "2023-12-26T17:04:00+09:00",
+      "noticeReopeningKst": "2023-12-27T09:00:00+09:00",
+      "comparison": "HALT_DATE_Y_REOPENING_DATE_N",
+      "issues": [
+        {
+          "symbol": "000300",
+          "isin": "KR7000300004",
+          "shareClass": "보통주",
+          "krxIssueName": "대유플러스",
+          "firstDate": "2023-12-26",
+          "lastDate": "2023-12-27",
+          "haltByDate": {
+            "2023-12-26": "Y",
+            "2023-12-27": "N"
+          },
+          "csv": {
+            "fileName": "data_0312_20261115.csv",
+            "downloadedAtUtc": "2026-11-15T07:03:13+00:00",
+            "byteLength": 145,
+            "sha256": "d5f8cdb195fabd6e7c15f551bd0b86e780471a5c2bbfdd4e0a5eb78da49f3306"
+          }
+        }
+      ]
+    },
+    {
+      "receipt": "20231228000100",
+      "kindNoticeUrl": "https://kind.krx.co.kr/external/2023/12/28/000100/20231228000249/99808.htm",
+      "noticeHaltKst": "2023-12-28T10:08:00+09:00",
+      "noticeReopeningKst": "2023-12-28T10:38:00+09:00",
+      "comparison": "SAME_DATE_HALT_Y",
+      "issues": [
+        {
+          "symbol": "009410",
+          "isin": "KR7009410002",
+          "shareClass": "보통주",
+          "krxIssueName": "태영건설",
+          "firstDate": "2023-12-28",
+          "lastDate": "2023-12-28",
+          "haltByDate": {
+            "2023-12-28": "Y"
+          },
+          "csv": {
+            "fileName": "data_0340_20261115.csv",
+            "downloadedAtUtc": "2026-11-15T07:03:40+00:00",
+            "byteLength": 92,
+            "sha256": "a3b6313148a99f465c6dd8445cf613b3a84ff19ee8a2c1b8cdc9995267dbd28d"
+          }
+        },
+        {
+          "symbol": "009415",
+          "isin": "KR7009411000",
+          "shareClass": "구형우선주",
+          "krxIssueName": "태영건설우",
+          "firstDate": "2023-12-28",
+          "lastDate": "2023-12-28",
+          "haltByDate": {
+            "2023-12-28": "Y"
+          },
+          "csv": {
+            "fileName": "data_0513_20261115.csv",
+            "downloadedAtUtc": "2026-11-15T07:05:13+00:00",
+            "byteLength": 94,
+            "sha256": "1f24b9211baa4eb907635e9ca9733d84be46c9f892fb1cd827a3e61fcd39bb79"
+          }
+        }
+      ]
+    }
+  ]
+}
