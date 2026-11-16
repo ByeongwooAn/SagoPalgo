@@ -4,6 +4,8 @@ import com.sagopalgo.api.common.response.ApiResponse;
 import com.sagopalgo.api.papertrading.dto.PaperBuyRequest;
 import com.sagopalgo.api.papertrading.dto.PaperSellRequest;
 import com.sagopalgo.api.papertrading.dto.PaperTradingSnapshotResponse;
+import com.sagopalgo.api.papertrading.dto.UsPaperAccountRequest;
+import com.sagopalgo.api.papertrading.dto.UsPaperTradeRequest;
 import com.sagopalgo.api.papertrading.service.PaperTradingService;
 import com.sagopalgo.api.user.service.LocalUserContext;
 import jakarta.validation.Valid;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,5 +67,27 @@ public class PaperTradingController {
             paperTradingService.sell(localUserContext.userId(), request),
             "모의매도가 체결되었습니다."
         ));
+    }
+
+    @GetMapping("/us")
+    public ResponseEntity<ApiResponse<PaperTradingSnapshotResponse>> getUsSnapshot() {
+        return ResponseEntity.ok(ApiResponse.success(
+            paperTradingService.getUsSnapshot(localUserContext.userId()), "미국주식 모의매매 현황이 조회되었습니다."));
+    }
+
+    @PutMapping("/us/account")
+    public ResponseEntity<ApiResponse<PaperTradingSnapshotResponse>> openUsAccount(
+        @Valid @RequestBody UsPaperAccountRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+            paperTradingService.openUsAccount(localUserContext.userId(), request.initialCapital()), "USD 모의계좌가 준비되었습니다."));
+    }
+
+    @PostMapping("/us/trades")
+    public ResponseEntity<ApiResponse<PaperTradingSnapshotResponse>> tradeUs(
+        @Valid @RequestBody UsPaperTradeRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+            paperTradingService.tradeUs(localUserContext.userId(), request), "미국주식 모의매매 결과가 조회되었습니다."));
     }
 }

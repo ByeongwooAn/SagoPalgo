@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_version/models/paper_trading.dart';
 import 'package:app_version/models/recommendation.dart';
 import 'package:app_version/repositories/paper_trading_repository.dart';
@@ -6,6 +8,50 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets(
+    'US trading is reachable without KRW capital and retries the same order',
+    (tester) async {
+      final repository = _FakeUsPaperRepository();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaperTradingScreen(
+              repository: repository,
+              recommendation: null,
+              active: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('미국주식 모의매매 (USD)'));
+      await tester.pumpAndSettle();
+      expect(find.text('USD 모의계좌 개설'), findsOneWidget);
+      await tester.tap(find.text('USD 시작 자금 설정'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '1000.25');
+      await tester.tap(find.text('개설'));
+      await tester.pumpAndSettle();
+      expect(repository.capital, '1000.25');
+      expect(find.text('1000.25 USD'), findsWidgets);
+
+      await tester.tap(find.text('미국주식 모의매수'));
+      await tester.pumpAndSettle();
+      final inputs = find.byType(TextFormField);
+      await tester.enterText(inputs.at(0), 'aapl');
+      await tester.enterText(inputs.at(1), '.1234');
+      await tester.tap(find.text('현재가로 모의매수'));
+      await tester.pumpAndSettle();
+      expect(repository.orders.single.stockCode, 'AAPL');
+      expect(repository.orders.single.quantity, '.1234');
+      await tester.tap(find.text('같은 주문으로 결과 확인'));
+      await tester.pumpAndSettle();
+      expect(repository.orders, hasLength(2));
+      expect(repository.orders.last, repository.orders.first);
+      expect(find.text('같은 주문으로 결과 확인'), findsNothing);
+    },
+  );
+
   testWidgets('inactive paper trading tab does not request data', (
     tester,
   ) async {
@@ -71,6 +117,56 @@ void main() {
     expect(repository.sellQuantity, 2);
     expect(find.text('삼성전자 모의매도가 체결되었습니다.'), findsOneWidget);
   });
+}
+
+class _FakeUsPaperRepository extends _FakePaperTradingRepository
+    implements UsPaperTradingRepository {
+  String? capital;
+  final orders = <UsPaperOrder>[];
+
+  @override
+  Future<PaperTradingSnapshot> fetchSnapshot() async =>
+      throw const PaperTradingRepositoryException(
+        '원화 자본금 미설정',
+        code: 'PAPER_CAPITAL_REQUIRED',
+      );
+
+  @override
+  Future<PaperTradingSnapshot> fetchUsSnapshot() async {
+    final amount = double.tryParse(capital ?? '') ?? 0;
+    return PaperTradingSnapshot(
+      currency: 'USD',
+      summary: PaperTradingSummary(
+        initialCapital: amount,
+        cashBalance: amount,
+        openPositionValue: 0,
+        totalAsset: amount,
+        realizedProfit: 0,
+        unrealizedProfit: 0,
+        totalProfit: 0,
+        returnRate: 0,
+        completedTrades: 0,
+        winRate: 0,
+        maxLoss: 0,
+        turnoverRate: 0,
+      ),
+      positions: const [],
+      trades: const [],
+    );
+  }
+
+  @override
+  Future<PaperTradingSnapshot> openUsAccount(String initialCapital) {
+    capital = initialCapital;
+    return fetchUsSnapshot();
+  }
+
+  @override
+  Future<PaperTradingSnapshot> tradeUs(UsPaperOrder order) {
+    orders.add(order);
+    if (orders.length == 1) throw TimeoutException('unconfirmed');
+    return fetchUsSnapshot();
+  }
 }
 
 const _recommendation = InvestmentRecommendation(

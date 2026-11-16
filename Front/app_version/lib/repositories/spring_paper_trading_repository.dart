@@ -9,7 +9,10 @@ import 'order_simulation_repository.dart';
 
 /// Spring Boot 모의매매 API를 호출합니다.
 class SpringPaperTradingRepository
-    implements PaperTradingRepository, OrderSimulationRepository {
+    implements
+        PaperTradingRepository,
+        OrderSimulationRepository,
+        UsPaperTradingRepository {
   SpringPaperTradingRepository({
     required this.accessToken,
     ApiConfig? config,
@@ -20,6 +23,44 @@ class SpringPaperTradingRepository
   final String accessToken;
   final ApiConfig config;
   final http.Client client;
+
+  @override
+  Future<PaperTradingSnapshot> fetchUsSnapshot() => _usRequest('GET', '/us');
+
+  @override
+  Future<PaperTradingSnapshot> openUsAccount(String initialCapital) =>
+      _usRequest('PUT', '/us/account', {'initialCapital': initialCapital});
+
+  @override
+  Future<PaperTradingSnapshot> tradeUs(UsPaperOrder order) =>
+      _usRequest('POST', '/us/trades', {
+        'stockCode': order.stockCode,
+        'market': order.market,
+        'side': order.side,
+        'quantity': order.quantity,
+        'requestId': order.requestId,
+      });
+
+  Future<PaperTradingSnapshot> _usRequest(
+    String method,
+    String path, [
+    Map<String, String>? body,
+  ]) async {
+    final request = http.Request(
+      method,
+      Uri.parse('${config.paperTradingBaseUrl}$path'),
+    )..headers.addAll(_headers(contentType: body != null));
+    if (body != null) request.body = jsonEncode(body);
+    final response = await client
+        .send(request)
+        .then(http.Response.fromStream)
+        .timeout(const Duration(seconds: 30));
+    final snapshot = _snapshot(response);
+    if (snapshot.currency != 'USD') {
+      throw const FormatException('USD 모의매매 응답을 확인할 수 없습니다.');
+    }
+    return snapshot;
+  }
 
   Future<dynamic> _simulationRequest(
     String path, [

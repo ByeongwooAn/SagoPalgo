@@ -8,6 +8,7 @@ import java.util.List;
 public record PaperTradingSnapshotResponse(
     PaperTradingSummaryResponse summary,
     List<PaperPositionResponse> positions,
-    List<PaperTradeResponse> trades
+    List<PaperTradeResponse> trades,
+    String currency
 ) {
 }

@@ -11,6 +11,7 @@ public class PaperTradeRecord {
     private Long tradeRecordId;
     private Long userId;
     private Long recommendationId;
+    private String requestId;
     private String stockCode;
     private String stockName;
     private String market;
@@ -29,6 +30,8 @@ public class PaperTradeRecord {
     public void setUserId(Long userId) { this.userId = userId; }
     public Long getRecommendationId() { return recommendationId; }
     public void setRecommendationId(Long recommendationId) { this.recommendationId = recommendationId; }
+    public String getRequestId() { return requestId; }
+    public void setRequestId(String requestId) { this.requestId = requestId; }
     public String getStockCode() { return stockCode; }
     public void setStockCode(String stockCode) { this.stockCode = stockCode; }
     public String getStockName() { return stockName; }
