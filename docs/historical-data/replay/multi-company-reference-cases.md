@@ -60,7 +60,7 @@
 
 이번 5건은 1·4·6·7의 대표 사례 근거를 늘렸습니다. 2·3의 달력/세션 수치는 변하지 않았습니다. `marketUniverseComplete=false`, `corporateActionsComplete=false`, `calendarComplete=false`, `usableForTraining=false`를 유지합니다. 전체 기간 누락을 개별 사례 추가로 지우지 않습니다.
 
-H05 배당 후속 대조에서 발행사 지급 보고 24건을 확인했습니다. 4,343건의 세이브로 후보 중 4,319건의 실제 지급일과 당시 최초 가용 시각 검증이 남았습니다. [발행사·지급연도별 배당 감사](../corporate-actions/historical-dividend-payments.md)
+H05 배당 후속 대조에서 2023년 지급 후보 29건의 원문을 확인해 실제 지급 근거 4건을 추가했습니다. 전체 세이브로 후보 4,343건 중 실제 지급 확인 28건, 미확정 4,315건이며 당시 최초 가용 시각 검증이 남았습니다. [2023년 지급 대조](../corporate-actions/historical-dividend-2023.md)
 
 ## 구현과 해석
 
