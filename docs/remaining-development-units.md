@@ -44,7 +44,7 @@ U02는 ①-06의 남은 시각·소비 근거를 좁혀 처리하는 작업입�
 
 완료 기준은 [5-08의 기존 7개 조건](multi-company-reference-cases.md)을 그대로 사용합니다. 개별 표본·문서·테스트 증가를 5-08 전체 완료율로 환산하지 않습니다.
 
-H05 거래소 조치는 [기존 표본과 2023년 12월 확대 검토](historical-market-action-expansion.md) 163건과 [월별 원문 대조](historical-market-action-monthly.md) 3,870건으로 고정 목록 4,033건의 검토 기록을 갖췄습니다. [상호·보통주 식별자 대조](historical-market-action-identity.md)에서 고정 범위 내 247행의 당시 코드와 ISIN을 확인했습니다. [코스피 적용 주권 대조](historical-kospi-halt-scope.md)에서 390건에 KRX 20011 조회 638개 조합의 응답 547개와 종목 검색 미반환 91개를 연결했습니다. 다음은 미반환 32종목을 당시 코드·ISIN으로 조회해 KIND 원문 근거 또는 미확정 사유를 기록하는 작업입니다. 실제 적용 시각에는 별도의 종목별 상태 전환 자료가 필요하며 당시 최초 공개 시각은 H06에서 확인합니다. 2023년 12월 코스피 7종목의 분 단위 적용 시각은 [보류 작업](deferred-work.md)에서 추적합니다.
+H05 거래소 조치는 [기존 표본과 2023년 12월 확대 검토](historical-market-action-expansion.md) 163건과 [월별 원문 대조](historical-market-action-monthly.md) 3,870건으로 고정 목록 4,033건의 검토 기록을 갖췄습니다. [상호·보통주 식별자 대조](historical-market-action-identity.md)에서 고정 범위 내 247행의 당시 코드와 ISIN을 확인했습니다. [코스피 적용 주권 대조](historical-kospi-halt-scope.md)에서 390건에 KRX 20011 조회 응답 547개를 연결하고 미반환 91개 중 89개를 KIND 종목 범위와 공지상 적용일에 연결했습니다. 삼양홀딩스1우선주의 나머지 2개 날짜의 적용 여부와 실제 조치 시각에는 종목별 상태 전환 자료가 필요하며 당시 최초 공개 시각은 H06에서 확인합니다. 2023년 12월 코스피 7종목의 분 단위 적용 시각은 [보류 작업](deferred-work.md)에서 추적합니다.
 
 ## 계좌·수집·실시간 확장의 잔여 단위
 
