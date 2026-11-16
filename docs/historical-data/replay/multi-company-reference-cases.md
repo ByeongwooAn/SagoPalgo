@@ -60,6 +60,8 @@
 
 이번 5건은 1·4·6·7의 대표 사례 근거를 늘렸습니다. 2·3의 달력/세션 수치는 변하지 않았습니다. `marketUniverseComplete=false`, `corporateActionsComplete=false`, `calendarComplete=false`, `usableForTraining=false`를 유지합니다. 전체 기간 누락을 개별 사례 추가로 지우지 않습니다.
 
+H05 배당 후속 대조에서 발행사 지급 보고 24건을 확인했습니다. 4,343건의 세이브로 후보 중 4,319건의 실제 지급일과 당시 최초 가용 시각 검증이 남았습니다. [발행사·지급연도별 배당 감사](../corporate-actions/historical-dividend-payments.md)
+
 ## 구현과 해석
 
 - `app/replay/kind_cases.py`의 `capture/build/audit/as-of`는 기존 연구 CLI와 동일하게 로컬 실행합니다. `build/audit/as-of`는 네트워크를 사용하지 않습니다. FastAPI·실시간 수집·주문 코드는 변경하지 않습니다.

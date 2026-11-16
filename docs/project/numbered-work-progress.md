@@ -1,5 +1,7 @@
 # 1~5번 작업 완료율과 고정 체크리스트
 
+2026-11-16 [H05 발행사·지급연도별 배당 대조](../historical-data/corporate-actions/historical-dividend-payments.md)에서 배당 4,343건 중 실제 지급 확인을 6건에서 24건으로 늘렸습니다. 지급일이 미확정인 4,319건을 행별로 남겼습니다. **27/46 · 59%, 5번 7/17 · 41%, 5-08 진행 중**입니다.
+
 2026-11-16 [H05 소각일 차이 15행 재검증](../historical-data/corporate-actions/historical-cancellation-event-dates.md)에서 11행의 단일 사건일과 노머스 1행의 두 사건을 기록했습니다. 3행의 상충 날짜와 제외 범위를 남겼습니다. **27/46 · 59%, 5번 7/17 · 41%, 5-08 진행 중**입니다.
 
 2026-11-16 [H05 소각일 미기재 121행 대조](../historical-data/corporate-actions/historical-cancellation-date-followup.md)에서 보통주 120행 중 단일 날짜 근거 107행을 확인했습니다. 날짜 충돌 12행, 여러 소각일이 합산된 1행, 보통주 범위 밖 주식예탁증서 1행을 기록했습니다. **27/46 · 59%, 5번 7/17 · 41%, 5-08 진행 중**입니다.
