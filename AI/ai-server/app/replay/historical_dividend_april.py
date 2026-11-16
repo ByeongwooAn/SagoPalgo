@@ -1,0 +1,354 @@
+"""Rebuild the 2024-04 dividend review from pinned OpenDART and Seibro evidence."""
+
+import argparse
+from collections import Counter
+from datetime import date
+from decimal import Decimal, ROUND_HALF_UP
+from html import unescape
+from io import BytesIO
+from pathlib import Path
+import re
+from zipfile import ZipFile
+
+from .corporate_action_outcomes import checked_read, require
+from .dataset import canonical, digest, read_json
+from .historical_dividend_payments import CONFIRMED, POST_PAYMENT, UNRESOLVED, UNREVIEWED
+from .krx_baseline_validation import immutable_json
+from .models import utc
+
+
+SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_APRIL_V1"
+MARKETS = {"Y": "KOSPI", "K": "KOSDAQ"}
+ROW_ID = re.compile(r"[0-9]{14}")
+HASH = re.compile(r"[a-f0-9]{64}")
+HTML_ROW = re.compile(r"<tr\b[^<>]*>(.*?)</tr>", re.I | re.S)
+HTML_CELL = re.compile(r"<t[dh]\b[^<>]*>(.*?)</t[dh]>", re.I | re.S)
+TAG = re.compile(r"<[^<>]*>")
+DATE = re.compile(r"(?<!\d)(20\d{2}|\d{2})(?:\s*년\s*|[-./]\s*)(\d{1,2})(?:\s*월\s*|[-./]\s*)(\d{1,2})(?!\d)")
+NUMBER = re.compile(r"(?:[0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)(?:\.[0-9]+)?")
+DECISION_TITLE = re.compile(r"현금(?:[ㆍ·.\s]*현물)?\s*배당\s*결정|금전\s*배당\s*결정|금전\s*분배\s*결의")
+REPORT_TITLE = re.compile(r"(?:사업|반기|분기)\s*보고서")
+DART = "https://dart.fss.or.kr/dsaf001/main.do?rcpNo="
+NAVER_IR = ("https://kind.krx.co.kr/external/2024/06/26/000486/20240625001176/"
+            "NAVER_Integrated_Report_2023_ver3.pdf")
+IR_ID = "naver-2023-integrated"
+FIELD_INPUTS = {"recordDate": "recordDate", "actualPaymentDate": "displayedPaymentDate",
+                "commonCashPerShare": "commonCashPerShare"}
+
+
+def plain(value):
+    return " ".join(unescape(TAG.sub(" ", value)).split())
+
+
+def label(value):
+    return re.sub(r"\s+", "", re.sub(r"^\d+\.\s*", "", value))
+
+
+def dates(value):
+    result = []
+    for year, month, day in DATE.findall(value):
+        try:
+            result.append(date(int(year) + (2000 if len(year) == 2 else 0), int(month), int(day)).isoformat())
+        except ValueError:
+            continue
+    return result
+
+
+def decision_facts(source):
+    """Read only value cells in the current decision form, excluding the correction comparison."""
+    cells = [[plain(cell) for cell in HTML_CELL.findall(row)] for row in HTML_ROW.findall(source)]
+    records, amounts, schedules = {}, {}, {}
+    for row in cells:
+        values = [label(cell) for cell in row]
+        if len(row) == 2 and values[0] in {"배당기준일", "분배기준일"}:
+            day = dates(row[1])
+            if len(day) == 1:
+                records[day[0]] = row
+        if len(row) == 3 and values[0] in {"1주당배당금(원)", "주당배당금(원)"} and values[1] in {"보통주식", "보통주"}:
+            if NUMBER.fullmatch(row[2]):
+                amounts[row[2].replace(",", "")] = row
+        if len(row) == 2 and values[0] == "분배금액(원)" and NUMBER.fullmatch(row[1]):
+            amounts[row[1].replace(",", "")] = row
+        if len(row) == 2 and values[0] in {"배당금지급예정일", "배당금지급예정일자"}:
+            schedules[row[1]] = row
+    return records, amounts, schedules
+
+
+def load_indexes(job, pins, selected_receipts, at):
+    require(bool(pins), "APRIL_EMPTY_INDEX")
+    receipts = {}
+    for name, expected_hash in pins.items():
+        require(re.fullmatch(r"(?:periodic|decision|target)-[YK]-[0-9-]+", name), "APRIL_INDEX_NAME")
+        folder = job / "index" / name
+        proof = read_json(checked_read(folder / "receipt.json", expected_hash))
+        request = proof["request"]
+        require(utc(proof["startedAt"]) <= utc(proof["capturedAt"]) <= at and request["corp_cls"] in MARKETS
+                and "crtfc_key" not in request, "APRIL_PAGE_BINDING")
+        result = read_json(checked_read(folder / "raw.json", proof["sha256"]))
+        if result["status"] == "013":
+            continue
+        require(result["status"] == "000" and int(result["page_no"]) == int(request["page_no"]), "APRIL_DART_LIST")
+        for row in result["list"]:
+            receipt = row["rcept_no"]
+            if receipt not in selected_receipts:
+                continue
+            require(ROW_ID.fullmatch(receipt) and row["corp_cls"] == request["corp_cls"]
+                    and request["bgn_de"] <= row["rcept_dt"] <= request["end_de"]
+                    and row["rcept_dt"] == receipt[:8], "APRIL_LIST_ROW_IDENTITY")
+            present = receipts.setdefault(receipt, row)
+            require(present == row, "APRIL_LIST_RECEIPT_CONFLICT")
+    require(receipts.keys() == selected_receipts, "APRIL_MISSING_INDEX_RECEIPT")
+    return receipts
+
+
+def load_document(job, receipt, expected_hash, item, at):
+    require(ROW_ID.fullmatch(receipt), "APRIL_DOCUMENT_RECEIPT")
+    folder = job / "documents" / receipt
+    capture = read_json(checked_read(folder / "receipt.json", expected_hash))
+    require(capture["receiptNumber"] == receipt and capture["source"] == "OpenDART document.xml"
+            and utc(capture["startedAt"]) <= utc(capture["capturedAt"]) <= at, "APRIL_DOCUMENT_BINDING")
+    status = capture["status"]
+    raw = checked_read(folder / ("original.zip" if status == "CAPTURED" else "response.bin"), capture["sha256"])
+    filing = date(int(receipt[:4]), int(receipt[4:6]), int(receipt[6:8])).isoformat()
+    proof = {"receipt": receipt, "sourceUrl": DART + receipt, "reportedOn": filing, "title": item["report_nm"].strip(),
+             "observedAt": capture["capturedAt"], "archiveSha256": capture["sha256"], "status": status}
+    if status != "CAPTURED":
+        return None, proof
+    with ZipFile(BytesIO(raw)) as archive:
+        entries = archive.infolist()
+        main = [entry for entry in entries if entry.filename == f"{receipt}.xml"]
+        require(1 <= len(entries) <= 32 and len(main) == 1
+                and 0 < main[0].file_size <= 32 * 1024 * 1024, "APRIL_DART_DOCUMENT_LAYOUT")
+        body = archive.read(main[0]).decode("utf-8-sig")
+    company = re.search(r'<COMPANY-NAME\b[^<>]*\bAREGCIK="([0-9]{8})"', body)
+    if company:
+        require(company[1] == item["corp_code"], "APRIL_CONTENT_ISSUER")
+    return body, proof
+
+
+def compare(value, expected, proof, markers):
+    same = Decimal(value) == Decimal(expected) if NUMBER.fullmatch(value) and NUMBER.fullmatch(expected) else value == expected
+    return {"status": "MATCH" if same else "DIFFERS", "issuerValue": value,
+            "seibroValue": expected, "evidence": [proof | {"markers": markers}]}
+
+
+def unknown(expected, reason, evidence=()):
+    return {"status": "UNVERIFIED", "seibroValue": expected, "reason": reason, "evidence": list(evidence)}
+
+
+def select_decision(target, decisions):
+    basis = target["recordDate"]
+    matching = [entry for entry in decisions if basis in entry[0][0]]
+    return max(matching, key=lambda entry: entry[1]["receipt"]) if matching else None
+
+
+def decision_fields(target, reviewed, fallback):
+    basis, amount = target["recordDate"], target["commonCashPerShare"]
+    selected = select_decision(target, reviewed)
+    if selected is None:
+        evidence = [proof for _, proof in reviewed]
+        return unknown(basis, fallback, evidence), unknown(amount, fallback, evidence), None
+    (records, amounts, schedules), proof = selected
+    record = compare(basis, basis, proof, records[basis])
+    if len(amounts) == 1:
+        value, markers = next(iter(amounts.items()))
+        cash = compare(value, amount, proof, markers)
+    else:
+        cash = unknown(amount, "대상 회차 결정공시에서 단일 보통주 주당액을 판독하지 못함", [proof])
+    plan = next(iter(schedules)) if len(schedules) == 1 else None
+    return record, cash, plan
+
+
+def manual_payment(target, entry, markers_found, report):
+    expected = target["displayedPaymentDate"]
+    value, marker = entry["value"], entry["marker"]
+    expected_basis = target["recordDate"]
+    explicit_date = value in dates(marker)
+    if report["receipt"] == IR_ID:
+        year, month, day = (int(part) for part in value.split("-"))
+        explicit_date = explicit_date or (
+            f"{year}년" in marker and re.search(fr"\b{month}월\s*{day}일\s*지급", marker)
+        )
+    require(report["reportedOn"] > max(value, expected) and marker in markers_found and explicit_date,
+            "APRIL_PAYMENT_MARKER")
+    require(not re.search(r"지급\s*예정|지급\s*결의일", marker) and
+            (POST_PAYMENT.search(marker) or re.search(r"배당금\s*지급\s*일(?:자)?(?:은|는|\s|[:：])", marker)),
+            "APRIL_PAYMENT_EXPRESSION")
+    if target["symbol"] == "015360":
+        require(expected_basis in dates(marker) or entry.get("roundMarker") in {"결산배당", "분기배당"}
+                and entry["roundMarker"] in marker, "APRIL_MULTIPLE_DISTRIBUTIONS")
+    return compare(value, expected, report, [marker])
+
+
+def naver_ir(job, pin, at):
+    from pypdf import PdfReader
+
+    folder = job / "ir" / IR_ID
+    proof = read_json(checked_read(folder / "receipt.json", pin["sha256"]))
+    require(proof["url"] == NAVER_IR and utc(proof["startedAt"]) <= utc(proof["capturedAt"]) <= at,
+            "APRIL_IR_BINDING")
+    raw = checked_read(folder / "original.pdf", proof["sha256"])
+    page = pin["page"]
+    pages = PdfReader(BytesIO(raw)).pages
+    require(type(page) is int and 1 <= page <= len(pages), "APRIL_IR_PAGE")
+    return " ".join(pages[page - 1].extract_text().split()), {
+        "receipt": IR_ID, "sourceUrl": f"{NAVER_IR}#page={page}", "reportedOn": "2024-06-26",
+        "title": "NAVER 2023 통합보고서", "observedAt": proof["capturedAt"], "archiveSha256": proof["sha256"],
+        "status": "CAPTURED", "page": page,
+    }
+
+
+def prior_field(target, name):
+    expected = target[FIELD_INPUTS[name]]
+    if target["status"] == CONFIRMED:
+        return compare(expected, expected, target["issuerEvidence"][name], [])
+    if target["status"] == UNRESOLVED and name == "actualPaymentDate":
+        detail = " · ".join(review["detail"] or {
+            "PLANNED_DATE_ONLY": "기존 정정 원문에 지급 예정일만 기재",
+            "OTHER_DISTRIBUTION": "기존 정정 원문은 다른 배당 회차",
+        }.get(review["reason"], review["reason"]) for review in target["reviews"])
+        return unknown(expected, detail, (review["evidence"] for review in target["reviews"]))
+    return None
+
+
+def supplemental_field(name, target, pin, proof, present):
+    markers, value = pin["markers"], pin["value"]
+    require(markers and set(markers) <= present, "APRIL_SUPPLEMENTAL_MARKERS")
+    if name == "recordDate":
+        require(value in dates(" ".join(markers)), "APRIL_SUPPLEMENTAL_DATE")
+    else:
+        amounts = {Decimal(token.replace(",", "")) for token in NUMBER.findall(" ".join(markers))}
+        if calculation := pin.get("calculation"):
+            total, shares = (Decimal(calculation[k]) for k in ("totalKrw", "shares"))
+            require(total in amounts and shares in amounts and shares > 0
+                    and (total / shares).quantize(Decimal("0.0000000001"), rounding=ROUND_HALF_UP) == Decimal(value),
+                    "APRIL_SUPPLEMENTAL_AMOUNT_FORMULA")
+        else:
+            require(Decimal(value) in amounts, "APRIL_SUPPLEMENTAL_AMOUNT")
+    result = compare(value, target[FIELD_INPUTS[name]], proof, markers)
+    if "calculation" in pin:
+        result["calculation"] = pin["calculation"]
+    return result
+
+
+def build(manifest, artifacts, job):
+    spec = read_json(manifest.read_bytes())
+    require(spec["schemaVersion"] == SCHEMA, "APRIL_SCHEMA")
+    at = utc(spec["reviewedAt"])
+    parent_spec = spec["input"]
+    parent = read_json(checked_read(artifacts / parent_spec["path"], parent_spec["sha256"]))
+    require(utc(parent["knownAt"]) <= at, "APRIL_FUTURE_PARENT")
+    targets = {r["ksdRowSha256"]: r for group in parent["issuerYears"] for r in group["events"]
+               if r["displayedPaymentDate"].startswith("2024-04")}
+    require(len(targets) == 1130 and set(targets) == set(spec["rows"])
+            and Counter(row["status"] for row in targets.values()) ==
+            {CONFIRMED: 3, UNRESOLVED: 4, UNREVIEWED: 1123}, "APRIL_SCOPE")
+    inventory = load_indexes(job, spec["indexPages"], set(spec["documents"]), at)
+    results = []
+    decision_cache, report_cache = {}, {}
+    markers_by_receipt, checked_markers = {}, {}
+    for row in spec["rows"].values():
+        if "actual" in row:
+            entry = row["actual"]
+            markers_by_receipt.setdefault(entry["receipt"], set()).add(entry["marker"])
+        for field in row.get("fieldEvidence", {}).values():
+            markers_by_receipt.setdefault(field["receipt"], set()).update(field["markers"])
+    if IR_ID in markers_by_receipt:
+        content, proof = naver_ir(job, spec["naverIr"], at)
+        checked_markers[IR_ID] = {marker for marker in markers_by_receipt[IR_ID] if marker in content}
+        report_cache[IR_ID] = True, proof
+    for row_hash, target in sorted(targets.items(), key=lambda pair: (
+        pair[1]["market"], pair[1]["symbol"], pair[1]["recordDate"], pair[1]["displayedPaymentDate"],
+    )):
+        row = spec["rows"][row_hash]
+        require(HASH.fullmatch(row_hash), "APRIL_ROW_HASH")
+        fields = {}
+        documents = {"decisions": [], "reports": []}
+        if target["status"] != CONFIRMED:
+            for kind, cache in (("decisions", decision_cache), ("reports", report_cache)):
+                for receipt in row[kind]:
+                    if receipt == IR_ID:
+                        require(kind == "reports" and target["symbol"] == "035420", "APRIL_IR_ISSUER")
+                        documents[kind].append(report_cache[receipt])
+                        continue
+                    item = inventory[receipt]
+                    require(MARKETS[item["corp_cls"]] == target["market"] and item["stock_code"] == target["symbol"],
+                            "APRIL_DOCUMENT_WRONG_ISSUER")
+                    title = DECISION_TITLE if kind == "decisions" else REPORT_TITLE
+                    require(title.search(item["report_nm"]), "APRIL_DOCUMENT_TITLE")
+                    if receipt not in cache:
+                        body, proof = load_document(job, receipt, spec["documents"][receipt], item, at)
+                        if body is not None:
+                            markers = markers_by_receipt.get(receipt, set())
+                            if markers:
+                                normalized = plain(body)
+                                checked_markers[receipt] = {marker for marker in markers if marker in normalized}
+                            body = decision_facts(body) if kind == "decisions" else True
+                        cache[receipt] = body, proof
+                    documents[kind].append(cache[receipt])
+                    if kind == "reports":
+                        require(cache[receipt][1]["reportedOn"] > target["displayedPaymentDate"], "APRIL_REPORT_DATE")
+            readable_decisions = [(facts, proof) for facts, proof in documents["decisions"] if facts is not None]
+            reason = row.get("decisionGap") or ("확보한 배당 결정공시의 기준일에서 대상 회차를 찾지 못함"
+                                                if readable_decisions else "조회한 공시 목록에서 대상 회차의 결정 원문 미확보")
+            fields["recordDate"], fields["commonCashPerShare"], plan = decision_fields(target, readable_decisions, reason)
+            for key in ("recordDate", "commonCashPerShare"):
+                if not fields[key]["evidence"]:
+                    searched = documents["decisions"] or documents["reports"]
+                    fields[key]["evidence"] = [proof for _, proof in searched]
+            referenced = {proof["receipt"]: proof for group in documents.values() for content, proof in group
+                          if content is not None}
+            for key, pin in row.get("fieldEvidence", {}).items():
+                require(key in {"recordDate", "commonCashPerShare"}, "APRIL_SUPPLEMENTAL_FIELD")
+                receipt = pin["receipt"]
+                fields[key] = supplemental_field(key, target, pin, referenced[receipt], checked_markers[receipt])
+            expected = target["displayedPaymentDate"]
+            fields["actualPaymentDate"] = prior_field(target, "actualPaymentDate")
+            if "actual" in row:
+                require(target["status"] == UNREVIEWED, "APRIL_PRIOR_STATUS")
+                receipt = row["actual"]["receipt"]
+                require(receipt in row["reports"], "APRIL_PAYMENT_SOURCE_ROLE")
+                fields["actualPaymentDate"] = manual_payment(target, row["actual"], checked_markers.get(receipt, ()),
+                                                              referenced[receipt])
+            if fields["actualPaymentDate"] is None:
+                read = [(text, proof) for text, proof in documents["reports"] if text is not None]
+                reason = row.get("paymentGap") or (
+                    "지급 후 정기보고서 검토 범위에서 해당 회차의 실제 지급일 근거 미확인" if read
+                    else "지급 후 조회 범위에서 해당 회차를 대조할 정기보고서 원문 미확보"
+                )
+                if plan and plan != "-":
+                    reason += f" · 결정공시 예정 표기 {plan}"
+                fields["actualPaymentDate"] = unknown(expected, reason, (proof for _, proof in documents["reports"]))
+        else:
+            fields = {name: prior_field(target, name) for name in FIELD_INPUTS}
+        status = CONFIRMED if all(field["status"] == "MATCH" for field in fields.values()) else UNRESOLVED
+        require(target["status"] == UNREVIEWED or target["status"] == status, "APRIL_PRIOR_STATUS")
+        results.append({"market": target["market"], "symbol": target["symbol"], "issuer": target["issuer"],
+                        "ksdRowSha256": row_hash, "ksdScheduleRowSha256": target["ksdScheduleRowSha256"],
+                        "priorStatus": target["status"], "status": status, "fields": fields,
+                        "reviewedDecisions": [proof for _, proof in documents["decisions"]],
+                        "reviewedReports": [proof for _, proof in documents["reports"]]})
+    return {"schemaVersion": SCHEMA, "manifestSha256": digest(canonical(spec)), "knownAt": at.isoformat(),
+            "rows": results, "statusCounts": dict(Counter(row["status"] for row in results)),
+            "fieldCounts": {name: dict(Counter(row["fields"][name]["status"] for row in results)) for name in FIELD_INPUTS},
+            "historicalFirstAvailabilityConfirmed": False, "usableForTraining": False, "usableForTrading": False}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("action", choices=("build", "audit"))
+    for name in ("manifest", "artifacts", "job", "rows"):
+        parser.add_argument("--" + name, type=Path, required=True)
+    args = parser.parse_args()
+    result = build(args.manifest, args.artifacts, args.job)
+    output = b"".join(canonical(row) + b"\n" for row in result["rows"])
+    if args.action == "audit" or args.rows.exists():
+        require(args.rows.read_bytes().replace(b"\r\n", b"\n") == output, "APRIL_PUBLISHED_ROWS_MISMATCH")
+    else:
+        args.rows.write_bytes(output)
+    immutable_json(args.job / "report.json", result, require_existing=args.action == "audit")
+    print(result["statusCounts"], result["fieldCounts"])
+
+
+if __name__ == "__main__":
+    main()
