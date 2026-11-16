@@ -46,6 +46,8 @@ U02는 ①-06의 남은 시각·소비 근거를 좁혀 처리하는 작업입�
 
 완료 기준은 [5-08의 기존 7개 조건](../historical-data/replay/multi-company-reference-cases.md)을 그대로 사용합니다. 개별 표본·문서·테스트 증가를 5-08 전체 완료율로 환산하지 않습니다.
 
+H05 소각일 미기재 121행 중 보통주 120행의 세이브로 수량을 대조했습니다. 단일 날짜 근거 107행을 기록했고, 날짜 충돌 12행과 노머스의 복수 날짜 1행은 사건 단위 확인이 남았습니다. 기존 고려아연·셀트리온 2행의 날짜 차이와 함께 다음 소각 검증 범위로 추적합니다. [121행 대조](../historical-data/corporate-actions/historical-cancellation-date-followup.md) · [기존 날짜 차이](../historical-data/corporate-actions/historical-cancellation-share-classes.md)
+
 H05 거래소 조치는 [기존 표본과 2023년 12월 확대 검토](../historical-data/corporate-actions/historical-market-action-expansion.md) 163건과 [월별 원문 대조](../historical-data/corporate-actions/historical-market-action-monthly.md) 3,870건으로 고정 목록 4,033건의 검토 기록을 갖췄습니다. [상호·보통주 식별자 대조](../historical-data/corporate-actions/historical-market-action-identity.md)에서 고정 범위 내 247행의 당시 코드와 ISIN을 확인했습니다. [코스피 적용 주권 대조](../historical-data/corporate-actions/historical-kospi-halt-scope.md)에서 390건에 KRX 20011 조회 응답 547개를 연결하고 미반환 91개 중 89개를 KIND 종목 범위와 공지상 적용일에 연결했습니다. 삼양홀딩스1우선주의 나머지 2개 날짜의 적용 여부와 실제 조치 시각에는 종목별 상태 전환 자료가 필요하며 당시 최초 공개 시각은 H06에서 확인합니다. 2023년 12월 코스피 7종목의 분 단위 적용 시각은 [보류 작업](deferred-work.md)에서 추적합니다.
 
 ## 계좌·수집·실시간 확장의 잔여 단위
