@@ -155,6 +155,12 @@ class _PortfolioContent extends StatelessWidget {
             action: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (marketDataRepository is UsStockLookup)
+                  IconButton.filledTonal(
+                    onPressed: () => _openUsStockLookup(context),
+                    tooltip: '미국주식 시세 조회',
+                    icon: const Icon(Icons.public),
+                  ),
                 if (orderPrecheckRepository is ManualOrderRepository)
                   IconButton.filledTonal(
                     onPressed: () => Navigator.of(context).push(
@@ -360,6 +366,84 @@ class _PortfolioContent extends StatelessWidget {
         }
       },
       successMessage: holding == null ? '보유 종목을 등록했습니다.' : '보유 종목을 수정했습니다.',
+    );
+  }
+
+  Future<void> _openUsStockLookup(BuildContext context) async {
+    var market = 'NASDAQ';
+    var ticker = '';
+    final result = await showDialog<({String ticker, String market})>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          final valid =
+              ticker.length <= 16 &&
+              RegExp(
+                r'^[A-Z][A-Z0-9]{0,14}(?:[.-][A-Z0-9]{1,4})?$',
+              ).hasMatch(ticker);
+          void open() =>
+              Navigator.of(context).pop((ticker: ticker, market: market));
+          return AlertDialog(
+            title: const Text('미국주식 시세 조회'),
+            content: SizedBox(
+              width: 320,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    initialValue: market,
+                    decoration: const InputDecoration(labelText: '거래소'),
+                    items: const [
+                      DropdownMenuItem(value: 'NASDAQ', child: Text('나스닥')),
+                      DropdownMenuItem(value: 'NYSE', child: Text('뉴욕증권거래소')),
+                      DropdownMenuItem(
+                        value: 'AMEX',
+                        child: Text('NYSE American'),
+                      ),
+                    ],
+                    onChanged: (value) =>
+                        setState(() => market = value ?? market),
+                  ),
+                  TextField(
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: '티커',
+                      hintText: 'AAPL',
+                    ),
+                    onChanged: (value) =>
+                        setState(() => ticker = value.trim().toUpperCase()),
+                    onSubmitted: (_) {
+                      if (valid) open();
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('취소'),
+              ),
+              FilledButton(
+                onPressed: valid ? open : null,
+                child: const Text('조회'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (result == null || !context.mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => MarketCandleScreen(
+          stockCode: result.ticker,
+          stockName: result.ticker,
+          market: result.market,
+          repository: marketDataRepository,
+          usLookup: marketDataRepository as UsStockLookup,
+        ),
+      ),
     );
   }
 

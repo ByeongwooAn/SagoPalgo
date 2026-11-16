@@ -9,6 +9,27 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
+  test('US quote preserves the ticker, exchange, and decimal price', () async {
+    final repository = SpringMarketDataRepository(
+      accessToken: 'test-token',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient((request) async {
+        expect(request.url.path, '/api/v1/market/stocks/BRK.B/quote');
+        expect(request.url.queryParameters['market'], 'NYSE');
+        expect(request.headers['Authorization'], 'Bearer test-token');
+        return http.Response(
+          '{"success":true,"data":{"provider":"KIS","stockCode":"BRK.B",'
+          '"market":"NYSE","currency":"USD","currentPrice":499.9875}}',
+          200,
+        );
+      }),
+    );
+    expect(await repository.fetchUsQuote('BRK.B', 'NYSE'), (
+      provider: 'KIS',
+      price: 499.9875,
+    ));
+  });
+
   test('fetchCandles maps candles and sends the selected interval', () async {
     final repository = SpringMarketDataRepository(
       accessToken: 'test-token',

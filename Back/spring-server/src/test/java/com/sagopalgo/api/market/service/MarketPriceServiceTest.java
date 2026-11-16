@@ -112,6 +112,33 @@ class MarketPriceServiceTest {
         return holding;
     }
 
+    @Test
+    void usLookupFallsBackToTossWithoutUsingUsdForKrwValuation() {
+        MarketPriceService service = new MarketPriceService(List.of(
+            new FixedMarketDataProvider("KB", true, "223.40", true),
+            new FixedMarketDataProvider("KIS", true, "0", false),
+            new FixedMarketDataProvider("TOSS", true, "223.125", false)
+        ));
+        StockQuote quote = service.getUsQuote(" aapl ", " nasdaq ");
+        assertThat(quote.provider()).isEqualTo("TOSS");
+        assertThat(quote.stockCode()).isEqualTo("AAPL");
+        assertThat(quote.currentPrice()).isEqualByComparingTo("223.125");
+        Holding existing = holding();
+        existing.setStockCode("AAPL");
+        existing.setMarket("NASDAQ");
+        assertThat(service.quote(existing).currentPrice()).isEqualByComparingTo("69100");
+        assertThat(service.quoteMarket(MarketDataRequest.from(existing)).provider()).isEqualTo("FALLBACK");
+    }
+
+    @Test
+    void usLookupRejectsInvalidTickerAndReportsUnavailablePrices() {
+        MarketPriceService service = new MarketPriceService(List.of());
+        assertThatThrownBy(() -> service.getUsQuote("005930", "NASDAQ"))
+            .isInstanceOf(ApiException.class).extracting("errorCode").isEqualTo(ErrorCode.VALIDATION_ERROR);
+        assertThatThrownBy(() -> service.getUsQuote("AAPL", "NASDAQ"))
+            .isInstanceOf(ApiException.class).extracting("errorCode").isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
+    }
+
     private record FixedMarketDataProvider(
         String providerCode,
         boolean supported,

@@ -20,12 +20,14 @@ class MarketCandleScreen extends StatefulWidget {
     required this.stockName,
     required this.market,
     required this.repository,
+    this.usLookup,
   });
 
   final String stockCode;
   final String stockName;
   final String market;
   final MarketDataRepository repository;
+  final UsStockLookup? usLookup;
 
   @override
   State<MarketCandleScreen> createState() => _MarketCandleScreenState();
@@ -35,11 +37,14 @@ class _MarketCandleScreenState extends State<MarketCandleScreen> {
   MarketCandleInterval _interval = MarketCandleInterval.daily;
   int? _selectedIndex;
   late Future<MarketCandleSnapshot> _future;
+  Future<String>? _stockName;
+  Future<({String provider, double price})>? _quote;
 
   @override
   void initState() {
     super.initState();
     _future = _fetchCandles();
+    _fetchUsDetails();
   }
 
   @override
@@ -54,12 +59,17 @@ class _MarketCandleScreenState extends State<MarketCandleScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              widget.stockName,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0,
+            FutureBuilder<String>(
+              future: _stockName,
+              builder: (context, snapshot) => Text(
+                snapshot.data ?? widget.stockName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0,
+                ),
               ),
             ),
             Text(
@@ -74,7 +84,8 @@ class _MarketCandleScreenState extends State<MarketCandleScreen> {
           ],
         ),
         actions: [
-          if (widget.repository is RealtimeMarketAccess)
+          if (widget.usLookup == null &&
+              widget.repository is RealtimeMarketAccess)
             IconButton(
               tooltip: '실시간 체결·호가',
               icon: const Icon(Icons.sensors),
@@ -112,6 +123,25 @@ class _MarketCandleScreenState extends State<MarketCandleScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (_quote != null) ...[
+                      FutureBuilder<({String provider, double price})>(
+                        future: _quote,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState !=
+                              ConnectionState.done) {
+                            return const Text('현재가 조회 중');
+                          }
+                          final quote = snapshot.data;
+                          if (quote == null) {
+                            return const Text('현재가를 불러오지 못했습니다.');
+                          }
+                          return Text(
+                            '현재가 ${_formatPrice(quote.price, 'USD')} · ${quote.provider}',
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     _IntervalSelector(
                       selected: _interval,
                       onSelected: _selectInterval,
@@ -164,12 +194,24 @@ class _MarketCandleScreenState extends State<MarketCandleScreen> {
     );
   }
 
-  Future<MarketCandleSnapshot> _fetchCandles() {
-    return widget.repository.fetchCandles(
+  Future<MarketCandleSnapshot> _fetchCandles() async {
+    final data = await widget.repository.fetchCandles(
       stockCode: widget.stockCode,
       market: widget.market,
       interval: _interval,
     );
+    if (widget.usLookup != null && data.currency != 'USD') {
+      throw const MarketDataRepositoryException('미국주식 캔들 통화가 올바르지 않습니다.');
+    }
+    return data;
+  }
+
+  void _fetchUsDetails() {
+    _stockName = widget.usLookup?.fetchUsStockName(
+      widget.stockCode,
+      widget.market,
+    );
+    _quote = widget.usLookup?.fetchUsQuote(widget.stockCode, widget.market);
   }
 
   void _selectInterval(MarketCandleInterval interval) {
@@ -187,6 +229,7 @@ class _MarketCandleScreenState extends State<MarketCandleScreen> {
     setState(() {
       _selectedIndex = null;
       _future = _fetchCandles();
+      _fetchUsDetails();
     });
   }
 }
@@ -247,7 +290,7 @@ class _CandleContent extends StatelessWidget {
                         const LabelText('선택 종가'),
                         const SizedBox(height: 4),
                         Text(
-                          '${formatCurrency(selected.closePrice.round())}원',
+                          _formatPrice(selected.closePrice, snapshot.currency),
                           style: TextStyle(
                             color: AppPalette.of(context).text,
                             fontSize: compact ? 26 : 32,
@@ -257,7 +300,7 @@ class _CandleContent extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${change >= 0 ? '+' : ''}${formatCurrency(change.round())}원  ${changeRate >= 0 ? '+' : ''}${changeRate.toStringAsFixed(2)}%',
+                          '${change >= 0 ? '+' : ''}${_formatPrice(change, snapshot.currency)}  ${changeRate >= 0 ? '+' : ''}${changeRate.toStringAsFixed(2)}%',
                           style: TextStyle(
                             color: changeColor,
                             fontSize: 13,
@@ -279,12 +322,17 @@ class _CandleContent extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(14, 14, 10, 10),
                 child: Column(
                   children: [
-                    _CandleMetrics(candle: selected, compact: compact),
+                    _CandleMetrics(
+                      candle: selected,
+                      compact: compact,
+                      currency: snapshot.currency,
+                    ),
                     const SizedBox(height: 12),
                     SizedBox(
                       height: compact ? 320 : 410,
                       child: _InteractiveCandleChart(
                         candles: snapshot.candles,
+                        currency: snapshot.currency,
                         selectedIndex: selectedIndex,
                         onSelected: onSelected,
                       ),
@@ -301,18 +349,23 @@ class _CandleContent extends StatelessWidget {
 }
 
 class _CandleMetrics extends StatelessWidget {
-  const _CandleMetrics({required this.candle, required this.compact});
+  const _CandleMetrics({
+    required this.candle,
+    required this.compact,
+    required this.currency,
+  });
 
   final MarketCandle candle;
   final bool compact;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
     final metrics = [
       ('날짜', _formatCandleDate(candle.dateTime)),
-      ('시가', '${formatCurrency(candle.openPrice.round())}원'),
-      ('고가', '${formatCurrency(candle.highPrice.round())}원'),
-      ('저가', '${formatCurrency(candle.lowPrice.round())}원'),
+      ('시가', _formatPrice(candle.openPrice, currency)),
+      ('고가', _formatPrice(candle.highPrice, currency)),
+      ('저가', _formatPrice(candle.lowPrice, currency)),
       ('거래량', _compactNumber(candle.volume)),
     ];
     return Wrap(
@@ -349,11 +402,13 @@ class _CandleMetrics extends StatelessWidget {
 class _InteractiveCandleChart extends StatelessWidget {
   const _InteractiveCandleChart({
     required this.candles,
+    required this.currency,
     required this.selectedIndex,
     required this.onSelected,
   });
 
   final List<MarketCandle> candles;
+  final String currency;
   final int selectedIndex;
   final ValueChanged<int> onSelected;
 
@@ -385,6 +440,7 @@ class _InteractiveCandleChart extends StatelessWidget {
             child: CustomPaint(
               painter: _CandleChartPainter(
                 candles: candles,
+                currency: currency,
                 selectedIndex: selectedIndex,
                 risingColor: AppTheme.main,
                 fallingColor: AppTheme.sub,
@@ -401,9 +457,21 @@ class _InteractiveCandleChart extends StatelessWidget {
   }
 }
 
+String _formatPrice(double value, String currency) {
+  if (currency != 'USD') return '${formatCurrency(value.round())}원';
+  final decimals = value
+      .toStringAsFixed(4)
+      .replaceFirstMapped(
+        RegExp(r'(\.\d{2,3}?)0+$'),
+        (match) => match.group(1)!,
+      );
+  return '$decimals USD';
+}
+
 class _CandleChartPainter extends CustomPainter {
   const _CandleChartPainter({
     required this.candles,
+    required this.currency,
     required this.selectedIndex,
     required this.risingColor,
     required this.fallingColor,
@@ -413,6 +481,7 @@ class _CandleChartPainter extends CustomPainter {
   });
 
   final List<MarketCandle> candles;
+  final String currency;
   final int selectedIndex;
   final Color risingColor;
   final Color fallingColor;
@@ -462,7 +531,9 @@ class _CandleChartPainter extends CustomPainter {
       canvas.drawLine(Offset(left, y), Offset(left + plotWidth, y), gridPaint);
       _paintText(
         canvas,
-        formatCurrency((chartMax - priceRange * ratio).round()),
+        currency == 'USD'
+            ? (chartMax - priceRange * ratio).toStringAsFixed(2)
+            : formatCurrency((chartMax - priceRange * ratio).round()),
         Offset(left + plotWidth + 7, y - 7),
         textColor,
         maxWidth: rightLabels - 7,

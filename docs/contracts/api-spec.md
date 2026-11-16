@@ -320,6 +320,7 @@ Toss는 공식 Open API의 OAuth2 Client Credentials 토큰과 `GET /api/v1/pric
     "provider": "KB",
     "stockCode": "005930",
     "market": "KOSPI",
+    "currency": "KRW",
     "interval": "DAILY",
     "count": 2,
     "candles": [
@@ -346,6 +347,21 @@ Toss는 공식 Open API의 OAuth2 Client Credentials 토큰과 `GET /api/v1/pric
 `GET /api/v1/market/stocks/{stockCode}?market=KOSPI`
 
 Toss 공식 `GET /api/v1/stocks?symbols=종목코드` 응답을 사용합니다. 응답에는 Provider, 종목명, 영문명, 시장, 종목 유형, 보통주 여부, 상장 상태, 통화, 상장·상장폐지일, 발행주식수, NXT 지원 여부, 거래정지 여부가 포함됩니다.
+
+##### 미국주식 종목정보·현재가·캔들 조회
+
+| 조회 | 요청 예시 | 공급자 우선순위 |
+|---|---|---|
+| 종목정보 | `GET /api/v1/market/stocks/AAPL?market=NASDAQ` | KB `GSC10060` 차트의 종목명 → KIS `CTPF1702R` → 토스 `/api/v1/stocks` |
+| 현재가 | `GET /api/v1/market/stocks/AAPL/quote?market=NASDAQ` | KB `GSS10030` → KIS `HHDFS00000300` → 토스 `/api/v1/prices` |
+| 캔들 | `GET /api/v1/market/candles?stockCode=AAPL&market=NASDAQ&interval=DAILY&count=60` | KB `GSC10060` → KIS `HHDFS76240000` → 토스 `/api/v1/candles` |
+
+- `market`은 `NASDAQ`, `NYSE`, `AMEX` 중 하나입니다. 티커는 영문 대문자로 정규화하며 마침표 또는 하이픈이 포함된 종목을 입력할 수 있습니다. 공급자별 티커 표기와 조회 가능 종목은 해당 API의 지원 범위를 따릅니다.
+- 각 요청은 기존 설정에서 활성화된 공급자를 순서대로 시도하고, 성공한 공급자를 `provider`로 반환합니다. 사용 가능한 데이터가 없으면 `EXTERNAL_DATA_ERROR`를 반환합니다. 공급자 별로 응답 가능한 종목정보 필드가 다릅니다. 상장·거래정지 상태 검증에는 공급자별 원본 상태 확인이 필요합니다.
+- KB 조회는 기존 앱 키와 IP·MAC 요청 설정을 사용합니다. 계정에 등록된 KB 요청 설정이 필요한 경우 이를 반영해야 합니다.
+- 현재가 응답의 `data` 필드는 `provider`, `stockCode`, `market`, `currency`, `currentPrice`, `receivedAt`입니다. 가격 통화는 `USD`입니다. 시세의 지연 여부는 공급자 및 계약에 따릅니다.
+- 미국주식 캔들은 원주가이며 응답의 `currency`는 `USD`입니다. 일봉 `dateTime`은 미국 동부 거래일의 자정으로 표시합니다. 조회 시점의 최신 거래일 포함 여부는 공급자에 따라 달라질 수 있습니다. 주봉·월봉은 KB와 KIS를 사용합니다. 토스는 일봉 대체 조회에 참여합니다.
+- Flutter 포트폴리오 상단의 **미국주식 시세 조회**에서 거래소와 티커를 입력하면 종목명, 현재가, 차트를 조회합니다. 미국주식 조회 응답은 달러 표시용입니다. 원화 보유 종목 평가·관심 종목 등 기존 현재가 경로에서는 해당 미국 거래소 종목의 등록가 또는 0원 대체값을 사용합니다.
 
 #### 6.0.3 실시간 시세와 연구 변경 조회
 

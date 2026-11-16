@@ -10,6 +10,14 @@ abstract class MarketDataRepository {
   });
 }
 
+abstract interface class UsStockLookup {
+  Future<({String provider, double price})> fetchUsQuote(
+    String ticker,
+    String market,
+  );
+  Future<String> fetchUsStockName(String ticker, String market);
+}
+
 class MarketDataRepositoryException implements Exception {
   const MarketDataRepositoryException(this.message);
 

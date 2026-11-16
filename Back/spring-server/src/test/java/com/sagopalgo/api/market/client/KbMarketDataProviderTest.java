@@ -104,8 +104,40 @@ class KbMarketDataProviderTest {
     }
 
     @Test
-    @DisplayName("KB Provider는 설정이 켜진 국내 주식만 지원한다")
-    void supportsOnlyEnabledDomesticStocks() throws Exception {
+    void usQuotesAndCandlesPreserveUsdPrecision() throws Exception {
+        KbMarketDataProvider provider = new KbMarketDataProvider(new FixtureKbClient(json("""
+            {"dataBody":{"is_cd":"AAPL","krx_cd":"NAS","dl_crncy":"USD","now_prc_p4":"223.1250"}}
+            """), json("""
+            {"dataBody":{"is_cd":"AAPL","krx_cd":"NAS","hngl_is_nm":"애플","eng_is_nm":"Apple Inc.",
+             "out2":[{"dt":"20261113","opn_prc_p4":"222.05","hgh_prc_p4":"224.50",
+                      "lw_prc_p4":"221.126","cls_prc_p4":"223.1250","vlm":"100"}]}}
+            """), true) {
+            @Override
+            public JsonNode fetchUsQuote(String ticker, String exchange) {
+                assertThat(exchange).isEqualTo("NAS");
+                return fetchCurrentPrice(ticker);
+            }
+
+            @Override
+            public JsonNode fetchUsCandles(String ticker, String exchange, CandleInterval interval, int count) {
+                assertThat(exchange).isEqualTo("NAS");
+                return fetchCandles(ticker, exchange, interval, count);
+            }
+        });
+
+        MarketDataRequest request = MarketDataRequest.forLookup(" aapl ", " nasdaq ");
+        assertThat(provider.supports(request)).isTrue();
+        assertThat(provider.quote(request).currentPrice()).isEqualByComparingTo("223.1250");
+        assertThat(provider.candles(request, CandleInterval.DAILY, 1)).singleElement().satisfies(candle -> {
+            assertThat(candle.closePrice()).isEqualByComparingTo("223.1250");
+            assertThat(candle.dateTime()).isEqualTo(LocalDate.of(2026, 11, 13).atStartOfDay());
+        });
+        assertThat(provider.stockInfo(request).orElseThrow().stockName()).isEqualTo("애플");
+    }
+
+    @Test
+    @DisplayName("KB Provider는 활성화된 경우 지원 시장과 종목 형식을 검사한다")
+    void supportsEnabledMarkets() throws Exception {
         KbMarketDataProvider provider = new KbMarketDataProvider(new FixtureKbClient(json("{}"), true));
         KbMarketDataProvider disabledProvider = new KbMarketDataProvider(new FixtureKbClient(json("{}"), false));
 

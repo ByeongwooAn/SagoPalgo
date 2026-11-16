@@ -7,7 +7,6 @@ import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.DomesticStockIdentity;
 import com.sagopalgo.api.market.provider.MarketDataProvider;
 import java.util.List;
-import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -84,9 +83,6 @@ public class MarketStockInfoService {
         if (!StringUtils.hasText(market)) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "시장이 필요합니다.");
         }
-        return new MarketDataRequest(
-            stockCode.trim(),
-            market.trim().toUpperCase(Locale.ROOT)
-        );
+        return MarketDataRequest.forLookup(stockCode, market);
     }
 }

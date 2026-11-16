@@ -5,6 +5,7 @@ import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockQuote;
+import com.sagopalgo.api.market.model.UsStockExchange;
 import com.sagopalgo.api.market.provider.MarketDataProvider;
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,11 +34,24 @@ public class MarketPriceService {
     public StockQuote quote(Holding holding) {
         MarketDataRequest request = MarketDataRequest.from(holding);
         BigDecimal fallbackPrice = holding == null ? null : holding.getBuyPrice();
+        if (UsStockExchange.fromMarket(request.market()).isPresent()) {
+            return fallbackQuote(request, fallbackPrice == null ? BigDecimal.ZERO : fallbackPrice);
+        }
         return quote(request, fallbackPrice);
     }
 
     public StockQuote quoteMarket(MarketDataRequest request) {
+        if (UsStockExchange.fromMarket(request.market()).isPresent()) {
+            return fallbackQuote(request, BigDecimal.ZERO);
+        }
         return quote(request, BigDecimal.ZERO);
+    }
+
+    public StockQuote getUsQuote(String stockCode, String market) {
+        if (UsStockExchange.fromMarket(market).isEmpty() || stockCode == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "미국 거래소와 종목 티커를 입력하세요.");
+        }
+        return quote(MarketDataRequest.forLookup(stockCode, market), null);
     }
 
     private StockQuote quote(MarketDataRequest request, BigDecimal fallbackPrice) {
@@ -74,6 +88,9 @@ public class MarketPriceService {
         }
         if (lastFailure != null) {
             throw lastFailure;
+        }
+        if (UsStockExchange.fromMarket(request.market()).isPresent()) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "사용 가능한 미국주식 현재가 Provider가 없습니다.");
         }
         return fallbackQuote(request, BigDecimal.ZERO);
     }

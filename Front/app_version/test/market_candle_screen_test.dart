@@ -40,10 +40,44 @@ void main() {
       MarketCandleInterval.weekly,
     ]);
   });
+  testWidgets('US lookup shows USD prices and the returned stock name', (
+    tester,
+  ) async {
+    final repository = _FakeMarketDataRepository(currency: 'USD');
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: MarketCandleScreen(
+          stockCode: 'AAPL',
+          stockName: 'AAPL',
+          market: 'NASDAQ',
+          repository: repository,
+          usLookup: repository,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('애플'), findsOneWidget);
+    expect(find.text('AAPL · NASDAQ'), findsOneWidget);
+    expect(find.text('현재가 223.125 USD · KIS'), findsOneWidget);
+    expect(find.text('223.12 USD'), findsOneWidget);
+  });
 }
 
-class _FakeMarketDataRepository implements MarketDataRepository {
+class _FakeMarketDataRepository implements MarketDataRepository, UsStockLookup {
+  _FakeMarketDataRepository({this.currency = 'KRW'});
+
   final List<MarketCandleInterval> requestedIntervals = [];
+  final String currency;
+
+  @override
+  Future<({String provider, double price})> fetchUsQuote(
+    String ticker,
+    String market,
+  ) async => (provider: 'KIS', price: 223.125);
+
+  @override
+  Future<String> fetchUsStockName(String ticker, String market) async => '애플';
 
   @override
   Future<MarketCandleSnapshot> fetchCandles({
@@ -58,6 +92,7 @@ class _FakeMarketDataRepository implements MarketDataRepository {
       stockCode: stockCode,
       market: market,
       interval: interval,
+      currency: currency,
       candles: [
         MarketCandle(
           provider: 'KB',
@@ -80,7 +115,7 @@ class _FakeMarketDataRepository implements MarketDataRepository {
           openPrice: 74800,
           highPrice: 75300,
           lowPrice: 74700,
-          closePrice: 75200,
+          closePrice: currency == 'USD' ? 223.12 : 75200,
           volume: 1122334,
         ),
       ],
