@@ -1,6 +1,10 @@
+from datetime import datetime, timezone
+
 import pytest
 
+from app.replay.dataset import canonical, digest
 from app.replay.historical_dividend_april import decision_facts, manual_payment, supplemental_field
+from app.replay.historical_dividend_month import SKREIT_HISTORY_ID, SKREIT_HISTORY_URL, skreit_payment
 from app.replay.models import ResearchError
 
 
@@ -60,3 +64,35 @@ def test_retroactive_quarterly_payment_note_discriminates_schedule(classificatio
             manual_payment(target, entry, {marker}, proof)
     else:
         assert manual_payment(target, entry, {marker}, proof)["status"] == "MATCH"
+
+
+@pytest.mark.parametrize(("label", "record_date", "error"), [
+    ("배당지급일", "2024-03-31", None),
+    ("배당지급예정일", "2024-03-31", "SKREIT_HISTORY_ROUND"),
+    ("배당지급일", "2024-06-30", "SKREIT_HISTORY_ROUND"),
+])
+def test_skreit_history_binds_payment_to_the_dividend_round(tmp_path, label, record_date, error):
+    folder = tmp_path / "ir" / SKREIT_HISTORY_ID
+    folder.mkdir(parents=True)
+    html = (
+        f"<table><tr><th>구분</th><th>배당기준일</th><th>{label}</th>"
+        "<th>주당배당(원)</th><th>배당총액 (백만원)</th></tr>"
+        "<tr><th>정기배당</th><th>특별배당</th><th>합계</th></tr>"
+        f"<tr><td>제12기</td><td>{record_date}</td><td>2024-06-28</td>"
+        "<td>66</td><td>0</td><td>66</td><td>17,829</td></tr></table>"
+    ).encode()
+    (folder / "original.html").write_bytes(html)
+    receipt = canonical({"url": SKREIT_HISTORY_URL, "startedAt": "2026-11-16T15:00:00+00:00",
+                         "capturedAt": "2026-11-16T15:01:00+00:00", "sha256": digest(html)})
+    (folder / "receipt.json").write_bytes(receipt)
+    target = {"symbol": "395400", "market": "KOSPI", "recordDate": "2024-03-31",
+              "displayedPaymentDate": "2024-06-28", "commonCashPerShare": "66"}
+    reviewed_at = datetime(2026, 11, 17, tzinfo=timezone.utc)
+
+    if error:
+        with pytest.raises(ResearchError, match=error):
+            skreit_payment(target, tmp_path, digest(receipt), reviewed_at)
+    else:
+        result = skreit_payment(target, tmp_path, digest(receipt), reviewed_at)
+        assert result["status"] == "MATCH"
+        assert result["evidence"][0]["reportedOn"] is None

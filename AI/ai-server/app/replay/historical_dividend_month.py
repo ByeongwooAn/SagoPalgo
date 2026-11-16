@@ -19,9 +19,11 @@ from .models import utc
 
 SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_APRIL_V1"
 MAY_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_MAY_V1"
+JUNE_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_JUNE_V1"
 SCOPES = {
     SCHEMA: ("2024-04", {CONFIRMED: 3, UNRESOLVED: 4, UNREVIEWED: 1123}),
     MAY_SCHEMA: ("2024-05", {UNREVIEWED: 23}),
+    JUNE_SCHEMA: ("2024-06", {UNREVIEWED: 5}),
 }
 MARKETS = {"Y": "KOSPI", "K": "KOSDAQ"}
 ROW_ID = re.compile(r"[0-9]{14}")
@@ -32,7 +34,7 @@ TAG = re.compile(r"<[^<>]*>")
 DATE = re.compile(r"(?<!\d)(20\d{2}|\d{2})(?:\s*년\s*|[-./]\s*)(\d{1,2})(?:\s*월\s*|[-./]\s*)(\d{1,2})(?!\d)")
 NUMBER = re.compile(r"(?:[0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)(?:\.[0-9]+)?")
 DECISION_TITLE = re.compile(r"현금(?:[ㆍ·.\s]*현물)?\s*배당\s*결정|금전\s*배당\s*결정|금전\s*분배\s*결의")
-REPORT_TITLE = re.compile(r"(?:사업|반기|분기)\s*보고서")
+REPORT_TITLE = re.compile(r"(?:사업|반기|분기|기업지배구조)\s*보고서")
 PAID_DIVIDEND_NOTE = re.compile(
     r"(?:현금)?배당\s*\(\s*['’]?(?:20\d{2}|\d{2})[./-]\s*\d{1,2}[./-]\s*\d{1,2}\.?\s*지급\s*\)"
 )
@@ -40,6 +42,10 @@ DART = "https://dart.fss.or.kr/dsaf001/main.do?rcpNo="
 NAVER_IR = ("https://kind.krx.co.kr/external/2024/06/26/000486/20240625001176/"
             "NAVER_Integrated_Report_2023_ver3.pdf")
 IR_ID = "naver-2023-integrated"
+SKREIT_HISTORY_ID = "skreit-dividend-history"
+SKREIT_HISTORY_URL = "https://www.skreit.co.kr/investment/dividend.php"
+SKREIT_HISTORY_HEADER = ["구분", "배당기준일", "배당지급일", "주당배당(원)", "배당총액 (백만원)"]
+SKREIT_AMOUNT_HEADER = ["정기배당", "특별배당", "합계"]
 FIELD_INPUTS = {"recordDate": "recordDate", "actualPaymentDate": "displayedPaymentDate",
                 "commonCashPerShare": "commonCashPerShare"}
 
@@ -207,6 +213,31 @@ def naver_ir(job, pin, at):
     }
 
 
+def skreit_payment(target, job, receipt_hash, at):
+    require(target["symbol"] == "395400" and target["market"] == "KOSPI", "SKREIT_HISTORY_ISSUER")
+    folder = job / "ir" / SKREIT_HISTORY_ID
+    receipt = read_json(checked_read(folder / "receipt.json", receipt_hash))
+    observed = utc(receipt["capturedAt"])
+    expected = target["displayedPaymentDate"]
+    require(receipt["url"] == SKREIT_HISTORY_URL and utc(receipt["startedAt"]) <= observed <= at,
+            "SKREIT_HISTORY_CAPTURE")
+    html = checked_read(folder / "original.html", receipt["sha256"]).decode("utf-8-sig")
+    matches = []
+    for table in re.findall(r"<table\b[^<>]*>(.*?)</table>", html, re.I | re.S):
+        rows = [[plain(cell) for cell in HTML_CELL.findall(row)] for row in HTML_ROW.findall(table)]
+        if rows[:2] == [SKREIT_HISTORY_HEADER, SKREIT_AMOUNT_HEADER]:
+            matches.extend(row for row in rows[2:] if len(row) == 7 and row[1] == target["recordDate"])
+    require(len(matches) == 1, "SKREIT_HISTORY_ROUND")
+    row = matches[0]
+    value = row[2]
+    require(dates(value) == [value] and observed.date().isoformat() > max(expected, value)
+            and row[5] == target["commonCashPerShare"], "SKREIT_HISTORY_PAYMENT")
+    proof = {"receipt": SKREIT_HISTORY_ID, "sourceUrl": SKREIT_HISTORY_URL,
+             "title": "SK리츠 배당 이력", "reportedOn": None, "observedAt": receipt["capturedAt"],
+             "archiveSha256": receipt["sha256"], "status": "CAPTURED"}
+    return compare(value, expected, proof, [*SKREIT_HISTORY_HEADER, *SKREIT_AMOUNT_HEADER, *row])
+
+
 def prior_field(target, name):
     expected = target[FIELD_INPUTS[name]]
     if target["status"] == CONFIRMED:
@@ -314,6 +345,9 @@ def build(manifest, artifacts, job, *, schema=None):
                 fields[key] = supplemental_field(key, target, pin, referenced[receipt], checked_markers[receipt])
             expected = target["displayedPaymentDate"]
             fields["actualPaymentDate"] = prior_field(target, "actualPaymentDate")
+            if "skreitHistory" in row:
+                require(version == JUNE_SCHEMA and "actual" not in row, "SKREIT_HISTORY_SCOPE")
+                fields["actualPaymentDate"] = skreit_payment(target, job, row["skreitHistory"], at)
             if "actual" in row:
                 require(target["status"] == UNREVIEWED, "APRIL_PRIOR_STATUS")
                 receipt = row["actual"]["receipt"]
