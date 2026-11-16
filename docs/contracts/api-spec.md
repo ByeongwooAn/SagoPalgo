@@ -691,7 +691,7 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 ## 14. 모의매매 API
 
-모의매매는 실제 KB 주문 API를 호출하지 않고 `trade_records.execution_mode=PAPER` 원장에만 기록합니다. 초기 자본은 개인 사용자의 `user_capital.available_capital`을 사용하며, 매수와 매도 체결가는 서버가 조회한 실제 현재가만 허용합니다. 모든 Provider가 실패한 `FALLBACK` 시세로는 체결하지 않습니다.
+국내주식 모의매매는 `trade_records.execution_mode=PAPER` 원장에 기록합니다. 초기 자본은 개인 사용자의 `user_capital.available_capital`을 사용하며, 매수와 매도 체결가는 서버가 조회한 실제 현재가만 허용합니다. 모든 Provider가 실패한 `FALLBACK` 시세로는 체결하지 않습니다. 국내와 미국 모의매매 모두 앱 서버에서 가상 체결합니다.
 
 ### 14.1 모의매매 현황 조회
 
@@ -724,6 +724,21 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 ```
 
 현재 모의 보유 수량까지만 매도할 수 있습니다. 평균 원가법으로 매도 수량의 실현손익을 계산하고 원장에 저장합니다.
+
+### 14.4 미국주식 USD 모의매매
+
+앱의 **모의 → 미국주식 모의매매 (USD)**에서 달러 시작 자금을 설정하고 나스닥·뉴욕증권거래소·NYSE American 종목을 티커로 매수할 수 있습니다. 보유 포지션에서 일부 또는 전량을 매도합니다. 별도 USD 원장에 자금, 체결, 보유, 실현·평가손익을 기록합니다.
+
+| 요청 | 입력과 결과 |
+|---|---|
+| `GET /api/v1/paper-trading/us` | `currency: "USD"`와 `summary`, `positions`, `trades`를 반환합니다. 미개설 계좌는 초기 자금 0과 빈 목록으로 표시합니다. |
+| `PUT /api/v1/paper-trading/us/account` | `{"initialCapital":"10000.00"}`처럼 센트 단위로 시작 자금을 설정합니다. 같은 금액으로 다시 호출하면 기존 계좌를 반환합니다. |
+| `POST /api/v1/paper-trading/us/trades` | `{"stockCode":"AAPL","market":"NASDAQ","side":"BUY","quantity":"1.2500","requestId":"0123456789abcdef0123456789abcdef"}` 형식으로 현재가 가상 체결을 요청합니다. `SELL`은 보유 수량 안에서 처리합니다. |
+
+- 현재가는 미국주식 조회 경로로 확인합니다. 조회 실패나 USD 현금·주식 부족 시 원장에 체결을 쓰지 않습니다. 조회가 실패한 보유 종목은 매입 원가로 평가하고 출처를 `FALLBACK`으로 표시합니다.
+- 수량과 단가는 소수점 넷째 자리까지 보존하며 체결 금액과 손익은 센트 단위로 계산합니다. 부분 매도는 잔여 매입 원가에서 비례 배분하며, 전량 매도는 나머지 원가를 모두 실현합니다. 환전·수수료·세금은 가상 체결 계산 범위 밖입니다.
+- 사용자별 `requestId`로 동일 주문 재전송을 중복 체결 없이 처리합니다. 같은 ID에서 티커·거래소·방향·수량이 달라지면 `DUPLICATE_RESOURCE`를 반환합니다.
+- 기존 DB에는 [028 마이그레이션](../../Back/database/migrations/028_us_paper_trading.sql)을 적용합니다. 국내 모의매매 경로의 `currency`는 `KRW`입니다.
 
 ## 15. 주문 사전검증 API
 

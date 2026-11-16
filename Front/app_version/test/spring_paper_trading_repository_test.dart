@@ -8,6 +8,45 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
+  test('USD account and fractional orders use the isolated routes', () async {
+    final calls = <String>[];
+    const order = (
+      stockCode: 'BRK.B',
+      market: 'NYSE',
+      side: 'BUY',
+      quantity: '0.1234',
+      requestId: '0123456789abcdef0123456789abcdef',
+    );
+    final repository = SpringPaperTradingRepository(
+      accessToken: 'token',
+      config: ApiConfig(baseUrl: 'http://localhost:8080'),
+      client: MockClient((request) async {
+        calls.add('${request.method} ${request.url.path}');
+        if (request.method == 'PUT') {
+          expect(jsonDecode(request.body), {'initialCapital': '10000.01'});
+        }
+        if (request.method == 'POST') {
+          expect(jsonDecode(request.body), {
+            'stockCode': 'BRK.B',
+            'market': 'NYSE',
+            'side': 'BUY',
+            'quantity': '0.1234',
+            'requestId': order.requestId,
+          });
+        }
+        return _successResponse(currency: 'USD');
+      }),
+    );
+    expect((await repository.fetchUsSnapshot()).currency, 'USD');
+    await repository.openUsAccount('10000.01');
+    await repository.tradeUs(order);
+    expect(calls, [
+      'GET /api/v1/paper-trading/us',
+      'PUT /api/v1/paper-trading/us/account',
+      'POST /api/v1/paper-trading/us/trades',
+    ]);
+  });
+
   test('fetchSnapshot maps paper trading metrics and positions', () async {
     final repository = SpringPaperTradingRepository(
       accessToken: 'test-token',
@@ -102,11 +141,12 @@ void main() {
   });
 }
 
-http.Response _successResponse() {
+http.Response _successResponse({String? currency}) {
   return http.Response(
     jsonEncode({
       'success': true,
       'data': {
+        'currency': ?currency,
         'summary': {
           'initialCapital': 1000000,
           'cashBalance': 250000,

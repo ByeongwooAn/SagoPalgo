@@ -21,6 +21,7 @@
 | `watchlist` | 관심 종목 관리 | 구현됨 |
 | `holdings` | 보유 종목과 손절/익절 기준 | 구현됨 |
 | `trade_records` | 실제 주문과 분리된 모의매매 원장 | 구현됨 |
+| `paper_us_accounts`, `paper_us_trades` | 미국주식 USD 모의계좌와 체결 원장 | 구현됨 |
 | `order_prechecks` | 실제 주문 전 안전 검증 감사 로그 | 구현됨 |
 | `recommendations` | AI 추천 결과 본문 | 구현됨 |
 | `recommendation_reasons` | 추천 점수 산출 근거 | 구현됨 |
@@ -38,6 +39,7 @@ users 1 ── 1 user_capital
 users 1 ── N watchlist
 users 1 ── N holdings
 users 1 ── N trade_records
+users 1 ── 0..1 paper_us_accounts 1 ── N paper_us_trades
 users 1 ── N order_prechecks
 users 1 ── N recommendations
 recommendations 1 ── N recommendation_reasons
@@ -323,7 +325,7 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 11. `trade_records`
 12. `order_prechecks`
 
-`trade_records`는 모의매매 API에서 사용하고 `order_prechecks`는 주문 전 검증 결과만 저장하며, 어느 테이블도 실제 증권사 주문을 수행했다는 의미가 아닙니다. `device_tokens`는 설계에는 포함되어 있지만 실제 API는 외부 푸시가 필요해질 때 붙입니다. `recommendations`, `recommendation_reasons`, `analysis_snapshots`는 통합 분석 실행 시 함께 저장합니다.
+`trade_records`는 국내 원화 모의매매에 사용합니다. [028 마이그레이션](../../Back/database/migrations/028_us_paper_trading.sql)의 `paper_us_accounts`는 사용자별 USD 시작 자금 `DECIMAL(18,2)`을 저장합니다. `paper_us_trades`는 단가·수량을 `DECIMAL(18,4)`, 실현손익을 `DECIMAL(18,2)`로 저장합니다. `(user_id, request_id)` 고유 키로 요청 재전송을 식별하고 체결 ID 순서로 USD 잔고와 손익을 재구성합니다. `order_prechecks`는 주문 전 검증 결과를 저장합니다. `device_tokens`는 설계에 포함되어 있으며 외부 푸시 구현 시 사용합니다. `recommendations`, `recommendation_reasons`, `analysis_snapshots`는 통합 분석 실행 시 함께 저장합니다.
 
 ## 022. 전송 전 예약 중단 감사
 

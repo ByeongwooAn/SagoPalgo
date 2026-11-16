@@ -16,6 +16,20 @@ abstract class PaperTradingRepository {
   });
 }
 
+typedef UsPaperOrder = ({
+  String stockCode,
+  String market,
+  String side,
+  String quantity,
+  String requestId,
+});
+
+abstract interface class UsPaperTradingRepository {
+  Future<PaperTradingSnapshot> fetchUsSnapshot();
+  Future<PaperTradingSnapshot> openUsAccount(String initialCapital);
+  Future<PaperTradingSnapshot> tradeUs(UsPaperOrder order);
+}
+
 class PaperTradingRepositoryException implements Exception {
   const PaperTradingRepositoryException(this.message, {this.code});
 

@@ -4,17 +4,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.sagopalgo.api.capital.dto.CapitalResponse;
 import com.sagopalgo.api.capital.service.CapitalService;
 import com.sagopalgo.api.common.exception.ApiException;
+import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockQuote;
 import com.sagopalgo.api.market.service.MarketPriceService;
 import com.sagopalgo.api.papertrading.dto.PaperBuyRequest;
 import com.sagopalgo.api.papertrading.dto.PaperSellRequest;
 import com.sagopalgo.api.papertrading.dto.PaperTradingSnapshotResponse;
+import com.sagopalgo.api.papertrading.dto.UsPaperTradeRequest;
+import com.sagopalgo.api.papertrading.dto.UsPaperTradeRequest.Side;
 import com.sagopalgo.api.papertrading.mapper.PaperTradeMapper;
 import com.sagopalgo.api.papertrading.model.PaperTradeRecord;
 import com.sagopalgo.api.recommendation.dto.RecommendationResponse;
@@ -47,6 +52,7 @@ class PaperTradingServiceTest {
     private MarketPriceService marketPriceService;
 
     private final List<PaperTradeRecord> records = new ArrayList<>();
+    private final List<PaperTradeRecord> usRecords = new ArrayList<>();
     private PaperTradingService service;
 
     @BeforeEach
@@ -70,6 +76,97 @@ class PaperTradingServiceTest {
             records.add(record);
             return 1;
         });
+    }
+
+    @Test
+    void usdLedgerReconcilesRoundedFractionalFillsWithoutChangingKrwLedger() {
+        stubUsLedger("1000");
+        when(marketPriceService.getUsQuote("AAPL", "NASDAQ"))
+            .thenReturn(usQuote("222.2222"), usQuote("250.1234"), usQuote("260.0100"));
+
+        var buy = service.tradeUs(1L, usOrder(Side.BUY, "1.5000", 1));
+        assertThat(buy.currency()).isEqualTo("USD");
+        assertThat(buy.summary().cashBalance()).isEqualByComparingTo("666.67");
+        assertThat(buy.trades().get(0).tradePrice()).isEqualByComparingTo("222.2222");
+        assertThat(buy.trades().get(0).tradeAmount()).isEqualByComparingTo("333.33");
+
+        var partial = service.tradeUs(1L, usOrder(Side.SELL, "0.7000", 2));
+        assertThat(partial.summary().cashBalance()).isEqualByComparingTo("841.76");
+        assertThat(partial.summary().realizedProfit()).isEqualByComparingTo("19.54");
+        assertThat(partial.summary().unrealizedProfit()).isEqualByComparingTo("22.32");
+        assertThat(partial.summary().totalProfit()).isEqualByComparingTo("41.86");
+        assertThat(partial.positions().get(0).quantity()).isEqualByComparingTo("0.8");
+
+        var closed = service.tradeUs(1L, usOrder(Side.SELL, "0.8", 3));
+        assertThat(closed.positions()).isEmpty();
+        assertThat(closed.summary().cashBalance()).isEqualByComparingTo("1049.77");
+        assertThat(closed.summary().realizedProfit()).isEqualByComparingTo("49.77");
+        assertThat(service.getSnapshot(1L).summary().cashBalance()).isEqualByComparingTo("1000000");
+        assertThat(records).isEmpty();
+    }
+
+    @Test
+    void retryUsesSameUsFillAndUnpricedPositionsRemainAtCost() {
+        stubUsLedger("500");
+        when(marketPriceService.getUsQuote("AAPL", "NASDAQ"))
+            .thenReturn(usQuote("123.45"))
+            .thenThrow(new ApiException(ErrorCode.EXTERNAL_DATA_ERROR));
+        var order = usOrder(Side.BUY, "2", 1);
+        service.tradeUs(1L, order);
+        var replay = service.tradeUs(1L, order);
+
+        assertThat(usRecords).hasSize(1);
+        assertThat(replay.summary().cashBalance()).isEqualByComparingTo("253.10");
+        assertThat(replay.summary().openPositionValue()).isEqualByComparingTo("246.90");
+        assertThat(replay.positions().get(0).provider()).isEqualTo("FALLBACK");
+        assertThatThrownBy(() -> service.tradeUs(1L, usOrder(Side.BUY, "3", 1)))
+            .isInstanceOf(ApiException.class).extracting("errorCode").isEqualTo(ErrorCode.DUPLICATE_RESOURCE);
+        assertThatThrownBy(() -> service.tradeUs(1L, usOrder(Side.SELL, "1", 2)))
+            .isInstanceOf(ApiException.class).extracting("errorCode").isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
+        assertThat(usRecords).hasSize(1);
+    }
+
+    @Test
+    void usTradeChecksUsdCashAndHoldingsBeforeWriting() {
+        when(tradeMapper.findUsCapital(1L)).thenReturn(new BigDecimal("100"));
+        when(marketPriceService.getUsQuote("AAPL", "NASDAQ")).thenReturn(usQuote("123.45"));
+        assertThatThrownBy(() -> service.tradeUs(1L, usOrder(Side.BUY, "1", 1)))
+            .isInstanceOf(ApiException.class).hasMessage("USD 모의 현금 잔액이 부족합니다.");
+        assertThatThrownBy(() -> service.tradeUs(1L, usOrder(Side.SELL, "1", 2)))
+            .isInstanceOf(ApiException.class).hasMessageContaining("모의 수량보다 많이");
+        verify(tradeMapper, never()).insertUsTrade(any());
+    }
+
+    @Test
+    void openingUsdAccountDoesNotRequireDomesticCapitalAndIsIdempotent() {
+        when(tradeMapper.findUsCapital(2L)).thenReturn(null, new BigDecimal("5000.00"));
+        assertThat(service.openUsAccount(2L, new BigDecimal("5000")).summary().cashBalance())
+            .isEqualByComparingTo("5000");
+        assertThat(service.openUsAccount(2L, new BigDecimal("5000")).summary().cashBalance())
+            .isEqualByComparingTo("5000");
+        verify(tradeMapper).insertUsAccount(2L, new BigDecimal("5000"));
+        verify(capitalService, never()).findByUserId(2L);
+    }
+
+    private void stubUsLedger(String capital) {
+        when(tradeMapper.findUsCapital(1L)).thenReturn(new BigDecimal(capital));
+        when(tradeMapper.findUsTrades(1L)).thenAnswer(ignored -> List.copyOf(usRecords));
+        when(tradeMapper.insertUsTrade(any())).thenAnswer(invocation -> {
+            PaperTradeRecord record = invocation.getArgument(0);
+            record.setTradeRecordId((long) usRecords.size() + 1);
+            usRecords.add(record);
+            return 1;
+        });
+    }
+
+    private UsPaperTradeRequest usOrder(Side side, String quantity, int id) {
+        return new UsPaperTradeRequest(" aapl ", "nasdaq", side, new BigDecimal(quantity), "%032x".formatted(id));
+    }
+
+    private StockQuote usQuote(String price) {
+        return new StockQuote("KIS", "AAPL", "", "NASDAQ", new BigDecimal(price),
+            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+            BigDecimal.ZERO, BigDecimal.ZERO, Instant.now());
     }
 
     @Test

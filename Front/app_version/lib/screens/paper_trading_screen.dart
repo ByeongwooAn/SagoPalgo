@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -24,6 +26,7 @@ class PaperTradingScreen extends StatefulWidget {
     this.onCapitalSetupOpen,
     this.availableCapital,
     this.onAnalysisOpen,
+    this.usRepository,
   });
 
   final PaperTradingRepository repository;
@@ -32,6 +35,7 @@ class PaperTradingScreen extends StatefulWidget {
   final VoidCallback? onCapitalSetupOpen;
   final int? availableCapital;
   final VoidCallback? onAnalysisOpen;
+  final UsPaperTradingRepository? usRepository;
 
   @override
   State<PaperTradingScreen> createState() => _PaperTradingScreenState();
@@ -40,6 +44,10 @@ class PaperTradingScreen extends StatefulWidget {
 class _PaperTradingScreenState extends State<PaperTradingScreen> {
   Future<PaperTradingSnapshot>? _snapshotFuture;
   bool _submitting = false;
+  UsPaperOrder? _pendingUsTrade;
+  String? _usTradeError;
+
+  bool get _usd => widget.usRepository != null;
 
   @override
   void initState() {
@@ -62,7 +70,9 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
 
   void _load() {
     setState(() {
-      _snapshotFuture = widget.repository.fetchSnapshot();
+      _snapshotFuture =
+          widget.usRepository?.fetchUsSnapshot() ??
+          widget.repository.fetchSnapshot();
     });
   }
 
@@ -92,21 +102,51 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
       },
     );
     final repository = widget.repository;
-    if (repository is! OrderSimulationRepository) return content;
+    if (_usd ||
+        (repository is! OrderSimulationRepository &&
+            repository is! UsPaperTradingRepository)) {
+      return content;
+    }
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-          child: OutlinedButton.icon(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => OrderSimulationScreen(
-                  repository: repository as OrderSimulationRepository,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              if (repository is UsPaperTradingRepository)
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => Scaffold(
+                        appBar: AppBar(title: const Text('미국주식 모의매매')),
+                        body: PaperTradingScreen(
+                          repository: repository,
+                          recommendation: null,
+                          active: true,
+                          usRepository: repository as UsPaperTradingRepository,
+                        ),
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.public),
+                  label: const Text('미국주식 모의매매 (USD)'),
                 ),
-              ),
-            ),
-            icon: const Icon(Icons.bug_report_outlined),
-            label: const Text('주문 시뮬레이션 · 실패/체결 시나리오 시험'),
+              if (repository is OrderSimulationRepository)
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => OrderSimulationScreen(
+                        repository: repository as OrderSimulationRepository,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.bug_report_outlined),
+                  label: const Text('주문 시뮬레이션 · 실패/체결 시나리오 시험'),
+                ),
+            ],
           ),
         ),
         Expanded(child: content),
@@ -115,32 +155,37 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
   }
 
   Widget _buildContent(PaperTradingSnapshot snapshot) {
+    final summary = _SummaryCard(summary: snapshot.summary, usd: _usd);
+    final actions = _usd
+        ? _usActions(snapshot)
+        : _RecommendationAction(
+            recommendation: widget.recommendation,
+            submitting: _submitting,
+            onBuy: _buyFromRecommendation,
+            onAnalysisOpen: widget.onAnalysisOpen,
+          );
     return AppScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(
             eyebrow: '가상 체결',
-            title: 'AI 모의매매',
-            action: const StatusChip(
-              label: 'PAPER',
+            title: _usd ? '미국주식 가상 계좌' : 'AI 모의매매',
+            action: StatusChip(
+              label: _usd ? 'USD' : 'PAPER',
               icon: Icons.science_rounded,
             ),
           ),
           const SizedBox(height: 18),
           AdaptiveColumns(
-            first: _SummaryCard(summary: snapshot.summary),
-            second: _RecommendationAction(
-              recommendation: widget.recommendation,
-              submitting: _submitting,
-              onBuy: _buyFromRecommendation,
-              onAnalysisOpen: widget.onAnalysisOpen,
-            ),
+            first: _usd ? actions : summary,
+            second: _usd ? summary : actions,
           ),
           const SizedBox(height: 8),
-          const TextCaption(
-            '현재 설정 자본금 기준입니다. 자본금을 변경하면 모의 현금·수익률도 재산정되며 거래 기록은 유지됩니다.',
-          ),
+          if (!_usd)
+            const TextCaption(
+              '현재 설정 자본금 기준입니다. 자본금을 변경하면 모의 현금·수익률도 재산정되며 거래 기록은 유지됩니다.',
+            ),
           const SizedBox(height: 12),
           const SizedBox(height: 18),
           _SubsectionTitle(
@@ -150,10 +195,12 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
           ),
           const SizedBox(height: 10),
           if (snapshot.positions.isEmpty)
-            const _EmptyCard(
+            _EmptyCard(
               icon: Icons.inventory_2_outlined,
               title: '보유 중인 모의 포지션이 없습니다',
-              description: '최신 AI 매수 신호를 이용해 실제 주문 없이 전략을 검증할 수 있습니다.',
+              description: _usd
+                  ? '거래소와 티커를 입력해 모의매수할 수 있습니다.'
+                  : '최신 AI 매수 신호를 이용해 실제 주문 없이 전략을 검증할 수 있습니다.',
             )
           else
             ...snapshot.positions.map(
@@ -161,7 +208,8 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
                 padding: const EdgeInsets.only(bottom: 10),
                 child: _PositionCard(
                   position: position,
-                  submitting: _submitting,
+                  usd: _usd,
+                  submitting: _submitting || _pendingUsTrade != null,
                   onSell: () => _sellPosition(position),
                 ),
               ),
@@ -179,13 +227,123 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
             ...snapshot.trades.map(
               (trade) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: _TradeCard(trade: trade),
+                child: _TradeCard(trade: trade, usd: _usd),
               ),
             ),
           const SizedBox(height: 20),
         ],
       ),
     );
+  }
+
+  Widget _usActions(PaperTradingSnapshot snapshot) {
+    final hasAccount = snapshot.summary.initialCapital > 0;
+    final pending = _pendingUsTrade;
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CardTitle(hasAccount ? '미국주식 모의 주문' : 'USD 모의계좌 개설'),
+          const SizedBox(height: 8),
+          TextCaption(
+            hasAccount
+                ? '서버가 확인한 현재가로 가상 체결합니다.'
+                : '원화 모의계좌와 별도로 사용할 달러 시작 자금을 입력하세요.',
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: _submitting || pending != null
+                ? null
+                : (hasAccount ? _buyUs : _openUsAccount),
+            icon: const Icon(Icons.add),
+            label: Text(hasAccount ? '미국주식 모의매수' : 'USD 시작 자금 설정'),
+          ),
+          if (_usTradeError != null) ...[
+            const SizedBox(height: 8),
+            TextBody(_usTradeError!),
+          ],
+          if (pending != null && !_submitting)
+            TextButton(
+              onPressed: () => _sendUsTrade(pending),
+              child: const Text('같은 주문으로 결과 확인'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openUsAccount() async {
+    final amount = await showDialog<String>(
+      context: context,
+      builder: (_) => const _QuantityDialog(
+        title: 'USD 모의계좌 개설',
+        actionLabel: '개설',
+        maxQuantity: null,
+        capital: true,
+      ),
+    );
+    if (amount == null || !mounted) return;
+    await _submit(
+      () => widget.usRepository!.openUsAccount(amount),
+      'USD 모의계좌가 개설되었습니다.',
+    );
+  }
+
+  Future<void> _buyUs() async {
+    final order =
+        await showDialog<({String stockCode, String market, String quantity})>(
+          context: context,
+          builder: (_) => const _UsPaperBuyDialog(),
+        );
+    if (order == null || !mounted) return;
+    await _sendUsTrade((
+      stockCode: order.stockCode,
+      market: order.market,
+      side: 'BUY',
+      quantity: order.quantity,
+      requestId: _newRequestId(),
+    ));
+  }
+
+  Future<void> _sendUsTrade(UsPaperOrder order) async {
+    if (_submitting) return;
+    setState(() {
+      _pendingUsTrade = order;
+      _usTradeError = null;
+    });
+    await _submit(
+      () async {
+        final result = await widget.usRepository!.tradeUs(order);
+        if (mounted) setState(() => _pendingUsTrade = null);
+        return result;
+      },
+      '${order.stockCode} 모의 주문 결과를 확인했습니다.',
+      onError: (error) {
+        setState(() {
+          if (error is PaperTradingRepositoryException &&
+              const {
+                'VALIDATION_ERROR',
+                'PAPER_CAPITAL_REQUIRED',
+                'DUPLICATE_RESOURCE',
+                'RESOURCE_NOT_FOUND',
+                'EXTERNAL_DATA_ERROR',
+              }.contains(error.code)) {
+            _pendingUsTrade = null;
+            _usTradeError = error.message;
+          } else {
+            _usTradeError = '체결 결과를 확인하지 못했습니다. 같은 주문으로 다시 확인할 수 있습니다.';
+          }
+        });
+      },
+    );
+  }
+
+  String _newRequestId() {
+    final random = Random.secure();
+    return List.generate(
+      16,
+      (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+    ).join();
   }
 
   Future<void> _buyFromRecommendation() async {
@@ -201,7 +359,10 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
     );
     if (quantity == null || !mounted) return;
     await _submit(
-      () => widget.repository.buyFromRecommendation(recommendationId, quantity),
+      () => widget.repository.buyFromRecommendation(
+        recommendationId,
+        double.parse(quantity),
+      ),
       '${recommendation.stockName} 모의매수가 체결되었습니다.',
     );
   }
@@ -213,11 +374,21 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
       maxQuantity: position.quantity,
     );
     if (quantity == null || !mounted) return;
+    if (_usd) {
+      await _sendUsTrade((
+        stockCode: position.stockCode,
+        market: position.market,
+        side: 'SELL',
+        quantity: quantity,
+        requestId: _newRequestId(),
+      ));
+      return;
+    }
     await _submit(
       () => widget.repository.sellPosition(
         stockCode: position.stockCode,
         market: position.market,
-        quantity: quantity,
+        quantity: double.parse(quantity),
       ),
       '${position.stockName} 모의매도가 체결되었습니다.',
     );
@@ -225,8 +396,10 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
 
   Future<void> _submit(
     Future<PaperTradingSnapshot> Function() action,
-    String successMessage,
-  ) async {
+    String successMessage, {
+    void Function(Object)? onError,
+  }) async {
+    if (_submitting) return;
     setState(() => _submitting = true);
     try {
       final result = await action();
@@ -236,18 +409,24 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
       });
       _showMessage(successMessage);
     } catch (error) {
-      if (mounted) _showMessage(_errorMessage(error));
+      if (mounted) {
+        if (onError == null) {
+          _showMessage(_errorMessage(error));
+        } else {
+          onError(error);
+        }
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
   }
 
-  Future<double?> _showQuantityDialog({
+  Future<String?> _showQuantityDialog({
     required String title,
     required String actionLabel,
     double? maxQuantity,
   }) async {
-    return showDialog<double>(
+    return showDialog<String>(
       context: context,
       builder: (context) => _QuantityDialog(
         title: title,
@@ -269,11 +448,13 @@ class _QuantityDialog extends StatefulWidget {
     required this.title,
     required this.actionLabel,
     required this.maxQuantity,
+    this.capital = false,
   });
 
   final String title;
   final String actionLabel;
   final double? maxQuantity;
+  final bool capital;
 
   @override
   State<_QuantityDialog> createState() => _QuantityDialogState();
@@ -298,13 +479,19 @@ class _QuantityDialogState extends State<_QuantityDialog> {
         autofocus: true,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,4}')),
+          FilteringTextInputFormatter.allow(
+            widget.capital
+                ? RegExp(r'^\d*\.?\d{0,2}')
+                : RegExp(r'^\d*\.?\d{0,4}'),
+          ),
         ],
         decoration: InputDecoration(
-          labelText: '수량',
-          suffixText: '주',
+          labelText: widget.capital ? '시작 자금' : '수량',
+          suffixText: widget.capital ? 'USD' : '주',
           errorText: _validationMessage,
-          helperText: widget.maxQuantity == null
+          helperText: widget.capital
+              ? '최소 0.01 USD · 소수점 둘째 자리까지'
+              : widget.maxQuantity == null
               ? '서버가 확인한 현재가로 가상 체결됩니다.'
               : '최대 ${_formatQuantity(widget.maxQuantity!)}주',
         ),
@@ -321,21 +508,113 @@ class _QuantityDialogState extends State<_QuantityDialog> {
   }
 
   void _submit() {
-    final quantity = double.tryParse(_controller.text.trim());
+    final text = _controller.text.trim();
+    final quantity = double.tryParse(text);
     if (quantity == null ||
-        quantity <= 0 ||
+        !quantity.isFinite ||
+        (widget.capital && text.split('.').first.length > 16) ||
+        quantity < (widget.capital ? 0.01 : 0.0001) ||
         (widget.maxQuantity != null && quantity > widget.maxQuantity!)) {
       setState(() => _validationMessage = '가능한 수량을 입력해 주세요.');
       return;
     }
-    Navigator.of(context).pop(quantity);
+    Navigator.of(context).pop(text);
+  }
+}
+
+class _UsPaperBuyDialog extends StatefulWidget {
+  const _UsPaperBuyDialog();
+
+  @override
+  State<_UsPaperBuyDialog> createState() => _UsPaperBuyDialogState();
+}
+
+class _UsPaperBuyDialogState extends State<_UsPaperBuyDialog> {
+  final _form = GlobalKey<FormState>();
+  String _market = 'NASDAQ';
+  String _ticker = '';
+  String _quantity = '';
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('미국주식 모의매수'),
+    content: SizedBox(
+      width: 340,
+      child: Form(
+        key: _form,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DropdownButtonFormField<String>(
+              initialValue: _market,
+              decoration: const InputDecoration(labelText: '거래소'),
+              items: const [
+                DropdownMenuItem(value: 'NASDAQ', child: Text('나스닥')),
+                DropdownMenuItem(value: 'NYSE', child: Text('뉴욕증권거래소')),
+                DropdownMenuItem(value: 'AMEX', child: Text('NYSE American')),
+              ],
+              onChanged: (value) => _market = value ?? _market,
+            ),
+            TextFormField(
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: '티커',
+                hintText: 'AAPL',
+              ),
+              onChanged: (value) => _ticker = value.trim().toUpperCase(),
+              validator: (_) =>
+                  _ticker.length <= 16 &&
+                      RegExp(
+                        r'^[A-Z][A-Z0-9]{0,14}(?:[.-][A-Z0-9]{1,4})?$',
+                      ).hasMatch(_ticker)
+                  ? null
+                  : '미국주식 티커를 입력하세요.',
+            ),
+            TextFormField(
+              decoration: const InputDecoration(
+                labelText: '수량',
+                suffixText: '주',
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              onChanged: (value) => _quantity = value.trim(),
+              validator: (_) =>
+                  RegExp(
+                        r'^(?:\d{1,14}(?:\.\d{1,4})?|\.\d{1,4})$',
+                      ).hasMatch(_quantity) &&
+                      (double.tryParse(_quantity) ?? 0) >= 0.0001
+                  ? null
+                  : '0.0001주 이상, 소수점 넷째 자리까지 입력하세요.',
+              onFieldSubmitted: (_) => _confirm(),
+            ),
+          ],
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('취소'),
+      ),
+      FilledButton(onPressed: _confirm, child: const Text('현재가로 모의매수')),
+    ],
+  );
+
+  void _confirm() {
+    if (_form.currentState!.validate()) {
+      Navigator.of(
+        context,
+      ).pop((stockCode: _ticker, market: _market, quantity: _quantity));
+    }
   }
 }
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.summary});
+  const _SummaryCard({required this.summary, required this.usd});
 
   final PaperTradingSummary summary;
+  final bool usd;
 
   @override
   Widget build(BuildContext context) {
@@ -348,7 +627,7 @@ class _SummaryCard extends StatelessWidget {
           const LabelText('모의 총자산'),
           const SizedBox(height: 6),
           Text(
-            '${_formatMoney(summary.totalAsset)}원',
+            _formatMoney(summary.totalAsset, usd),
             style: TextStyle(
               color: palette.text,
               fontSize: 28,
@@ -358,7 +637,7 @@ class _SummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${_formatSignedMoney(summary.totalProfit)}원  ${formatSignedPercent(summary.returnRate)}',
+            '${_formatSignedMoney(summary.totalProfit, usd)}  ${formatSignedPercent(summary.returnRate)}',
             style: TextStyle(
               color: profitColor,
               fontSize: 14,
@@ -377,22 +656,22 @@ class _SummaryCard extends StatelessWidget {
                   _Metric(
                     width: width,
                     label: '현금',
-                    value: '${_formatMoney(summary.cashBalance)}원',
+                    value: _formatMoney(summary.cashBalance, usd),
                   ),
                   _Metric(
                     width: width,
                     label: '평가액',
-                    value: '${_formatMoney(summary.openPositionValue)}원',
+                    value: _formatMoney(summary.openPositionValue, usd),
                   ),
                   _Metric(
                     width: width,
                     label: '실현 손익',
-                    value: '${_formatSignedMoney(summary.realizedProfit)}원',
+                    value: _formatSignedMoney(summary.realizedProfit, usd),
                   ),
                   _Metric(
                     width: width,
                     label: '평가 손익',
-                    value: '${_formatSignedMoney(summary.unrealizedProfit)}원',
+                    value: _formatSignedMoney(summary.unrealizedProfit, usd),
                   ),
                   _Metric(
                     width: width,
@@ -403,7 +682,7 @@ class _SummaryCard extends StatelessWidget {
                   _Metric(
                     width: width,
                     label: '최대 단일 손실',
-                    value: '${_formatMoney(summary.maxLoss)}원',
+                    value: _formatMoney(summary.maxLoss, usd),
                   ),
                   _Metric(
                     width: width,
@@ -413,7 +692,7 @@ class _SummaryCard extends StatelessWidget {
                   _Metric(
                     width: width,
                     label: '설정 자본',
-                    value: '${_formatMoney(summary.initialCapital)}원',
+                    value: _formatMoney(summary.initialCapital, usd),
                   ),
                 ],
               );
@@ -570,11 +849,13 @@ class _PositionCard extends StatelessWidget {
     required this.position,
     required this.submitting,
     required this.onSell,
+    required this.usd,
   });
 
   final PaperPosition position;
   final bool submitting;
   final VoidCallback onSell;
+  final bool usd;
 
   @override
   Widget build(BuildContext context) {
@@ -599,15 +880,17 @@ class _PositionCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           TextCaption(
-            '${position.stockCode} · ${position.market} · ${position.provider} 현재가',
+            '${position.stockCode} · ${position.market} · '
+            '${usd && position.provider == 'FALLBACK' ? '현재가 미확인 · 매입 원가 평가' : '${position.provider} 현재가'}',
           ),
           const AppDivider(),
           TextBody(
-            '수량 ${_formatQuantity(position.quantity)}주 · 평균 ${_formatMoney(position.averagePrice)}원',
+            '수량 ${_formatQuantity(position.quantity)}주 · 평균 ${_formatMoney(position.averagePrice, usd, unitPrice: true)}',
           ),
           const SizedBox(height: 4),
           TextBody(
-            '현재가 ${_formatMoney(position.currentPrice)}원 · 평가 ${_formatMoney(position.valuationAmount)}원',
+            '${usd && position.provider == 'FALLBACK' ? '평가 기준가' : '현재가'} '
+            '${_formatMoney(position.currentPrice, usd, unitPrice: true)} · 평가 ${_formatMoney(position.valuationAmount, usd)}',
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -625,9 +908,10 @@ class _PositionCard extends StatelessWidget {
 }
 
 class _TradeCard extends StatelessWidget {
-  const _TradeCard({required this.trade});
+  const _TradeCard({required this.trade, required this.usd});
 
   final PaperTrade trade;
+  final bool usd;
 
   @override
   Widget build(BuildContext context) {
@@ -660,12 +944,12 @@ class _TradeCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 TextCaption(
-                  '${_formatQuantity(trade.quantity)}주 · ${_formatMoney(trade.tradePrice)}원 · ${_formatDateTime(trade.tradeDate)}',
+                  '${_formatQuantity(trade.quantity)}주 · ${_formatMoney(trade.tradePrice, usd, unitPrice: true)} · ${_formatDateTime(trade.tradeDate)}',
                 ),
                 if (!isBuy) ...[
                   const SizedBox(height: 4),
                   Text(
-                    '실현 ${_formatSignedMoney(trade.realizedProfit)}원',
+                    '실현 ${_formatSignedMoney(trade.realizedProfit, usd)}',
                     style: TextStyle(
                       color: _profitColor(trade.realizedProfit, palette),
                       fontSize: 12,
@@ -678,7 +962,7 @@ class _TradeCard extends StatelessWidget {
             ),
           ),
           Text(
-            '${_formatMoney(trade.tradeAmount)}원',
+            _formatMoney(trade.tradeAmount, usd),
             style: TextStyle(
               color: palette.text,
               fontSize: 13,
@@ -766,11 +1050,14 @@ class _PaperTradingError extends StatelessWidget {
   }
 }
 
-String _formatMoney(double value) => formatCurrency(value.round());
+String _formatMoney(double value, bool usd, {bool unitPrice = false}) {
+  if (!usd) return '${formatCurrency(value.round())}원';
+  return '${value.toStringAsFixed(unitPrice ? 4 : 2)} USD';
+}
 
-String _formatSignedMoney(double value) {
+String _formatSignedMoney(double value, bool usd) {
   final sign = value > 0 ? '+' : '';
-  return '$sign${formatCurrency(value.round())}';
+  return '$sign${_formatMoney(value, usd)}';
 }
 
 String _formatQuantity(double value) {

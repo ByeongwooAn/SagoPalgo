@@ -5,6 +5,7 @@ import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockQuote;
+import com.sagopalgo.api.market.model.UsStockExchange;
 import com.sagopalgo.api.market.service.MarketPriceService;
 import com.sagopalgo.api.papertrading.dto.PaperBuyRequest;
 import com.sagopalgo.api.papertrading.dto.PaperPositionResponse;
@@ -12,6 +13,7 @@ import com.sagopalgo.api.papertrading.dto.PaperSellRequest;
 import com.sagopalgo.api.papertrading.dto.PaperTradeResponse;
 import com.sagopalgo.api.papertrading.dto.PaperTradingSnapshotResponse;
 import com.sagopalgo.api.papertrading.dto.PaperTradingSummaryResponse;
+import com.sagopalgo.api.papertrading.dto.UsPaperTradeRequest;
 import com.sagopalgo.api.papertrading.mapper.PaperTradeMapper;
 import com.sagopalgo.api.papertrading.model.PaperTradeRecord;
 import com.sagopalgo.api.recommendation.dto.RecommendationResponse;
@@ -37,6 +39,7 @@ public class PaperTradingService {
     private static final int MONEY_SCALE = 2;
     private static final int QUANTITY_SCALE = 4;
     private static final int RATE_SCALE = 2;
+    private static final int USD_PRICE_SCALE = 4;
 
     private final PaperTradeMapper tradeMapper;
     private final CapitalService capitalService;
@@ -62,6 +65,81 @@ public class PaperTradingService {
         return snapshot(initialCapital, records);
     }
 
+    @Transactional(readOnly = true)
+    public PaperTradingSnapshotResponse getUsSnapshot(Long userId) {
+        BigDecimal capital = tradeMapper.findUsCapital(userId);
+        return capital == null
+            ? snapshot(BigDecimal.ZERO, List.of(), true, null)
+            : snapshot(capital, tradeMapper.findUsTrades(userId), true, null);
+    }
+
+    @Transactional
+    public PaperTradingSnapshotResponse openUsAccount(Long userId, BigDecimal capital) {
+        tradeMapper.lockUser(userId);
+        BigDecimal existing = tradeMapper.findUsCapital(userId);
+        if (existing == null) {
+            tradeMapper.insertUsAccount(userId, capital);
+            return snapshot(capital, List.of(), true, null);
+        }
+        if (existing.compareTo(capital) != 0) {
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "이미 USD 모의계좌가 개설되어 있습니다.");
+        }
+        return snapshot(existing, tradeMapper.findUsTrades(userId), true, null);
+    }
+
+    @Transactional
+    public PaperTradingSnapshotResponse tradeUs(Long userId, UsPaperTradeRequest order) {
+        if (UsStockExchange.fromMarket(order.market()).isEmpty()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "미국주식 거래소를 선택하세요.");
+        }
+        MarketDataRequest symbol = MarketDataRequest.forLookup(order.stockCode(), order.market());
+        BigDecimal quantity = normalizeQuantity(order.quantity());
+        tradeMapper.lockUser(userId);
+        BigDecimal capital = tradeMapper.findUsCapital(userId);
+        if (capital == null) {
+            throw new ApiException(ErrorCode.PAPER_CAPITAL_REQUIRED, "USD 모의계좌와 시작 자금을 먼저 설정하세요.");
+        }
+        List<PaperTradeRecord> records = tradeMapper.findUsTrades(userId);
+        for (PaperTradeRecord existing : records) {
+            if (!order.requestId().equals(existing.getRequestId())) continue;
+            if (!symbol.stockCode().equals(existing.getStockCode())
+                || !symbol.market().equals(existing.getMarket())
+                || !order.side().name().equals(existing.getTradeType())
+                || quantity.compareTo(existing.getQuantity()) != 0) {
+                throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "같은 요청 ID에 다른 모의주문을 사용할 수 없습니다.");
+            }
+            return snapshot(capital, records, true, null);
+        }
+
+        Ledger ledger = ledger(capital, records, true);
+        PositionState position = ledger.positions.get(positionKey(symbol.stockCode(), symbol.market()));
+        boolean buy = order.side() == UsPaperTradeRequest.Side.BUY;
+        if (!buy && (position == null || quantity.compareTo(position.quantity) > 0)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "보유한 미국주식 모의 수량보다 많이 매도할 수 없습니다.");
+        }
+
+        StockQuote quote = marketPriceService.getUsQuote(symbol.stockCode(), symbol.market());
+        BigDecimal price = quote.currentPrice().setScale(USD_PRICE_SCALE, RoundingMode.HALF_UP);
+        BigDecimal amount = tradeAmount(price, quantity, true);
+        if (amount.signum() <= 0) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "USD 모의 체결 금액은 최소 0.01 USD입니다.");
+        }
+        if (buy && amount.compareTo(ledger.cashBalance) > 0) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "USD 모의 현금 잔액이 부족합니다.");
+        }
+        String stockName = position != null ? position.stockName : symbol.stockCode();
+        PaperTradeRecord record = baseRecord(
+            userId, symbol.stockCode(), stockName, symbol.market(), order.side().name(), price, quantity
+        );
+        record.setRequestId(order.requestId());
+        record.setRealizedProfit(buy ? BigDecimal.ZERO : amount.subtract(position.usCostForSale(quantity)));
+        record.setMemo(quote.provider() + " 현재가 미국주식 모의" + (buy ? "매수" : "매도"));
+        tradeMapper.insertUsTrade(record);
+        List<PaperTradeRecord> updated = new ArrayList<>(records);
+        updated.add(record);
+        return snapshot(capital, updated, true, quote);
+    }
+
     @Transactional
     public PaperTradingSnapshotResponse buyFromRecommendation(
         Long userId,
@@ -79,7 +157,7 @@ public class PaperTradingService {
         BigDecimal price = normalizeMoney(quote.currentPrice());
         BigDecimal amount = price.multiply(quantity);
         BigDecimal initialCapital = initialCapital(userId);
-        Ledger ledger = ledger(initialCapital, tradeMapper.findAllByUserId(userId));
+        Ledger ledger = ledger(initialCapital, tradeMapper.findAllByUserId(userId), false);
         if (amount.compareTo(ledger.cashBalance) > 0) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "모의매매 현금 잔액이 부족합니다.");
         }
@@ -108,7 +186,7 @@ public class PaperTradingService {
         BigDecimal quantity = normalizeQuantity(request.quantity());
         BigDecimal initialCapital = initialCapital(userId);
         List<PaperTradeRecord> records = tradeMapper.findAllByUserId(userId);
-        Ledger ledger = ledger(initialCapital, records);
+        Ledger ledger = ledger(initialCapital, records, false);
         PositionState position = ledger.positions.get(positionKey(stockCode, market));
         if (position == null || position.quantity.signum() <= 0) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "매도할 모의 포지션이 없습니다.");
@@ -141,7 +219,13 @@ public class PaperTradingService {
         BigDecimal initialCapital,
         List<PaperTradeRecord> records
     ) {
-        Ledger ledger = ledger(initialCapital, records);
+        return snapshot(initialCapital, records, false, null);
+    }
+
+    private PaperTradingSnapshotResponse snapshot(
+        BigDecimal initialCapital, List<PaperTradeRecord> records, boolean usd, StockQuote executedQuote
+    ) {
+        Ledger ledger = ledger(initialCapital, records, usd);
         List<PaperPositionResponse> positions = new ArrayList<>();
         BigDecimal openPositionValue = BigDecimal.ZERO;
         BigDecimal unrealizedProfit = BigDecimal.ZERO;
@@ -150,13 +234,12 @@ public class PaperTradingService {
             if (position.quantity.signum() <= 0) {
                 continue;
             }
-            StockQuote quote = marketPriceService.quoteMarket(
-                new MarketDataRequest(position.stockCode, position.market)
-            );
-            BigDecimal currentPrice = quote.currentPrice() != null && quote.currentPrice().signum() > 0
-                ? quote.currentPrice()
+            StockQuote quote = valuationQuote(position, usd, executedQuote);
+            boolean priced = quote != null && quote.currentPrice() != null && quote.currentPrice().signum() > 0;
+            BigDecimal currentPrice = priced
+                ? (usd ? price(quote.currentPrice(), true) : quote.currentPrice())
                 : position.averagePrice();
-            BigDecimal valuation = currentPrice.multiply(position.quantity);
+            BigDecimal valuation = usd && !priced ? position.totalCost : tradeAmount(currentPrice, position.quantity, usd);
             BigDecimal profit = valuation.subtract(position.totalCost);
             BigDecimal profitRate = position.totalCost.signum() > 0
                 ? profit.divide(position.totalCost, 6, RoundingMode.HALF_UP)
@@ -168,12 +251,10 @@ public class PaperTradingService {
                 position.stockCode,
                 position.stockName,
                 position.market,
-                quote.currentPrice() != null && quote.currentPrice().signum() > 0
-                    ? quote.provider()
-                    : "FALLBACK",
+                priced ? quote.provider() : "FALLBACK",
                 quantity(position.quantity),
-                money(position.averagePrice()),
-                money(currentPrice),
+                price(position.averagePrice(), usd),
+                price(currentPrice, usd),
                 money(valuation),
                 money(profit),
                 rate(profitRate)
@@ -197,7 +278,7 @@ public class PaperTradingService {
             : BigDecimal.ZERO;
 
         List<PaperTradeResponse> trades = records.stream()
-            .map(this::tradeResponse)
+            .map(record -> tradeResponse(record, usd))
             .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
         Collections.reverse(trades);
         return new PaperTradingSnapshotResponse(
@@ -216,14 +297,29 @@ public class PaperTradingService {
                 rate(turnoverRate)
             ),
             positions,
-            trades
+            trades,
+            usd ? "USD" : "KRW"
         );
     }
 
-    private Ledger ledger(BigDecimal initialCapital, List<PaperTradeRecord> records) {
+    private StockQuote valuationQuote(PositionState position, boolean usd, StockQuote executedQuote) {
+        if (!usd) {
+            return marketPriceService.quoteMarket(new MarketDataRequest(position.stockCode, position.market));
+        }
+        if (executedQuote != null && position.stockCode.equals(executedQuote.stockCode())
+            && position.market.equals(executedQuote.market())) return executedQuote;
+        try {
+            return marketPriceService.getUsQuote(position.stockCode, position.market);
+        } catch (ApiException exception) {
+            if (exception.getErrorCode() != ErrorCode.EXTERNAL_DATA_ERROR) throw exception;
+            return null;
+        }
+    }
+
+    private Ledger ledger(BigDecimal initialCapital, List<PaperTradeRecord> records, boolean usd) {
         Ledger ledger = new Ledger(initialCapital);
         for (PaperTradeRecord record : records) {
-            BigDecimal amount = record.getTradePrice().multiply(record.getQuantity());
+            BigDecimal amount = tradeAmount(record.getTradePrice(), record.getQuantity(), usd);
             ledger.turnover = ledger.turnover.add(amount);
             PositionState position = ledger.positions.computeIfAbsent(
                 positionKey(record.getStockCode(), record.getMarket()),
@@ -235,12 +331,12 @@ public class PaperTradingService {
             );
             if ("BUY".equalsIgnoreCase(record.getTradeType())) {
                 ledger.cashBalance = ledger.cashBalance.subtract(amount);
-                position.buy(record.getTradePrice(), record.getQuantity());
+                position.buy(amount, record.getQuantity());
                 continue;
             }
 
             ledger.cashBalance = ledger.cashBalance.add(amount);
-            position.sell(record.getQuantity());
+            position.sell(record.getQuantity(), usd);
             BigDecimal realized = record.getRealizedProfit() == null
                 ? BigDecimal.ZERO
                 : record.getRealizedProfit();
@@ -286,7 +382,7 @@ public class PaperTradingService {
         return record;
     }
 
-    private PaperTradeResponse tradeResponse(PaperTradeRecord record) {
+    private PaperTradeResponse tradeResponse(PaperTradeRecord record, boolean usd) {
         return new PaperTradeResponse(
             record.getTradeRecordId(),
             record.getRecommendationId(),
@@ -294,9 +390,9 @@ public class PaperTradingService {
             record.getStockName(),
             record.getMarket(),
             record.getTradeType(),
-            money(record.getTradePrice()),
+            price(record.getTradePrice(), usd),
             quantity(record.getQuantity()),
-            money(record.getTradePrice().multiply(record.getQuantity())),
+            money(tradeAmount(record.getTradePrice(), record.getQuantity(), usd)),
             money(record.getRealizedProfit() == null ? BigDecimal.ZERO : record.getRealizedProfit()),
             record.getTradeDate(),
             record.getMemo()
@@ -317,6 +413,15 @@ public class PaperTradingService {
 
     private BigDecimal normalizeMoney(BigDecimal value) {
         return value.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal price(BigDecimal value, boolean usd) {
+        return value.setScale(usd ? USD_PRICE_SCALE : MONEY_SCALE, RoundingMode.HALF_UP).stripTrailingZeros();
+    }
+
+    private BigDecimal tradeAmount(BigDecimal price, BigDecimal quantity, boolean usd) {
+        BigDecimal amount = price.multiply(quantity);
+        return usd ? normalizeMoney(amount) : amount;
     }
 
     private BigDecimal normalizeQuantity(BigDecimal value) {
@@ -362,17 +467,22 @@ public class PaperTradingService {
             this.market = market;
         }
 
-        private void buy(BigDecimal price, BigDecimal boughtQuantity) {
+        private void buy(BigDecimal amount, BigDecimal boughtQuantity) {
             quantity = quantity.add(boughtQuantity);
-            totalCost = totalCost.add(price.multiply(boughtQuantity));
+            totalCost = totalCost.add(amount);
         }
 
-        private void sell(BigDecimal soldQuantity) {
-            totalCost = totalCost.subtract(averagePrice().multiply(soldQuantity));
+        private void sell(BigDecimal soldQuantity, boolean usd) {
+            BigDecimal cost = usd ? usCostForSale(soldQuantity) : averagePrice().multiply(soldQuantity);
+            totalCost = totalCost.subtract(cost);
             quantity = quantity.subtract(soldQuantity);
             if (quantity.signum() == 0) {
                 totalCost = BigDecimal.ZERO;
             }
+        }
+
+        private BigDecimal usCostForSale(BigDecimal soldQuantity) {
+            return totalCost.multiply(soldQuantity).divide(quantity, MONEY_SCALE, RoundingMode.HALF_UP);
         }
 
         private BigDecimal averagePrice() {

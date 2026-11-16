@@ -4,11 +4,13 @@ class PaperTradingSnapshot {
     required this.summary,
     required this.positions,
     required this.trades,
+    this.currency = 'KRW',
   });
 
   final PaperTradingSummary summary;
   final List<PaperPosition> positions;
   final List<PaperTrade> trades;
+  final String currency;
 
   factory PaperTradingSnapshot.fromJson(Map<String, dynamic> json) {
     return PaperTradingSnapshot(
@@ -21,6 +23,7 @@ class PaperTradingSnapshot {
       trades: (json['trades'] as List<dynamic>? ?? const [])
           .map((item) => PaperTrade.fromJson(item as Map<String, dynamic>))
           .toList(),
+      currency: json['currency'] as String? ?? 'KRW',
     );
   }
 }
