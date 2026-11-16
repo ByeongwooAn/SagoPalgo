@@ -1,0 +1,994 @@
+{
+  "schemaVersion": "SAGOPALGO_HISTORICAL_DIVIDEND_PAYMENTS_V1",
+  "reviewedAt": "2026-11-16T07:36:43.572708+00:00",
+  "inputs": {
+    "census": {
+      "path": "action-outcome-census-20261108/outcome-census.json",
+      "sha256": "8bb95c3f3811dcc9ce9e17b17fe85f0a593ec24b751eaf26e8c1802cd422274e"
+    },
+    "followup": {
+      "path": "historical-actions-followup-20261113/report.json",
+      "sha256": "be10b87cb671405a53b0c1a5f1eafe56bbd3e14b4140153bd98cd71ec5f41ab5"
+    },
+    "inventory": {
+      "path": "action-event-verification-20261108/event-audit.json",
+      "sha256": "57acb70786af85d9b69967786fe8a1635c48d789cddfbb3acdd97a2d9e19e335"
+    }
+  },
+  "sources": {
+    "correction-20240418000424": {
+      "url": "https://kind.krx.co.kr/external/2024/04/18/000424/20240418000930/71500.htm",
+      "sha256": "4116cdab81550af67df069773906970e14890ae276dd16f6e94ca67a1ba334aa",
+      "listedReceipt": "20240418000424",
+      "viewerSha256": "6e4be3ae18a176b8c19e74ba830e15e20233dce581347151dbc933c34059cb4e",
+      "routeSha256": "6ad7e1acaf35d410d1d1b116a5cc7fedd70baad4f429237b4cc3a576f83d5574"
+    },
+    "correction-20240710000559": {
+      "url": "https://kind.krx.co.kr/external/2024/07/10/000559/20240710001184/71500.htm",
+      "sha256": "30689c34ac842c31aa2d1b2ff00e5bc461183e0fc4821f1492dfdc3e55d40b07",
+      "listedReceipt": "20240710000559",
+      "viewerSha256": "c2a733c72ccede364d3af4dfca49fbb999ea8cc1c15a2d787296b9e4a0bc5188",
+      "routeSha256": "03ef1078239931ce35f9e225876bddfe2d7f7239b0e5c20384bc31d1cc1b286c"
+    },
+    "correction-20250213000274": {
+      "url": "https://kind.krx.co.kr/external/2025/02/13/000274/20250213000983/61500.htm",
+      "sha256": "64a5e6c2cae3486e179719deed123bea9c1572c5464d1e51bccde41e7b2ac039",
+      "listedReceipt": "20250213000274",
+      "viewerSha256": "0b142e18957aa5159b8d3790d6a13024a44fc8d3bd6f6c77b07e33881fa28ebe",
+      "routeSha256": "b6f26c0146a86903f99d9982c4667835df3340d3cdaa33576af6d4fab35cd292"
+    },
+    "correction-20250415000408": {
+      "url": "https://kind.krx.co.kr/external/2025/04/15/000408/20250415001060/71500.htm",
+      "sha256": "1e5260b5a7b49a3c59709bae5088989abf2af8c93ff4e4adb7b2b1b8f735811f",
+      "listedReceipt": "20250415000408",
+      "viewerSha256": "b70302ab0541ac3e98575bda0f1c4ca15ec5737d6aca22157e21ddd7d1ccc63f",
+      "routeSha256": "ce7af9cceaae0014bdddfd2a96adf6ec1c679b29c336564ad37d8043405fc5a2"
+    },
+    "correction-20250422000174": {
+      "url": "https://kind.krx.co.kr/external/2025/04/22/000174/20250422000029/71500.htm",
+      "sha256": "0f87afe32c066dc7359eaa277b4d92a60cfba0f248cb9a5b0f016df6ed65db7c",
+      "listedReceipt": "20250422000174",
+      "viewerSha256": "c47e697dce4d93d94ea215c7fa3d78d5d9ff5a5d5a8b7a06c13b47f5308842cd",
+      "routeSha256": "aea2466c16033e06e91676f0f1bded5193d99592cec53f642658a997bc1f2cbe"
+    },
+    "correction-20250424000746": {
+      "url": "https://kind.krx.co.kr/external/2025/04/24/000746/20250424001113/61500.htm",
+      "sha256": "e16477435f87729fc1beefd65f9e2e151f0d413309e40532070cc74fd8b934d5",
+      "listedReceipt": "20250424000746",
+      "viewerSha256": "1a503fd76b7d2280f9bce3421e4f87ccf59f4dc4e491741f8662f82170b26037",
+      "routeSha256": "3b4e679014021e86fa1e1f1a67e3a20965d6762e906034fdc6bcb3a69ff97dec"
+    },
+    "correction-20250509000714": {
+      "url": "https://kind.krx.co.kr/external/2025/05/09/000714/20250509000731/61500.htm",
+      "sha256": "82a6728a8301d2ca31ef38cd658e9eea226fe0070c8c6d3d505007032967d1da",
+      "listedReceipt": "20250509000714",
+      "viewerSha256": "3addacd197077fe07fa1111977a016dd3b1e93fb1196c8d46b3909dfeb27c9db",
+      "routeSha256": "4ebbbb486ca11266153e47467080eaf78029c3b175de27661cd02079aac5b406"
+    },
+    "correction-20250513000691": {
+      "url": "https://kind.krx.co.kr/external/2025/05/13/000691/20250513000872/61500.htm",
+      "sha256": "ba6ab4d528a3c5075c89d39cb3cba96a118e1883d83e21c0e81eb6aa560657c2",
+      "listedReceipt": "20250513000691",
+      "viewerSha256": "2fc2c7303a9c85af99c36894b8763eda7c860897cb31f4a2f8cb95e812a0d0af",
+      "routeSha256": "30e42135141f98b821db1ae0d42a15c386d4372d1e2cc6600f9fdf9e5e8d8bce"
+    },
+    "correction-20250522000414": {
+      "url": "https://kind.krx.co.kr/external/2025/05/22/000414/20250522001135/71500.htm",
+      "sha256": "1a6e056260ba542ae1e8a966ec52d972a3e5a06ef262caa4cefbc25cef963abe",
+      "listedReceipt": "20250522000414",
+      "viewerSha256": "026ec2a512549f4e02ae0a060c58b13750466641c8b82cfa7253fa3406015264",
+      "routeSha256": "8b92c1d9fc750869b9400f2e4617b01daab60a1de93c67c236eb90e0b7064c81"
+    },
+    "correction-20250709000301": {
+      "url": "https://kind.krx.co.kr/external/2025/07/09/000301/20250709000857/61500.htm",
+      "sha256": "5362de2406788ce009d079870c5d6ae3b86bd98a7df97b75fe6dd01c7ad6ce18",
+      "listedReceipt": "20250709000301",
+      "viewerSha256": "9d8fde09b5de93f202057f750e6f11acb15515e2bb8c74a9efed58d8c8211778",
+      "routeSha256": "838ba7db525f560d47d802b36cbba3c9c336c04a1e2238958416bcf59f315573"
+    },
+    "correction-20250723000306": {
+      "url": "https://kind.krx.co.kr/external/2025/07/23/000306/20250723000987/61500.htm",
+      "sha256": "221913e2c9886a57d7116bb1c400b1fedb49ffdafc73188d7ba4d47d2c53af81",
+      "listedReceipt": "20250723000306",
+      "viewerSha256": "dea05f437f39630c77df164daf889dd48e0b6c9c9de49569dea391c8eb48e586",
+      "routeSha256": "dd0b2d7256b2f8e014b30ef00a9754c9e4b5bf411664156e64f54cea0eff72e7"
+    },
+    "correction-20260213001740": {
+      "url": "https://kind.krx.co.kr/external/2026/02/13/001983/20260213004081/61500.htm",
+      "sha256": "ec73d0496990daa774e31a96ff667e8db86debdad4101a19117a09c98abb95e8",
+      "listedReceipt": "20260213001740",
+      "viewerSha256": "ef0ccd6c86b9d8bbf581b35ad57dafd35f7e82c0809dad9c682889b6e0f0a4a3",
+      "routeSha256": "e9c2a281cd67c897c877bffe2b253c3c4a6deb8acc0279989b29f7d4fc43f5d9"
+    },
+    "correction-20260213001983": {
+      "url": "https://kind.krx.co.kr/external/2026/02/13/001983/20260213004081/61500.htm",
+      "sha256": "0be867bf1d284784fe3852d9aa53ca8db5202417356f854a1d00d416ef934ef4",
+      "listedReceipt": "20260213001983",
+      "viewerSha256": "8160fbaae3e1d04f35e75be8256dd442d289addc7dc24f028f217723a911e645",
+      "routeSha256": "a39ad00980dfd76cde69e0ba15f2b81df6c2acf2d899b9c45dbbb9feb1740cb8"
+    },
+    "correction-20260417000303": {
+      "url": "https://kind.krx.co.kr/external/2026/04/17/000303/20260417000452/71500.htm",
+      "sha256": "48c6b8b8cf68f1988ebda038225d70e95105454e5e15cd110f555227f49bea3f",
+      "listedReceipt": "20260417000303",
+      "viewerSha256": "62d8e30d22ee96d26b80bbd40a388b31fd2d8cb5c76980c87fc2e9f210c13a8d",
+      "routeSha256": "04f50c0c5d657caa475bc7f84d8ab01896bb9aa4cc5dcde4abc58b9abaa81d23"
+    },
+    "correction-20260421000102": {
+      "url": "https://kind.krx.co.kr/external/2026/04/21/000102/20260421000041/71500.htm",
+      "sha256": "1f472a62a6ec33386935be028b0786e846b5f5d892cd05d458532142533ccec5",
+      "listedReceipt": "20260421000102",
+      "viewerSha256": "47eb6f952717964ee08a9c98737d2bc726b272db21331b8c085ea7e2f99e6271",
+      "routeSha256": "0bfdac5e63df98f5a4ef77f9a376e7b71ed031e58d8934c66f75d987db489afc"
+    },
+    "correction-20260421000330": {
+      "url": "https://kind.krx.co.kr/external/2026/04/21/000330/20260421000027/71500.htm",
+      "sha256": "7922c49fc40e2c87397dedb1d03f44576b1cd48eb52a2e90bb28005cafdeae68",
+      "listedReceipt": "20260421000330",
+      "viewerSha256": "aa25a633684e4724bc159b1ec21f61c4df7e831e58ee5bf9d40d2d2d094f6711",
+      "routeSha256": "63afae002abf0ae28fdcd3f45d106fa7448e5390872ff29208d72f29ee4b23b1"
+    },
+    "correction-20260424000216": {
+      "url": "https://kind.krx.co.kr/external/2026/04/24/000216/20260424000289/71500.htm",
+      "sha256": "8c843adb25746913ca39577f550a1b625adbe686103d8ef6d647e6e2f2153f52",
+      "listedReceipt": "20260424000216",
+      "viewerSha256": "e6c52cecadc3663df96885e0e833a3bd1abe9dde04ff15f264eb188a11449b3e",
+      "routeSha256": "e73c711305e828aaf6502274d246704ee29cca972cbd9ed14efce9d30aa91b38"
+    },
+    "correction-20260424000256": {
+      "url": "https://kind.krx.co.kr/external/2026/04/24/000256/20260424000562/71500.htm",
+      "sha256": "4d698aa3602788399c6d127aa094d034a3b5557b45964184b8ca45e58ff76ca3",
+      "listedReceipt": "20260424000256",
+      "viewerSha256": "c8be6cc9925184e0328a6889127d08639cea2521853bb1f230c91af4d00ac2b8",
+      "routeSha256": "cdb20b6d99a59ec637fc9f8fc3c9156fbfe395d272a27e62c05eb327912f3870"
+    },
+    "correction-20260424000396": {
+      "url": "https://kind.krx.co.kr/external/2026/04/24/000396/20260424000596/71500.htm",
+      "sha256": "9c30884fc0c898c906d5870df7a606bf50cd9b78fed02cdec0a30cbc9272c761",
+      "listedReceipt": "20260424000396",
+      "viewerSha256": "2d3b0a13a76bfafa98c1b506791a3f3d71ad4245adb9f39e4d2c7fbd6a677aaf",
+      "routeSha256": "bb7a8a6acf1bc239afb4e493b5ebdb2f6b56969c036a59e5bca1c08f2f91522f"
+    },
+    "correction-20260424000604": {
+      "url": "https://kind.krx.co.kr/external/2026/04/24/000604/20260424001313/71500.htm",
+      "sha256": "63783a707c7ea57b7158812a7d8fa611daee3cf16eb8d6ec851f246ec5544a73",
+      "listedReceipt": "20260424000604",
+      "viewerSha256": "122d7703a151834d3076500d3a6bd8333c99a69042804cfc8f2395aa3ec5242d",
+      "routeSha256": "2a304b9fb3192011551be6443e5d1b032e1d74df814ede8a7a47c731715e084e"
+    },
+    "correction-20260424000921": {
+      "url": "https://kind.krx.co.kr/external/2026/04/24/000921/20260424001594/71500.htm",
+      "sha256": "33dc3299bb9ef175af984c4c6a83791501baab7fe7d221a65671dd5516f46350",
+      "listedReceipt": "20260424000921",
+      "viewerSha256": "506ca6bfd0563f38df720ff5f955cd747ff81bb0ed1eb78f7d5f4cd48c3f3f68",
+      "routeSha256": "2a1dcfc25f1c8782e5f286a9c7b4eee12ec7ef705a88531f814502fb1f85e400"
+    },
+    "correction-20260512000280": {
+      "url": "https://kind.krx.co.kr/external/2026/05/12/000280/20260512000478/61500.htm",
+      "sha256": "4edbfdd76ef5e5a5921a713cdf5b8534b956c49776eeeaac9be13659c3291b25",
+      "listedReceipt": "20260512000280",
+      "viewerSha256": "7fd64acaa9985516c400526d5e8c4ba3fdfe7d345bfedcc1325ec4132f6af08a",
+      "routeSha256": "56355590a3f2f015277fb9bc77478d7020827511a747046ea4ba2fadc5228dfd"
+    },
+    "correction-20260513000931": {
+      "url": "https://kind.krx.co.kr/external/2026/05/13/000931/20260513002014/71500.htm",
+      "sha256": "f16548b7c71621782714f108c95d985c688d1eb881ef1bfdfa8e313b91436053",
+      "listedReceipt": "20260513000931",
+      "viewerSha256": "17eee8878946e7be3de6ce9139337361b0b4b62a706642cc38ed45ba0f12bdc6",
+      "routeSha256": "06a341d70e5d8dc3aea4dda52c61e814ce1e83b68794f59ccf215b6dbad45c14"
+    },
+    "correction-20260518000409": {
+      "url": "https://kind.krx.co.kr/external/2026/05/18/000409/20260518000352/71500.htm",
+      "sha256": "ae2b44936e26ffb915f6249e47e0b4527c57cb20f37bb8bf92cb25dd21ecbd23",
+      "listedReceipt": "20260518000409",
+      "viewerSha256": "f280902b17e621fb259989c9828dc6c13986137c83b1576d22e186e6a1b2c742",
+      "routeSha256": "442ab78d7f2d03e53764fb7489056cbffa7e6b07686148f162853c5cae8548bc"
+    },
+    "correction-20260518000521": {
+      "url": "https://kind.krx.co.kr/external/2026/05/18/000521/20260511001960/61500.htm",
+      "sha256": "86c7cc83fbdbde5344cf7c687e7e52daf64a49305a7cd1e06d08b14421824c1a",
+      "listedReceipt": "20260518000521",
+      "viewerSha256": "7c9aac69415442c1d19a0bc2e14f8722c12a19683f69e166a2f6f0d2e826629c",
+      "routeSha256": "c001b0d6bb132ceb3ae44a417d05fa0ce6fec884dbc7129ee6fd99c6d06f527f"
+    },
+    "correction-20260630000323": {
+      "url": "https://kind.krx.co.kr/external/2026/06/30/000323/20260630000662/71500.htm",
+      "sha256": "f3026c4ad15d72968185fbd65f62a14cd92f27ef99ea46957250aa543704ea3d",
+      "listedReceipt": "20260630000323",
+      "viewerSha256": "5f1984716cdb4947c24ba10fe882670b9115924461bd7ef57117709d86351d34",
+      "routeSha256": "3c8445a34dc5bb32088b55a395a46ac52777065b49be7d02900ff40d32a98aeb"
+    },
+    "correction-20260630001419": {
+      "url": "https://kind.krx.co.kr/external/2026/06/30/001419/20260626002205/61500.htm",
+      "sha256": "34592e84be01dc109374456f1d868d970e381e23f481221fe2b81930b7655c85",
+      "listedReceipt": "20260630001419",
+      "viewerSha256": "7f7be8d56936a21ba0ed6e33b967e052b70b610c57eabe7ea97446016175fba5",
+      "routeSha256": "6c0db5fb78e26be6567391addf70c05d1faa8f8ecdcd9a281c1a383e4b14575a"
+    },
+    "report-20240129002442": {
+      "url": "https://kind.krx.co.kr/external/2024/02/06/000480/20240129002442/61500.htm",
+      "sha256": "e60f0e0e2db7b3df95e0fa14fb677871d9814051094aa6973ec47f0228a31063",
+      "listedReceipt": "20240206000480",
+      "viewerSha256": "5220e33ea5cbc70838cc22e248e49af6d1f805c4a5c4106be5a5b012b391af3f",
+      "routeSha256": "6944b1824026888580cab7e1a2760cfe0ea73dbc08fac0c5d66c1978064bb40b"
+    },
+    "report-20240219001339": {
+      "url": "https://kind.krx.co.kr/external/2024/02/27/000188/20240219001339/61500.htm",
+      "sha256": "317121d638a1749df4fab6fc3c6aa6b5d1983223b6b9ae2211929661c66f9add",
+      "listedReceipt": "20240227000188",
+      "viewerSha256": "738576b52e87e7131a1daf6afab78f583c55bf4ad7f31e2c78422adace6ebb05",
+      "routeSha256": "39d55384f6229a9d4dd264d66ee3900675e816b9324708b33cce4bcf51071f62"
+    },
+    "report-20240305001025": {
+      "url": "https://kind.krx.co.kr/external/2024/03/13/002137/20240305001025/61500.htm",
+      "sha256": "532d8b38ad8e845439caeafcfbdaf794c00f4ee83d452bbf8dab4033e765062b",
+      "listedReceipt": "20240313002137",
+      "viewerSha256": "6163f34ed6bf0b97c64dba7b9b1c852a7cdb9045e8e6abcd5b9d5cb7286808ac",
+      "routeSha256": "52d7122e9bd716c511bb720d3e034f5b9e5cd9890eefadb0eed542849f2e69bd"
+    },
+    "report-20240814002347": {
+      "url": "https://kind.krx.co.kr/external/2024/08/14/000790/20240814002347/11012.htm",
+      "sha256": "27151a77a3facd0e354233885fc4dc6e1c3cbb94af87840b04f768dced621e7a"
+    },
+    "report-20240814007515": {
+      "url": "https://kind.krx.co.kr/external/2024/08/14/002362/20240814007515/11012.htm",
+      "sha256": "274813899fb2bc31465561d38c63fbb1e8c30e1536b298046e97558b89e231c6"
+    },
+    "report-20240814008022": {
+      "url": "https://kind.krx.co.kr/external/2024/08/14/002524/20240814008022/11012.htm",
+      "sha256": "eba970787dcba4e2056cfafc9c3211907ca906b282283889fcd2644bf43dc6bc"
+    },
+    "report-20250204000187": {
+      "url": "https://kind.krx.co.kr/external/2025/02/07/000402/20250204000187/61500.htm",
+      "sha256": "a6b9a7e878f18bd68b09c65fd368c6460beee891f70d0e7c5de4c0d52a2d64b5",
+      "listedReceipt": "20250207000402",
+      "viewerSha256": "0530214a45768916f8a3d4c97b9e660f0327a654b614c5a929d3033c3d4f3871",
+      "routeSha256": "527c4449ec77c79e2cee60ad74261fee17800b137d5dd58e9a7b034b14fbddb3"
+    },
+    "report-20250702000034": {
+      "url": "https://kind.krx.co.kr/external/2025/07/28/000286/20250702000034/61500.htm",
+      "sha256": "d7c5557ea746611b692cdf54434fa857e6aa9801b231b8575941179627bc75f9",
+      "listedReceipt": "20250728000286",
+      "viewerSha256": "75ab8a7a000ab3d659fb7830fb46511e3949fc4423995394d81bca7fa390a92f",
+      "routeSha256": "a01fbe6a502c8000223e786a75f05fb507204694925a290a93192a4c8231d717"
+    },
+    "report-20250814002748": {
+      "url": "https://kind.krx.co.kr/external/2025/08/14/000927/20250814002748/11012.htm",
+      "sha256": "782305a8e954c445d3e514ff4577ba83cd8302b21b4c465f5146f8f31d7ca1a2"
+    },
+    "report-20250814003597": {
+      "url": "https://kind.krx.co.kr/external/2025/08/14/001203/20250814003597/11012.htm",
+      "sha256": "17e7dbb8f7ea64cbb4b5c25d9f9e23b4ac2b8fd5e8e85b374473afb7d8b2c892"
+    },
+    "report-20250814008965": {
+      "url": "https://kind.krx.co.kr/external/2025/08/14/002889/20250814008965/11012.htm",
+      "sha256": "5d91fbdebe93705b4e8ec916fbd3e08ced790d824fb0f0efe215d8b7847dce6e"
+    },
+    "report-20250814009404": {
+      "url": "https://kind.krx.co.kr/external/2025/08/14/003027/20250814009404/11012.htm",
+      "sha256": "11a0efb73c12b50874341209519d3b49c65b279994b5f8c50623aa212e3e479f"
+    },
+    "report-20251114000803": {
+      "url": "https://kind.krx.co.kr/external/2025/11/14/000404/20251114000803/11013.htm",
+      "sha256": "86d1c1855a2ffb75d40ae5d9b4d78353cdc5d34bee4aae15e9029af0f5082e12"
+    },
+    "report-20251114001708": {
+      "url": "https://kind.krx.co.kr/external/2025/11/14/000776/20251114001708/11012.htm",
+      "sha256": "2b77f6f77f03068d900d8153c1dc770aa34a9604382c61eb91f8d59d45611c6d"
+    },
+    "report-20260313004890": {
+      "url": "https://kind.krx.co.kr/external/2026/03/13/001983/20260313004890/11011.htm",
+      "sha256": "3675692788f2bbe9407b86c8ade986f3022448c45c83ca13552e6be4ef5d9386"
+    },
+    "report-20260514002331": {
+      "url": "https://kind.krx.co.kr/external/2026/05/14/001071/20260514002331/11013.htm",
+      "sha256": "070963c7e1a8809513ef978353994aef1a45f7c01805625eb9b361fbb4c35222"
+    },
+    "report-20260515000795": {
+      "url": "https://kind.krx.co.kr/external/2026/05/15/000406/20260515000795/11013.htm",
+      "sha256": "76093dfb0bbb744dfb234ee79b5acb3cea88320febef8ef9970b671f7d7b23a4"
+    },
+    "report-20260515003015": {
+      "url": "https://kind.krx.co.kr/external/2026/05/15/001385/20260515003015/11013.htm",
+      "sha256": "2880fbc1017688c432efd2ffa7266bc663e3c77f67818c158e691e8415965d64"
+    },
+    "report-20260515003788": {
+      "url": "https://kind.krx.co.kr/external/2026/05/15/001712/20260515003788/11013.htm",
+      "sha256": "6c26c41f99708f69d7d015da13fc08674ae9410f16847590f972d1c0c31ce84c"
+    },
+    "report-20260515003901": {
+      "url": "https://kind.krx.co.kr/external/2026/05/15/001758/20260515003901/11013.htm",
+      "sha256": "674ab9b9ff0a3090fa20270348e198350361d0dad3e86e0477d223c5fa13a996"
+    },
+    "report-20260515005542": {
+      "url": "https://kind.krx.co.kr/external/2026/05/15/002461/20260515005542/11013.htm",
+      "sha256": "3387168a36e8ba7535ae60ff590a725f0bb857f769dfa399d36fea4165072518"
+    }
+  },
+  "confirmed": [
+    {
+      "rowSha256": "b01e209c5c0d6d5971cfef2ca4a9d48abf4c4c03d311d1dd7ce3fd88c26cd88f",
+      "fields": {
+        "issuer": {
+          "source": "correction-20250415000408",
+          "markers": []
+        },
+        "recordDate": {
+          "source": "correction-20250415000408",
+          "markers": [
+            "6. 배당기준일 2024-12-31"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "correction-20250415000408",
+          "markers": [
+            "실제 지급일 : 2025년 4월 11일"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "correction-20250415000408",
+          "markers": [
+            "1주당 배당금(원) 보통주식 250"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "f0127ef3117d477acace0108a88b5f3b153d9417f9d5be93bc76d64d75ab8c24",
+      "fields": {
+        "issuer": {
+          "source": "correction-20250422000174",
+          "markers": []
+        },
+        "recordDate": {
+          "source": "correction-20250422000174",
+          "markers": [
+            "6. 배당기준일 2024-12-31"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "correction-20250422000174",
+          "markers": [
+            "2025.04.21 지급하였습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "correction-20250422000174",
+          "markers": [
+            "1주당 배당금(원) 보통주식 100"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "a24956262384522a718588f7cd29389553a5bb7735492ddf087271fb0781953e",
+      "fields": {
+        "issuer": {
+          "source": "correction-20260421000330",
+          "markers": []
+        },
+        "recordDate": {
+          "source": "correction-20260421000330",
+          "markers": [
+            "6. 배당기준일 2026-03-31"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "correction-20260421000330",
+          "markers": [
+            "2026년 4월 20일 지급되었습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "correction-20260421000330",
+          "markers": [
+            "1주당 배당금(원) 보통주식 500"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "29dae39305ddad73d50057e6bf074a8352d105ce2a78964529c34f46469f06bb",
+      "fields": {
+        "issuer": {
+          "source": "correction-20260424000216",
+          "markers": []
+        },
+        "recordDate": {
+          "source": "correction-20260424000216",
+          "markers": [
+            "6. 배당기준일 2025-12-31"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "correction-20260424000216",
+          "markers": [
+            "4월 21일 지급 완료",
+            "예정일자 2026-04-21"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "correction-20260424000216",
+          "markers": [
+            "1주당 배당금(원) 보통주식 550"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "4b69bb43da1b487613542406ddc7af962b60f32007ce9f2989e1af1cea4a9845",
+      "fields": {
+        "issuer": {
+          "source": "correction-20260424000396",
+          "markers": []
+        },
+        "recordDate": {
+          "source": "correction-20260424000396",
+          "markers": [
+            "6. 배당기준일 2025-12-31"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "correction-20260424000396",
+          "markers": [
+            "4월 15일 지급 완료",
+            "예정일자 2026-04-15"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "correction-20260424000396",
+          "markers": [
+            "1주당 배당금(원) 보통주식 500"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "5d112439e278c08f9e03e5cf24017af1e804d0a503772d69a076aec7c559ef3a",
+      "fields": {
+        "issuer": {
+          "source": "correction-20260424000921",
+          "markers": []
+        },
+        "recordDate": {
+          "source": "correction-20260424000921",
+          "markers": [
+            "6. 배당기준일 2025-12-31"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "correction-20260424000921",
+          "markers": [
+            "04월 09일 지급 완료",
+            "예정일자 2026-04-09"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "correction-20260424000921",
+          "markers": [
+            "1주당 배당금(원) 보통주식 200"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "211805a50f3e2e4c67026eb43da29d52cc556c29dac098ed9b70cc481629a888",
+      "fields": {
+        "issuer": {
+          "source": "correction-20260513000931",
+          "markers": []
+        },
+        "recordDate": {
+          "source": "correction-20260513000931",
+          "markers": [
+            "6. 배당기준일 2026-02-27"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "correction-20260513000931",
+          "markers": [
+            "26년 4월 24일 지급 완료"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "correction-20260513000931",
+          "markers": [
+            "1주당 배당금(원) 보통주식 100"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "bd005e7ecf260d9867038b1185b631816be40afd98e7f58033b063f531c62fb0",
+      "fields": {
+        "issuer": {
+          "source": "report-20250814003597",
+          "markers": [
+            "회 사 명 : 주식회사 에이피알"
+          ]
+        },
+        "recordDate": {
+          "source": "report-20250702000034",
+          "markers": [
+            "6. 배당기준일 2025-07-28"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "report-20250814003597",
+          "markers": [
+            "2025년 8월 11일 지급하였습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "report-20250814003597",
+          "markers": [
+            "주당 배당금: 3,590원"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "68493ffcae5d13681397a4c7a1b21d54e44b995fa313ea1f4ade0e0746c89370",
+      "fields": {
+        "issuer": {
+          "source": "report-20260515003901",
+          "markers": [
+            "회 사 명 : 주식회사 에이피알"
+          ]
+        },
+        "recordDate": {
+          "source": "report-20260515003901",
+          "markers": [
+            "2026.03.31 2026.03.31 O"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "report-20260515003901",
+          "markers": [
+            "2026년 4월 30일 약 562억원 규모의 현금배당을 지급하였습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "report-20260515003901",
+          "markers": [
+            "보통주 1주당 1,500원"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "f9990dc95e9471b13696deb9748ebcadc29f9bca8fb91c52b0387ab077245d7f",
+      "fields": {
+        "issuer": {
+          "source": "report-20251114000803",
+          "markers": [
+            "회 사 명 : 주식회사 승일"
+          ]
+        },
+        "recordDate": {
+          "source": "report-20251114000803",
+          "markers": [
+            "2025년 03월 11일 2024년 12월 31일"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "report-20251114000803",
+          "markers": [
+            "2025년 4월 10일에 배당금을 각 주주들에게 지급하였습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "report-20251114000803",
+          "markers": [
+            "주당 현금배당금(원) 보통주 - 120 85"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "e3b0b12ff48a5b45921010aa3505dc6c7b8fa928c6a2bf5913bf7987ccc587d7",
+      "fields": {
+        "issuer": {
+          "source": "report-20260514002331",
+          "markers": [
+            "회 사 명 : 주식회사 케이씨피드"
+          ]
+        },
+        "recordDate": {
+          "source": "report-20260514002331",
+          "markers": [
+            "2026년 03월 18일 2025년 12월 31일"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "report-20260514002331",
+          "markers": [
+            "2026년 4월 15일 배당금을 지급하였습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "report-20260514002331",
+          "markers": [
+            "보통주 1주당 165원"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "291889e47804dd3568117436891d72ff22a8247c81b7982f975fe85bcaaa618b",
+      "fields": {
+        "issuer": {
+          "source": "report-20260515000795",
+          "markers": [
+            "회 사 명 : 주식회사 태양"
+          ]
+        },
+        "recordDate": {
+          "source": "report-20260515000795",
+          "markers": [
+            "2026년 03월 09일 2025년 12월 31일"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "report-20260515000795",
+          "markers": [
+            "2026년 4월 8일 배당금을 지급하였습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "report-20260515000795",
+          "markers": [
+            "주당 현금배당금(원) 보통주 - 400 200"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "ebdfb8ba8f22e8e5de3406b1f1379c1eabcf68a60ca1e20ce7f0f6de0337238a",
+      "fields": {
+        "issuer": {
+          "source": "report-20260515003015",
+          "markers": [
+            "회 사 명 : 디와이덕양 주식회사"
+          ]
+        },
+        "recordDate": {
+          "source": "report-20260515003015",
+          "markers": [
+            "2026년 03월 25일 2025년 12월 31일"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "report-20260515003015",
+          "markers": [
+            "2026년 4월 23일에 배당금을 지급하였습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "report-20260515003015",
+          "markers": [
+            "주당 현금배당금(원) 보통주 - 60 50"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "41245e9e61bd7b28ffacec92743c6addbf55b5e81c7275c0d919a13df2cc40d3",
+      "fields": {
+        "issuer": {
+          "source": "report-20240814008022",
+          "markers": [
+            "회 사 명 : 주식회사 서연이화"
+          ]
+        },
+        "recordDate": {
+          "source": "report-20240305001025",
+          "markers": [
+            "6. 배당기준일 2023-12-31"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "report-20240814008022",
+          "markers": [
+            "2024년 4월 22일에 배당금을 지급 완료하였습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "report-20240814008022",
+          "markers": [
+            "보통주 1주당 200원"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "d73d3c45ded0af4fde9d6dd03ccf56ead2bc2c866d7b3a057673dc7fb80d03cf",
+      "fields": {
+        "issuer": {
+          "source": "report-20251114001708",
+          "markers": [
+            "회 사 명 : 신라교역(주)"
+          ]
+        },
+        "recordDate": {
+          "source": "report-20240219001339",
+          "markers": [
+            "6. 배당기준일 2023-12-31"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "report-20251114001708",
+          "markers": [
+            "배당금은 2024년 4월 12일 지급되었습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "report-20251114001708",
+          "markers": [
+            "보통주에 지급된 주당배당금 (단위 : 원) 500"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "6f1bb02b1428b675f64c3c93bc8ff5e161752eff688840607a4f9de5d7fed2e7",
+      "fields": {
+        "issuer": {
+          "source": "report-20260313004890",
+          "markers": [
+            "회 사 명 : 한솔제지주식회사"
+          ]
+        },
+        "recordDate": {
+          "source": "report-20240129002442",
+          "markers": [
+            "6. 배당기준일 2024-03-31"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "report-20260313004890",
+          "markers": [
+            "2024년 4월 19일 지급하였습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "report-20260313004890",
+          "markers": [
+            "보통주 1주당 300원"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "bb6b3d6c0b6edcaac4b1b15b88836ca63853e491f362e264e4600e1d44792786",
+      "fields": {
+        "issuer": {
+          "source": "report-20260313004890",
+          "markers": [
+            "회 사 명 : 한솔제지주식회사"
+          ]
+        },
+        "recordDate": {
+          "source": "report-20250204000187",
+          "markers": [
+            "6. 배당기준일 2025-03-31"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "report-20260313004890",
+          "markers": [
+            "2025년 4월 23일 지급하였습니다"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "report-20260313004890",
+          "markers": [
+            "보통주 1주당 300원"
+          ]
+        }
+      }
+    },
+    {
+      "rowSha256": "55c96ea6ae5d79100a33bf4b4a6d7565e8c58ecc57d309edadf91c6037d31739",
+      "fields": {
+        "issuer": {
+          "source": "report-20260313004890",
+          "markers": [
+            "회 사 명 : 한솔제지주식회사"
+          ]
+        },
+        "recordDate": {
+          "source": "report-20260313004890",
+          "markers": [
+            "배당기준일 2025년 9월 30일"
+          ]
+        },
+        "actualPaymentDate": {
+          "source": "report-20260313004890",
+          "markers": [
+            "중간배당을 지급하였습니다",
+            "배당지급일 2025년 10월 23일"
+          ]
+        },
+        "commonCashPerShare": {
+          "source": "report-20260313004890",
+          "markers": [
+            "제11기에는 중간배당(4,756백만원, 주당 200원)"
+          ]
+        }
+      }
+    }
+  ],
+  "unconfirmedReviews": [
+    {
+      "rowSha256": "66c4f8713e5d35be01abdbbed91f3dd0f7f94cf89dc3daa56be87d1ced0c8cc3",
+      "source": "correction-20240418000424",
+      "reference": "20240418000424",
+      "reason": "PLANNED_DATE_ONLY"
+    },
+    {
+      "rowSha256": "4823cd9c5207f1da2b181057f64009958dd4505d70846d9ff9a1aa88d40ea35d",
+      "source": "correction-20240710000559",
+      "reference": "20240710000559",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "38172709ba2bd7811894038e0c16a3b6c3231773e54f163b4887a681b71ceb8f",
+      "source": "correction-20250213000274",
+      "reference": "20250213000274",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "cbe44ed29935b9f6ac2738eda4ae6027dee1d9d0d47d4ad38517c5a69eb8c771",
+      "source": "correction-20250424000746",
+      "reference": "20250424000746",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "8e23cd6dcd8021497a759da241b1c236e2b8344f7a887e1f4e164d1368132f0f",
+      "source": "correction-20250509000714",
+      "reference": "20250509000714",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "287111bf0adf94be5f14e1ee46c00028bb4c38d5fbe2134333e82303373b3e78",
+      "source": "correction-20250513000691",
+      "reference": "20250513000691",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "807c0167f8e67f46e81503688fb4f2cbd1ca44c1e3c46a9206084aa82babf042",
+      "source": "correction-20250522000414",
+      "reference": "20250522000414",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "da56637d9567059f11a9a3a04e3f73c7146a446773ee8345929c3a9cd60056fe",
+      "source": "correction-20250709000301",
+      "reference": "20250709000301",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "3960180eec28a7aa2a376ef1714615c87b5890b7470946d251b49441564ab433",
+      "source": "correction-20250723000306",
+      "reference": "20250723000306",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "a6bbcef83e5358624921c8e0236908945e05039d9b148194bc82c9e012954302",
+      "source": "correction-20260213001740",
+      "reference": "20260213001740",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "a6bbcef83e5358624921c8e0236908945e05039d9b148194bc82c9e012954302",
+      "source": "correction-20260213001983",
+      "reference": "20260213001983",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "99fea7b315cd6b0659f9fba2de2d08f14e8e7d8f2b4da21a6d992489494293a7",
+      "source": "correction-20260417000303",
+      "reference": "20260417000303",
+      "reason": "PLANNED_DATE_ONLY"
+    },
+    {
+      "rowSha256": "047bf55d9f9c273881c51cc24570878693ab46e20025f410669cbc363ea024f2",
+      "source": "correction-20260424000256",
+      "reference": "20260424000256",
+      "reason": "PLANNED_DATE_ONLY"
+    },
+    {
+      "rowSha256": "61869043cd0a0173431f69fccafd6818d602740ad284250b4db87d7efd4c0151",
+      "source": "correction-20260424000604",
+      "reference": "20260424000604",
+      "reason": "PLANNED_DATE_ONLY"
+    },
+    {
+      "rowSha256": "e3617ff0e2e7aaea89261923add2b31c24a3005ad63377a398dfeedee29bd383",
+      "source": "correction-20260512000280",
+      "reference": "20260512000280",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "e4a797632a8542d23fd9a47b7a094c8f4961d6f99ef21acd0f87f4b236d62691",
+      "source": "correction-20260518000409",
+      "reference": "20260518000409",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "481ac9a50f9daf9336e543af387045a2392eff0bfccc249f3af6ee8389462bad",
+      "source": "correction-20260518000521",
+      "reference": "20260518000521",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "b8f6759fdfc0c34c276e15e7688b3cc7dcfccd41b3d73d4542c622fddc4532df",
+      "source": "correction-20260630000323",
+      "reference": "20260630000323",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "03e249eb2f7764f95d179c14729cab284daee3e15454c2a504dc87a06aec6d04",
+      "source": "correction-20260630001419",
+      "reference": "20260630001419",
+      "reason": "OTHER_DISTRIBUTION"
+    },
+    {
+      "rowSha256": "63e73523c014db8990beefa13ca58366b07ea40966679eb2acad33675185f5f8",
+      "source": "report-20240814002347",
+      "reference": "20240814002347",
+      "reason": "CONFLICTING_FIELD",
+      "detail": "재무제표 주석 2024-04-17, 배당 정책 설명 및 세이브로 2024-04-18"
+    },
+    {
+      "rowSha256": "da56637d9567059f11a9a3a04e3f73c7146a446773ee8345929c3a9cd60056fe",
+      "source": "report-20250814002748",
+      "reference": "20250814002748",
+      "reason": "CONFLICTING_FIELD",
+      "detail": "재무제표 주석 2025-04-17, 배당 정책 설명 및 세이브로 2025-04-18"
+    },
+    {
+      "rowSha256": "bde31b745443bce55c07fb2e4930297975f54cde0c8c6aad0395f6b08660fa54",
+      "source": "report-20240814007515",
+      "reference": "20240814007515",
+      "reason": "CONFLICTING_FIELD",
+      "detail": "발행사 반기보고서 2024-04-15, 세이브로 2024-04-16"
+    },
+    {
+      "rowSha256": "80569e24a6702b41a1c82821a88f5d299d1ef02b8c520211ce9ef8ddf3570e38",
+      "source": "report-20260515003788",
+      "reference": "20260515003788",
+      "reason": "DIFFERENT_INSTRUMENT_OR_CURRENCY",
+      "detail": "발행사 보고는 USD 0.35 보통주, 세이브로 행은 고스트스튜디오 KDR"
+    },
+    {
+      "rowSha256": "1a9f5bac4ff640c69572991be727b529c612cb3ab5a4ffb40f835f310aaaad09",
+      "source": "report-20260515003788",
+      "reference": "20260515003788",
+      "reason": "DIFFERENT_INSTRUMENT_OR_CURRENCY",
+      "detail": "발행사 보고는 USD 0.39 보통주, 세이브로 행은 고스트스튜디오 KDR"
+    },
+    {
+      "rowSha256": "54438bffe01375b546cb39ca80bdcafcf5cc0080ddf87d718c1e8a09ec6e9891",
+      "source": "report-20250814008965",
+      "reference": "20250814008965",
+      "reason": "MISSING_ACTUAL_PAYMENT_DATE",
+      "detail": "4월 중 지급으로 표기"
+    },
+    {
+      "rowSha256": "882657c0df03d2ee28c9feb81d7d36b380d88372df62c3b55a5a6ef2f5800dd5",
+      "source": "report-20260515005542",
+      "reference": "20260515005542",
+      "reason": "MISSING_ACTUAL_PAYMENT_DATE",
+      "detail": "4월 중 지급으로 표기"
+    },
+    {
+      "rowSha256": "0894cdba30636b08f61ddb36747d172843532ef7673bb35f48edbd514ff51a6b",
+      "source": "report-20250814009404",
+      "reference": "20250814009404",
+      "reason": "MISSING_ACTUAL_PAYMENT_DATE",
+      "detail": "4월 중 지급으로 표기"
+    }
+  ]
+}
