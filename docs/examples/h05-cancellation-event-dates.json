@@ -1,0 +1,1647 @@
+{
+  "schemaVersion": "SAGOPALGO_H05_CANCELLATION_EVENT_DATE_REVIEW_V1",
+  "sourceReviewDate": "2026-11-16",
+  "previousMissingDatesReportSha256": "3fbf8db7012fd518af683b40293321e7a19cf40af19c5c70fcf8d19cab4f90c7",
+  "previousShareClassReportSha256": "3ff4e9cec41dc63f4fdd6c2c50eb5991748a0dddabb3dae689844d681a584568",
+  "targetCount": 15,
+  "statusCounts": {
+    "SINGLE_EVENT_DATE_SUPPORTED": 11,
+    "UNRESOLVED_DATE_CONFLICT": 3,
+    "TWO_EVENT_DATES_SUPPORTED": 1
+  },
+  "supportedEventCount": 13,
+  "historicalFirstAvailabilityConfirmed": false,
+  "usableForTraining": false,
+  "usableForTrading": false,
+  "rows": [
+    {
+      "processId": "20240618000132",
+      "issuer": "시선AI",
+      "market": "KOSDAQ",
+      "symbol": "340810",
+      "isin": "KR7340810001",
+      "listingDate": "2024-06-21",
+      "signedShareChange": -49998,
+      "stockIssueReportedOutstanding": 10597863,
+      "reportedIssueDate": "2024-05-30",
+      "noticeReceipts": [
+        "20240618000303"
+      ],
+      "detailEvidence": {
+        "bodySha256": "0e52a767407a34c90b5096340e00d2512359ea7c352d577bfed5af1a71b04271",
+        "observedAt": "2026-11-07T16:29:46.708861+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20240618000303",
+          "sourceUrl": "https://kind.krx.co.kr/external/2024/06/18/000303/20240618000801/70763.htm",
+          "bodySha256": "c573359548e7bcde0fea9740629b7f2010b158a4c35ea2fde624e53d4969e7fc",
+          "observedAt": "2026-11-13T07:20:17.881436+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2023-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "bdd21636cc165370af2ba88863478b4859ad8e09123bbe866728d185cd7b379b",
+          "rowSha256": "eeeba813bbff67fc927c9148ef5ade896915510937648aad33d64a904684cf5c",
+          "issuerNumber": "37427"
+        },
+        "matches": [
+          {
+            "date": "2024-05-30",
+            "sourceField": "ISSU_DT",
+            "issuerName": "시선에이아이",
+            "reason": "이익소각",
+            "signedShareChange": -49998,
+            "issuanceSequence": "1",
+            "sourceRowSha256": "fdf38cdb00d8fad6b4e43cb4c05957d5f6925ce5f4861d8cb018ad568950d636"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2024-03-01",
+          "through": "2024-06-21",
+          "rows": 4,
+          "bodySha256": "2aaa3b9b9c43605147c909d4f490ea32b4f2814ced3e0925e8bb0ab427b89ae2",
+          "countBodySha256": "af65890f844d19adc6bf48db0ec4c5cd7cd1af2f4ddbee22843121429a5c98d3",
+          "rowReceiptSha256": "0c2b4bcba7b924a245585ed35d6160381e14c67cf90ce80eb4b3f8c6a12e95bf",
+          "countReceiptSha256": "a613eaa5cda5d0e9733ea0540afb8186b603c60805510ecc46427045ef985972",
+          "observedAt": "2026-11-16T06:21:49.984898+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "SINGLE_EVENT_DATE_SUPPORTED",
+      "assessment": "LATER_ISSUER_COMPLETION_AND_KSD",
+      "cancellationDate": "2024-05-30",
+      "events": [
+        {
+          "date": "2024-05-30",
+          "signedShareChange": -49998
+        }
+      ],
+      "otherDates": {
+        "earlierHalfYearReportAlternatives": [
+          "2024-05-30",
+          "2024-06-07"
+        ]
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_SCHEDULE",
+          "dates": [
+            "2024-05-30"
+          ],
+          "receipt": "20240524900116",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240524900116",
+          "observedAt": "2026-11-16T06:29:19.123193+00:00",
+          "archiveSha256": "f4f2ea617b5ec2ac49d1a86ca88c74a7f26ff3954b422ee7f0452fe3de752821",
+          "bodySha256": "430d2e87c4d3c2fae2d8428bec9a74319e13dff6835d38457abd0b5f1d965215"
+        },
+        {
+          "role": "INCONSISTENT_COMPLETION_NOTES",
+          "dates": [
+            "2024-05-30",
+            "2024-06-07"
+          ],
+          "receipt": "20240814003573",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240814003573",
+          "observedAt": "2026-11-16T06:29:20.154095+00:00",
+          "archiveSha256": "6b96e28502c169235ee1170997c093866067540be7588364de32ce20fdf41b5d",
+          "bodySha256": "23d6eea3b7b1482390e924abd7ad00c38e8c5a29d56e31611c88aa0788ed6100"
+        },
+        {
+          "role": "LATER_COMPLETION_REPORT",
+          "dates": [
+            "2024-05-30"
+          ],
+          "receipt": "20241113000455",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20241113000455",
+          "observedAt": "2026-11-16T06:29:21.326128+00:00",
+          "archiveSha256": "9f976c157a2fc7054bd94dbbba5b2c269af5187236958e83783b39b25b839676",
+          "bodySha256": "4adda863b7702503b33b607143bf33f7472ee8e1b2219848e32116a303cba276"
+        },
+        {
+          "role": "ANNUAL_REPORT_COMPLETION",
+          "dates": [
+            "2024-05-30"
+          ],
+          "receipt": "20250718000522",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250718000522",
+          "observedAt": "2026-11-16T06:29:22.566335+00:00",
+          "archiveSha256": "0e1486d6d779ef2e94b921311c987d74d55795f824445fcaddcbc0e743277324",
+          "bodySha256": "f45130209b3d956738ca889b6390357676c5e95d21abd6bc153ada8d81f867cb"
+        }
+      ]
+    },
+    {
+      "processId": "20250113000059",
+      "issuer": "셀트리온",
+      "market": "KOSPI",
+      "listingDate": "2025-01-16",
+      "signedShareChange": -3011910,
+      "stockIssueReportedOutstanding": 214066644,
+      "reportedIssueDate": "2025-01-06",
+      "noticeReceipts": [
+        "20250113000036",
+        "20250114000318"
+      ],
+      "detailEvidence": {
+        "bodySha256": "7d0c4ad01e6313926df6edb2824405f8b1b88e827500ff05531b4dda13895686",
+        "observedAt": "2026-11-07T16:31:10.773224+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "symbol": "068270",
+      "isin": "KR7068270008",
+      "noticeEvidence": [
+        {
+          "bodySha256": "95816b5f732bc20671ead66d425e4675d6375a65a98d8998ae96575d608905de",
+          "correctionMarked": false,
+          "document": "20250113000053",
+          "label": "변경상장 (2025.01.13)",
+          "observedAt": "2026-11-13T07:32:09.648834+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/external/2025/01/13/000036/20250113000053/68155.htm"
+        },
+        {
+          "bodySha256": "48f032cd01940c7d0e9ee1783f7e34b840410f39446182dd39d817a3bec31f8c",
+          "correctionMarked": true,
+          "document": "20250114000927",
+          "label": "[정정]변경상장 (2025.01.14)",
+          "observedAt": "2026-11-13T07:32:12.688104+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/external/2025/01/14/000318/20250114000927/68155.htm"
+        }
+      ],
+      "depositoryReview": {
+        "matches": [
+          {
+            "date": "2025-01-06",
+            "sourceField": "ISSU_DT",
+            "issuerName": "셀트리온",
+            "reason": "이익소각",
+            "signedShareChange": -845432,
+            "issuanceSequence": "28",
+            "sourceRowSha256": "66c63dbdb2008e87adac50fa26466129a1d003a10c84c7c3ce960166ca11f204"
+          },
+          {
+            "date": "2025-01-06",
+            "sourceField": "ISSU_DT",
+            "issuerName": "셀트리온",
+            "reason": "이익소각",
+            "signedShareChange": -2166478,
+            "issuanceSequence": "28",
+            "sourceRowSha256": "3c58d665e1013360399e087b97c9d74c18550d4d7defb3d734598c11eb8e7c7f"
+          }
+        ],
+        "query": {
+          "from": "2024-12-01",
+          "through": "2025-03-31",
+          "rows": 10,
+          "bodySha256": "bae752d03277df718677b5fa3786cac5c62365f0cad563759845f2b1bbc21723",
+          "countBodySha256": "0316f4b523cf7d93d961a8dd4269016f49c7bf3fed134d1bc8b9a77a4e1a747c",
+          "observedAt": "2026-11-16T06:49:36.396567+00:00",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml"
+        },
+        "priorQuery": {
+          "from": "2024-12-01",
+          "through": "2025-01-16",
+          "rows": 2,
+          "bodySha256": "445e799a500ee2122a5870891fc511c436d3807bcc391a884d7ca4e52b485c8e",
+          "countBodySha256": "2d3df647437262bf868d58dc783a5cf2ab4c97ca5d5f0ecbe522ba03fd275c8d",
+          "observedAt": "2026-11-13T07:30:45.739758+00:00",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml"
+        },
+        "priorMatchStatus": "KSD_NO_MATCH",
+        "issuerBindingEvidence": {
+          "bodySha256": "983ac2a7d5da8d6f7f2deb6f03059ae7027ca9651a02e1a89cb8af55733a1b0e",
+          "observedAt": "2026-11-07T16:30:48.737861+00:00",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        }
+      },
+      "status": "SINGLE_EVENT_DATE_SUPPORTED",
+      "assessment": "CORRECTED_NOTICE_ISSUER_COMPLETION_AND_KSD",
+      "cancellationDate": "2025-01-06",
+      "events": [
+        {
+          "date": "2025-01-06",
+          "signedShareChange": -3011910
+        }
+      ],
+      "otherDates": {
+        "originalKindNotice": "2024-01-06",
+        "correctedKindNotice": "2025-01-06"
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_SCHEDULE",
+          "dates": [
+            "2025-01-06"
+          ],
+          "receipt": "20241204800037",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20241204800037",
+          "observedAt": "2026-11-16T06:49:41.029228+00:00",
+          "archiveSha256": "677d96b3c6514649522dc23165e29039cd1ca7de14803f1781e1b8cb7a9fb329",
+          "bodySha256": "84e57d3bb98e9d12d0edd1e76b41620d456aaa4df2b0848b2205e7dae81abc62"
+        },
+        {
+          "role": "ISSUER_COMPLETION",
+          "dates": [
+            "2025-01-06"
+          ],
+          "receipt": "20250515002745",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250515002745",
+          "observedAt": "2026-11-16T06:49:52.218413+00:00",
+          "archiveSha256": "2c66b4fdb7bef43a01a3fdb62f423820c16f80c4ccac256f239d627ab4a9d9e4",
+          "bodySha256": "134129f2a1d770527bc0f03753037827187cdc0382085e8c8f1dc334f5b70ab5"
+        },
+        {
+          "role": "ISSUER_COMPLETION",
+          "dates": [
+            "2025-01-06"
+          ],
+          "sourceUrl": "https://www.celltrion.com/ko-kr/company/media-center/press-release/3687",
+          "observedAt": "2026-11-16T06:49:36.828450+00:00",
+          "bodySha256": "a8dc2d697e88704abe9b4e3226483ec6475467ffd9a8d35fc478414cd199c395"
+        }
+      ]
+    },
+    {
+      "processId": "20250310000251",
+      "issuer": "네오위즈홀딩스",
+      "market": "KOSDAQ",
+      "symbol": "042420",
+      "isin": "KR7042420000",
+      "listingDate": "2025-03-14",
+      "signedShareChange": -263020,
+      "stockIssueReportedOutstanding": 8593846,
+      "reportedIssueDate": "2025-02-28",
+      "noticeReceipts": [
+        "20250311001695"
+      ],
+      "detailEvidence": {
+        "bodySha256": "d8c76e79397728c15920a3bf6c891d4648693e1652d3a7f33d36ae165ec15e63",
+        "observedAt": "2026-11-07T16:31:46.823967+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20250311001695",
+          "sourceUrl": "https://kind.krx.co.kr/external/2025/03/11/001695/20250311003900/70763.htm",
+          "bodySha256": "eb472bb1b6a91fc14c4167a7db969ba55fd43a8091b61b48edee54f3c08b3f9f",
+          "observedAt": "2026-11-13T07:23:16.842203+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2024-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "2dcfa8a4762c84739e0445a70dca5d3d996d8f8e8f8ddc2b05fa5f85c61575cc",
+          "rowSha256": "fc6809019747c0973b233f149e0ec37f5e3aa01ef677315880de1571060a85f2",
+          "issuerNumber": "6733"
+        },
+        "matches": [
+          {
+            "date": "2025-02-28",
+            "sourceField": "ISSU_DT",
+            "issuerName": "네오위즈홀딩스",
+            "reason": "이익소각",
+            "signedShareChange": -263020,
+            "issuanceSequence": "16",
+            "sourceRowSha256": "f06e756968352bf500801c0f4abcbd8b61bfd2528e0a9dcfd7cf6693f2ac8832"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2024-11-30",
+          "through": "2026-03-26",
+          "rows": 3,
+          "bodySha256": "22f8c6bf20514ed797e322300fb9621771dd150d2d54461494d69961189b26d8",
+          "countBodySha256": "c3d9486d2facb797dd3bb44d090940aa29901468a8ff139e9a7f8a844664a615",
+          "rowReceiptSha256": "13448b36c5962bc9bd0e640d8bf6df8cd0d05a3feb1a52ec3119723cce876d27",
+          "countReceiptSha256": "15a66d94777065bf6b296ebdfc259993e1d7601488431f982215759f75c18fa7",
+          "observedAt": "2026-11-16T06:21:36.668440+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "SINGLE_EVENT_DATE_SUPPORTED",
+      "assessment": "ISSUER_RETIREMENT_TABLE_AND_KSD",
+      "cancellationDate": "2025-02-28",
+      "events": [
+        {
+          "date": "2025-02-28",
+          "signedShareChange": -263020
+        }
+      ],
+      "otherDates": {
+        "boardResolutionAndNote": "2025-02-12"
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_BOARD_AND_SCHEDULE",
+          "dates": [
+            "2025-02-12",
+            "2025-02-28"
+          ],
+          "receipt": "20250212900870",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250212900870",
+          "observedAt": "2026-11-16T06:23:15.001150+00:00",
+          "archiveSha256": "4ee1300a50c49d6b82362cea730b339c71cd20c0cd225019e44a969a8f2b6532",
+          "bodySha256": "01f8ba1672a377b5850297b2eb2f8c104b5891e85feac57f6099528496ee7dab"
+        },
+        {
+          "role": "NOTE_USES_BOARD_DATE",
+          "dates": [
+            "2025-02-12"
+          ],
+          "receipt": "20250515001714",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250515001714",
+          "observedAt": "2026-11-16T06:23:16.126286+00:00",
+          "archiveSha256": "2af5c061ab8da5601d29357add42bd040adcbec8b94910727a2e4fefa36ef877",
+          "bodySha256": "83de19b14a9ec33f931b02b1ec9410849e908cf28d9794ba91603e80db7d210f"
+        },
+        {
+          "role": "RETIREMENT_TABLE_AND_NOTE_DIFFER",
+          "dates": [
+            "2025-02-28",
+            "2025-02-12"
+          ],
+          "receipt": "20260319001405",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260319001405",
+          "observedAt": "2026-11-16T06:23:21.163825+00:00",
+          "archiveSha256": "26096ec4adcec2983b09a48b2ef33a037df0776a46c6a2e5a51b29bafbf7eee7",
+          "bodySha256": "be235cd5fea5a360bb987f79305abb4a95f3504e9bf0ee325460a681db4f8899"
+        }
+      ]
+    },
+    {
+      "processId": "20250728000306",
+      "issuer": "PS일렉트로닉스",
+      "market": "KOSDAQ",
+      "symbol": "332570",
+      "isin": "KR7332570001",
+      "listingDate": "2025-07-31",
+      "signedShareChange": -976562,
+      "stockIssueReportedOutstanding": 43199758,
+      "reportedIssueDate": "2025-07-16",
+      "noticeReceipts": [
+        "20250728000418"
+      ],
+      "detailEvidence": {
+        "bodySha256": "b418d682ba39a07b5379c779a899ee568c61ac3471a4c45e76ec039eb6d3e387",
+        "observedAt": "2026-11-07T16:33:39.916559+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20250728000418",
+          "sourceUrl": "https://kind.krx.co.kr/external/2025/07/28/000418/20250728001143/70763.htm",
+          "bodySha256": "a3157c56fe8fa37f35c4df08d4e84e88a542ff6dec37d903bfc348735e6baf61",
+          "observedAt": "2026-11-13T07:26:01.483821+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2023-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "bdd21636cc165370af2ba88863478b4859ad8e09123bbe866728d185cd7b379b",
+          "rowSha256": "f406f7c699c3c50f50b53e81a7aa7f37fd8732fa93fd530a08be81a31c9043b6",
+          "issuerNumber": "38422"
+        },
+        "matches": [
+          {
+            "date": "2025-07-16",
+            "sourceField": "ISSU_DT",
+            "issuerName": "피에스일렉트로닉스",
+            "reason": "이익소각",
+            "signedShareChange": -976562,
+            "issuanceSequence": "9",
+            "sourceRowSha256": "48995489c4ec0862ad150d8538ae5f2b5b843eb35befc3f573fae9a2d79cd45d"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2025-04-17",
+          "through": "2026-09-10",
+          "rows": 18,
+          "bodySha256": "25846514bb7f7cb6005c4a8a20fb40ac3b9d458b54313fb41b8e3fc300a213e9",
+          "countBodySha256": "2e139b33484d5b59012df5d1b58bf3fa8fda07a9a905c409cde8b9d3347e8b3a",
+          "rowReceiptSha256": "138e8534374ffaf516fc44623dac4777f0bce1524b152cf1a4128e475a47d598",
+          "countReceiptSha256": "c20168cc3790171470d674eb58ca7ae71034ec78851e1b250102859860828d1d",
+          "observedAt": "2026-11-16T06:21:53.014024+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "SINGLE_EVENT_DATE_SUPPORTED",
+      "assessment": "DATED_ISSUER_OUTCOME_AND_KSD",
+      "cancellationDate": "2025-07-16",
+      "events": [
+        {
+          "date": "2025-07-16",
+          "signedShareChange": -976562
+        }
+      ],
+      "otherDates": {
+        "boardResolutionAndRetirementTable": "2025-07-09"
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_BOARD_AND_SCHEDULE",
+          "dates": [
+            "2025-07-09",
+            "2025-07-16"
+          ],
+          "receipt": "20250709900368",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250709900368",
+          "observedAt": "2026-11-16T06:29:08.133280+00:00",
+          "archiveSha256": "57c95182a6700103d5042d990053481b024dc0982a3fcc76b1a976aceb23cf87",
+          "bodySha256": "6770ab51924750a6686563d64bb44926969f1020f5248ae40d20dd0459c44912"
+        },
+        {
+          "role": "DATED_RETIREMENT_MOVEMENT",
+          "dates": [
+            "2025-07-16",
+            "2025-07-09"
+          ],
+          "receipt": "20260701000606",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260701000606",
+          "observedAt": "2026-11-16T06:29:13.686337+00:00",
+          "archiveSha256": "bf096e50f688316e959463e38731e5c59f9cb00a9cc008d7657c48867637bf57",
+          "bodySha256": "4403641c9b76812e6a0816827eb53095beb1dea51584156bbd12f28cf51e918a"
+        }
+      ]
+    },
+    {
+      "processId": "20250911000101",
+      "issuer": "원바이오젠",
+      "market": "KOSDAQ",
+      "symbol": "307280",
+      "isin": "KR7307280008",
+      "listingDate": "2025-09-16",
+      "signedShareChange": -297175,
+      "stockIssueReportedOutstanding": 7094627,
+      "reportedIssueDate": "2025-08-29",
+      "noticeReceipts": [
+        "20250911000299"
+      ],
+      "detailEvidence": {
+        "bodySha256": "a2f4eed487fa633459a5614d9f778cac3a94f24a419c7fd17eb52180058e15cd",
+        "observedAt": "2026-11-07T16:34:09.069097+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20250911000299",
+          "sourceUrl": "https://kind.krx.co.kr/external/2025/09/11/000299/20250911000898/70763.htm",
+          "bodySha256": "4c7c3567496d2c28f3378c8253f1fe5357f06374f344f14ae9b5023ca44ff7ad",
+          "observedAt": "2026-11-13T07:26:46.699013+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2023-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "bdd21636cc165370af2ba88863478b4859ad8e09123bbe866728d185cd7b379b",
+          "rowSha256": "882c70a0ae78dc710bfee49d9cad86a3e3ea6696cc88e69bad5672c7ba1c8f76",
+          "issuerNumber": "33898"
+        },
+        "matches": [
+          {
+            "date": "2025-08-29",
+            "sourceField": "ISSU_DT",
+            "issuerName": "원바이오젠",
+            "reason": "이익소각",
+            "signedShareChange": -297175,
+            "issuanceSequence": "23",
+            "sourceRowSha256": "fa501ae242ba6469f318b366c38dff75c9b13c19e4a6f9f5f144b1bf738244dc"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2025-05-31",
+          "through": "2025-09-16",
+          "rows": 1,
+          "bodySha256": "e4dd3c63e7f5abdecf1203959c79818bbdb0dee71f80de2b77ed7fd4aafb0bdb",
+          "countBodySha256": "6c01c0a45ceaaddcaaf3d55b7404bc9d81cde6b927d99ddeab58aabaf79e0383",
+          "rowReceiptSha256": "273cd801d2149863592c0368c50b68bd7453cad34aacb5d040c4e77f8fd5054a",
+          "countReceiptSha256": "5ff415f7dec44ad3f6417da1dcbbe0520b2563caa334b97feeffd76fb8e86257",
+          "observedAt": "2026-11-16T06:21:49.559944+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "UNRESOLVED_DATE_CONFLICT",
+      "assessment": "ISSUER_LISTING_DATE_AND_ACCOUNTING_DATE_CONFLICT",
+      "cancellationDate": null,
+      "events": [],
+      "otherDates": {
+        "originalSchedule": "2025-08-27",
+        "correctedScheduleAndAccounting": "2025-08-29",
+        "issuerRetirementTableAndListing": "2025-09-16"
+      },
+      "issuerEvidence": [
+        {
+          "role": "ORIGINAL_SCHEDULE",
+          "dates": [
+            "2025-08-27"
+          ],
+          "receipt": "20250819900089",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250819900089",
+          "observedAt": "2026-11-16T06:28:59.799370+00:00",
+          "archiveSha256": "6054527f3e137fc53c84fda1e0c2109ba452691240f6ff65513c2a41a1279e78",
+          "bodySha256": "be7fdf2a6181bf427bb34b4190ce95994f359f53096d00c516ea2e987e4d2cd3"
+        },
+        {
+          "role": "CORRECTED_SCHEDULE",
+          "dates": [
+            "2025-08-29"
+          ],
+          "receipt": "20250827900448",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250827900448",
+          "observedAt": "2026-11-16T06:29:00.906264+00:00",
+          "archiveSha256": "cdee7b1634e14c8d199b3a73a448e74883a60a3a2ef50de5457b3ac8ae2e829b",
+          "bodySha256": "36aae554e51bd04c6bda6df684c47a5655d85306a16d2c958f51231b900e90b1"
+        },
+        {
+          "role": "ISSUER_COMPLETION_AND_ACCOUNTING_DISAGREE",
+          "dates": [
+            "2025-09-16",
+            "2025-08-29"
+          ],
+          "receipt": "20251113000263",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20251113000263",
+          "observedAt": "2026-11-16T06:29:01.887949+00:00",
+          "archiveSha256": "974d5d7bddc6a64952f40eeeb48e77057f8edabfee6ed34d1755f13d6255f4b0",
+          "bodySha256": "de245c6d80dfd2f1b2d4ae2a9679aa422f0b4ced4991b857fc329b48add48f75"
+        },
+        {
+          "role": "ISSUER_COMPLETION_AND_ACCOUNTING_DISAGREE",
+          "dates": [
+            "2025-09-16",
+            "2025-08-29"
+          ],
+          "receipt": "20260323001342",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260323001342",
+          "observedAt": "2026-11-16T06:29:02.937387+00:00",
+          "archiveSha256": "1a7c7f43dc023f6d24e1d1528922cb5b9e5b226071899a6700f4102714d20051",
+          "bodySha256": "bd497017edd594b3e418eaab04fded15e555e0e92cbd56f36bb4f16c1c18ffb9"
+        }
+      ]
+    },
+    {
+      "processId": "20250925000007",
+      "issuer": "고려아연",
+      "market": "KOSPI",
+      "listingDate": "2025-09-30",
+      "signedShareChange": -680010,
+      "stockIssueReportedOutstanding": 19343263,
+      "reportedIssueDate": "2025-09-30",
+      "noticeReceipts": [
+        "20250925000078"
+      ],
+      "detailEvidence": {
+        "bodySha256": "d3ef953f2d842a3bfb048248fe4d7d257db00a715fe4277fc1119c490260e7b7",
+        "observedAt": "2026-11-07T16:34:15.023914+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "symbol": "010130",
+      "isin": "KR7010130003",
+      "noticeEvidence": [
+        {
+          "bodySha256": "2e0c0b702e1242dd086d7d735f2b58df575cbc67ba54f5b300149ba61523f593",
+          "correctionMarked": false,
+          "document": "20250925000240",
+          "label": "변경상장 (2025.09.25)",
+          "observedAt": "2026-11-13T07:26:56.470756+00:00",
+          "sourceUrl": "https://kind.krx.co.kr/external/2025/09/25/000078/20250925000240/68155.htm"
+        }
+      ],
+      "depositoryReview": {
+        "matches": [
+          {
+            "date": "2025-09-11",
+            "sourceField": "ISSU_DT",
+            "issuerName": "고려아연",
+            "reason": "이익소각",
+            "signedShareChange": -680010,
+            "issuanceSequence": "1",
+            "sourceRowSha256": "9341bbc367a5387f26b7ee30519cda828bcdaecae4a51d5c30c6cc249ef12ca8"
+          }
+        ],
+        "query": {
+          "from": "2025-08-01",
+          "through": "2025-10-31",
+          "rows": 1,
+          "bodySha256": "56d310973fb41bd17dfceeeab9457e1bc52c057cba11412985929499ed53a32a",
+          "countBodySha256": "a3916358411afb5b3f242a77f6eefe54d9844c93279ca45daa82dd42d5aeac4a",
+          "observedAt": "2026-11-16T06:49:36.598485+00:00",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml"
+        },
+        "priorQuery": {
+          "from": "2025-09-01",
+          "through": "2025-09-30",
+          "rows": 1,
+          "bodySha256": "610d4399329c069078bd45b2e32dc206a670ec72b3fa2c8607d81118fdf6ddb6",
+          "countBodySha256": "b92e97d537f42bb79949d871a839f733c34f2b6620db1c59b3f7362bc5ecac3e",
+          "observedAt": "2026-11-13T07:30:45.235505+00:00",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml"
+        },
+        "priorMatchStatus": "KSD_CLASS_AGREES",
+        "issuerBindingEvidence": {
+          "bodySha256": "983ac2a7d5da8d6f7f2deb6f03059ae7027ca9651a02e1a89cb8af55733a1b0e",
+          "observedAt": "2026-11-07T16:30:48.737861+00:00",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        }
+      },
+      "status": "SINGLE_EVENT_DATE_SUPPORTED",
+      "assessment": "KIND_NOTICE_AND_KSD_SECOND_INSTALLMENT",
+      "cancellationDate": "2025-09-11",
+      "events": [
+        {
+          "date": "2025-09-11",
+          "signedShareChange": -680010
+        }
+      ],
+      "otherDates": {
+        "kindDetailAndListing": "2025-09-30",
+        "otherInstallments": [
+          "2025-06-12",
+          "2025-12-16"
+        ]
+      },
+      "issuerEvidence": [
+        {
+          "role": "SECOND_INSTALLMENT_CORRECTED_SCHEDULE",
+          "dates": [
+            "2025-09-11"
+          ],
+          "receipt": "20250829800493",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250829800493",
+          "observedAt": "2026-11-16T06:49:35.314667+00:00",
+          "archiveSha256": "a3e279939d566c08d9025fdcce29a37a1cb470e59e66d662ce3f39a61cd65ad5",
+          "bodySha256": "8974c8e391ffc8bf035acb8afdf3e1bac29a713c71992fca1b98162caf161b9f"
+        },
+        {
+          "role": "THIRD_INSTALLMENT_CORRECTED_SCHEDULE",
+          "dates": [
+            "2025-12-16"
+          ],
+          "receipt": "20251215801442",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20251215801442",
+          "observedAt": "2026-11-16T06:49:37.986773+00:00",
+          "archiveSha256": "807b2fcb19c2b778244e7144409797aa609780c1a775b1c5351e5153fdff9064",
+          "bodySha256": "87ce4b615b7f94f29b588fb55d031150f449173967419d4cf8a78bcf84adb740"
+        }
+      ]
+    },
+    {
+      "processId": "20251014000239",
+      "issuer": "더네이쳐홀딩스",
+      "market": "KOSDAQ",
+      "symbol": "298540",
+      "isin": "KR7298540006",
+      "listingDate": "2025-10-17",
+      "signedShareChange": -361870,
+      "stockIssueReportedOutstanding": 14486386,
+      "reportedIssueDate": "2025-10-02",
+      "noticeReceipts": [
+        "20251014000587"
+      ],
+      "detailEvidence": {
+        "bodySha256": "d7212e459c6bb8c6b10abd5e9e272c4e808fd56cd9514865c8edc1b17337de7d",
+        "observedAt": "2026-11-07T16:34:28.949430+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20251014000587",
+          "sourceUrl": "https://kind.krx.co.kr/external/2025/10/14/000587/20251014001465/70763.htm",
+          "bodySha256": "e16e687d1194062613369f7833fe09199f27be24b9bc004835abe722c5614cd1",
+          "observedAt": "2026-11-13T07:27:16.875207+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2023-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "bdd21636cc165370af2ba88863478b4859ad8e09123bbe866728d185cd7b379b",
+          "rowSha256": "a85f4561eee6bfb4be82d6c30b5849c112268b1be0166a7bd7bd8a0a9d53aebc",
+          "issuerNumber": "33039"
+        },
+        "matches": [
+          {
+            "date": "2025-10-02",
+            "sourceField": "ISSU_DT",
+            "issuerName": "더네이쳐홀딩스",
+            "reason": "이익소각",
+            "signedShareChange": -361870,
+            "issuanceSequence": "1",
+            "sourceRowSha256": "dc0367fd09a6829b37e62b379901b18652113f888de308346b9f32924aa5e78b"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2025-07-04",
+          "through": "2025-10-17",
+          "rows": 1,
+          "bodySha256": "013c1c54df0d0f8be50516e911dc939fab246cdc4e202d5bc277211fa984cb70",
+          "countBodySha256": "5bc8e3580c24d0774765a04a7ecd04a5c2d5b30b5dca18ed3c8146d0970d6a44",
+          "rowReceiptSha256": "87c94eb7ac0c959cf3651650b7c33eeeeb59218dcbe23021a1be6c019d892380",
+          "countReceiptSha256": "47f460596b03924c0ed4e16d687b558c22ef0e9dd0522b64c81fbc0a67d83254",
+          "observedAt": "2026-11-16T06:21:49.107782+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "SINGLE_EVENT_DATE_SUPPORTED",
+      "assessment": "KSD_AND_SCHEDULE_BOARD_DATE_DISTINGUISHED",
+      "cancellationDate": "2025-10-02",
+      "events": [
+        {
+          "date": "2025-10-02",
+          "signedShareChange": -361870
+        }
+      ],
+      "otherDates": {
+        "boardResolutionAndRetirementTable": "2025-09-25"
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_BOARD_AND_SCHEDULE",
+          "dates": [
+            "2025-09-25",
+            "2025-10-02"
+          ],
+          "receipt": "20250925900137",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250925900137",
+          "observedAt": "2026-11-16T06:28:50.817765+00:00",
+          "archiveSha256": "792399e880d2611b9914cc1fcb5ba733e0678dfc4537bf5f268626048618b45a",
+          "bodySha256": "a89d4adb5700700f77715494ef6817eebf4ebf77bb7c021ddc101d7b107ea672"
+        },
+        {
+          "role": "RETIREMENT_TABLE_AND_BOARD_NOTE",
+          "dates": [
+            "2025-09-25"
+          ],
+          "receipt": "20260317000817",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260317000817",
+          "observedAt": "2026-11-16T06:28:52.012166+00:00",
+          "archiveSha256": "f6c61e9f9cdd36342be5c190704f9eb627c809e12391b6b3369f26b005268fdb",
+          "bodySha256": "1d700fe242830a0624e62dd0a5b84df634027fb24010dc3f767c869c06cd7bc7"
+        }
+      ]
+    },
+    {
+      "processId": "20251023000303",
+      "issuer": "네오위즈홀딩스",
+      "market": "KOSDAQ",
+      "symbol": "042420",
+      "isin": "KR7042420000",
+      "listingDate": "2025-10-28",
+      "signedShareChange": -227563,
+      "stockIssueReportedOutstanding": 8366283,
+      "reportedIssueDate": "2025-09-30",
+      "noticeReceipts": [
+        "20251023000505"
+      ],
+      "detailEvidence": {
+        "bodySha256": "52986190533db7c76aaae770b16744541f185d39cb599d7e78f1633b68d5225f",
+        "observedAt": "2026-11-07T16:34:41.938195+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20251023000505",
+          "sourceUrl": "https://kind.krx.co.kr/external/2025/10/23/000505/20251023001337/70763.htm",
+          "bodySha256": "c75e6bfde268e8f59765766063922aa08a8de9d7d3d678835ce19e0923c0132a",
+          "observedAt": "2026-11-13T07:27:39.084819+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2024-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "2dcfa8a4762c84739e0445a70dca5d3d996d8f8e8f8ddc2b05fa5f85c61575cc",
+          "rowSha256": "fc6809019747c0973b233f149e0ec37f5e3aa01ef677315880de1571060a85f2",
+          "issuerNumber": "6733"
+        },
+        "matches": [
+          {
+            "date": "2025-09-30",
+            "sourceField": "ISSU_DT",
+            "issuerName": "네오위즈홀딩스",
+            "reason": "이익소각",
+            "signedShareChange": -227563,
+            "issuanceSequence": "16",
+            "sourceRowSha256": "6c3c46f2c24af71d8ff53abcd7d0ee1cf68a9b970fb68dace9340cd28a2e8d45"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2024-11-30",
+          "through": "2026-03-26",
+          "rows": 3,
+          "bodySha256": "22f8c6bf20514ed797e322300fb9621771dd150d2d54461494d69961189b26d8",
+          "countBodySha256": "c3d9486d2facb797dd3bb44d090940aa29901468a8ff139e9a7f8a844664a615",
+          "rowReceiptSha256": "13448b36c5962bc9bd0e640d8bf6df8cd0d05a3feb1a52ec3119723cce876d27",
+          "countReceiptSha256": "15a66d94777065bf6b296ebdfc259993e1d7601488431f982215759f75c18fa7",
+          "observedAt": "2026-11-16T06:21:36.668440+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "SINGLE_EVENT_DATE_SUPPORTED",
+      "assessment": "ISSUER_RETIREMENT_TABLE_AND_KSD",
+      "cancellationDate": "2025-09-30",
+      "events": [
+        {
+          "date": "2025-09-30",
+          "signedShareChange": -227563
+        }
+      ],
+      "otherDates": {
+        "boardResolutionAndNote": "2025-09-12"
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_BOARD_AND_SCHEDULE",
+          "dates": [
+            "2025-09-12",
+            "2025-09-30"
+          ],
+          "receipt": "20250912900383",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250912900383",
+          "observedAt": "2026-11-16T06:23:17.990228+00:00",
+          "archiveSha256": "e753c3e78f6a61631d92478f8e300f5a4a7b3ea3afef8af9b6a2e0668e88b42f",
+          "bodySha256": "6cd99983c586e33684fbf110d7bbf3cd590c4726504dcd214040b1673e687ae4"
+        },
+        {
+          "role": "NOTE_USES_BOARD_DATE",
+          "dates": [
+            "2025-09-12"
+          ],
+          "receipt": "20251114001605",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20251114001605",
+          "observedAt": "2026-11-16T06:23:19.055551+00:00",
+          "archiveSha256": "71033c1de629f2182a7b28bfaae34db85126609575adf65be4ad1775424ee6d3",
+          "bodySha256": "46b8c828b89b4a0c2370a62f7f783cdddb5d35330d7a849ab879d8ae3d617f23"
+        },
+        {
+          "role": "RETIREMENT_TABLE_AND_NOTE_DIFFER",
+          "dates": [
+            "2025-09-30",
+            "2025-09-12"
+          ],
+          "receipt": "20260319001405",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260319001405",
+          "observedAt": "2026-11-16T06:23:21.163825+00:00",
+          "archiveSha256": "26096ec4adcec2983b09a48b2ef33a037df0776a46c6a2e5a51b29bafbf7eee7",
+          "bodySha256": "be235cd5fea5a360bb987f79305abb4a95f3504e9bf0ee325460a681db4f8899"
+        }
+      ]
+    },
+    {
+      "processId": "20260120000329",
+      "issuer": "토비스",
+      "market": "KOSDAQ",
+      "symbol": "051360",
+      "isin": "KR7051360006",
+      "listingDate": "2026-01-23",
+      "signedShareChange": -779797,
+      "stockIssueReportedOutstanding": 15047261,
+      "reportedIssueDate": "2026-01-07",
+      "noticeReceipts": [
+        "20260120000651"
+      ],
+      "detailEvidence": {
+        "bodySha256": "9a3709e97c9b1427b231987778f63b5d06668a6641da610640999082b0351fc7",
+        "observedAt": "2026-11-07T16:36:06.223241+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20260120000651",
+          "sourceUrl": "https://kind.krx.co.kr/external/2026/01/20/000651/20260120001704/70763.htm",
+          "bodySha256": "789d7cdb7013cdf6d46ae10fd0fa838afe657d99a305c286125b84546c80a7c5",
+          "observedAt": "2026-11-13T07:29:47.140066+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2023-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "bdd21636cc165370af2ba88863478b4859ad8e09123bbe866728d185cd7b379b",
+          "rowSha256": "d67e24f9b5330f07fc541ac797f91ccdac92ab0109debe8b01de04be3a5ca29c",
+          "issuerNumber": "7989"
+        },
+        "matches": [
+          {
+            "date": "2026-01-07",
+            "sourceField": "ISSU_DT",
+            "issuerName": "토비스",
+            "reason": "이익소각",
+            "signedShareChange": -779797,
+            "issuanceSequence": "4",
+            "sourceRowSha256": "c7b9d4af6fa1718fdad6c3b25018e29a6476b846ecad77cc70d34f8d8207d3dc"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2024-01-18",
+          "through": "2026-01-23",
+          "rows": 4,
+          "bodySha256": "4ad87f6e67affe0c1632c8ceda9309781be0642bc8425cb354d7efe5b509dfef",
+          "countBodySha256": "ee9645bc3d240c985e2f5a37a36633b7da66087040ef2039fbd2edf0337c5301",
+          "rowReceiptSha256": "c4768c8f86bbff5ab5f2c701fe240b632f1037bfcc0028944fbd23007f5109ea",
+          "countReceiptSha256": "86dfd11962e655952880be2c9455d7dfbeebad4f0c364cf853e1329abdfa250c",
+          "observedAt": "2026-11-16T06:21:37.592264+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "SINGLE_EVENT_DATE_SUPPORTED",
+      "assessment": "DATED_ISSUER_OUTCOME_AND_KSD",
+      "cancellationDate": "2026-01-07",
+      "events": [
+        {
+          "date": "2026-01-07",
+          "signedShareChange": -779797
+        }
+      ],
+      "otherDates": {
+        "dateInRetirementTableAndSeparateResolution": "2026-01-09",
+        "separateCancellation": "2026-02-26"
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_SCHEDULE",
+          "dates": [
+            "2026-01-07"
+          ],
+          "receipt": "20251211900101",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20251211900101",
+          "observedAt": "2026-11-16T06:23:57.833891+00:00",
+          "archiveSha256": "ff8f48ef39c846236b8851f7903a5459d741eebf81fc45a4947c9b9d31294b6c",
+          "bodySha256": "d576d121b40935e6cdc2b1f3f13768588e3e367d4d42c3dbb92bad523f28418b"
+        },
+        {
+          "role": "ISSUER_COMPLETION_AND_SEPARATE_EVENT",
+          "dates": [
+            "2026-01-07",
+            "2026-01-09",
+            "2026-02-26"
+          ],
+          "receipt": "20260427000228",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260427000228",
+          "observedAt": "2026-11-16T06:24:01.912191+00:00",
+          "archiveSha256": "be8cbdd427d7fc0b7b9d51b74c8e5b1405f15e2ca131a899779e6373936dc116",
+          "bodySha256": "a730805d8ab0d100a6cc32b734d20e9f2aca5996e22f8ed69f999491a1452b86"
+        },
+        {
+          "role": "ISSUER_COMPLETION",
+          "dates": [
+            "2026-01-07"
+          ],
+          "sourceUrl": "https://kind.krx.co.kr/external/2026/01/09/000142/20260109000431/11332.htm",
+          "observedAt": "2026-11-16T06:49:36.926611+00:00",
+          "bodySha256": "79d479d830878ed8d76cb3b955e33db1e1afc66f60873e86ee301d0273846bbf"
+        }
+      ]
+    },
+    {
+      "processId": "20260210000130",
+      "issuer": "PS일렉트로닉스",
+      "market": "KOSDAQ",
+      "symbol": "332570",
+      "isin": "KR7332570001",
+      "listingDate": "2026-02-13",
+      "signedShareChange": -563174,
+      "stockIssueReportedOutstanding": 43226552,
+      "reportedIssueDate": "2026-01-28",
+      "noticeReceipts": [
+        "20260210000739"
+      ],
+      "detailEvidence": {
+        "bodySha256": "fb1f4b180719b915f067f984ca4fb8cf341b2818e9269d513b0bb989ba55a1fc",
+        "observedAt": "2026-11-07T16:36:22.150906+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20260210000739",
+          "sourceUrl": "https://kind.krx.co.kr/external/2026/02/10/000739/20260210002302/70763.htm",
+          "bodySha256": "b7bc1d56af0043f851dc4a1ab19d552ededf7625fd677167049056073a1394e4",
+          "observedAt": "2026-11-13T07:30:09.929772+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2023-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "bdd21636cc165370af2ba88863478b4859ad8e09123bbe866728d185cd7b379b",
+          "rowSha256": "f406f7c699c3c50f50b53e81a7aa7f37fd8732fa93fd530a08be81a31c9043b6",
+          "issuerNumber": "38422"
+        },
+        "matches": [
+          {
+            "date": "2026-01-28",
+            "sourceField": "ISSU_DT",
+            "issuerName": "피에스일렉트로닉스",
+            "reason": "이익소각",
+            "signedShareChange": -563174,
+            "issuanceSequence": "9",
+            "sourceRowSha256": "1475c9c87b1d4cef376b38dee4140a8386dad8ef85e0da72a4924819d76fdf68"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2025-04-17",
+          "through": "2026-09-10",
+          "rows": 18,
+          "bodySha256": "25846514bb7f7cb6005c4a8a20fb40ac3b9d458b54313fb41b8e3fc300a213e9",
+          "countBodySha256": "2e139b33484d5b59012df5d1b58bf3fa8fda07a9a905c409cde8b9d3347e8b3a",
+          "rowReceiptSha256": "138e8534374ffaf516fc44623dac4777f0bce1524b152cf1a4128e475a47d598",
+          "countReceiptSha256": "c20168cc3790171470d674eb58ca7ae71034ec78851e1b250102859860828d1d",
+          "observedAt": "2026-11-16T06:21:53.014024+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "SINGLE_EVENT_DATE_SUPPORTED",
+      "assessment": "DATED_ISSUER_OUTCOME_AND_KSD",
+      "cancellationDate": "2026-01-28",
+      "events": [
+        {
+          "date": "2026-01-28",
+          "signedShareChange": -563174
+        }
+      ],
+      "otherDates": {
+        "boardResolutionAndRetirementTable": "2026-01-21"
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_BOARD_AND_SCHEDULE",
+          "dates": [
+            "2026-01-21",
+            "2026-01-28"
+          ],
+          "receipt": "20260121900309",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260121900309",
+          "observedAt": "2026-11-16T06:29:10.099413+00:00",
+          "archiveSha256": "868aa8eb013ecb55a56997066c328584d968916de18effe2f51a6f30f3f65678",
+          "bodySha256": "49dc0df254d153a608afb83be40fc45ef44daa51b036bdecbf97367e5003a11e"
+        },
+        {
+          "role": "DATED_SUBSEQUENT_EVENT_COMPLETION",
+          "dates": [
+            "2026-01-28",
+            "2026-01-21"
+          ],
+          "receipt": "20260701000606",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260701000606",
+          "observedAt": "2026-11-16T06:29:13.686337+00:00",
+          "archiveSha256": "bf096e50f688316e959463e38731e5c59f9cb00a9cc008d7657c48867637bf57",
+          "bodySha256": "4403641c9b76812e6a0816827eb53095beb1dea51584156bbd12f28cf51e918a"
+        }
+      ]
+    },
+    {
+      "processId": "20260318000078",
+      "issuer": "셀로맥스사이언스",
+      "market": "KOSDAQ",
+      "symbol": "471820",
+      "isin": "KR7471820001",
+      "listingDate": "2026-03-23",
+      "signedShareChange": -278324,
+      "stockIssueReportedOutstanding": 11302879,
+      "reportedIssueDate": "2026-03-04",
+      "noticeReceipts": [
+        "20260318001923"
+      ],
+      "detailEvidence": {
+        "bodySha256": "c5e3a7bdcd675e6ad5f037685d72d09a56ed5210a7c4fc741928697d78fc39f7",
+        "observedAt": "2026-11-07T16:37:13.057871+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20260318001923",
+          "sourceUrl": "https://kind.krx.co.kr/external/2026/03/18/001923/20260318008809/70763.htm",
+          "bodySha256": "8c10a6bb2548feb4330f5da4e8d7b19c2b9fd1aa2d7e9203ce94327432780a38",
+          "observedAt": "2026-11-13T07:31:26.272432+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2024-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "2dcfa8a4762c84739e0445a70dca5d3d996d8f8e8f8ddc2b05fa5f85c61575cc",
+          "rowSha256": "790197d9233c30c973047b8ce32b75c42fb0268655ac0ef7f4f34f8942c556e9",
+          "issuerNumber": "51165"
+        },
+        "matches": [
+          {
+            "date": "2026-03-04",
+            "sourceField": "ISSU_DT",
+            "issuerName": "셀로맥스사이언스",
+            "reason": "이익소각",
+            "signedShareChange": -278324,
+            "issuanceSequence": "1",
+            "sourceRowSha256": "d3586d6729f18e86cb4b52d00d7cc41da7b17fb0a1f168d1c57e94b9785383ee"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2025-12-04",
+          "through": "2026-03-23",
+          "rows": 1,
+          "bodySha256": "d99ff0f3a8eb8ab0257e3d743c7e9d33de0376ffb5177c11fe6c93f736302610",
+          "countBodySha256": "51527150efd8ec1a1a3dac4b90ca2fb23c0abbd02741c08188afb286acf95611",
+          "rowReceiptSha256": "49dad826af0adc7833d53db74659eed4244112c1c12447d504443dcb1f9bc1c3",
+          "countReceiptSha256": "b316c1cc8f5f8a8e4f8f6d2248d1b21fafec4cfa76c4749a3cbb006550e6203c",
+          "observedAt": "2026-11-16T06:21:52.152190+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "UNRESOLVED_DATE_CONFLICT",
+      "assessment": "ISSUER_RETIREMENT_TABLE_AND_KSD_CONFLICT",
+      "cancellationDate": null,
+      "events": [],
+      "otherDates": {
+        "boardResolution": "2026-02-13",
+        "scheduleAndKsd": "2026-03-04",
+        "issuerRetirementTable": "2026-03-06"
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_BOARD_AND_SCHEDULE",
+          "dates": [
+            "2026-02-13",
+            "2026-03-04"
+          ],
+          "receipt": "20260213900947",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260213900947",
+          "observedAt": "2026-11-16T06:30:01.387190+00:00",
+          "archiveSha256": "3a884ad7058bf1252b8e530e91a63d1fc8978e00699efad5cbb724b3d96066da",
+          "bodySha256": "af26de7b3afb3041ccf6352bec3e6b9874def8a9ba69e721e9ba719baf69fc1b"
+        },
+        {
+          "role": "RETIREMENT_TABLE",
+          "dates": [
+            "2026-03-06"
+          ],
+          "receipt": "20260515002346",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260515002346",
+          "observedAt": "2026-11-16T06:30:02.361483+00:00",
+          "archiveSha256": "e1fec2d77e0f8bb18335c21a161cf609671fb2710721b8ee73cad373c762da8e",
+          "bodySha256": "548de3da5970f4c2e364d63313d54a1f6f35fee4239c4971682774b07f919c0d"
+        },
+        {
+          "role": "RETIREMENT_TABLE",
+          "dates": [
+            "2026-03-06"
+          ],
+          "receipt": "20260814001040",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814001040",
+          "observedAt": "2026-11-16T06:30:03.442421+00:00",
+          "archiveSha256": "4952f03978341a6a123b1e02c243c9e464196a5bac1109e33a9e70f9163ebbe9",
+          "bodySha256": "ed0b6d82992e8b69dbb70f634a84e03313e37d1b32ba582a27a70f052321f543"
+        }
+      ]
+    },
+    {
+      "processId": "20260508000005",
+      "issuer": "PS일렉트로닉스",
+      "market": "KOSDAQ",
+      "symbol": "332570",
+      "isin": "KR7332570001",
+      "listingDate": "2026-05-13",
+      "signedShareChange": -553454,
+      "stockIssueReportedOutstanding": 46711563,
+      "reportedIssueDate": "2026-04-27",
+      "noticeReceipts": [
+        "20260508000628"
+      ],
+      "detailEvidence": {
+        "bodySha256": "9e42dca3052ed7732ca707891ab013795ab0cea4b364febdf5d024f023545e4f",
+        "observedAt": "2026-11-07T16:39:18.299084+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20260508000628",
+          "sourceUrl": "https://kind.krx.co.kr/external/2026/05/08/000628/20260508001538/70763.htm",
+          "bodySha256": "25bc7fa40928cbad02f0653072e163ae1ba26d38b171b07a745645834035f875",
+          "observedAt": "2026-11-13T07:34:23.864214+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2023-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "bdd21636cc165370af2ba88863478b4859ad8e09123bbe866728d185cd7b379b",
+          "rowSha256": "f406f7c699c3c50f50b53e81a7aa7f37fd8732fa93fd530a08be81a31c9043b6",
+          "issuerNumber": "38422"
+        },
+        "matches": [
+          {
+            "date": "2026-04-27",
+            "sourceField": "ISSU_DT",
+            "issuerName": "피에스일렉트로닉스",
+            "reason": "이익소각",
+            "signedShareChange": -553454,
+            "issuanceSequence": "9",
+            "sourceRowSha256": "2b8bb3a9d47b55f0e29b045479fb706dc938dad714b50e8c793b66dfb566216a"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2025-04-17",
+          "through": "2026-09-10",
+          "rows": 18,
+          "bodySha256": "25846514bb7f7cb6005c4a8a20fb40ac3b9d458b54313fb41b8e3fc300a213e9",
+          "countBodySha256": "2e139b33484d5b59012df5d1b58bf3fa8fda07a9a905c409cde8b9d3347e8b3a",
+          "rowReceiptSha256": "138e8534374ffaf516fc44623dac4777f0bce1524b152cf1a4128e475a47d598",
+          "countReceiptSha256": "c20168cc3790171470d674eb58ca7ae71034ec78851e1b250102859860828d1d",
+          "observedAt": "2026-11-16T06:21:53.014024+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "SINGLE_EVENT_DATE_SUPPORTED",
+      "assessment": "KSD_AND_SCHEDULE_BOARD_DATE_DISTINGUISHED",
+      "cancellationDate": "2026-04-27",
+      "events": [
+        {
+          "date": "2026-04-27",
+          "signedShareChange": -553454
+        }
+      ],
+      "otherDates": {
+        "boardResolutionAndRetirementTable": "2026-04-20"
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_BOARD_AND_SCHEDULE",
+          "dates": [
+            "2026-04-20",
+            "2026-04-27"
+          ],
+          "receipt": "20260420900278",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260420900278",
+          "observedAt": "2026-11-16T06:29:11.091522+00:00",
+          "archiveSha256": "d54545b15c10920752159654ceab04519e800cfe0592579b977a6f4eeb91ec93",
+          "bodySha256": "083b425509bfa6a18ff8517211933e5ca62157a283d29105bebd8c4b40bd15c3"
+        },
+        {
+          "role": "RETIREMENT_TABLE_USES_BOARD_DATE",
+          "dates": [
+            "2026-04-20"
+          ],
+          "receipt": "20261109000010",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000010",
+          "observedAt": "2026-11-16T06:29:16.210845+00:00",
+          "archiveSha256": "fc70a2c892046a1df57426989eaf20d4c97bc87374827385e3cec5bbacbfe34a",
+          "bodySha256": "d967844ae4c23e2fef4196486f4f8d17f0634c96d0e29538709ae48f5e1476b1"
+        }
+      ]
+    },
+    {
+      "processId": "20260804000199",
+      "issuer": "노머스",
+      "market": "KOSDAQ",
+      "symbol": "473980",
+      "isin": "KR7473980001",
+      "listingDate": "2026-08-07",
+      "signedShareChange": -176570,
+      "stockIssueReportedOutstanding": 10882752,
+      "reportedIssueDate": "2026-07-10",
+      "noticeReceipts": [
+        "20260804000592"
+      ],
+      "detailEvidence": {
+        "bodySha256": "11de72e3154e97c136d19e2c5690677ce209507866efbb3eb774bfe386c88f13",
+        "observedAt": "2026-11-07T16:42:11.414877+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20260804000592",
+          "sourceUrl": "https://kind.krx.co.kr/external/2026/08/04/000592/20260804001370/70763.htm",
+          "bodySha256": "0cbb74b550593978575aab62f5ff2fc8ca421870c46e4634948a98753496b312",
+          "observedAt": "2026-11-13T07:38:34.218709+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2024-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "2dcfa8a4762c84739e0445a70dca5d3d996d8f8e8f8ddc2b05fa5f85c61575cc",
+          "rowSha256": "1a08486bc03cae842b6969951177bcfcd490c106a47f0e10d8a87d425292385a",
+          "issuerNumber": "50850"
+        },
+        "matches": [
+          {
+            "date": "2026-07-10",
+            "sourceField": "ISSU_DT",
+            "issuerName": "노머스",
+            "reason": "이익소각",
+            "signedShareChange": -93189,
+            "issuanceSequence": "1",
+            "sourceRowSha256": "74fa503f7192d8183bbaef031580a9d3546e50d1b3b49a635c7e0b99df28fbcf"
+          },
+          {
+            "date": "2026-07-02",
+            "sourceField": "ISSU_DT",
+            "issuerName": "노머스",
+            "reason": "이익소각",
+            "signedShareChange": -83381,
+            "issuanceSequence": "1",
+            "sourceRowSha256": "60f6d2c66e09ea086bfc8c46fe051f2ea8922eaca7b01fa8dab7644b5e5124d9"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2026-04-11",
+          "through": "2026-08-07",
+          "rows": 3,
+          "bodySha256": "395c881819b660c01647770c8c21121c0eb0348921a39be29145f3af128e3ecb",
+          "countBodySha256": "f4eceb9d1fad857fb5c8f07ea17e9fe299f9590cf6ecc103a860c18066637212",
+          "rowReceiptSha256": "87d71518968b6a30ae8083614ac5c46893f2d5c0347da619e03be70268564e4f",
+          "countReceiptSha256": "43e4956d3b77a246f5582f5e375ec30d31492afa5e16a13eb3634878d3b4a763",
+          "observedAt": "2026-11-16T06:21:52.410034+00:00"
+        },
+        "status": "MULTI_ROW_DIFFERENT_DATES"
+      },
+      "status": "TWO_EVENT_DATES_SUPPORTED",
+      "assessment": "TWO_ISSUER_COMPLETIONS_AND_KSD",
+      "cancellationDate": null,
+      "events": [
+        {
+          "date": "2026-07-02",
+          "signedShareChange": -83381
+        },
+        {
+          "date": "2026-07-10",
+          "signedShareChange": -93189
+        }
+      ],
+      "otherDates": {
+        "firstOriginalSchedule": "2026-06-29",
+        "registration": "2026-07-23"
+      },
+      "issuerEvidence": [
+        {
+          "role": "FIRST_ORIGINAL_SCHEDULE",
+          "dates": [
+            "2026-06-29"
+          ],
+          "receipt": "20260626900402",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260626900402",
+          "observedAt": "2026-11-16T06:30:05.788244+00:00",
+          "archiveSha256": "b6a8edd33d4ccfdd0a5e7b97cc8184cd7657b61527eaeb73ef2f45e0ea72dcd7",
+          "bodySha256": "dd57de7630bfce4e95d774f30d2b0a7bbc77dee6acf7b9b55932dbc5a970b5f3"
+        },
+        {
+          "role": "FIRST_AMOUNT_AND_BOARD_CORRECTION",
+          "dates": [
+            "2026-06-29"
+          ],
+          "receipt": "20260629900568",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629900568",
+          "observedAt": "2026-11-16T06:30:06.342394+00:00",
+          "archiveSha256": "d663956fa48f0537a0482b4f25b7c49d94a69f96af3c0fae35721f3a3ffb90ea",
+          "bodySha256": "5d10f4f54cc443a398d684cf8f00dee4706336637471c1d22d1435e21d83cd32"
+        },
+        {
+          "role": "FIRST_CORRECTED_SCHEDULE",
+          "dates": [
+            "2026-07-02"
+          ],
+          "receipt": "20260629901294",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629901294",
+          "observedAt": "2026-11-16T06:30:07.299374+00:00",
+          "archiveSha256": "04791a92271643b43fc73a56ccef904fe35c596dd351da264dc0a44a7c0880b5",
+          "bodySha256": "2ee10d305ae8e9d2c1b624edb35933fe1e836d580305059e74e9afcbd706d09d"
+        },
+        {
+          "role": "SECOND_SCHEDULE",
+          "dates": [
+            "2026-07-10"
+          ],
+          "receipt": "20260708900251",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260708900251",
+          "observedAt": "2026-11-16T06:30:08.369192+00:00",
+          "archiveSha256": "36cdacb45a99c50158fc443b83c92747c0cf13688f1670bfbe61434c4f5eb4c8",
+          "bodySha256": "a309a6b17cd97e124f1cb9ed64b6cb8909e86e723d5b28eaa5d04a7933927101"
+        },
+        {
+          "role": "FIRST_ISSUER_COMPLETION",
+          "dates": [
+            "2026-07-02"
+          ],
+          "receipt": "20260708000091",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260708000091",
+          "observedAt": "2026-11-16T06:51:35.741383+00:00",
+          "archiveSha256": "12a02ee0f7f4248164a4b01c60309be6a924b58e2d8cc3863e1979b4b0441340",
+          "bodySha256": "f9ccdcde220ed34fa6921d16c60086320b7ebd12dba4ff34da879ee8e07e6f88"
+        },
+        {
+          "role": "TWO_ISSUER_COMPLETIONS_AND_REGISTRATION",
+          "dates": [
+            "2026-07-02",
+            "2026-07-10",
+            "2026-07-23"
+          ],
+          "receipt": "20260803000449",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260803000449",
+          "observedAt": "2026-11-16T06:51:39.225007+00:00",
+          "archiveSha256": "11a8f2d8ef160b05850bcfb0da760d257f0b562aa4a16f5ee0d6cab64f702082",
+          "bodySha256": "dd00618839805676d4fc7f85c126951d84a1964c7600a92cfbf5092b9f8f91cd"
+        }
+      ]
+    },
+    {
+      "processId": "20260901000107",
+      "issuer": "콜마비앤에이치",
+      "market": "KOSDAQ",
+      "symbol": "200130",
+      "isin": "KR7200130003",
+      "listingDate": "2026-09-04",
+      "signedShareChange": -640000,
+      "stockIssueReportedOutstanding": 28775558,
+      "reportedIssueDate": "2026-08-19",
+      "noticeReceipts": [
+        "20260901000699"
+      ],
+      "detailEvidence": {
+        "bodySha256": "eb54979b28a6c168c78105939245e26df418c42eb4048f9f77677e95dffab945",
+        "observedAt": "2026-11-07T16:42:55.350309+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20260901000699",
+          "sourceUrl": "https://kind.krx.co.kr/external/2026/09/01/000699/20260901001570/70763.htm",
+          "bodySha256": "18ac9783e8e83f44fd4675a48e27fb01f1332ba84f42a985a4667f178fd2f9df",
+          "observedAt": "2026-11-13T07:39:31.969690+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2023-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "bdd21636cc165370af2ba88863478b4859ad8e09123bbe866728d185cd7b379b",
+          "rowSha256": "0df8789932e68b931be378bb40e4e93bb96313fb60cbcd1ddc322fa3ae152115",
+          "issuerNumber": "23262"
+        },
+        "matches": [
+          {
+            "date": "2026-08-19",
+            "sourceField": "ISSU_DT",
+            "issuerName": "콜마비앤에이치",
+            "reason": "이익소각",
+            "signedShareChange": -640000,
+            "issuanceSequence": "6",
+            "sourceRowSha256": "17a3a170a40d10f2141cb080b85e75c2147575a9e5635186817fd2af6d859391"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2026-05-21",
+          "through": "2026-09-04",
+          "rows": 1,
+          "bodySha256": "dead7705c6686eb620a5d8305497a0cdf696b88f45ae67d1b7b416ed714f7752",
+          "countBodySha256": "3e86032a984bc5d54059c9437fa64ddfd1402e3dc4a5740b66ac89be5b3e7a7b",
+          "rowReceiptSha256": "aa32ca552ef66ded592db73d9d67006e3055e5572088c592378170d3a3bd3e5a",
+          "countReceiptSha256": "6f271e172cb41a850d7f1c479a7ada520aafdbdec547ebc0b55c8b703181acbf",
+          "observedAt": "2026-11-16T06:21:45.406600+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "UNRESOLVED_DATE_CONFLICT",
+      "assessment": "ISSUER_COMPLETION_NOTE_AND_KSD_CONFLICT",
+      "cancellationDate": null,
+      "events": [],
+      "otherDates": {
+        "boardResolutionAndIssuerCompletionNote": "2026-08-12",
+        "scheduleAndKsd": "2026-08-19"
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_BOARD_AND_SCHEDULE",
+          "dates": [
+            "2026-08-12",
+            "2026-08-19"
+          ],
+          "receipt": "20260812900588",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260812900588",
+          "observedAt": "2026-11-16T06:27:11.667676+00:00",
+          "archiveSha256": "1f65db627db5317dc343a9dc7149a9f9d3581f207d5dbcf4002ed9aee3bbcb97",
+          "bodySha256": "78aa4c630b1cfc687d4b48eb7213b4c00570fd98f685a136a9435691a293f89a"
+        },
+        {
+          "role": "ISSUER_COMPLETION_NOTE",
+          "dates": [
+            "2026-08-12"
+          ],
+          "receipt": "20261113001354",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113001354",
+          "observedAt": "2026-11-16T06:27:12.732939+00:00",
+          "archiveSha256": "a0b97f636ebf3399e375d3330761b1546aeb5f9985765b3aeb249702a61a0ff9",
+          "bodySha256": "24ce7e074f7ea5686c792775e45ef5dd934d44190c76827b7d41cdc9266f6012"
+        }
+      ]
+    },
+    {
+      "processId": "20260907000081",
+      "issuer": "PS일렉트로닉스",
+      "market": "KOSDAQ",
+      "symbol": "332570",
+      "isin": "KR7332570001",
+      "listingDate": "2026-09-10",
+      "signedShareChange": -770960,
+      "stockIssueReportedOutstanding": 45940603,
+      "reportedIssueDate": "2026-08-25",
+      "noticeReceipts": [
+        "20260907000370"
+      ],
+      "detailEvidence": {
+        "bodySha256": "1637004cdf8f9115cd9a648c77321f574f884facdd9ceaa89a3e7f7aacd31cec",
+        "observedAt": "2026-11-07T16:43:04.364082+00:00",
+        "sourceUrl": "https://kind.krx.co.kr/corpgeneral/stockissuelist.do"
+      },
+      "noticeEvidence": [
+        {
+          "receipt": "20260907000370",
+          "sourceUrl": "https://kind.krx.co.kr/external/2026/09/07/000370/20260907000972/70763.htm",
+          "bodySha256": "0f7dce2483eecdf4a1f02ee231bb766277b7e6237a90ec7b6927460e5f1326af",
+          "observedAt": "2026-11-13T07:39:45.974190+00:00"
+        }
+      ],
+      "depositoryReview": {
+        "issuerBinding": {
+          "capture": "ksd-stat-KOSDAQ-2023-rows",
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01041V.xml",
+          "bodySha256": "bdd21636cc165370af2ba88863478b4859ad8e09123bbe866728d185cd7b379b",
+          "rowSha256": "f406f7c699c3c50f50b53e81a7aa7f37fd8732fa93fd530a08be81a31c9043b6",
+          "issuerNumber": "38422"
+        },
+        "matches": [
+          {
+            "date": "2026-08-25",
+            "sourceField": "ISSU_DT",
+            "issuerName": "피에스일렉트로닉스",
+            "reason": "이익소각",
+            "signedShareChange": -770960,
+            "issuanceSequence": "9",
+            "sourceRowSha256": "57f83640129b3a984e1d3f3797bc0c8c2724918327869cb822be2c00dc3de341"
+          }
+        ],
+        "query": {
+          "sourceUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml",
+          "from": "2025-04-17",
+          "through": "2026-09-10",
+          "rows": 18,
+          "bodySha256": "25846514bb7f7cb6005c4a8a20fb40ac3b9d458b54313fb41b8e3fc300a213e9",
+          "countBodySha256": "2e139b33484d5b59012df5d1b58bf3fa8fda07a9a905c409cde8b9d3347e8b3a",
+          "rowReceiptSha256": "138e8534374ffaf516fc44623dac4777f0bce1524b152cf1a4128e475a47d598",
+          "countReceiptSha256": "c20168cc3790171470d674eb58ca7ae71034ec78851e1b250102859860828d1d",
+          "observedAt": "2026-11-16T06:21:53.014024+00:00"
+        },
+        "status": "MATCH"
+      },
+      "status": "SINGLE_EVENT_DATE_SUPPORTED",
+      "assessment": "KSD_AND_SCHEDULE_BOARD_DATE_DISTINGUISHED",
+      "cancellationDate": "2026-08-25",
+      "events": [
+        {
+          "date": "2026-08-25",
+          "signedShareChange": -770960
+        }
+      ],
+      "otherDates": {
+        "boardResolutionAndRetirementTable": "2026-08-18"
+      },
+      "issuerEvidence": [
+        {
+          "role": "DECISION_BOARD_AND_SCHEDULE",
+          "dates": [
+            "2026-08-18",
+            "2026-08-25"
+          ],
+          "receipt": "20260818900311",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260818900311",
+          "observedAt": "2026-11-16T06:29:15.100312+00:00",
+          "archiveSha256": "15fa2c95dbbf7416e5741da55c4d9430229099f1f5d4cef0197d4979813ae9a4",
+          "bodySha256": "19fdec1b6985118e22e2594a43067ad926bda03510af6f479a992f9690ba01f7"
+        },
+        {
+          "role": "RETIREMENT_TABLE_USES_BOARD_DATE",
+          "dates": [
+            "2026-08-18"
+          ],
+          "receipt": "20261109000010",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000010",
+          "observedAt": "2026-11-16T06:29:16.210845+00:00",
+          "archiveSha256": "fc70a2c892046a1df57426989eaf20d4c97bc87374827385e3cec5bbacbfe34a",
+          "bodySha256": "d967844ae4c23e2fef4196486f4f8d17f0634c96d0e29538709ae48f5e1476b1"
+        }
+      ]
+    }
+  ]
+}
