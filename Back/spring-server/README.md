@@ -176,9 +176,9 @@ Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/v1/alerts/1/read
 
 서버 내부의 `OrderSubmissionGuardService.reserveOnce`는 기한이 남은 `READY`만 원자적으로 `RESERVED`로 한 번 바꿉니다. 예약 후 통신 결과가 불명확하면 `UNCERTAIN`으로 기록하며 두 상태 모두 자동 재시도를 허용하지 않습니다. 기한이 지난 `READY`는 조회 시 `EXPIRED`로 표시됩니다. `011` 이전에 기한 없이 생성된 `READY`는 `LEGACY_REVIEW`로 이관해 예약을 차단합니다. 현재는 주문 전송자가 이 서비스를 호출하지 않습니다.
 
-KB 공식 매수 `SSAM1802`·매도 `SSAM1801` 지정가 요청 형식과 응답 판정은 `KbLimitOrderContract` 및 단위 테스트로 고정했습니다. 이는 순수 형식 검사기이며 외부 주문 API에 연결되지 않았습니다. HTTP/헤더의 `resultCode=200`만으로 주문 접수로 판단하지 않고 `processFlag`와 실제 주문번호를 함께 확인합니다. 자세한 필드와 후속 안전 작업은 `docs/api-spec.md` 15.4절을 참고하세요.
+KB 공식 매수 `SSAM1802`·매도 `SSAM1801` 지정가 요청 형식과 응답 판정은 `KbLimitOrderContract` 및 단위 테스트로 고정했습니다. 이는 순수 형식 검사기이며 외부 주문 API에 연결되지 않았습니다. HTTP/헤더의 `resultCode=200`만으로 주문 접수로 판단하지 않고 `processFlag`와 실제 주문번호를 함께 확인합니다. 자세한 필드와 후속 안전 작업은 `docs/contracts/api-spec.md` 15.4절을 참고하세요.
 
-`GET /api/v1/orders/kb/executions`와 `GET /api/v1/orders/kb/executions/{orderNo}`는 KB `SSQM2341`의 읽기 전용 체결미체결 조회 및 최대 10페이지 주문번호 대조 API입니다. 주문 제출·취소·정정은 호출하지 않습니다. 실제 KB 응답 형태와 계좌 권한은 운영 계좌에서 별도 수동 확인이 필요합니다. 진척도 산정은 `docs/development-progress.md`를 참고하세요.
+`GET /api/v1/orders/kb/executions`와 `GET /api/v1/orders/kb/executions/{orderNo}`는 KB `SSQM2341`의 읽기 전용 체결미체결 조회 및 최대 10페이지 주문번호 대조 API입니다. 주문 제출·취소·정정은 호출하지 않습니다. 실제 KB 응답 형태와 계좌 권한은 운영 계좌에서 별도 수동 확인이 필요합니다. 진척도 산정은 `docs/project/development-progress.md`를 참고하세요.
 
 `POST /api/v1/orders/approvals/{approvalId}/reconciliation-checks`는 `RESERVED` 또는 `UNCERTAIN` 승인에 한해 주문일자와 이미 알고 있는 KB 주문번호를 읽기 전용으로 대조하고 조회 요약을 감사 기록으로 저장합니다. 주문번호를 모르면 `POST /api/v1/orders/approvals/{approvalId}/date-reconciliation-checks`에 주문일자만 전달해 최대 10페이지·200행의 날짜별 이력을 승인 당시 주문안과 함께 검토할 수 있습니다. 두 API 모두 같은 경로의 `GET`에서 최근 20건의 요약 기록을 제공하며, 접수·체결 여부를 자동 확정하지 않습니다. 날짜별 조회가 비어 있어도 재주문 근거로 삼지 않습니다.
 

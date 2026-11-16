@@ -3,7 +3,7 @@
 SagoPalgo는 개인용 Windows 투자 프로그램입니다. 최종 목표는 KB증권 실계좌를 기준으로 실시간 시장 데이터·뉴스·공시·수급을 분석하고, 검증된 AI·전략이 운용 한도 안에서 종목·금액·매매 시점을 판단하는 단기 자동매매 시스템입니다.
 현재는 계좌 조회·규칙 기반 분석·알림·모의매매·제한된 승인형 주문을 구현한 상태이며, 실시간 수집·학습 모델·자동매매는 단계적으로 개발합니다.
 
-최근에는 [H04 합병·분할 종료보고서 전수 대조](docs/historical-restructuring-census.md)에서 기존 후보 351건과 별도 발행실적보고서 68건의 본문을 대조했습니다. [현재 개발 진척도](docs/numbered-work-progress.md#현재-개발-진척도)는 **27/46 · 59%**입니다. [프로젝트·AI 작업 단위별 진척도](docs/project-and-ai-progress.md)에서 구현과 검증 범위를, [보류 작업](docs/deferred-work.md)에서 재개 조건과 진척을 확인할 수 있습니다.
+최근에는 [H04 합병·분할 종료보고서 전수 대조](docs/historical-data/corporate-actions/historical-restructuring-census.md)에서 기존 후보 351건과 별도 발행실적보고서 68건의 본문을 대조했습니다. [현재 개발 진척도](docs/project/numbered-work-progress.md#현재-개발-진척도)는 **27/46 · 59%**입니다. [프로젝트·AI 작업 단위별 진척도](docs/project/project-and-ai-progress.md)에서 구현과 검증 범위를, [보류 작업](docs/project/deferred-work.md)에서 재개 조건과 진척을 확인할 수 있습니다.
 
 ## 프로젝트 방향
 
@@ -12,23 +12,23 @@ SagoPalgo는 개인용 Windows 투자 프로그램입니다. 최종 목표는 KB
 - KIS와 Toss Open API는 계좌/주문 연동 없이 읽기 전용 시장 데이터 Provider로 사용합니다.
 - 같은 현재가를 여러 증권사에서 매번 합치지 않고, 기본 Provider와 fallback Provider를 분리합니다.
 - 실시간 수집·시장 전체 탐색·과거 데이터 학습·AI 자금 배분을 개발하고, 재현 검증·실시간 모의·제한 실거래 검증을 거쳐 자동매매를 도입합니다.
-- 국내 대상 시장의 온주 단타를 현재 개발 범위로 삼습니다. 소수점 상품과 추가 시장은 [보류 작업](docs/deferred-work.md)에서 관리합니다.
+- 국내 대상 시장의 온주 단타를 현재 개발 범위로 삼습니다. 소수점 상품과 추가 시장은 [보류 작업](docs/project/deferred-work.md)에서 관리합니다.
 
-향후 개발 기준은 [실시간 AI 단기 자동매매 로드맵](docs/realtime-trading-roadmap.md)입니다. [목표 아키텍처](docs/target-system-architecture.md), [현재 배포 구조](docs/docker-architecture.md), [개발 진척도](docs/development-progress.md)를 구분해 확인하세요. [기존 설계·구현 이력](docs/personal-windows-investment-assistant.md)은 보존합니다.
+향후 개발 기준은 [실시간 AI 단기 자동매매 로드맵](docs/project/realtime-trading-roadmap.md)입니다. [목표 아키텍처](docs/architecture/target-system-architecture.md), [현재 배포 구조](docs/architecture/docker-architecture.md), [개발 진척도](docs/project/development-progress.md)를 구분해 확인하세요. [기존 설계·구현 이력](docs/architecture/personal-windows-investment-assistant.md)은 보존합니다.
 
-아래 과거 데이터 검증 문단의 진척률은 각 검증 당시의 범위를 기준으로 합니다. 과거 데이터 후속은 [KRX 기간 전체 종목 목록·관찰 변화 수집](docs/krx-universe-history.md)입니다. 날짜별 원문·호출 예산·중단 재개·사건 경계 대조를 관리합니다. 종목 목록 확보와 거래일/거래정지·기업행사·학습 가능 여부는 구분합니다.
+아래 과거 데이터 검증 문단의 진척률은 각 검증 당시의 범위를 기준으로 합니다. 과거 데이터 후속은 [KRX 기간 전체 종목 목록·관찰 변화 수집](docs/historical-data/universe/krx-universe-history.md)입니다. 날짜별 원문·호출 예산·중단 재개·사건 경계 대조를 관리합니다. 종목 목록 확보와 거래일/거래정지·기업행사·학습 가능 여부는 구분합니다.
 
-최신 후속은 [장중 거래중단·단일가와 재현 엔진 연결](docs/intraday-session-replay.md)입니다. CB 17쌍·프로그램 호가 정지 100개를 시장/날짜 100개·제한 구간 134개로 연결하고 주문 판단/체결 분봉에 적용합니다. 부분·늦은 근거는 체결을 보류하며 일반 후보 1,448개를 확정하지 않습니다. [Windows 파일 게시 복구](docs/windows-file-publication.md)에서 일시 잠금의 제한 재시도·영구 실패 보존을 추가해 기존 1,062건과 신규 17건, 전체 **1,079건을 0실패로 확인**했습니다. 5-08 진행 중·5번 39%·1~5번 54% 유지입니다.
+최신 후속은 [장중 거래중단·단일가와 재현 엔진 연결](docs/historical-data/replay/intraday-session-replay.md)입니다. CB 17쌍·프로그램 호가 정지 100개를 시장/날짜 100개·제한 구간 134개로 연결하고 주문 판단/체결 분봉에 적용합니다. 부분·늦은 근거는 체결을 보류하며 일반 후보 1,448개를 확정하지 않습니다. [Windows 파일 게시 복구](docs/operations/windows-file-publication.md)에서 일시 잠금의 제한 재시도·영구 실패 보존을 추가해 기존 1,062건과 신규 17건, 전체 **1,079건을 0실패로 확인**했습니다. 5-08 진행 중·5번 39%·1~5번 54% 유지입니다.
 
-직전 후속은 [추가 공지 양식·발표 경계·정정과 세션 판단](docs/session-coverage-boundary-review.md)입니다. 추가 검색 170개·176페이지·고유 본문 235개를 검토해 CB 발동/해제 18쌍을 연결했습니다. 목표 기간 안 17개 시장/날짜에 장중 중단이 확인됐으며 일반 후보 1,448개는 날짜별 근거·사유와 함께 확정 보류로 기록했습니다. 전체 회귀 1,018건 통과, 5-08 진행 중·5번 39%·1~5번 54% 유지입니다.
+직전 후속은 [추가 공지 양식·발표 경계·정정과 세션 판단](docs/historical-data/sessions/session-coverage-boundary-review.md)입니다. 추가 검색 170개·176페이지·고유 본문 235개를 검토해 CB 발동/해제 18쌍을 연결했습니다. 목표 기간 안 17개 시장/날짜에 장중 중단이 확인됐으며 일반 후보 1,448개는 날짜별 근거·사유와 함께 확정 보류로 기록했습니다. 전체 회귀 1,018건 통과, 5-08 진행 중·5번 39%·1~5번 54% 유지입니다.
 
-직전 후속은 [임시 거래시간 변경 공지 목록·본문 검토](docs/session-exception-notice-inventory.md)입니다. 16개 검색·40페이지의 공시 2,622건과 본문 75개를 확보해 8개 구간의 선택 범위를 검토했습니다. 기존 특수 세션 12개 시장/날짜를 재확인하고 범위 밖 2개는 분리했습니다. 추가 양식·발표 경계·전체 정정 계보는 남아 일반 후보 1,448개는 승격하지 않습니다. 전체 회귀 984건 통과, 5-08 진행 중·5번 39%·1~5번 54%를 유지합니다.
+직전 후속은 [임시 거래시간 변경 공지 목록·본문 검토](docs/historical-data/sessions/session-exception-notice-inventory.md)입니다. 16개 검색·40페이지의 공시 2,622건과 본문 75개를 확보해 8개 구간의 선택 범위를 검토했습니다. 기존 특수 세션 12개 시장/날짜를 재확인하고 범위 밖 2개는 분리했습니다. 추가 양식·발표 경계·전체 정정 계보는 남아 일반 후보 1,448개는 승격하지 않습니다. 전체 회귀 984건 통과, 5-08 진행 중·5번 39%·1~5번 54%를 유지합니다.
 
-직전 후속은 [코스닥 과거 전문·위임 시행일과 규정 V2](docs/kosdaq-rule-effective-evidence.md)입니다. 제2280호의 올바른 전문과 시행세칙 제2304호 부칙에 따른 2025-03-04 시행일을 확인해 규정 15/15개의 연결을 보강했습니다. 임시 변경은 두 시장·4개 연도의 8구간으로 검토 계획을 생성했으며 일반 후보 1,448개는 실제 세션에 넣지 않습니다. 전체 회귀 948건 통과, 5-08 진행 중·5번 39%·1~5번 54%를 유지합니다.
+직전 후속은 [코스닥 과거 전문·위임 시행일과 규정 V2](docs/historical-data/sessions/kosdaq-rule-effective-evidence.md)입니다. 제2280호의 올바른 전문과 시행세칙 제2304호 부칙에 따른 2025-03-04 시행일을 확인해 규정 15/15개의 연결을 보강했습니다. 임시 변경은 두 시장·4개 연도의 8구간으로 검토 계획을 생성했으며 일반 후보 1,448개는 실제 세션에 넣지 않습니다. 전체 회귀 948건 통과, 5-08 진행 중·5번 39%·1~5번 54%를 유지합니다.
 
-규정 V1 후속은 [과거 일반 정규장 규정 판본 검증](docs/historical-ordinary-session-rules.md)입니다. 15개 판본 중 14개 본문이 일치하며 KOSPI 8개 판본·7구간의 명목 시간을 확인했습니다. 코스닥 제53차 요청에 제52차 본문이 반환된 1건과 임시 변경의 전체 대조가 남아 일반 후보를 확정 세션에 넣지 않습니다. 전체 AI 서버 911건 통과, 5-08 진행 중·5번 7/18·39%·1~5번 26/48·54%를 유지합니다.
+규정 V1 후속은 [과거 일반 정규장 규정 판본 검증](docs/historical-data/sessions/historical-ordinary-session-rules.md)입니다. 15개 판본 중 14개 본문이 일치하며 KOSPI 8개 판본·7구간의 명목 시간을 확인했습니다. 코스닥 제53차 요청에 제52차 본문이 반환된 1건과 임시 변경의 전체 대조가 남아 일반 후보를 확정 세션에 넣지 않습니다. 전체 AI 서버 911건 통과, 5-08 진행 중·5번 7/18·39%·1~5번 26/48·54%를 유지합니다.
 
-직전 후속은 [전체 기간 개장 여부 재구성·특수 세션 확대](docs/market-calendar-session-coverage.md)입니다. KRX 근거로 두 시장의 1,098일을 개장 730·주말 314·기타 휴장 54일로 재구성하고 시장별 6일의 특수 세션을 확인했습니다. 일반 시간 후보와 미확인 달력 플래그는 남겨 전체 5-08 진행 중을 유지합니다. V7의 개별 공시 576/577건·폐지일 충돌 1건과 원래 관찰은 보존합니다.
+직전 후속은 [전체 기간 개장 여부 재구성·특수 세션 확대](docs/historical-data/sessions/market-calendar-session-coverage.md)입니다. KRX 근거로 두 시장의 1,098일을 개장 730·주말 314·기타 휴장 54일로 재구성하고 시장별 6일의 특수 세션을 확인했습니다. 일반 시간 후보와 미확인 달력 플래그는 남겨 전체 5-08 진행 중을 유지합니다. V7의 개별 공시 576/577건·폐지일 충돌 1건과 원래 관찰은 보존합니다.
 
 ## 개인 사용 및 책임 고지
 
@@ -49,7 +49,7 @@ API Key, 계좌정보, 토큰 등 민감정보를 저장소에 커밋하지 마�
 - AI 목표 비중·실잔고·미체결 예약을 반영한 분산 투자와 검증된 자동 주문
 - 일·주·월·연 실계좌 수익·포트폴리오 차트
 
-현재 완료 범위와 검증은 [개발 로드맵](docs/realtime-trading-roadmap.md)을 따릅니다. 기존 구현과 보류한 확장 항목은 [개발 진척도](docs/development-progress.md)와 [보류 작업](docs/deferred-work.md)에서 확인할 수 있습니다.
+현재 완료 범위와 검증은 [개발 로드맵](docs/project/realtime-trading-roadmap.md)을 따릅니다. 기존 구현과 보류한 확장 항목은 [개발 진척도](docs/project/development-progress.md)와 [보류 작업](docs/project/deferred-work.md)에서 확인할 수 있습니다.
 
 ## 현재 기술 구조
 
@@ -65,11 +65,11 @@ Flutter 앱은 Windows PC에서 실행하고 Spring Boot, Python AI, MySQL, Ngin
 
 ![Ubuntu 백엔드와 Windows 앱 시스템 구조](docs/images/system-architecture-ubuntu.png)
 
-위 이미지는 현재 배포 구조입니다. 신규 데이터 수집·학습·자동 주문의 연결은 [목표 시스템 구조도](docs/target-system-architecture.md)에서 확인할 수 있습니다.
+위 이미지는 현재 배포 구조입니다. 신규 데이터 수집·학습·자동 주문의 연결은 [목표 시스템 구조도](docs/architecture/target-system-architecture.md)에서 확인할 수 있습니다.
 
 ## 백엔드 실행
 
-루트 `.env.example`을 `.env`로 복사한 뒤 비밀번호와 Provider 설정을 입력합니다. 새 설치라면 이름이 같은 DB 볼륨을 한 번 생성합니다. 기존 설치는 새 볼륨을 만들지 말고 [기존 설치 전환 절차](docs/docker-architecture.md#3-실행과-기존-설치-전환)를 먼저 확인하세요.
+루트 `.env.example`을 `.env`로 복사한 뒤 비밀번호와 Provider 설정을 입력합니다. 새 설치라면 이름이 같은 DB 볼륨을 한 번 생성합니다. 기존 설치는 새 볼륨을 만들지 말고 [기존 설치 전환 절차](docs/architecture/docker-architecture.md#3-실행과-기존-설치-전환)를 먼저 확인하세요.
 
 ```powershell
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
@@ -118,7 +118,7 @@ docker compose --env-file .env ps
 curl http://localhost:8081/health
 ```
 
-**위 복사·볼륨 생성 명령은 새 설치에서만 사용합니다.** 기존 Ubuntu 배포는 먼저 실제 볼륨 이름을 확인하고 DB 백업을 확보한 뒤 기존 설정값을 루트 `.env`로 옮겨야 합니다. KB 점검 이력의 `014` 마이그레이션 절차도 [Docker 구조 문서](docs/docker-architecture.md#기존-ubuntu-db의-kb-점검-이력-테이블)에 있습니다. `down -v`로 기존 DB를 지우지 마세요.
+**위 복사·볼륨 생성 명령은 새 설치에서만 사용합니다.** 기존 Ubuntu 배포는 먼저 실제 볼륨 이름을 확인하고 DB 백업을 확보한 뒤 기존 설정값을 루트 `.env`로 옮겨야 합니다. KB 점검 이력의 `014` 마이그레이션 절차도 [Docker 구조 문서](docs/architecture/docker-architecture.md#기존-ubuntu-db의-kb-점검-이력-테이블)에 있습니다. `down -v`로 기존 DB를 지우지 마세요.
 
 ## 환경 변수
 
@@ -132,14 +132,15 @@ Windows 앱 잠금 PIN은 Credential Manager에 저장합니다. Ubuntu 백엔�
 
 ## 참고 문서
 
-- [최신 개발 로드맵: 실시간 AI 단기 자동매매](docs/realtime-trading-roadmap.md)
-- [목표 시스템 아키텍처와 구조도](docs/target-system-architecture.md)
-- [R0 API 지원·계약 매트릭스](docs/trading-api-contract-matrix.md)
-- [KB 문의 관련 계약 보류·재개 조건](docs/kb-contract-blockers.md)
-- [단기·중기·최종 목표와 초기 운용·측정 초안](docs/initial-trading-policy.md)
-- [개발 진척도: 신규 단계와 기존 구현 이력](docs/development-progress.md)
-- [개인용 Windows 투자 어시스턴트 기존 설계·구현 이력](docs/personal-windows-investment-assistant.md)
-- [API 명세](docs/api-spec.md)
-- [데이터베이스 스키마](docs/database-schema.md)
-- [Docker 구조](docs/docker-architecture.md)
-- [실제 기능 테스트 가이드](docs/manual-test-guide.md)
+- [주제별 문서 목차](docs/README.md)
+- [최신 개발 로드맵: 실시간 AI 단기 자동매매](docs/project/realtime-trading-roadmap.md)
+- [목표 시스템 아키텍처와 구조도](docs/architecture/target-system-architecture.md)
+- [R0 API 지원·계약 매트릭스](docs/contracts/trading-api-contract-matrix.md)
+- [KB 문의 관련 계약 보류·재개 조건](docs/contracts/kb-contract-blockers.md)
+- [단기·중기·최종 목표와 초기 운용·측정 초안](docs/project/initial-trading-policy.md)
+- [개발 진척도: 신규 단계와 기존 구현 이력](docs/project/development-progress.md)
+- [개인용 Windows 투자 어시스턴트 기존 설계·구현 이력](docs/architecture/personal-windows-investment-assistant.md)
+- [API 명세](docs/contracts/api-spec.md)
+- [데이터베이스 스키마](docs/contracts/database-schema.md)
+- [Docker 구조](docs/architecture/docker-architecture.md)
+- [실제 기능 테스트 가이드](docs/operations/manual-test-guide.md)
