@@ -36,4 +36,4 @@ $h = @('--manifest', '../../docs/examples/cancellation-share-class-census.json',
 
 보고서 SHA-256은 `3ff4e9cec41dc63f4fdd6c2c50eb5991748a0dddabb3dae689844d681a584568`입니다.
 
-상장일 경계 바깥의 소각 사건과 본문 날짜가 비어 있는 121행의 독립 소각일 근거가 남아 있습니다. 원문의 과거 최초 공개 시각은 별도 감사 대상이며, 보고서는 연구용입니다. [남은 작업](../../project/remaining-development-units.md)
+본문 날짜가 비어 있던 121행의 후속 대조에서 보통주 107행의 단일 날짜 근거를 확인했습니다. 발행사 날짜 충돌 12행, 복수 소각일이 합산된 1행과 범위 밖 주식예탁증서 1행도 기록했습니다. 상장일 경계 바깥의 소각 사건과 당시 최초 공개 시각은 별도 감사 대상입니다. [121행 원문 대조](historical-cancellation-date-followup.md) · [남은 작업](../../project/remaining-development-units.md)
