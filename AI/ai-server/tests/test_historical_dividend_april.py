@@ -47,3 +47,16 @@ def test_recalculates_fractional_reit_cash_per_share():
     result = supplemental_field("commonCashPerShare", target, pin, {}, set(markers))
     assert result["status"] == "MATCH"
     assert result["calculation"] == pin["calculation"]
+
+
+@pytest.mark.parametrize("classification", ["지급", "예정"])
+def test_retroactive_quarterly_payment_note_discriminates_schedule(classification):
+    target = {"symbol": "009240", "recordDate": "2024-03-31", "displayedPaymentDate": "2024-05-17"}
+    marker = f"1분기 현금배당('24.5.17 {classification}) : 보통주 750원/주"
+    entry = {"marker": marker, "value": "2024-05-17"}
+    proof = {"receipt": "20240814004190", "reportedOn": "2024-08-14"}
+    if classification == "예정":
+        with pytest.raises(ResearchError, match="APRIL_PAYMENT_EXPRESSION"):
+            manual_payment(target, entry, {marker}, proof)
+    else:
+        assert manual_payment(target, entry, {marker}, proof)["status"] == "MATCH"
