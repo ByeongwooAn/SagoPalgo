@@ -59,6 +59,8 @@ KRX 20011 화면에 로그인해 **254종목의 코드·ISIN·일자 조합 638�
 
 결과의 `phaseReviews`에 공지상 적용일과 시각, 당시 상장 주권, 접수와 추가 근거를 기록했습니다. `relatedDelistingsBySymbol`에 상장폐지 정정 전후 기재값을 보존했습니다. KIND에서 확인한 내용은 공지상 조치이며, 실제 상태 전환과 첫 체결은 종목별 별도 원장이 필요합니다.
 
+[삼양홀딩스1우선주 상태 전환 자료 조사](historical-samyang-preferred-halt-records.md)에서 코스콤 시장조치내역과 ICE의 KRX 과거 틱 상품을 확인했습니다. 해당 두 날짜의 원본 상태 전환 기록은 공급 범위 확인이 필요합니다.
+
 ## 재검증
 
 AI 서버에서 [입력 명세](examples/historical-kospi-halt-scope-inputs.json)의 원장·상장 목록·후속 공지·KRX CSV 해시를 확인한 뒤 동일 결과를 계산합니다. `dailySources`에는 원본 경로·해시·코드·ISIN·조회 기간을, `dailyUnavailableRanges`에는 검색 미반환 기간과 관찰일을 기록했습니다. 원본 CSV는 AI 서버의 로컬 `research-artifacts/h05-kospi-halt-share-scope/authenticated-daily`에 보관합니다. 감사 재실행에는 입력 명세가 가리키는 로컬 원본이 필요합니다.
