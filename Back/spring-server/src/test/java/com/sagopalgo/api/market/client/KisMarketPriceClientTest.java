@@ -102,6 +102,38 @@ class KisMarketPriceClientTest {
     }
 
     @Test
+    void usQuoteAndDailyCandlesUseOverseasTransactions() {
+        server.expect(requestTo("https://kis.test/oauth2/tokenP"))
+            .andRespond(withSuccess("""
+                {"access_token":"access-token","expires_in":3600}
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kis.test/uapi/overseas-price/v1/quotations/price?AUTH=&EXCD=AMS&SYMB=SPY"))
+            .andExpect(header("tr_id", "HHDFS00000300"))
+            .andRespond(withSuccess("""
+                {"rt_cd":"0","output":{"last":"651.125","base":"650.00","tvol":"43"}}
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kis.test/uapi/overseas-price/v1/quotations/dailyprice?AUTH=&EXCD=AMS&SYMB=SPY&GUBN=0&BYMD=&MODP=0"))
+            .andExpect(header("tr_id", "HHDFS76240000"))
+            .andRespond(withSuccess("""
+                {"rt_cd":"0","output2":[{"xymd":"20261113","open":"650.5","high":"652.0","low":"650.0","clos":"651.125","tvol":"1000"}]}
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kis.test/uapi/overseas-price/v1/quotations/search-info?PRDT_TYPE_CD=529&PDNO=SPY"))
+            .andExpect(header("tr_id", "CTPF1702R"))
+            .andRespond(withSuccess("""
+                {"rt_cd":"0","output":{"prdt_eng_name":"SPDR S&P 500 ETF TRUST","tr_crcy_cd":"USD","lstg_yn":"Y"}}
+                """, MediaType.APPLICATION_JSON));
+
+        MarketDataRequest request = new MarketDataRequest("SPY", "AMEX");
+        assertThat(client.quote(request).currentPrice()).isEqualByComparingTo("651.125");
+        assertThat(client.candles(request, CandleInterval.DAILY, 60)).singleElement().satisfies(candle -> {
+            assertThat(candle.closePrice()).isEqualByComparingTo("651.125");
+            assertThat(candle.dateTime()).isEqualTo(LocalDate.of(2026, 11, 13).atStartOfDay());
+        });
+        assertThat(client.stockInfo(request).orElseThrow().currency()).isEqualTo("USD");
+        server.verify();
+    }
+
+    @Test
     @DisplayName("국내 주식 기간별 시세를 시간 오름차순 표준 캔들로 변환한다")
     void candlesFetchDomesticStockHistory() {
         LocalDate endDate = LocalDate.now(ZoneId.of("Asia/Seoul"));

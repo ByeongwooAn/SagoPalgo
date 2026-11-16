@@ -11,6 +11,8 @@ import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockCandle;
 import com.sagopalgo.api.market.model.StockQuote;
+import com.sagopalgo.api.market.model.StockInfo;
+import com.sagopalgo.api.market.model.UsStockExchange;
 import com.sagopalgo.api.market.model.DomesticStockIdentity;
 import java.util.Optional;
 import com.sagopalgo.api.market.provider.MarketDataProvider;
@@ -144,7 +146,8 @@ public class KisMarketPriceClient implements MarketDataProvider {
     }
 
     public boolean supports(Holding holding) {
-        return supports(MarketDataRequest.from(holding));
+        MarketDataRequest request = MarketDataRequest.from(holding);
+        return SUPPORTED_MARKETS.contains(normalizeMarket(request.market())) && supports(request);
     }
 
     @Override
@@ -156,7 +159,9 @@ public class KisMarketPriceClient implements MarketDataProvider {
     public boolean supports(MarketDataRequest request) {
         return properties.isEnabled()
             && request != null
-            && SUPPORTED_MARKETS.contains(normalizeMarket(request.market()))
+            && (SUPPORTED_MARKETS.contains(normalizeMarket(request.market()))
+                || (UsStockExchange.fromMarket(request.market()).isPresent()
+                    && UsStockExchange.isTicker(request.stockCode())))
             && StringUtils.hasText(request.stockCode());
     }
 
@@ -167,6 +172,8 @@ public class KisMarketPriceClient implements MarketDataProvider {
     @Override
     public StockQuote quote(MarketDataRequest request) {
         ensureQuoteConfigured();
+        var exchange = UsStockExchange.fromMarket(request.market());
+        if (exchange.isPresent()) return usQuote(request, exchange.orElseThrow());
 
         KisPriceResponse response;
         try {
@@ -231,6 +238,14 @@ public class KisMarketPriceClient implements MarketDataProvider {
     }
 
     private JsonNode identityOutput(URI uri, String transactionId, String stage) {
+        JsonNode item = readJson(uri, transactionId, stage, "종목정보").path("output");
+        if (!item.isObject()) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "종목정보 응답 형식이 올바르지 않습니다.");
+        }
+        return item;
+    }
+
+    private JsonNode readJson(URI uri, String transactionId, String stage, String operation) {
         JsonNode body;
         try {
             body = restClient.get().uri(uri).accept(MediaType.APPLICATION_JSON)
@@ -239,16 +254,13 @@ public class KisMarketPriceClient implements MarketDataProvider {
                 .header("tr_id", transactionId).header("custtype", properties.getCustomerType())
                 .retrieve().body(JsonNode.class);
         } catch (RestClientException exception) {
-            throw KisApiErrors.requestFailure(stage, "종목정보", exception);
+            throw KisApiErrors.requestFailure(stage, operation, exception);
         }
-        if (body == null) throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "종목정보 응답이 비어 있습니다.");
+        if (body == null) throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, operation + " 응답이 비어 있습니다.");
         if (!"0".equals(body.path("rt_cd").asText())) {
-            throw KisApiErrors.responseFailure(stage, "종목정보", body.path("rt_cd").asText(), body.path("msg_cd").asText());
+            throw KisApiErrors.responseFailure(stage, operation, body.path("rt_cd").asText(), body.path("msg_cd").asText());
         }
-        if (!body.path("output").isObject()) {
-            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "종목정보 응답 형식이 올바르지 않습니다.");
-        }
-        return body.path("output");
+        return body;
     }
 
     private LocalDate identityDate(JsonNode output, String field) {
@@ -270,6 +282,8 @@ public class KisMarketPriceClient implements MarketDataProvider {
     @Override
     public List<StockCandle> candles(MarketDataRequest request, CandleInterval interval, int count) {
         ensureCandleConfigured();
+        var exchange = UsStockExchange.fromMarket(request.market());
+        if (exchange.isPresent()) return usCandles(request, exchange.orElseThrow(), interval, count);
         String periodCode = periodCode(interval);
 
         KisCandleResponse response;
@@ -304,6 +318,74 @@ public class KisMarketPriceClient implements MarketDataProvider {
             .sorted(Comparator.comparing(StockCandle::dateTime))
             .toList();
         return candles.size() <= count ? candles : candles.subList(candles.size() - count, candles.size());
+    }
+
+    @Override
+    public Optional<StockInfo> stockInfo(MarketDataRequest request) {
+        var market = UsStockExchange.fromMarket(request.market());
+        if (market.isEmpty()) return Optional.empty();
+        ensureQuoteConfigured();
+        UsStockExchange exchange = market.orElseThrow();
+        URI uri = UriComponentsBuilder.fromUri(endpoint("/uapi/overseas-price/v1/quotations/search-info"))
+            .queryParam("PRDT_TYPE_CD", exchange.kisProductCode())
+            .queryParam("PDNO", request.stockCode()).build().encode().toUri();
+        JsonNode item = identityOutput(uri, "CTPF1702R", "US_STOCK_INFO");
+        String name = item.path("prdt_name").asText();
+        String english = item.path("prdt_eng_name").asText();
+        if (!StringUtils.hasText(name)) name = english;
+        if (!StringUtils.hasText(name) || !"USD".equals(item.path("tr_crcy_cd").asText())) return Optional.empty();
+        String listed = item.path("lstg_yn").asText();
+        String status = switch (listed) {
+            case "Y" -> "LISTED";
+            case "N" -> "DELISTED";
+            default -> null;
+        };
+        return Optional.of(new StockInfo(PROVIDER_CODE, request.stockCode(), name, english, exchange.name(),
+            item.path("prdt_clsf_name").asText(null), false, status, "USD", identityDate(item, "lstg_dt"),
+            identityDate(item, "lstg_abol_dt"), decimal(item.path("lstg_stck_num").asText()),
+            false, false));
+    }
+
+    private StockQuote usQuote(MarketDataRequest request, UsStockExchange exchange) {
+        URI uri = usQuotation("/price", request.stockCode(), exchange).build().encode().toUri();
+        JsonNode item = readJson(uri, "HHDFS00000300", "US_QUOTE", "미국주식 현재가").path("output");
+        BigDecimal last = requiredDecimal(item.path("last").asText(), "한국투자증권 미국주식 현재가가 없습니다.");
+        BigDecimal previous = decimal(item.path("base").asText());
+        return new StockQuote(PROVIDER_CODE, request.stockCode(), "", exchange.name(), last,
+            previous.signum() > 0 ? last.subtract(previous) : decimal(item.path("diff").asText()),
+            decimal(item.path("rate").asText()), decimal(item.path("tvol").asText()),
+            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, previous, Instant.now());
+    }
+
+    private List<StockCandle> usCandles(
+        MarketDataRequest request, UsStockExchange exchange, CandleInterval interval, int count
+    ) {
+        String period = switch (interval) {
+            case DAILY -> "0";
+            case WEEKLY -> "1";
+            case MONTHLY -> "2";
+            case MINUTE -> throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "한국투자증권 기간별 시세는 분봉을 지원하지 않습니다.");
+        };
+        URI uri = usQuotation("/dailyprice", request.stockCode(), exchange)
+            .queryParam("GUBN", period).queryParam("BYMD", "").queryParam("MODP", "0")
+            .build().encode().toUri();
+        JsonNode rows = readJson(uri, "HHDFS76240000", "US_CANDLES", "미국주식 기간별 시세").path("output2");
+        if (!rows.isArray()) return List.of();
+        List<StockCandle> candles = new java.util.ArrayList<>();
+        for (JsonNode row : rows) {
+            String date = row.path("xymd").asText();
+            if (!StringUtils.hasText(date)) continue;
+            candles.add(toCandle(request, interval, new CandleOutput(date, row.path("open").asText(),
+                row.path("high").asText(), row.path("low").asText(), row.path("clos").asText(),
+                row.path("tvol").asText())));
+        }
+        candles.sort(Comparator.comparing(StockCandle::dateTime));
+        return candles.subList(Math.max(0, candles.size() - count), candles.size());
+    }
+
+    private UriComponentsBuilder usQuotation(String path, String ticker, UsStockExchange exchange) {
+        return UriComponentsBuilder.fromUri(endpoint("/uapi/overseas-price/v1/quotations" + path))
+            .queryParam("AUTH", "").queryParam("EXCD", exchange.kisCode()).queryParam("SYMB", ticker);
     }
 
     private String accessToken() {

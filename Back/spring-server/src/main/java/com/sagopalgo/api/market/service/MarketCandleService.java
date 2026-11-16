@@ -8,7 +8,6 @@ import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockCandle;
 import com.sagopalgo.api.market.provider.MarketDataProvider;
 import java.util.List;
-import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -93,6 +92,6 @@ public class MarketCandleService {
         if (count < 1 || count > MAX_CANDLE_COUNT) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "캔들 조회 건수는 1~100이어야 합니다.");
         }
-        return new MarketDataRequest(stockCode.trim(), market.trim().toUpperCase(Locale.ROOT));
+        return MarketDataRequest.forLookup(stockCode, market);
     }
 }

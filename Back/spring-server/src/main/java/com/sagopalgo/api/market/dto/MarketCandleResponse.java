@@ -2,6 +2,8 @@ package com.sagopalgo.api.market.dto;
 
 import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.model.StockCandle;
+import com.sagopalgo.api.market.model.UsStockExchange;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
@@ -15,4 +17,8 @@ public record MarketCandleResponse(
     int count,
     List<StockCandle> candles
 ) {
+    @JsonProperty("currency")
+    public String currency() {
+        return UsStockExchange.fromMarket(market).isPresent() || "US_ETC".equals(market) ? "USD" : "KRW";
+    }
 }

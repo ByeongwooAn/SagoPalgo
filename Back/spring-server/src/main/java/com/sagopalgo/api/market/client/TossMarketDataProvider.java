@@ -11,6 +11,7 @@ import com.sagopalgo.api.market.model.StockCandle;
 import com.sagopalgo.api.market.model.StockInfo;
 import com.sagopalgo.api.market.model.DomesticStockIdentity;
 import com.sagopalgo.api.market.model.StockQuote;
+import com.sagopalgo.api.market.model.UsStockExchange;
 import com.sagopalgo.api.market.provider.MarketDataProvider;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -81,6 +82,8 @@ public class TossMarketDataProvider implements MarketDataProvider {
     @Override
     public StockQuote quote(MarketDataRequest request) {
         ensureQuoteConfigured();
+        boolean us = UsStockExchange.fromMarket(request.market()).isPresent();
+        if (us) verifyUsListing(request);
         PriceEnvelope response;
         try {
             response = restClient.get()
@@ -98,6 +101,7 @@ public class TossMarketDataProvider implements MarketDataProvider {
                 ErrorCode.EXTERNAL_DATA_ERROR,
                 "토스증권 현재가 응답에 요청 종목이 없습니다."
             ));
+        if (us && !"USD".equals(item.currency())) throw externalError("토스증권 미국주식 현재가 통화가 올바르지 않습니다.");
 
         return new StockQuote(
             PROVIDER_CODE,
@@ -127,11 +131,13 @@ public class TossMarketDataProvider implements MarketDataProvider {
             return List.of();
         }
         ensureCandleConfigured();
+        boolean us = UsStockExchange.fromMarket(request.market()).isPresent();
+        if (us) verifyUsListing(request);
 
         CandleEnvelope response;
         try {
             response = restClient.get()
-                .uri(candleUri(request.stockCode(), intervalCode, count))
+                .uri(candleUri(request.stockCode(), intervalCode, count, !us))
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken())
                 .retrieve()
@@ -165,7 +171,14 @@ public class TossMarketDataProvider implements MarketDataProvider {
         }
 
         return findStockInfo(response == null ? null : response.result(), request.stockCode())
+            .filter(item -> UsStockExchange.fromMarket(request.market()).isEmpty()
+                || (normalizeMarket(request.market()).equals(normalizeMarket(item.market()))
+                    && "USD".equals(item.currency())))
             .map(this::toStockInfo);
+    }
+
+    private void verifyUsListing(MarketDataRequest request) {
+        if (stockInfo(request).isEmpty()) throw externalError("토스증권에서 티커와 미국 거래소의 조합을 확인하지 못했습니다.");
     }
 
     @Override
@@ -227,8 +240,14 @@ public class TossMarketDataProvider implements MarketDataProvider {
         CandleItem item
     ) {
         LocalDateTime dateTime;
+        boolean us = UsStockExchange.fromMarket(request.market()).isPresent();
+        if (us && !"USD".equals(item.currency())) throw externalError("토스증권 미국주식 캔들 통화가 올바르지 않습니다.");
         try {
-            dateTime = OffsetDateTime.parse(item.timestamp()).toLocalDateTime();
+            OffsetDateTime timestamp = OffsetDateTime.parse(item.timestamp());
+            dateTime = us
+                ? timestamp.atZoneSameInstant(UsStockExchange.ZONE).toLocalDateTime()
+                : timestamp.toLocalDateTime();
+            if (us && interval == CandleInterval.DAILY) dateTime = dateTime.toLocalDate().atStartOfDay();
         } catch (DateTimeParseException | NullPointerException exception) {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "토스증권 캔들 시각 형식이 올바르지 않습니다.");
         }
@@ -295,12 +314,12 @@ public class TossMarketDataProvider implements MarketDataProvider {
             .toUri();
     }
 
-    private URI candleUri(String stockCode, String interval, int count) {
+    private URI candleUri(String stockCode, String interval, int count, boolean adjusted) {
         return UriComponentsBuilder.fromUri(endpoint(properties.getCandlePath()))
             .queryParam("symbol", stockCode)
             .queryParam("interval", interval)
             .queryParam("count", Math.max(1, Math.min(count, 200)))
-            .queryParam("adjusted", true)
+            .queryParam("adjusted", adjusted)
             .build()
             .encode()
             .toUri();

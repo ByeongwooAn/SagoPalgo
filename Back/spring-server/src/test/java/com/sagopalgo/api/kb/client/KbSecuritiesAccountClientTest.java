@@ -429,6 +429,34 @@ class KbSecuritiesAccountClientTest {
     }
 
     @Test
+    void usMarketDataUsesOfficialPathsAndRequestFields() {
+        server.expect(requestTo("https://kb.test/oauth2/token"))
+            .andRespond(withSuccess("""
+                {"access_token":"access-token","expires_in":3600}
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kb.test/api/v1/gss10030"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header(HttpHeaders.AUTHORIZATION, "bearer access-token"))
+            .andExpect(header("appKey", "kb-app-key"))
+            .andExpect(content().json("""
+                {"dataBody":{"krx_cd":"NYS","is_cd":"IBM"}}
+                """))
+            .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kb.test/api/v1/gsc10060"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header("appKey", "kb-app-key"))
+            .andExpect(content().json("""
+                {"dataBody":{"krx_cd":"NYS","is_cd":"IBM","chrt_clsf":"4","bndl":"",
+                 "mdfy_stk_prc_use_f":"0","rcrd_c":"20","srch_strt_dy":"","clsf":"1"}}
+                """))
+            .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+        client.fetchUsQuote("IBM", "NYS");
+        client.fetchUsCandles("IBM", "NYS", CandleInterval.WEEKLY, 20);
+        server.verify();
+    }
+
+    @Test
     @DisplayName("통합차트는 IVS11560 데이터수 조회 요청값으로 호출한다")
     void fetchCandlesCallsKbOpenApi() {
         server.expect(requestTo("https://kb.test/oauth2/token"))

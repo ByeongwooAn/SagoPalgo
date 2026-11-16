@@ -5,10 +5,12 @@ import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.common.response.ApiResponse;
 import com.sagopalgo.api.market.dto.MarketCandleResponse;
 import com.sagopalgo.api.market.dto.MarketStockInfoResponse;
+import com.sagopalgo.api.market.dto.MarketQuoteResponse;
 import com.sagopalgo.api.market.model.DomesticStockIdentity;
 import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.service.MarketCandleService;
 import com.sagopalgo.api.market.service.MarketStockInfoService;
+import com.sagopalgo.api.market.service.MarketPriceService;
 import java.util.Locale;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,13 +27,16 @@ public class MarketDataController {
 
     private final MarketCandleService marketCandleService;
     private final MarketStockInfoService marketStockInfoService;
+    private final MarketPriceService marketPriceService;
 
     public MarketDataController(
         MarketCandleService marketCandleService,
-        MarketStockInfoService marketStockInfoService
+        MarketStockInfoService marketStockInfoService,
+        MarketPriceService marketPriceService
     ) {
         this.marketCandleService = marketCandleService;
         this.marketStockInfoService = marketStockInfoService;
+        this.marketPriceService = marketPriceService;
     }
 
     @GetMapping("/stocks/{stockCode}")
@@ -49,6 +54,15 @@ public class MarketDataController {
     ) {
         return ResponseEntity.ok(ApiResponse.success(marketStockInfoService.lookupDomesticStock(stockCode),
             "종목명과 상장 시장이 조회되었습니다."));
+    }
+
+    @GetMapping("/stocks/{stockCode}/quote")
+    public ResponseEntity<ApiResponse<MarketQuoteResponse>> getUsQuote(
+        @org.springframework.web.bind.annotation.PathVariable String stockCode,
+        @RequestParam String market
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+            MarketQuoteResponse.fromUsQuote(marketPriceService.getUsQuote(stockCode, market)), "미국주식 현재가가 조회되었습니다."));
     }
 
     @GetMapping("/candles")

@@ -183,6 +183,25 @@ public class KbSecuritiesAccountClient {
         return post(properties.getCandlePath(), "", dataBody);
     }
 
+    public JsonNode fetchUsQuote(String ticker, String exchange) {
+        ensureMarketDataConfigured();
+        return post("/api/v1/gss10030", "", Map.of("krx_cd", exchange, "is_cd", ticker), true);
+    }
+
+    public JsonNode fetchUsCandles(String ticker, String exchange, CandleInterval interval, int count) {
+        ensureMarketDataConfigured();
+        String chartType = switch (interval) {
+            case MINUTE -> "2";
+            case DAILY -> "3";
+            case WEEKLY -> "4";
+            case MONTHLY -> "5";
+        };
+        return post("/api/v1/gsc10060", "", Map.of(
+            "krx_cd", exchange, "is_cd", ticker, "chrt_clsf", chartType, "bndl", "",
+            "mdfy_stk_prc_use_f", "0", "rcrd_c", Integer.toString(count), "srch_strt_dy", "", "clsf", "1"
+        ), true);
+    }
+
     private String kbMarketCode(String market) {
         if ("KOSPI".equalsIgnoreCase(market)) {
             return "0";
@@ -209,12 +228,19 @@ public class KbSecuritiesAccountClient {
     }
 
     private JsonNode post(String path, String transactionId, Map<String, Object> dataBody) {
+        return post(path, transactionId, dataBody, false);
+    }
+
+    private JsonNode post(String path, String transactionId, Map<String, Object> dataBody, boolean overseasMarketData) {
         try {
             JsonNode response = restClient.post()
                 .uri(endpoint(path))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken())
+                .headers(headers -> {
+                    headers.set(HttpHeaders.AUTHORIZATION, (overseasMarketData ? "bearer " : "Bearer ") + accessToken());
+                    if (overseasMarketData) headers.set("appKey", properties.getAppKey().trim());
+                })
                 .body(new KbApiRequest(dataHeader(transactionId), dataBody))
                 .retrieve()
                 .body(JsonNode.class);

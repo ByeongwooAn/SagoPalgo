@@ -74,6 +74,7 @@ class MarketCandleSnapshot {
     required this.market,
     required this.interval,
     required this.candles,
+    this.currency = 'KRW',
   });
 
   final String provider;
@@ -81,6 +82,7 @@ class MarketCandleSnapshot {
   final String market;
   final MarketCandleInterval interval;
   final List<MarketCandle> candles;
+  final String currency;
 
   factory MarketCandleSnapshot.fromJson(Map<String, dynamic> json) {
     final items = json['candles'];
@@ -97,6 +99,7 @@ class MarketCandleSnapshot {
       candles: items
           .map((item) => MarketCandle.fromJson(item as Map<String, dynamic>))
           .toList(growable: false),
+      currency: json['currency'] as String? ?? 'KRW',
     );
   }
 }

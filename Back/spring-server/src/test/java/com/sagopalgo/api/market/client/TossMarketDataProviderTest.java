@@ -72,6 +72,26 @@ class TossMarketDataProviderTest {
     }
 
     @Test
+    void usCandlesRequireMatchingListingAndNormalizeToNewYorkDate() {
+        expectToken();
+        server.expect(requestTo("https://toss.test/api/v1/stocks?symbols=AAPL"))
+            .andRespond(withSuccess("""
+                {"result":[{"symbol":"AAPL","name":"애플","market":"NASDAQ","currency":"USD"}]}
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://toss.test/api/v1/candles?symbol=AAPL&interval=1d&count=1&adjusted=false"))
+            .andRespond(withSuccess("""
+                {"result":{"candles":[{"timestamp":"2026-11-14T06:00:00+09:00","openPrice":"223.05",
+                    "highPrice":"224.50","lowPrice":"221.126","closePrice":"223.125","volume":"100","currency":"USD"}]}}
+                """, MediaType.APPLICATION_JSON));
+        assertThat(provider.candles(new MarketDataRequest("AAPL", "NASDAQ"), CandleInterval.DAILY, 1))
+            .singleElement().satisfies(candle -> {
+                assertThat(candle.dateTime()).isEqualTo(LocalDate.of(2026, 11, 13).atStartOfDay());
+                assertThat(candle.closePrice()).isEqualByComparingTo("223.125");
+            });
+        server.verify();
+    }
+
+    @Test
     @DisplayName("토스 일봉을 시간 오름차순 표준 캔들로 변환한다")
     void candlesMapsOfficialDailyCandleResponse() {
         expectToken();

@@ -10,7 +10,7 @@ import 'spring_realtime_market_repository.dart';
 
 /// Spring Boot 시장 데이터 API에서 정규화된 캔들을 조회합니다.
 class SpringMarketDataRepository
-    implements MarketDataRepository, RealtimeMarketAccess {
+    implements MarketDataRepository, RealtimeMarketAccess, UsStockLookup {
   @override
   RealtimeMarketRepository get realtime =>
       SpringRealtimeMarketRepository(accessToken: accessToken, config: config);
@@ -24,6 +24,55 @@ class SpringMarketDataRepository
   final String accessToken;
   final ApiConfig config;
   final http.Client client;
+
+  @override
+  Future<({String provider, double price})> fetchUsQuote(
+    String ticker,
+    String market,
+  ) async {
+    final data = await _fetchStock(ticker, market, 'quote');
+    final price = double.tryParse(data['currentPrice'].toString());
+    final provider = data['provider'];
+    if (data['stockCode'] != ticker ||
+        data['market'] != market ||
+        data['currency'] != 'USD' ||
+        price == null ||
+        !price.isFinite ||
+        price <= 0 ||
+        provider is! String ||
+        provider.isEmpty) {
+      throw const MarketDataRepositoryException('미국주식 현재가 응답 형식이 올바르지 않습니다.');
+    }
+    return (provider: provider, price: price);
+  }
+
+  @override
+  Future<String> fetchUsStockName(String ticker, String market) async {
+    final data = await _fetchStock(ticker, market);
+    final name = data['stockName'];
+    if (data['stockCode'] != ticker ||
+        data['market'] != market ||
+        data['currency'] != 'USD' ||
+        name is! String ||
+        name.trim().isEmpty) {
+      throw const MarketDataRepositoryException('미국주식 종목정보 응답 형식이 올바르지 않습니다.');
+    }
+    return name;
+  }
+
+  Future<Map<String, dynamic>> _fetchStock(
+    String ticker,
+    String market, [
+    String? operation,
+  ]) async {
+    final base = Uri.parse(config.marketStocksUrl);
+    final uri = base.replace(
+      pathSegments: [...base.pathSegments, ticker, ?operation],
+      queryParameters: {'market': market},
+    );
+    final response = await client.get(uri, headers: _headers);
+    return _responseData(response);
+  }
 
   @override
   Future<MarketCandleSnapshot> fetchCandles({
@@ -41,12 +90,15 @@ class SpringMarketDataRepository
       },
     );
     final response = await client.get(uri, headers: _headers);
-    final decoded = _decodeResponse(response);
-    final data = decoded['data'];
+    return MarketCandleSnapshot.fromJson(_responseData(response));
+  }
+
+  Map<String, dynamic> _responseData(http.Response response) {
+    final data = _decodeResponse(response)['data'];
     if (data is! Map<String, dynamic>) {
-      throw const MarketDataRepositoryException('캔들 시세 응답 형식이 올바르지 않습니다.');
+      throw const MarketDataRepositoryException('시장 데이터 응답 형식이 올바르지 않습니다.');
     }
-    return MarketCandleSnapshot.fromJson(data);
+    return data;
   }
 
   Map<String, String> get _headers => {
@@ -64,11 +116,11 @@ class SpringMarketDataRepository
 
       final error = decoded['error'] as Map<String, dynamic>?;
       final message = error?['message'] as String?;
-      throw MarketDataRepositoryException(message ?? '캔들 시세를 불러오지 못했습니다.');
+      throw MarketDataRepositoryException(message ?? '시장 데이터를 불러오지 못했습니다.');
     } on MarketDataRepositoryException {
       rethrow;
     } on FormatException {
-      throw const MarketDataRepositoryException('캔들 시세 서버 응답을 해석하지 못했습니다.');
+      throw const MarketDataRepositoryException('시장 데이터 서버 응답을 해석하지 못했습니다.');
     }
   }
 }
