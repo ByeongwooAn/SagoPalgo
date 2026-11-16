@@ -18,8 +18,8 @@
 | 상세 발행일과 공지 날짜 불일치 | 1 |
 | 원본·정정본의 날짜가 서로 다름 | 1 |
 
-- 고려아연 보통주의 주식발행 상세에는 2025-09-30이 표시됐습니다. 변경상장 공지와 세이브로의 이익소각 기록은 모두 2025-09-11을 표시합니다. 보고서는 상세 발행일, 거래소 공지 날짜, 예탁결제원 날짜를 각각 보존합니다. [고려아연 변경상장](https://kind.krx.co.kr/external/2025/09/25/000078/20250925000078/68155.htm) · [세이브로 증권발행내역](https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml&menuNo=282)
-- 셀트리온 보통주의 원본에는 2024-01-06, 정정본과 상세에는 2025-01-06이 표시됐습니다. 두 버전에서 일치한 주권·수량과 버전별 날짜를 보존했습니다. 같은 조건으로 확인한 세이브로 응답에는 연결되는 행이 없었습니다. [원본](https://kind.krx.co.kr/external/2025/01/13/000036/20250113000053/68155.htm) · [정정본](https://kind.krx.co.kr/external/2025/01/14/000318/20250114000927/68155.htm)
+- 고려아연 보통주의 주식발행 상세에는 2025-09-30이 표시됐습니다. 변경상장 공지와 세이브로의 이익소각 기록은 모두 2025-09-11을 표시합니다. 보고서는 상세 발행일, 거래소 공지 날짜, 예탁결제원 날짜를 각각 보존합니다. [고려아연 변경상장](https://kind.krx.co.kr/external/2025/09/25/000078/20250925000240/68155.htm) · [세이브로 증권발행내역](https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml&menuNo=282)
+- 셀트리온 보통주의 원본에는 2024-01-06, 정정본과 상세에는 2025-01-06이 표시됐습니다. 두 버전에서 일치한 주권·수량과 버전별 날짜를 보존했습니다. 당시 세이브로 단일 수량 대조에서는 미연결로 기록됐습니다. 후속에서 기존 응답에 있던 같은 상장일의 두 구성 기록을 합산해 2025-01-06 소각에 연결했습니다. [원본](https://kind.krx.co.kr/external/2025/01/13/000036/20250113000053/68155.htm) · [정정본](https://kind.krx.co.kr/external/2025/01/14/000318/20250114000927/68155.htm) · [사건 재검증](historical-cancellation-event-dates.md)
 - 현대차 보통주 2025-05-21 변경상장의 예탁결제원 기록은 공지와 주권 종류·발행일이 일치했습니다. 예탁결제원 조회는 이 3개 선정 사례를 대상으로 했습니다. [세이브로 증권발행내역](https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01012V.xml&menuNo=282)
 
 ## 재감사
@@ -36,4 +36,4 @@ $h = @('--manifest', '../../docs/examples/cancellation-share-class-census.json',
 
 보고서 SHA-256은 `3ff4e9cec41dc63f4fdd6c2c50eb5991748a0dddabb3dae689844d681a584568`입니다.
 
-본문 날짜가 비어 있던 121행의 후속 대조에서 보통주 107행의 단일 날짜 근거를 확인했습니다. 발행사 날짜 충돌 12행, 복수 소각일이 합산된 1행과 범위 밖 주식예탁증서 1행도 기록했습니다. 상장일 경계 바깥의 소각 사건과 당시 최초 공개 시각은 별도 감사 대상입니다. [121행 원문 대조](historical-cancellation-date-followup.md) · [남은 작업](../../project/remaining-development-units.md)
+본문 날짜가 비어 있던 121행의 후속 대조에서 보통주 107행의 단일 날짜 근거를 확인했습니다. 발행사 날짜 충돌 12행, 복수 소각일이 합산된 1행과 범위 밖 주식예탁증서 1행도 기록했습니다. 다음 감사에서는 날짜 차이·복수 날짜 13행과 고려아연·셀트리온 2행을 대조해 13개 사건을 기록했습니다. 상장일 경계 바깥의 소각 사건과 당시 최초 공개 시각은 별도 감사 대상입니다. [121행 원문 대조](historical-cancellation-date-followup.md) · [15행 사건 단위 재검증](historical-cancellation-event-dates.md) · [남은 작업](../../project/remaining-development-units.md)

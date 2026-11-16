@@ -41,7 +41,7 @@
 
 ## 다음 작업과 남은 흐름
 
-과거 기준정보의 다음 실행 단위는 **H05 소각일 충돌·복수 날짜 15행의 사건 단위 확인**입니다. 소각일 미기재 후속에서 단일 날짜를 정하지 못한 13행과 기존 고려아연·셀트리온 2행의 정정본, 소각 완료 보고와 예탁결제원 세부 기록을 대조합니다. 각 사건의 날짜·수량을 확인하거나 남은 차이와 제외 범위를 행별로 기록합니다. [121행 원문 대조](../historical-data/corporate-actions/historical-cancellation-date-followup.md) · [기존 충돌 근거](../historical-data/corporate-actions/historical-cancellation-share-classes.md) · [보류 작업](deferred-work.md)
+과거 기준정보의 다음 실행 단위는 **H05 실제 배당 지급의 발행사·연도별 대조**입니다. 세이브로 지급일 표시가 일치한 4,343건을 기준으로 발행사의 지급 후 보고를 연결하고 실제 지급일·보통주 주당액·기준일과 미확인 범위를 기록합니다. [배당 지급 대조](../historical-data/corporate-actions/historical-actions-followup.md) · [15행 소각일 재검증 결과](../historical-data/corporate-actions/historical-cancellation-event-dates.md) · [보류 작업](deferred-work.md)
 
 - **U06-B 실제 KIS 장중 복구 — 완료.** 2026-11-16 삼성전자 체결·호가 2구독에서 단절 후 재구독 응답, 약 6.14초 뒤 새 체결·호가 수신, 정상 종료를 확인했습니다. [실증 근거](../market-data/kis-intraday-recovery-probe.md#2026-11-16-실제-장중-실증)
 - **U07-D 전체 세션·장기 관찰 — 실제 관찰 준비.** 일정 계획 형식과 보고서의 합성 검증과 U06-B 실증을 완료했습니다. 거래 일정·관찰 기간·구독 예산을 확정한 뒤 개장 전부터 마감 이후까지 관찰하고, 휴장일의 실행 여부·재접속·저장 기록을 보고서에 연결합니다. [세션 관찰 완료 조건](../market-data/stream-restart-session-observation.md#u07-d-관찰-계획과-보고서)
