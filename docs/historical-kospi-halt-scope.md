@@ -38,6 +38,27 @@ KRX 20011 화면에 로그인해 **254종목의 코드·ISIN·일자 조합 638�
 
 변경상장 해제일을 대조한 63건 중 62건은 하나 이상의 해당 코드에서 `N`을 확인했습니다. 1건은 전부 미반환이었으며, `N`을 확인한 62건 중 1건은 다른 대상 코드가 미반환이었습니다. 실제 정지·해제 적용 시각과 해제 뒤 첫 체결을 확인하려면 종목별 상태 전환 기록이나 틱 원본이 필요합니다. [KRX 일자별 결과의 필드와 이전 대조](historical-market-action-kospi-halt-records.md)
 
+## 20011 미반환 91개 조합의 KIND 원문 대조
+
+기존 32종목·91개 조합에 연결된 61개 접수의 원문을 재검증했습니다. 2023-11-16부터 2026-11-15까지 KIND 대표 종목코드 31개로 정지·해제, 변경상장, 상장폐지 목록 93개를 조회했습니다. 별도 관련 접수 89개에서 원문과 정정본을 확인했고, 상장폐지 공시의 주권 표에서 32종목의 단축코드를 확인했습니다. [미반환 전수 결과](examples/historical-kospi-halt-missing.json) · [KIND 공시 상세검색](https://kind.krx.co.kr/disclosure/details.do?method=searchDetailsMain)
+
+**89개 조합**에 공지의 종목 범위와 적용일을 연결했고, **2개 조합**에는 미확정 사유를 기록했습니다. 91개 조합에 정지·해제·변경상장 해제 근거를 연결한 참조는 총 96건입니다. 같은 날 정지와 해제가 공지된 경우 두 근거를 한 조합에 기록했습니다.
+
+| 접수별 판정 근거 | 참조 |
+| --- | ---: |
+| KIND 본문 상호·적용일과 당시 KRX 단일 상장 주권이 일치 | 60 |
+| KIND 본문 대상 또는 비고에 해당 우선주 명시 | 25 |
+| KIND 상장폐지 공지의 본문 상호·단축코드로 당시 KRX 주권 식별 | 6 |
+| KIND 변경상장 원문의 코드·ISIN과 기존 정지 또는 해제 공지를 연결 | 3 |
+| 일자는 명시됐으나 해당 우선주 포함 여부 미확정 | 2 |
+| 합계 | 96 |
+
+- **진흥기업** `002785`·`002787`은 공지 본문 비고에서 두 우선주의 2026-08-14 정지를 확인했습니다. **서울식품공업1우선주** `004415`는 2026-04-27 정지 공지의 해제 조건과 2026-05-21 변경상장 공지에 명시된 코드·ISIN을 연결했습니다. [진흥기업 정지](https://kind.krx.co.kr/external/2026/08/07/000062/20260807000094/68054.htm) · [서울식품공업 변경상장](https://kind.krx.co.kr/external/2026/05/18/000288/20260518000404/68155.htm)
+- **쌍용씨앤이** `003410`과 **한솔피엔에스** `010420`은 KIND 상장폐지 공지에서 정지·해제 공지와 동일한 상호 및 보통주 단축코드를 확인했습니다. ISIN은 적용일 KRX 상장 주권 목록에서 연결했습니다. [쌍용씨앤이 상장폐지](https://kind.krx.co.kr/external/2024/07/02/000332/20240702000854/68051.htm) · [한솔피엔에스 상장폐지](https://kind.krx.co.kr/external/2025/09/18/000039/20250918000091/68051.htm)
+- **삼양홀딩스1우선주** `000075` (`KR7000071001`)의 **2025-05-30 정지**와 **2025-06-02 해제**는 미확정입니다. 접수 `20250530000970` 원문은 회사분할 결정에 따른 대상 주권을 회사명으로 표시합니다. 8월 1일 정정 공지와 8월 20일 상장폐지는 같은 우선주의 존속기간 만료에 따른 별도 조치입니다. [5월 정지·해제](https://kind.krx.co.kr/external/2025/05/30/000970/20250530001849/99808.htm) · [8월 정정](https://kind.krx.co.kr/external/2025/08/01/001222/20250801003585/68054.htm) · [상장폐지](https://kind.krx.co.kr/external/2025/08/14/000159/20250814000402/68051.htm)
+
+결과의 `phaseReviews`에 공지상 적용일과 시각, 당시 상장 주권, 접수와 추가 근거를 기록했습니다. `relatedDelistingsBySymbol`에 상장폐지 정정 전후 기재값을 보존했습니다. KIND에서 확인한 내용은 공지상 조치이며, 실제 상태 전환과 첫 체결은 종목별 별도 원장이 필요합니다.
+
 ## 재검증
 
 AI 서버에서 [입력 명세](examples/historical-kospi-halt-scope-inputs.json)의 원장·상장 목록·후속 공지·KRX CSV 해시를 확인한 뒤 동일 결과를 계산합니다. `dailySources`에는 원본 경로·해시·코드·ISIN·조회 기간을, `dailyUnavailableRanges`에는 검색 미반환 기간과 관찰일을 기록했습니다. 원본 CSV는 AI 서버의 로컬 `research-artifacts/h05-kospi-halt-share-scope/authenticated-daily`에 보관합니다. 감사 재실행에는 입력 명세가 가리키는 로컬 원본이 필요합니다.
@@ -54,3 +75,16 @@ $haltScopeOptions = @(
 ~~~
 
 오프라인 감사에서 결과를 바이트 단위로 재현했습니다. 결과 SHA-256은 `72baceb9a598a07d2099ab4c2fb0ca1a40660edbfd2e7c2845538a667f7eb368`입니다. 기존 조회 계획의 638개 조합과 접수 연결이 응답 및 미반환 목록의 합집합과 일치하는지 검사했습니다. AI 서버 전체 회귀는 1,423건 통과이며 격리 Java/MySQL 내보내기 자료가 필요한 검사 1건은 건너뛰었습니다.
+
+미반환 대조는 [입력 명세](examples/historical-kospi-halt-missing-inputs.json)의 이전 결과 해시, 월별 원문, KIND 조회·원문 수집 영수증 해시를 검증해 재현합니다. KIND 원본은 AI 서버의 로컬 `research-artifacts/h05-kind-missing-halt-evidence/captures`에 보관합니다.
+
+~~~powershell
+.\.venv\Scripts\python.exe -m app.replay.historical_kospi_halt_missing audit `
+  --manifest ../../docs/examples/historical-kospi-halt-missing-inputs.json `
+  --baseline ../../docs/examples/historical-kospi-halt-scope.json `
+  --artifacts research-artifacts `
+  --job research-artifacts/h05-kind-missing-halt-evidence `
+  --output ../../docs/examples/historical-kospi-halt-missing.json
+~~~
+
+미반환 대조 결과를 오프라인에서 바이트 단위로 재현했습니다. SHA-256은 `0a638862a7c8a9b6e14354ab55ab17397489ae4b89c0cd3f21420bf8fcce3314`입니다. AI 서버 전체 회귀 1,427건을 통과했고, 격리 Java/MySQL 내보내기 자료가 필요한 검사 1건은 건너뛰었습니다.
