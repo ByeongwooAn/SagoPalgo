@@ -21,11 +21,13 @@ SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_APRIL_V1"
 MAY_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_MAY_V1"
 JUNE_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_JUNE_V1"
 JULY_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_JULY_V1"
+AUGUST_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_AUGUST_V1"
 SCOPES = {
     SCHEMA: ("2024-04", {CONFIRMED: 3, UNRESOLVED: 4, UNREVIEWED: 1123}),
     MAY_SCHEMA: ("2024-05", {UNREVIEWED: 23}),
     JUNE_SCHEMA: ("2024-06", {UNREVIEWED: 5}),
     JULY_SCHEMA: ("2024-07", {UNREVIEWED: 26}),
+    AUGUST_SCHEMA: ("2024-08", {UNREVIEWED: 77}),
 }
 MARKETS = {"Y": "KOSPI", "K": "KOSDAQ"}
 ROW_ID = re.compile(r"[0-9]{14}")
@@ -45,10 +47,23 @@ DART = "https://dart.fss.or.kr/dsaf001/main.do?rcpNo="
 NAVER_IR = ("https://kind.krx.co.kr/external/2024/06/26/000486/20240625001176/"
             "NAVER_Integrated_Report_2023_ver3.pdf")
 IR_ID = "naver-2023-integrated"
+MKIF_H1_ID = "mkif-2024-h1-results"
+MKIF_Q3_ID = "mkif-2024-q3-presentation"
+MKIF_IR = "https://www.mkif.com/assets/mkif/ko-kr/investor-centre/public-filings-and-reports/2024/"
+IR_PDFS = {
+    IR_ID: (NAVER_IR, "NAVER 2023 통합보고서", "2024-06-26"),
+    MKIF_H1_ID: (MKIF_IR + "ir-release-2407-1h-2024-financial%2Btraffic-results-kor.pdf",
+                 "맥쿼리인프라 2024년 상반기 실적 발표", "2024-07-31"),
+    MKIF_Q3_ID: (MKIF_IR + "2410-ir-general-presentation-3q-2024-kor.pdf",
+                 "맥쿼리인프라 2024년 3분기 실적 발표", "2024-10-31"),
+}
 SKREIT_HISTORY_ID = "skreit-dividend-history"
 SKREIT_HISTORY_URL = "https://www.skreit.co.kr/investment/dividend.php"
 SKREIT_HISTORY_HEADER = ["구분", "배당기준일", "배당지급일", "주당배당(원)", "배당총액 (백만원)"]
 SKREIT_AMOUNT_HEADER = ["정기배당", "특별배당", "합계"]
+HYUNDAI_HISTORY_ID = "hyundai-motor-dividend-history"
+HYUNDAI_HISTORY_URL = "https://www.hyundai.com/worldwide/ko/company/ir/stock-information/shareholder-return-policy"
+HYUNDAI_HISTORY_HEADER = ["배당기준일", "배당지급일", "보통주", "1우선주", "2우선주", "3우선주"]
 FIELD_INPUTS = {"recordDate": "recordDate", "actualPaymentDate": "displayedPaymentDate",
                 "commonCashPerShare": "commonCashPerShare"}
 
@@ -134,6 +149,9 @@ def load_document(job, receipt, expected_hash, item, at):
     with ZipFile(BytesIO(raw)) as archive:
         entries = archive.infolist()
         main = [entry for entry in entries if entry.filename == f"{receipt}.xml"]
+        if (not main and str(item["report_nm"]).startswith("[첨부정정]") and 1 <= len(entries) <= 32
+                and all(re.fullmatch(fr"{receipt}_[0-9]+\.xml", entry.filename) for entry in entries)):
+            return None, proof | {"status": "ATTACHMENT_ONLY"}
         require(1 <= len(entries) <= 32 and len(main) == 1
                 and 0 < main[0].file_size <= 32 * 1024 * 1024, "APRIL_DART_DOCUMENT_LAYOUT")
         body = archive.read(main[0]).decode("utf-8-sig")
@@ -181,10 +199,13 @@ def manual_payment(target, entry, markers_found, report):
     value, marker = entry["value"], entry["marker"]
     expected_basis = target["recordDate"]
     explicit_date = value in dates(marker)
-    if report["receipt"] == IR_ID:
+    if report["receipt"] == IR_ID or entry.get("dateContext") == "RECORD_YEAR":
         year, month, day = (int(part) for part in value.split("-"))
         explicit_date = explicit_date or (
-            f"{year}년" in marker and re.search(fr"\b{month}월\s*{day}일\s*지급", marker)
+            (report["receipt"] == IR_ID and f"{year}년" in marker
+             and re.search(fr"\b{month}월\s*{day}일\s*지급", marker))
+            or (expected_basis in dates(marker) and expected_basis.startswith(f"{year}-")
+                and re.search(fr"{month}월\s*{day}일에\s*(?:지급되었|보통주 .* 현금배당을 실시하였)", marker))
         )
     require(report["reportedOn"] > max(value, expected) and marker in markers_found and explicit_date,
             "APRIL_PAYMENT_MARKER")
@@ -193,7 +214,9 @@ def manual_payment(target, entry, markers_found, report):
                           and dates(progress[1]) == [value])
     require(not re.search(r"지급\s*예정|지급\s*결의일", marker) and
             (POST_PAYMENT.search(marker) or PAID_DIVIDEND_NOTE.search(marker) or completed_progress
-             or re.search(r"배당금\s*지급\s*일(?:자)?(?:은|는|\s|[:：])", marker)),
+             or re.search(r"배당금\s*지급\s*일(?:자)?(?:은|는|\s|[:：])", marker)
+             or (entry.get("dateContext") == "RECORD_YEAR" and "현금배당을 실시하였" in marker
+                 and expected_basis in dates(marker))),
             "APRIL_PAYMENT_EXPRESSION")
     if target["symbol"] == "015360":
         require(expected_basis in dates(marker) or entry.get("roundMarker") in {"결산배당", "분기배당"}
@@ -214,22 +237,49 @@ def reported_payment(target, entries, reports, markers, reason):
     return unknown(target["displayedPaymentDate"], reason, evidence)
 
 
-def naver_ir(job, pin, at):
+def read_ir_pdf(job, receipt, pin, at):
     from pypdf import PdfReader
 
-    folder = job / "ir" / IR_ID
+    url, title, reported_on = IR_PDFS[receipt]
+    folder = job / "ir" / receipt
     proof = read_json(checked_read(folder / "receipt.json", pin["sha256"]))
-    require(proof["url"] == NAVER_IR and utc(proof["startedAt"]) <= utc(proof["capturedAt"]) <= at,
+    require(proof["url"] == url and utc(proof["startedAt"]) <= utc(proof["capturedAt"]) <= at,
             "APRIL_IR_BINDING")
     raw = checked_read(folder / "original.pdf", proof["sha256"])
     page = pin["page"]
     pages = PdfReader(BytesIO(raw)).pages
     require(type(page) is int and 1 <= page <= len(pages), "APRIL_IR_PAGE")
     return " ".join(pages[page - 1].extract_text().split()), {
-        "receipt": IR_ID, "sourceUrl": f"{NAVER_IR}#page={page}", "reportedOn": "2024-06-26",
-        "title": "NAVER 2023 통합보고서", "observedAt": proof["capturedAt"], "archiveSha256": proof["sha256"],
+        "receipt": receipt, "sourceUrl": f"{url}#page={page}", "reportedOn": reported_on,
+        "title": title, "observedAt": proof["capturedAt"], "archiveSha256": proof["sha256"],
         "status": "CAPTURED", "page": page,
     }
+
+
+def hyundai_payment(target, job, receipt_hash, at):
+    require(target["symbol"] == "005380" and target["market"] == "KOSPI", "HYUNDAI_HISTORY_ISSUER")
+    folder = job / "ir" / HYUNDAI_HISTORY_ID
+    receipt = read_json(checked_read(folder / "receipt.json", receipt_hash))
+    observed = utc(receipt["capturedAt"])
+    expected = target["displayedPaymentDate"]
+    require(receipt["url"] == HYUNDAI_HISTORY_URL and utc(receipt["startedAt"]) <= observed <= at,
+            "HYUNDAI_HISTORY_CAPTURE")
+    html = checked_read(folder / "original.html", receipt["sha256"]).decode("utf-8-sig")
+    matches = []
+    for table in re.findall(r"<table\b[^<>]*>(.*?)</table>", html, re.I | re.S):
+        rows = [[plain(cell) for cell in HTML_CELL.findall(row)] for row in HTML_ROW.findall(table)]
+        if rows and rows[0] == HYUNDAI_HISTORY_HEADER:
+            matches.extend(row for row in rows[1:]
+                           if len(row) == len(HYUNDAI_HISTORY_HEADER) and dates(row[0]) == [target["recordDate"]])
+    require(len(matches) == 1, "HYUNDAI_HISTORY_ROUND")
+    row = matches[0]
+    payment = dates(row[1])
+    require(len(payment) == 1 and observed.date().isoformat() > max(expected, payment[0])
+            and row[2].replace(",", "") == target["commonCashPerShare"], "HYUNDAI_HISTORY_PAYMENT")
+    proof = {"receipt": HYUNDAI_HISTORY_ID, "sourceUrl": HYUNDAI_HISTORY_URL, "title": "현대자동차 배당 이력",
+             "reportedOn": None, "observedAt": receipt["capturedAt"], "archiveSha256": receipt["sha256"],
+             "status": "CAPTURED"}
+    return compare(payment[0], expected, proof, [*HYUNDAI_HISTORY_HEADER, *row])
 
 
 def skreit_payment(target, job, receipt_hash, at):
@@ -315,10 +365,14 @@ def build(manifest, artifacts, job, *, schema=None):
                 markers_by_receipt.setdefault(entry["receipt"], set()).add(entry["marker"])
         for field in row.get("fieldEvidence", {}).values():
             markers_by_receipt.setdefault(field["receipt"], set()).update(field["markers"])
-    if IR_ID in markers_by_receipt:
-        content, proof = naver_ir(job, spec["naverIr"], at)
-        checked_markers[IR_ID] = {marker for marker in markers_by_receipt[IR_ID] if marker in content}
-        report_cache[IR_ID] = True, proof
+    ir_pins = spec.get("irPdfs", {}) | ({IR_ID: spec["naverIr"]} if "naverIr" in spec else {})
+    for receipt in markers_by_receipt.keys() & IR_PDFS.keys():
+        content, proof = read_ir_pdf(job, receipt, ir_pins[receipt], at)
+        checked_markers[receipt] = {marker for marker in markers_by_receipt[receipt] if marker in content}
+        if receipt == MKIF_H1_ID:
+            decision_cache[receipt] = ({}, {}, {}), proof
+        else:
+            report_cache[receipt] = True, proof
     for row_hash, target in sorted(targets.items(), key=lambda pair: (
         pair[1]["market"], pair[1]["symbol"], pair[1]["recordDate"], pair[1]["displayedPaymentDate"],
     )):
@@ -329,9 +383,15 @@ def build(manifest, artifacts, job, *, schema=None):
         if target["status"] != CONFIRMED:
             for kind, cache in (("decisions", decision_cache), ("reports", report_cache)):
                 for receipt in row[kind]:
-                    if receipt == IR_ID:
-                        require(kind == "reports" and target["symbol"] == "035420", "APRIL_IR_ISSUER")
-                        documents[kind].append(report_cache[receipt])
+                    if receipt in IR_PDFS:
+                        if receipt == IR_ID:
+                            valid = kind == "reports" and target["symbol"] == "035420"
+                        else:
+                            role = "decisions" if receipt == MKIF_H1_ID else "reports"
+                            valid = (version == AUGUST_SCHEMA and kind == role and target["symbol"] == "088980"
+                                     and target["market"] == "KOSPI" and target["recordDate"] == "2024-06-30")
+                        require(valid and receipt in cache, "APRIL_IR_ISSUER")
+                        documents[kind].append(cache[receipt])
                         continue
                     item = inventory[receipt]
                     require(MARKETS[item["corp_cls"]] == target["market"] and item["stock_code"] == target["symbol"],
@@ -369,6 +429,9 @@ def build(manifest, artifacts, job, *, schema=None):
             if "skreitHistory" in row:
                 require(version == JUNE_SCHEMA and "actual" not in row, "SKREIT_HISTORY_SCOPE")
                 fields["actualPaymentDate"] = skreit_payment(target, job, row["skreitHistory"], at)
+            if "hyundaiHistory" in row:
+                require(version == AUGUST_SCHEMA and "actual" not in row, "HYUNDAI_HISTORY_SCOPE")
+                fields["actualPaymentDate"] = hyundai_payment(target, job, row["hyundaiHistory"], at)
             if row_hash in actual_by_row:
                 require(target["status"] == UNREVIEWED, "APRIL_PRIOR_STATUS")
                 reports = {proof["receipt"]: proof for body, proof in documents["reports"] if body is not None}
