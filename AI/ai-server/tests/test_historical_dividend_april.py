@@ -17,10 +17,12 @@ from app.replay.historical_dividend_month import (
     hyundai_payment,
     issuer_history_payment,
     load_document,
+    prior_field,
     reported_payment,
     skreit_payment,
 )
 from app.replay.models import ResearchError
+from app.replay.historical_dividend_payments import CONFIRMED
 
 
 def test_decision_uses_common_amount_and_excludes_correction_comparison():
@@ -37,6 +39,15 @@ def test_decision_uses_common_amount_and_excludes_correction_comparison():
     assert set(planned) == {"2024-04-10"}
 
 
+def test_prior_confirmation_with_combined_audit_keeps_all_source_links():
+    sources = [{"sourceUrl": "https://example.com/decision"}, {"sourceUrl": "https://example.com/report"}]
+    target = {"status": CONFIRMED, "recordDate": "2024-12-31", "issuerEvidence": {"priorAudit": sources}}
+    field = prior_field(target, "recordDate")
+    assert field["status"] == "MATCH"
+    assert field["issuerValue"] == field["seibroValue"] == "2024-12-31"
+    assert field["evidence"] == [source | {"markers": []} for source in sources]
+
+
 @pytest.mark.parametrize("marker", [
     "보통주 배당금 지급일 2024-04-08",
     "2024년 4월 8일에 지급되었습니다",
@@ -48,6 +59,18 @@ def test_payment_difference_preserves_both_dates(marker):
     assert (result["status"], result["issuerValue"], result["seibroValue"]) == (
         "DIFFERS", "2024-04-08", "2024-04-09",
     )
+
+
+@pytest.mark.parametrize("marker", [
+    "배당 지급일 2025-09-09에 지급될 예정입니다",
+    "배당 지급일 2025-09-09에 지급할 예정입니다",
+])
+def test_post_payment_filing_does_not_turn_a_schedule_into_an_actual_payment(marker):
+    target = {"symbol": "023160", "recordDate": "2025-08-26", "displayedPaymentDate": "2025-09-09"}
+    entry = {"value": "2025-09-09", "marker": marker}
+    proof = {"receipt": "20251114000708", "reportedOn": "2025-11-14"}
+    with pytest.raises(ResearchError, match="APRIL_PAYMENT_EXPRESSION"):
+        manual_payment(target, entry, {marker}, proof)
 
 
 def test_two_distributions_require_the_selected_round_in_the_same_marker():
@@ -197,11 +220,12 @@ def test_attachment_correction_without_body_is_retained_as_unreadable(tmp_path):
     })
     (folder / "receipt.json").write_bytes(proof)
     at = datetime(2026, 11, 17, 2, tzinfo=timezone.utc)
-    item = {"report_nm": "[첨부정정]사업보고서 (2024.10)"}
+    item = {"report_nm": "[첨부정정]사업보고서 (2024.10)", "rcept_dt": "20250322"}
 
     body, evidence = load_document(tmp_path, receipt, digest(proof), item, at)
     assert body is None
     assert evidence["status"] == "ATTACHMENT_ONLY"
+    assert evidence["reportedOn"] == "2025-03-22"
     assert evidence["archiveSha256"] == digest(raw)
     with pytest.raises(ResearchError, match="APRIL_DART_DOCUMENT_LAYOUT"):
         load_document(tmp_path, receipt, digest(proof), {"report_nm": "사업보고서 (2024.10)"}, at)
