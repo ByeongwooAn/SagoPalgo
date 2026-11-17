@@ -4,7 +4,7 @@ import pytest
 
 from app.replay.dataset import canonical, digest
 from app.replay.historical_dividend_april import decision_facts, manual_payment, supplemental_field
-from app.replay.historical_dividend_month import SKREIT_HISTORY_ID, SKREIT_HISTORY_URL, skreit_payment
+from app.replay.historical_dividend_month import SKREIT_HISTORY_ID, SKREIT_HISTORY_URL, reported_payment, skreit_payment
 from app.replay.models import ResearchError
 
 
@@ -96,3 +96,39 @@ def test_skreit_history_binds_payment_to_the_dividend_round(tmp_path, label, rec
         result = skreit_payment(target, tmp_path, digest(receipt), reviewed_at)
         assert result["status"] == "MATCH"
         assert result["evidence"][0]["reportedOn"] is None
+
+
+@pytest.mark.parametrize(("basis", "suffix", "is_actual"), [
+    ("2024.07.09", "배당금 지급", True),
+    ("2024.07.09", "배당금 지급 예정", False),
+    ("2024.07.08", "배당금 지급", False),
+])
+def test_disclosure_progress_payment_requires_same_round_and_completed_action(basis, suffix, is_actual):
+    marker = f"{basis} 배당기준일 설정3) 2024.07.30 {suffix}"
+    target = {"symbol": "000480", "recordDate": "2024-07-09", "displayedPaymentDate": "2024-07-30"}
+    entry = {"marker": marker, "value": "2024-07-30"}
+    proof = {"receipt": "20240814003732", "reportedOn": "2024-08-14"}
+    if is_actual:
+        assert manual_payment(target, entry, {marker}, proof)["status"] == "MATCH"
+    else:
+        with pytest.raises(ResearchError, match="APRIL_PAYMENT_EXPRESSION"):
+            manual_payment(target, entry, {marker}, proof)
+
+
+def test_conflicting_reported_dates_are_preserved_without_selecting_a_payment():
+    target = {"symbol": "214370", "recordDate": "2024-06-30", "displayedPaymentDate": "2024-07-19"}
+    entries = [
+        {"receipt": "20240814002146", "value": "2024-07-19", "marker": "2024년 7월 19일에 지급되었습니다"},
+        {"receipt": "20250317000927", "value": "2024-07-18", "marker": "2024년 7월 18일에 지급되었습니다"},
+    ]
+    reports = {
+        "20240814002146": {"receipt": "20240814002146", "reportedOn": "2024-08-14"},
+        "20250317000927": {"receipt": "20250317000927", "reportedOn": "2025-03-17"},
+    }
+    markers = {entry["receipt"]: {entry["marker"]} for entry in entries}
+
+    result = reported_payment(target, entries, reports, markers, "후속 보고서 간 실제 지급일 상충")
+
+    assert result["status"] == "UNVERIFIED"
+    assert "issuerValue" not in result
+    assert [proof["reportedPaymentDate"] for proof in result["evidence"]] == ["2024-07-19", "2024-07-18"]
