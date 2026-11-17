@@ -2,7 +2,9 @@
 
 세이브로 배당내역과 대금지급일정에서 지급일 표시가 1대1로 일치한 **4,343건**을 시장·종목코드·지급연도 기준 **3,718개 조합**으로 정리했습니다. 목표 지급일은 2023-11-01~2026-11-02이며 공시 접수 범위는 2026-11-07까지입니다. [세이브로 원장 범위와 예외](historical-corporate-action-outcome-census.md#배당-지급)
 
-후속 대조에서 2023년 지급 후보 29건과 2024년 1~3월 39건, 4월 1,130건, 5월 23건, 6월 5건, 7월 26건, 8월 77건, 9월 10건, 10월 21건, 11월 27건, 12월 7건을 검토했습니다. 각각 4건, 2건, 30건, 5건, 1건, 7건, 13건, 2건, 3건, 5건, 2건을 추가해 전 기간 **98건 확인·1,337건 원문 검토 후 미확정·2,908건 원문 미연결**입니다. [2023년 지급 대조](historical-dividend-2023.md) · [2024년 1~3월 지급 대조](historical-dividend-2024-q1.md) · [2024년 4월 지급 대조](historical-dividend-2024-april.md) · [2024년 5월 지급 대조](historical-dividend-2024-may.md) · [2024년 6월 지급 대조](historical-dividend-2024-june.md) · [2024년 7월 지급 대조](historical-dividend-2024-july.md) · [2024년 8월 지급 대조](historical-dividend-2024-august.md) · [2024년 9월 지급 대조](historical-dividend-2024-september.md) · [2024년 10월 지급 대조](historical-dividend-2024-october.md) · [2024년 11월 지급 대조](historical-dividend-2024-november.md) · [2024년 12월 지급 대조](historical-dividend-2024-december.md)
+후속 대조에서 2023년 지급 후보 29건과 2024년 1~3월 39건, 4월 1,130건, 5월 23건, 6월 5건, 7월 26건, 8월 77건, 9월 10건, 10월 21건, 11월 27건, 12월 7건을 검토했습니다. 각각 4건, 2건, 30건, 5건, 1건, 7건, 13건, 2건, 3건, 5건, 2건을 추가해 2024년 12월 검토 직후 전 기간 **98건 확인·1,337건 원문 검토 후 미확정·2,908건 원문 미연결**이었습니다. [2023년 지급 대조](historical-dividend-2023.md) · [2024년 1~3월 지급 대조](historical-dividend-2024-q1.md) · [2024년 4월 지급 대조](historical-dividend-2024-april.md) · [2024년 5월 지급 대조](historical-dividend-2024-may.md) · [2024년 6월 지급 대조](historical-dividend-2024-june.md) · [2024년 7월 지급 대조](historical-dividend-2024-july.md) · [2024년 8월 지급 대조](historical-dividend-2024-august.md) · [2024년 9월 지급 대조](historical-dividend-2024-september.md) · [2024년 10월 지급 대조](historical-dividend-2024-october.md) · [2024년 11월 지급 대조](historical-dividend-2024-november.md) · [2024년 12월 지급 대조](historical-dividend-2024-december.md)
+
+2025년 1~12월 지급 후보 1,446건을 모두 검토했습니다. 2025년 세 필드 확인 76건 중 66건을 추가해 전 기간 **164건 확인·2,697건 원문 검토 후 미확정·1,482건 원문 미연결**입니다. [2025년 월별 지급 대조](historical-dividend-2025.md)
 
 ## 최초 고정 감사의 확인 범위
 
@@ -49,8 +51,8 @@ KIND 고정 목록에서 동일 발행사·시장에 연결된 지급일 이후 
 
 - 한국쉘석유 2024년·2025년 지급 2건은 각 반기보고서에서 재무제표 주석 4월 17일과 배당 정책 설명 4월 18일이 상충합니다. 세이브로에는 4월 18일로 표시됩니다. 카카오뱅크 2024년 지급은 반기보고서 4월 15일과 세이브로 4월 16일이 다릅니다. [한국쉘석유 2024년](https://kind.krx.co.kr/external/2024/08/14/000790/20240814002347/11012.htm) · [한국쉘석유 2025년](https://kind.krx.co.kr/external/2025/08/14/000927/20250814002748/11012.htm) · [카카오뱅크](https://kind.krx.co.kr/external/2024/08/14/002362/20240814007515/11012.htm)
 - 고스트스튜디오 2건의 후속 보고는 달러 표시 보통주 배당이며 세이브로 행의 종목명에는 KDR이 표시됩니다. 주권과 통화 차이를 기록했습니다. 다른 회차만 다룬 정정공시, 예정일, 지급월만 기재된 사례도 감사 결과에 포함했습니다. [고스트스튜디오 분기보고서](https://kind.krx.co.kr/external/2026/05/15/001712/20260515003788/11013.htm)
-- 연결 원문이 없는 2,908건은 발행사 정기·지배구조보고서와 IR 대조 대상입니다. 공급자 건수 차이와 단독 일정은 이번 4,343건 목록 바깥의 [별도 대조 범위](historical-corporate-action-outcome-census.md#배당-지급)입니다.
-- 다음 지급 구간은 2025년 1월 후보 4건입니다. [1월 구간 완료 조건](historical-dividend-2024-december.md#다음-대상)
+- 연결 원문이 없는 1,482건은 발행사 정기·지배구조보고서와 IR 대조 대상입니다. 공급자 건수 차이와 단독 일정은 이번 4,343건 목록 바깥의 [별도 대조 범위](historical-corporate-action-outcome-census.md#배당-지급)입니다.
+- 다음 지급 구간은 2026년 1월 후보 4건입니다. [다음 지급 구간](historical-dividend-2025.md#다음-대상)
 
 로컬 원문을 관측한 시각과 보고서 접수일을 보존합니다. 최초 공개 시각의 역사적 가용성은 H06에서 확인하며, 이 보고서의 `usableForTraining`과 `usableForTrading`은 `false`입니다.
 
