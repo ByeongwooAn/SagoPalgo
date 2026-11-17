@@ -24,6 +24,7 @@ JULY_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_JULY_V1"
 AUGUST_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_AUGUST_V1"
 SEPTEMBER_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_SEPTEMBER_V1"
 OCTOBER_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_OCTOBER_V1"
+NOVEMBER_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_NOVEMBER_V1"
 SCOPES = {
     SCHEMA: ("2024-04", {CONFIRMED: 3, UNRESOLVED: 4, UNREVIEWED: 1123}),
     MAY_SCHEMA: ("2024-05", {UNREVIEWED: 23}),
@@ -32,6 +33,7 @@ SCOPES = {
     AUGUST_SCHEMA: ("2024-08", {UNREVIEWED: 77}),
     SEPTEMBER_SCHEMA: ("2024-09", {UNREVIEWED: 10}),
     OCTOBER_SCHEMA: ("2024-10", {UNREVIEWED: 21}),
+    NOVEMBER_SCHEMA: ("2024-11", {UNREVIEWED: 26, UNRESOLVED: 1}),
 }
 MARKETS = {"Y": "KOSPI", "K": "KOSDAQ"}
 ROW_ID = re.compile(r"[0-9]{14}")
@@ -449,7 +451,7 @@ def build(manifest, artifacts, job, *, schema=None):
                 require(version in {JUNE_SCHEMA, SEPTEMBER_SCHEMA} and "actual" not in row, "SKREIT_HISTORY_SCOPE")
                 fields["actualPaymentDate"] = skreit_payment(target, job, row["skreitHistory"], at)
             if "hyundaiHistory" in row:
-                require(version == AUGUST_SCHEMA and "actual" not in row, "HYUNDAI_HISTORY_SCOPE")
+                require(version in {AUGUST_SCHEMA, NOVEMBER_SCHEMA} and "actual" not in row, "HYUNDAI_HISTORY_SCOPE")
                 fields["actualPaymentDate"] = hyundai_payment(target, job, row["hyundaiHistory"], at)
             if "esrksHistory" in row:
                 require(version == SEPTEMBER_SCHEMA and "actual" not in row, "ESRKS_HISTORY_SCOPE")
@@ -468,6 +470,13 @@ def build(manifest, artifacts, job, *, schema=None):
                 if plan and plan != "-":
                     reason += f" · 결정공시 예정 표기 {plan}"
                 fields["actualPaymentDate"] = unknown(expected, reason, (proof for _, proof in documents["reports"]))
+            elif version == NOVEMBER_SCHEMA and target["status"] == UNRESOLVED:
+                require(row.get("paymentGap"), "DIVIDEND_PRIOR_REVIEW_GAP")
+                previous = fields["actualPaymentDate"]
+                fields["actualPaymentDate"] = unknown(
+                    expected, f'{previous["reason"]} · {row["paymentGap"]}',
+                    [*previous["evidence"], *(proof for _, proof in documents["reports"])],
+                )
         else:
             fields = {name: prior_field(target, name) for name in FIELD_INPUTS}
         status = CONFIRMED if all(field["status"] == "MATCH" for field in fields.values()) else UNRESOLVED
