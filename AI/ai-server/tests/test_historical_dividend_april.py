@@ -1,10 +1,21 @@
 from datetime import datetime, timezone
+from io import BytesIO
+from zipfile import ZipFile
 
 import pytest
 
 from app.replay.dataset import canonical, digest
 from app.replay.historical_dividend_april import decision_facts, manual_payment, supplemental_field
-from app.replay.historical_dividend_month import SKREIT_HISTORY_ID, SKREIT_HISTORY_URL, reported_payment, skreit_payment
+from app.replay.historical_dividend_month import (
+    HYUNDAI_HISTORY_ID,
+    HYUNDAI_HISTORY_URL,
+    SKREIT_HISTORY_ID,
+    SKREIT_HISTORY_URL,
+    hyundai_payment,
+    load_document,
+    reported_payment,
+    skreit_payment,
+)
 from app.replay.models import ResearchError
 
 
@@ -132,3 +143,75 @@ def test_conflicting_reported_dates_are_preserved_without_selecting_a_payment():
     assert result["status"] == "UNVERIFIED"
     assert "issuerValue" not in result
     assert [proof["reportedPaymentDate"] for proof in result["evidence"]] == ["2024-07-19", "2024-07-18"]
+
+
+@pytest.mark.parametrize(("basis", "completion", "error"), [
+    ("2024년 6월 30일", "지급되었습니다", None),
+    ("2023년 6월 30일", "지급되었습니다", "APRIL_PAYMENT_MARKER"),
+    ("2024년 6월 30일", "지급 예정입니다", "APRIL_PAYMENT_MARKER"),
+])
+def test_payment_without_year_requires_the_same_record_date_and_completion(basis, completion, error):
+    target = {"symbol": "002960", "recordDate": "2024-06-30", "displayedPaymentDate": "2024-08-16"}
+    marker = f"{basis}로 종료하는 당반기 중간배당금은 8월 18일에 {completion}"
+    entry = {"value": "2024-08-18", "marker": marker, "dateContext": "RECORD_YEAR"}
+    proof = {"receipt": "20241114000720", "reportedOn": "2024-11-14"}
+    if error:
+        with pytest.raises(ResearchError, match=error):
+            manual_payment(target, entry, {marker}, proof)
+    else:
+        assert manual_payment(target, entry, {marker}, proof)["status"] == "DIFFERS"
+
+
+def test_attachment_correction_without_body_is_retained_as_unreadable(tmp_path):
+    receipt = "20250321001370"
+    folder = tmp_path / "documents" / receipt
+    folder.mkdir(parents=True)
+    archive = BytesIO()
+    with ZipFile(archive, "w") as zipped:
+        zipped.writestr(f"{receipt}_00760.xml", "<ATTACHMENT/>")
+    raw = archive.getvalue()
+    (folder / "original.zip").write_bytes(raw)
+    proof = canonical({
+        "receiptNumber": receipt, "source": "OpenDART document.xml", "status": "CAPTURED",
+        "startedAt": "2026-11-17T01:00:00+00:00", "capturedAt": "2026-11-17T01:01:00+00:00",
+        "sha256": digest(raw),
+    })
+    (folder / "receipt.json").write_bytes(proof)
+    at = datetime(2026, 11, 17, 2, tzinfo=timezone.utc)
+    item = {"report_nm": "[첨부정정]사업보고서 (2024.10)"}
+
+    body, evidence = load_document(tmp_path, receipt, digest(proof), item, at)
+    assert body is None
+    assert evidence["status"] == "ATTACHMENT_ONLY"
+    assert evidence["archiveSha256"] == digest(raw)
+    with pytest.raises(ResearchError, match="APRIL_DART_DOCUMENT_LAYOUT"):
+        load_document(tmp_path, receipt, digest(proof), {"report_nm": "사업보고서 (2024.10)"}, at)
+
+
+@pytest.mark.parametrize(("header", "amount", "error"), [
+    ("배당지급일", "2,000", None),
+    ("배당지급예정일", "2,000", "HYUNDAI_HISTORY_ROUND"),
+    ("배당지급일", "2,001", "HYUNDAI_HISTORY_PAYMENT"),
+])
+def test_hyundai_history_uses_exact_round_and_common_share_amount(tmp_path, header, amount, error):
+    folder = tmp_path / "ir" / HYUNDAI_HISTORY_ID
+    folder.mkdir(parents=True)
+    html = (
+        f"<table><tr><th>배당기준일</th><th>{header}</th><th>보통주</th>"
+        "<th>1우선주</th><th>2우선주</th><th>3우선주</th></tr>"
+        f"<tr><td>2024.06.30</td><td>2024.08.13</td><td>{amount}</td>"
+        "<td>2,000</td><td>2,000</td><td>2,000</td></tr></table>"
+    ).encode()
+    (folder / "original.html").write_bytes(html)
+    receipt = canonical({"url": HYUNDAI_HISTORY_URL, "startedAt": "2026-11-17T01:00:00+00:00",
+                         "capturedAt": "2026-11-17T01:01:00+00:00", "sha256": digest(html)})
+    (folder / "receipt.json").write_bytes(receipt)
+    target = {"symbol": "005380", "market": "KOSPI", "recordDate": "2024-06-30",
+              "displayedPaymentDate": "2024-08-13", "commonCashPerShare": "2000"}
+    at = datetime(2026, 11, 17, 2, tzinfo=timezone.utc)
+
+    if error:
+        with pytest.raises(ResearchError, match=error):
+            hyundai_payment(target, tmp_path, digest(receipt), at)
+    else:
+        assert hyundai_payment(target, tmp_path, digest(receipt), at)["status"] == "MATCH"
