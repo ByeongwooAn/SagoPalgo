@@ -22,12 +22,14 @@ MAY_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_MAY_V1"
 JUNE_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_JUNE_V1"
 JULY_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_JULY_V1"
 AUGUST_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_AUGUST_V1"
+SEPTEMBER_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_SEPTEMBER_V1"
 SCOPES = {
     SCHEMA: ("2024-04", {CONFIRMED: 3, UNRESOLVED: 4, UNREVIEWED: 1123}),
     MAY_SCHEMA: ("2024-05", {UNREVIEWED: 23}),
     JUNE_SCHEMA: ("2024-06", {UNREVIEWED: 5}),
     JULY_SCHEMA: ("2024-07", {UNREVIEWED: 26}),
     AUGUST_SCHEMA: ("2024-08", {UNREVIEWED: 77}),
+    SEPTEMBER_SCHEMA: ("2024-09", {UNREVIEWED: 10}),
 }
 MARKETS = {"Y": "KOSPI", "K": "KOSDAQ"}
 ROW_ID = re.compile(r"[0-9]{14}")
@@ -64,6 +66,16 @@ SKREIT_AMOUNT_HEADER = ["정기배당", "특별배당", "합계"]
 HYUNDAI_HISTORY_ID = "hyundai-motor-dividend-history"
 HYUNDAI_HISTORY_URL = "https://www.hyundai.com/worldwide/ko/company/ir/stock-information/shareholder-return-policy"
 HYUNDAI_HISTORY_HEADER = ["배당기준일", "배당지급일", "보통주", "1우선주", "2우선주", "3우선주"]
+ESRKS_HISTORY_ID = "esrks-dividend-history"
+ESRKS_HISTORY_URL = "https://www.esrks-reit.com/ir/dividend-status"
+ESRKS_HISTORY_HEADER = [
+    "연도", "회계연도", "배당락일", "배당기준일", "정기 주주총회 소집일", "주당배당금(원)", "배당지급일",
+]
+ISSUER_HISTORY_TABLES = {
+    HYUNDAI_HISTORY_ID: ("005380", HYUNDAI_HISTORY_URL, "현대자동차 배당 이력", HYUNDAI_HISTORY_HEADER, "보통주", "HYUNDAI"),
+    ESRKS_HISTORY_ID: ("365550", ESRKS_HISTORY_URL, "ESR켄달스퀘어리츠 배당 이력",
+                       ESRKS_HISTORY_HEADER, "주당배당금(원)", "ESRKS"),
+}
 FIELD_INPUTS = {"recordDate": "recordDate", "actualPaymentDate": "displayedPaymentDate",
                 "commonCashPerShare": "commonCashPerShare"}
 
@@ -257,29 +269,34 @@ def read_ir_pdf(job, receipt, pin, at):
 
 
 def hyundai_payment(target, job, receipt_hash, at):
-    require(target["symbol"] == "005380" and target["market"] == "KOSPI", "HYUNDAI_HISTORY_ISSUER")
-    folder = job / "ir" / HYUNDAI_HISTORY_ID
+    return issuer_history_payment(target, job, receipt_hash, at, HYUNDAI_HISTORY_ID)
+
+
+def issuer_history_payment(target, job, receipt_hash, at, history_id):
+    symbol, url, title, header, amount_label, error_prefix = ISSUER_HISTORY_TABLES[history_id]
+    require(target["symbol"] == symbol and target["market"] == "KOSPI", f"{error_prefix}_HISTORY_ISSUER")
+    folder = job / "ir" / history_id
     receipt = read_json(checked_read(folder / "receipt.json", receipt_hash))
     observed = utc(receipt["capturedAt"])
     expected = target["displayedPaymentDate"]
-    require(receipt["url"] == HYUNDAI_HISTORY_URL and utc(receipt["startedAt"]) <= observed <= at,
-            "HYUNDAI_HISTORY_CAPTURE")
+    require(receipt["url"] == url and utc(receipt["startedAt"]) <= observed <= at, f"{error_prefix}_HISTORY_CAPTURE")
     html = checked_read(folder / "original.html", receipt["sha256"]).decode("utf-8-sig")
+    basis_col, payment_col, amount_col = (header.index(label) for label in ("배당기준일", "배당지급일", amount_label))
     matches = []
     for table in re.findall(r"<table\b[^<>]*>(.*?)</table>", html, re.I | re.S):
         rows = [[plain(cell) for cell in HTML_CELL.findall(row)] for row in HTML_ROW.findall(table)]
-        if rows and rows[0] == HYUNDAI_HISTORY_HEADER:
+        if rows and rows[0] == header:
             matches.extend(row for row in rows[1:]
-                           if len(row) == len(HYUNDAI_HISTORY_HEADER) and dates(row[0]) == [target["recordDate"]])
-    require(len(matches) == 1, "HYUNDAI_HISTORY_ROUND")
+                           if len(row) == len(header) and dates(row[basis_col]) == [target["recordDate"]])
+    require(len(matches) == 1, f"{error_prefix}_HISTORY_ROUND")
     row = matches[0]
-    payment = dates(row[1])
+    payment = dates(row[payment_col])
     require(len(payment) == 1 and observed.date().isoformat() > max(expected, payment[0])
-            and row[2].replace(",", "") == target["commonCashPerShare"], "HYUNDAI_HISTORY_PAYMENT")
-    proof = {"receipt": HYUNDAI_HISTORY_ID, "sourceUrl": HYUNDAI_HISTORY_URL, "title": "현대자동차 배당 이력",
+            and row[amount_col].replace(",", "") == target["commonCashPerShare"], f"{error_prefix}_HISTORY_PAYMENT")
+    proof = {"receipt": history_id, "sourceUrl": url, "title": title,
              "reportedOn": None, "observedAt": receipt["capturedAt"], "archiveSha256": receipt["sha256"],
              "status": "CAPTURED"}
-    return compare(payment[0], expected, proof, [*HYUNDAI_HISTORY_HEADER, *row])
+    return compare(payment[0], expected, proof, [*header, *row])
 
 
 def skreit_payment(target, job, receipt_hash, at):
@@ -427,11 +444,14 @@ def build(manifest, artifacts, job, *, schema=None):
             expected = target["displayedPaymentDate"]
             fields["actualPaymentDate"] = prior_field(target, "actualPaymentDate")
             if "skreitHistory" in row:
-                require(version == JUNE_SCHEMA and "actual" not in row, "SKREIT_HISTORY_SCOPE")
+                require(version in {JUNE_SCHEMA, SEPTEMBER_SCHEMA} and "actual" not in row, "SKREIT_HISTORY_SCOPE")
                 fields["actualPaymentDate"] = skreit_payment(target, job, row["skreitHistory"], at)
             if "hyundaiHistory" in row:
                 require(version == AUGUST_SCHEMA and "actual" not in row, "HYUNDAI_HISTORY_SCOPE")
                 fields["actualPaymentDate"] = hyundai_payment(target, job, row["hyundaiHistory"], at)
+            if "esrksHistory" in row:
+                require(version == SEPTEMBER_SCHEMA and "actual" not in row, "ESRKS_HISTORY_SCOPE")
+                fields["actualPaymentDate"] = issuer_history_payment(target, job, row["esrksHistory"], at, ESRKS_HISTORY_ID)
             if row_hash in actual_by_row:
                 require(target["status"] == UNREVIEWED, "APRIL_PRIOR_STATUS")
                 reports = {proof["receipt"]: proof for body, proof in documents["reports"] if body is not None}

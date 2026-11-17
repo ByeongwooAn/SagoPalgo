@@ -7,11 +7,14 @@ import pytest
 from app.replay.dataset import canonical, digest
 from app.replay.historical_dividend_april import decision_facts, manual_payment, supplemental_field
 from app.replay.historical_dividend_month import (
+    ESRKS_HISTORY_ID,
+    ESRKS_HISTORY_URL,
     HYUNDAI_HISTORY_ID,
     HYUNDAI_HISTORY_URL,
     SKREIT_HISTORY_ID,
     SKREIT_HISTORY_URL,
     hyundai_payment,
+    issuer_history_payment,
     load_document,
     reported_payment,
     skreit_payment,
@@ -215,3 +218,33 @@ def test_hyundai_history_uses_exact_round_and_common_share_amount(tmp_path, head
             hyundai_payment(target, tmp_path, digest(receipt), at)
     else:
         assert hyundai_payment(target, tmp_path, digest(receipt), at)["status"] == "MATCH"
+
+
+@pytest.mark.parametrize(("record_date", "displayed_payment", "outcome"), [
+    ("2024-05-31", "2024-09-06", "MATCH"),
+    ("2024-05-31", "2024-09-09", "DIFFERS"),
+    ("2024-05-30", "2024-09-06", "ESRKS_HISTORY_ROUND"),
+])
+def test_esrks_history_uses_record_date_and_disbursement_columns(tmp_path, record_date, displayed_payment, outcome):
+    folder = tmp_path / "ir" / ESRKS_HISTORY_ID
+    folder.mkdir(parents=True)
+    html = (
+        "<table><tr><th>연도</th><th>회계연도</th><th>배당락일</th><th>배당기준일</th>"
+        "<th>정기 주주총회 소집일</th><th>주당배당금(원)</th><th>배당지급일</th></tr>"
+        "<tr><td>2024</td><td>9기</td><td>2024-05-30</td><td>2024-05-31</td>"
+        "<td>2024-08-23</td><td>137</td><td>2024-09-06</td></tr></table>"
+    ).encode()
+    (folder / "original.html").write_bytes(html)
+    receipt = canonical({"url": ESRKS_HISTORY_URL, "startedAt": "2026-11-17T01:00:00+00:00",
+                         "capturedAt": "2026-11-17T01:01:00+00:00", "sha256": digest(html)})
+    (folder / "receipt.json").write_bytes(receipt)
+    target = {"symbol": "365550", "market": "KOSPI", "recordDate": record_date,
+              "displayedPaymentDate": displayed_payment, "commonCashPerShare": "137"}
+    at = datetime(2026, 11, 17, 2, tzinfo=timezone.utc)
+
+    if outcome == "ESRKS_HISTORY_ROUND":
+        with pytest.raises(ResearchError, match=outcome):
+            issuer_history_payment(target, tmp_path, digest(receipt), at, ESRKS_HISTORY_ID)
+    else:
+        result = issuer_history_payment(target, tmp_path, digest(receipt), at, ESRKS_HISTORY_ID)
+        assert (result["status"], result["issuerValue"], result["seibroValue"]) == (outcome, "2024-09-06", displayed_payment)
