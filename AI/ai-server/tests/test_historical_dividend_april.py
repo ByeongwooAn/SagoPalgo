@@ -7,6 +7,7 @@ import pytest
 from app.replay.dataset import canonical, digest
 from app.replay.historical_dividend_april import decision_facts, manual_payment, supplemental_field
 from app.replay.historical_dividend_month import (
+    DND_Q3_ID,
     ESRKS_HISTORY_ID,
     ESRKS_HISTORY_URL,
     HYUNDAI_HISTORY_ID,
@@ -127,6 +128,21 @@ def test_disclosure_progress_payment_requires_same_round_and_completed_action(ba
     else:
         with pytest.raises(ResearchError, match="APRIL_PAYMENT_EXPRESSION"):
             manual_payment(target, entry, {marker}, proof)
+
+
+def test_dnd_ir_timeline_uses_dividend_date_and_same_round_amount():
+    marker = ("`24.10.28 `24.11.25 `24.12.10 `24.12.19 이사회 개최 이사회 개최 "
+              "정기주주총회 개최 제9기 배당 재무제표 승인 DPS 139원")
+    target = {"symbol": "377190", "recordDate": "2024-09-30", "displayedPaymentDate": "2024-12-19",
+              "commonCashPerShare": "139"}
+    proof = {"receipt": DND_Q3_ID, "reportedOn": "2024-12-26"}
+    entry = {"marker": marker, "value": "2024-12-19"}
+
+    assert manual_payment(target, entry, {marker}, proof)["status"] == "MATCH"
+    with pytest.raises(ResearchError, match="APRIL_PAYMENT_EXPRESSION"):
+        manual_payment(target, entry | {"value": "2024-12-10"}, {marker}, proof)
+    with pytest.raises(ResearchError, match="APRIL_PAYMENT_EXPRESSION"):
+        manual_payment(target | {"commonCashPerShare": "138"}, entry, {marker}, proof)
 
 
 def test_conflicting_reported_dates_are_preserved_without_selecting_a_payment():

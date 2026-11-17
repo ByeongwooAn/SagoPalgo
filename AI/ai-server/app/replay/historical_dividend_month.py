@@ -25,6 +25,7 @@ AUGUST_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_AUGUST_V1"
 SEPTEMBER_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_SEPTEMBER_V1"
 OCTOBER_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_OCTOBER_V1"
 NOVEMBER_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_NOVEMBER_V1"
+DECEMBER_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_DECEMBER_V1"
 SCOPES = {
     SCHEMA: ("2024-04", {CONFIRMED: 3, UNRESOLVED: 4, UNREVIEWED: 1123}),
     MAY_SCHEMA: ("2024-05", {UNREVIEWED: 23}),
@@ -34,6 +35,7 @@ SCOPES = {
     SEPTEMBER_SCHEMA: ("2024-09", {UNREVIEWED: 10}),
     OCTOBER_SCHEMA: ("2024-10", {UNREVIEWED: 21}),
     NOVEMBER_SCHEMA: ("2024-11", {UNREVIEWED: 26, UNRESOLVED: 1}),
+    DECEMBER_SCHEMA: ("2024-12", {UNREVIEWED: 7}),
 }
 MARKETS = {"Y": "KOSPI", "K": "KOSDAQ"}
 ROW_ID = re.compile(r"[0-9]{14}")
@@ -49,12 +51,17 @@ PAID_DIVIDEND_NOTE = re.compile(
     r"(?:현금)?배당\s*\(\s*['’]?(?:20\d{2}|\d{2})[./-]\s*\d{1,2}[./-]\s*\d{1,2}\.?\s*지급\s*\)"
 )
 PAYMENT_PROGRESS = re.compile(r"배당기준일(?:\s+설정)?\s*\d+\)\s*(.*?)\s*:?\s+배당금\s+지급(?:일)?$")
+DND_PAYMENT_TIMELINE = re.compile(
+    r"(?:`\d{2}\.\d{2}\.\d{2} ){3}(?P<payment>`\d{2}\.\d{2}\.\d{2})"
+    r".*?정기주주총회 개최 제9기 배당 .*?DPS (?P<amount>\d+)원"
+)
 DART = "https://dart.fss.or.kr/dsaf001/main.do?rcpNo="
 NAVER_IR = ("https://kind.krx.co.kr/external/2024/06/26/000486/20240625001176/"
             "NAVER_Integrated_Report_2023_ver3.pdf")
 IR_ID = "naver-2023-integrated"
 MKIF_H1_ID = "mkif-2024-h1-results"
 MKIF_Q3_ID = "mkif-2024-q3-presentation"
+DND_Q3_ID = "dnd-platform-reit-2024-q3-report"
 MKIF_IR = "https://www.mkif.com/assets/mkif/ko-kr/investor-centre/public-filings-and-reports/2024/"
 IR_PDFS = {
     IR_ID: (NAVER_IR, "NAVER 2023 통합보고서", "2024-06-26"),
@@ -62,6 +69,8 @@ IR_PDFS = {
                  "맥쿼리인프라 2024년 상반기 실적 발표", "2024-07-31"),
     MKIF_Q3_ID: (MKIF_IR + "2410-ir-general-presentation-3q-2024-kor.pdf",
                  "맥쿼리인프라 2024년 3분기 실적 발표", "2024-10-31"),
+    DND_Q3_ID: ("https://dndplatformreit.com/module/board/download.php?boardid=irreport&b_idx=52&idx=571",
+                "디앤디플랫폼리츠 2024년 3분기 IR 보고서", "2024-12-26"),
 }
 SKREIT_HISTORY_ID = "skreit-dividend-history"
 SKREIT_HISTORY_URL = "https://www.skreit.co.kr/investment/dividend.php"
@@ -228,8 +237,12 @@ def manual_payment(target, entry, markers_found, report):
     progress = PAYMENT_PROGRESS.search(marker)
     completed_progress = (progress and expected_basis in dates(marker[:progress.start()])
                           and dates(progress[1]) == [value])
+    dnd_timeline = DND_PAYMENT_TIMELINE.search(marker) if report["receipt"] == DND_Q3_ID else None
+    dnd_payment = (dnd_timeline and dates(dnd_timeline["payment"]) == [value]
+                   and dnd_timeline["amount"] == target["commonCashPerShare"])
     require(not re.search(r"지급\s*예정|지급\s*결의일", marker) and
             (POST_PAYMENT.search(marker) or PAID_DIVIDEND_NOTE.search(marker) or completed_progress
+             or dnd_payment
              or re.search(r"배당금\s*지급\s*일(?:자)?(?:은|는|\s|[:：])", marker)
              or (entry.get("dateContext") == "RECORD_YEAR" and "현금배당을 실시하였" in marker
                  and expected_basis in dates(marker))),
@@ -265,7 +278,8 @@ def read_ir_pdf(job, receipt, pin, at):
     page = pin["page"]
     pages = PdfReader(BytesIO(raw)).pages
     require(type(page) is int and 1 <= page <= len(pages), "APRIL_IR_PAGE")
-    return " ".join(pages[page - 1].extract_text().split()), {
+    mode = "layout" if receipt == DND_Q3_ID else "plain"
+    return " ".join(pages[page - 1].extract_text(extraction_mode=mode).split()), {
         "receipt": receipt, "sourceUrl": f"{url}#page={page}", "reportedOn": reported_on,
         "title": title, "observedAt": proof["capturedAt"], "archiveSha256": proof["sha256"],
         "status": "CAPTURED", "page": page,
@@ -407,6 +421,9 @@ def build(manifest, artifacts, job, *, schema=None):
                     if receipt in IR_PDFS:
                         if receipt == IR_ID:
                             valid = kind == "reports" and target["symbol"] == "035420"
+                        elif receipt == DND_Q3_ID:
+                            valid = (version == DECEMBER_SCHEMA and kind == "reports" and target["symbol"] == "377190"
+                                     and target["market"] == "KOSPI" and target["recordDate"] == "2024-09-30")
                         else:
                             role = "decisions" if receipt == MKIF_H1_ID else "reports"
                             valid = (version == AUGUST_SCHEMA and kind == role and target["symbol"] == "088980"
@@ -448,7 +465,8 @@ def build(manifest, artifacts, job, *, schema=None):
             expected = target["displayedPaymentDate"]
             fields["actualPaymentDate"] = prior_field(target, "actualPaymentDate")
             if "skreitHistory" in row:
-                require(version in {JUNE_SCHEMA, SEPTEMBER_SCHEMA} and "actual" not in row, "SKREIT_HISTORY_SCOPE")
+                require(version in {JUNE_SCHEMA, SEPTEMBER_SCHEMA, DECEMBER_SCHEMA} and "actual" not in row,
+                        "SKREIT_HISTORY_SCOPE")
                 fields["actualPaymentDate"] = skreit_payment(target, job, row["skreitHistory"], at)
             if "hyundaiHistory" in row:
                 require(version in {AUGUST_SCHEMA, NOVEMBER_SCHEMA} and "actual" not in row, "HYUNDAI_HISTORY_SCOPE")

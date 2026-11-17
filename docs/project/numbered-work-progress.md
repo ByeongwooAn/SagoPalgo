@@ -1,5 +1,7 @@
 # 1~5번 작업 완료율과 고정 체크리스트
 
+2026-11-17 [H05 2024년 12월 지급 후보 7건](../historical-data/corporate-actions/historical-dividend-2024-december.md)을 대조해 실제 지급 2건을 새로 확인했습니다. **27/46 · 59%, 5번 7/17 · 41%, 5-08 진행 중**입니다.
+
 2026-11-17 [H05 2024년 11월 지급 후보 27건](../historical-data/corporate-actions/historical-dividend-2024-november.md)을 대조해 실제 지급 5건을 새로 확인했습니다. **27/46 · 59%, 5번 7/17 · 41%, 5-08 진행 중**입니다.
 
 2026-11-17 [H05 2024년 10월 지급 후보 21건](../historical-data/corporate-actions/historical-dividend-2024-october.md)을 대조해 실제 지급 3건을 새로 확인했습니다. **27/46 · 59%, 5번 7/17 · 41%, 5-08 진행 중**입니다.
