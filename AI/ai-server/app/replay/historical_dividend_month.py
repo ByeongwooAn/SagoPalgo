@@ -20,10 +20,12 @@ from .models import utc
 SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_APRIL_V1"
 MAY_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_MAY_V1"
 JUNE_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_JUNE_V1"
+JULY_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_JULY_V1"
 SCOPES = {
     SCHEMA: ("2024-04", {CONFIRMED: 3, UNRESOLVED: 4, UNREVIEWED: 1123}),
     MAY_SCHEMA: ("2024-05", {UNREVIEWED: 23}),
     JUNE_SCHEMA: ("2024-06", {UNREVIEWED: 5}),
+    JULY_SCHEMA: ("2024-07", {UNREVIEWED: 26}),
 }
 MARKETS = {"Y": "KOSPI", "K": "KOSDAQ"}
 ROW_ID = re.compile(r"[0-9]{14}")
@@ -38,6 +40,7 @@ REPORT_TITLE = re.compile(r"(?:사업|반기|분기|기업지배구조)\s*보고
 PAID_DIVIDEND_NOTE = re.compile(
     r"(?:현금)?배당\s*\(\s*['’]?(?:20\d{2}|\d{2})[./-]\s*\d{1,2}[./-]\s*\d{1,2}\.?\s*지급\s*\)"
 )
+PAYMENT_PROGRESS = re.compile(r"배당기준일(?:\s+설정)?\s*\d+\)\s*(.*?)\s*:?\s+배당금\s+지급(?:일)?$")
 DART = "https://dart.fss.or.kr/dsaf001/main.do?rcpNo="
 NAVER_IR = ("https://kind.krx.co.kr/external/2024/06/26/000486/20240625001176/"
             "NAVER_Integrated_Report_2023_ver3.pdf")
@@ -185,14 +188,30 @@ def manual_payment(target, entry, markers_found, report):
         )
     require(report["reportedOn"] > max(value, expected) and marker in markers_found and explicit_date,
             "APRIL_PAYMENT_MARKER")
+    progress = PAYMENT_PROGRESS.search(marker)
+    completed_progress = (progress and expected_basis in dates(marker[:progress.start()])
+                          and dates(progress[1]) == [value])
     require(not re.search(r"지급\s*예정|지급\s*결의일", marker) and
-            (POST_PAYMENT.search(marker) or PAID_DIVIDEND_NOTE.search(marker)
+            (POST_PAYMENT.search(marker) or PAID_DIVIDEND_NOTE.search(marker) or completed_progress
              or re.search(r"배당금\s*지급\s*일(?:자)?(?:은|는|\s|[:：])", marker)),
             "APRIL_PAYMENT_EXPRESSION")
     if target["symbol"] == "015360":
         require(expected_basis in dates(marker) or entry.get("roundMarker") in {"결산배당", "분기배당"}
                 and entry["roundMarker"] in marker, "APRIL_MULTIPLE_DISTRIBUTIONS")
     return compare(value, expected, report, [marker])
+
+
+def reported_payment(target, entries, reports, markers, reason):
+    results = []
+    for entry in entries:
+        receipt = entry["receipt"]
+        require(receipt in reports, "APRIL_PAYMENT_SOURCE_ROLE")
+        results.append(manual_payment(target, entry, markers.get(receipt, ()), reports[receipt]))
+    if len(results) == 1:
+        return results[0]
+    require(reason and len({result["issuerValue"] for result in results}) > 1, "DIVIDEND_PAYMENT_CONFLICT")
+    evidence = [result["evidence"][0] | {"reportedPaymentDate": result["issuerValue"]} for result in results]
+    return unknown(target["displayedPaymentDate"], reason, evidence)
 
 
 def naver_ir(job, pin, at):
@@ -287,11 +306,13 @@ def build(manifest, artifacts, job, *, schema=None):
     inventory = load_indexes(job, spec["indexPages"], set(spec["documents"]), at)
     results = []
     decision_cache, report_cache = {}, {}
-    markers_by_receipt, checked_markers = {}, {}
-    for row in spec["rows"].values():
+    markers_by_receipt, checked_markers, actual_by_row = {}, {}, {}
+    for row_hash, row in spec["rows"].items():
         if "actual" in row:
-            entry = row["actual"]
-            markers_by_receipt.setdefault(entry["receipt"], set()).add(entry["marker"])
+            actual = row["actual"]
+            actual_by_row[row_hash] = actual if isinstance(actual, list) else [actual]
+            for entry in actual_by_row[row_hash]:
+                markers_by_receipt.setdefault(entry["receipt"], set()).add(entry["marker"])
         for field in row.get("fieldEvidence", {}).values():
             markers_by_receipt.setdefault(field["receipt"], set()).update(field["markers"])
     if IR_ID in markers_by_receipt:
@@ -348,12 +369,11 @@ def build(manifest, artifacts, job, *, schema=None):
             if "skreitHistory" in row:
                 require(version == JUNE_SCHEMA and "actual" not in row, "SKREIT_HISTORY_SCOPE")
                 fields["actualPaymentDate"] = skreit_payment(target, job, row["skreitHistory"], at)
-            if "actual" in row:
+            if row_hash in actual_by_row:
                 require(target["status"] == UNREVIEWED, "APRIL_PRIOR_STATUS")
-                receipt = row["actual"]["receipt"]
-                require(receipt in row["reports"], "APRIL_PAYMENT_SOURCE_ROLE")
-                fields["actualPaymentDate"] = manual_payment(target, row["actual"], checked_markers.get(receipt, ()),
-                                                              referenced[receipt])
+                reports = {proof["receipt"]: proof for body, proof in documents["reports"] if body is not None}
+                fields["actualPaymentDate"] = reported_payment(target, actual_by_row[row_hash], reports,
+                                                               checked_markers, row.get("paymentGap"))
             if fields["actualPaymentDate"] is None:
                 read = [(text, proof) for text, proof in documents["reports"] if text is not None]
                 reason = row.get("paymentGap") or (
