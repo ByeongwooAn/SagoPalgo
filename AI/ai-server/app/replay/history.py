@@ -258,7 +258,7 @@ def audit(path: Path, check_daily=False):
     return report, rows
 
 
-def collect(path: Path, transport, sleeper=time.sleep):
+def collect(path: Path, transport, sleeper=time.sleep, *, retry_processing_errors=False):
     with job_lock(path):
         planned, config, journal = load_job(path)
         if not config.queryRightsConfirmed:
@@ -315,14 +315,28 @@ def collect(path: Path, transport, sleeper=time.sleep):
                 publish(path)
                 raise ResearchError(code) from None
 
+        def call_market(kind, target, params):
+            retries = 2 if retry_processing_errors else 0
+            for retry in range(retries + 1):
+                try:
+                    return call(kind, target, params)
+                except ResearchError as exc:
+                    if retry == retries or str(exc) != "HISTORY_PROVIDER_REJECTED":
+                        raise
+                    failure = journal["attempts"][-1]
+                    response = read_json(read_bytes(path / failure["file"]))
+                    if not isinstance(response, dict) or response.get("msg_cd") != "OPSQ0008":
+                        raise
+                    sleeper(8 * (retry + 1))
+
         call("AUTH", "authentication")
         for target, params in pending:
-            call("WINDOW", target, params)
+            call_market("WINDOW", target, params)
             merged, _, checked, _, _ = observations(path, planned, journal)
         dates = sorted(merged)
         for stamp in sorted(set([dates[0], dates[len(dates) // 2], dates[-1]])) if dates else []:
             if stamp not in checked:
-                call("VERIFY", stamp, parameters(config, day(stamp), day(stamp)))
+                call_market("VERIFY", stamp, parameters(config, day(stamp), day(stamp)))
         journal["status"] = "COLLECTED" if dates else "PARTIAL"
         atomic_json(path / "journal.json", journal)
         return publish(path)
@@ -391,6 +405,9 @@ def main(argv=None):
     for command in ["collect", "audit"]:
         item = commands.add_parser(command)
         item.add_argument("--job", required=True, type=Path)
+        if command == "collect":
+            item.add_argument("--retry-processing-errors", action="store_true",
+                              help="Reserve and journal up to two delayed retries for KIS OPSQ0008.")
     args = parser.parse_args(argv)
     try:
         if args.command == "plan":
@@ -400,7 +417,8 @@ def main(argv=None):
             planned, config, journal = load_job(args.job)
             if config.provenance != "PROVIDER_HISTORICAL":
                 raise ResearchError("HISTORY_LIVE_PROVENANCE_REQUIRED")
-            value = collect(args.job, KisHistoryTransport(os.getenv("SAGOPALGO_KIS_APP_KEY"), os.getenv("SAGOPALGO_KIS_APP_SECRET")))
+            value = collect(args.job, KisHistoryTransport(os.getenv("SAGOPALGO_KIS_APP_KEY"), os.getenv("SAGOPALGO_KIS_APP_SECRET")),
+                            retry_processing_errors=args.retry_processing_errors)
         else:
             with job_lock(args.job):
                 value = audit(args.job, check_daily=True)[0]

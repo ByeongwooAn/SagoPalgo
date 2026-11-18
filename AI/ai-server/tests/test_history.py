@@ -117,6 +117,35 @@ def test_failure_resumes_only_missing_windows_and_counts_prior_calls(tmp_path):
     assert done["callsUsed"] == len(first.calls) + len(second.calls)
 
 
+@pytest.mark.parametrize("enabled, code, recovered", [
+    (True, "OPSQ0008", True), (False, "OPSQ0008", False), (True, "OTHER_FAILURE", False),
+])
+def test_processing_retry_preserves_failure_and_reuses_auth(tmp_path, enabled, code, recovered):
+    target, _ = job(tmp_path)
+    sleeps = []
+
+    class ProcessingFailure(FakeTransport):
+        def fetch(self, params):
+            success = super().fetch(params)
+            return canonical({"rt_cd": "1", "msg_cd": code}) if len(self.calls) == 2 else success
+
+    transport = ProcessingFailure(target)
+    if recovered:
+        result = collect(target, transport, sleeper=sleeps.append, retry_processing_errors=enabled)
+        assert result["status"] == "COLLECTED" and result["verificationPassed"] == 3
+        assert transport.calls[1] == transport.calls[2] and transport.calls.count("AUTH") == 1
+        assert 8 in sleeps
+    else:
+        with pytest.raises(ResearchError, match="HISTORY_PROVIDER_REJECTED"):
+            collect(target, transport, sleeper=sleeps.append, retry_processing_errors=enabled)
+        assert len(transport.calls) == 2
+    _, _, journal = load_job(target)
+    failure = journal["attempts"][1]
+    assert failure["status"] == "FAILED" and failure["diagnostic"] == "HISTORY_PROVIDER_REJECTED"
+    assert read_json((target / failure["file"]).read_bytes())["msg_cd"] == code
+    assert audit(target, check_daily=True)[0]["callsUsed"] == len(transport.calls)
+
+
 def test_failed_verification_can_resume_with_exact_remaining_budget(tmp_path):
     target, _ = job(tmp_path, startDate="2024-01-02", endDate="2024-01-02", maxRequests=5)
     with pytest.raises(ResearchError):
