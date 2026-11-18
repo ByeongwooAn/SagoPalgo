@@ -18,6 +18,7 @@ import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
 import '../widgets/responsive_layout.dart';
 import 'dashboard_screen.dart';
+import 'learning_evaluation_screen.dart';
 
 /// 매수 추천 상세 화면입니다.
 ///
@@ -136,6 +137,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
+              const LearningEvaluationButton(),
               OutlinedButton.icon(
                 onPressed: _addWatchlist,
                 icon: const Icon(Icons.add),
@@ -961,6 +963,7 @@ class _EmptyRecommendationState extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
+              const LearningEvaluationButton(),
               OutlinedButton.icon(
                 onPressed: onWatchlistAdd,
                 icon: const Icon(Icons.add),

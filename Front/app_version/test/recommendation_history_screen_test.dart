@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:app_version/models/holding.dart';
 import 'package:app_version/models/recommendation.dart';
 import 'package:app_version/models/watchlist_item.dart';
@@ -89,9 +92,120 @@ void main() {
     expect(find.text('손절 기준'), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'opens both stocks from a local summary without saved recommendations',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final folder = Directory.systemTemp.createTempSync(
+        'sagopalgo-evaluation-',
+      );
+      addTearDown(() => folder.deleteSync(recursive: true));
+      final file = File('${folder.path}/app-summary.json');
+      file.writeAsStringSync('{"schemaVersion":"invalid"}');
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: RecommendationScreen(
+              recommendation: null,
+              holdings: const [],
+              recommendationRepository: _FakeRecommendationRepository(
+                hasHistory: false,
+              ),
+              watchlistRepository: const _NoopWatchlistRepository(),
+              onRecommendationChanged: () {},
+              onCapitalSetupOpen: () {},
+              onHoldingSetupOpen: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('로컬 모델 평가'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '"${file.path}"');
+      await _loadEvaluation(tester);
+      expect(find.textContaining('학습 도구에서 생성한'), findsOneWidget);
+
+      file.writeAsStringSync(jsonEncode(_evaluationFixture()));
+      await _loadEvaluation(tester);
+      expect(find.text('공통 최종 평가 · 142일'), findsOneWidget);
+      expect(find.text('삼성전자 (005930)'), findsOneWidget);
+      expect(find.text('SK하이닉스 (000660)'), findsOneWidget);
+      expect(find.textContaining('매수 관찰 임곗값 52.50%'), findsOneWidget);
+      expect(find.textContaining('매수 관찰 임곗값 진입 안 함'), findsOneWidget);
+      expect(find.text('70회'), findsNWidgets(2));
+      expect(find.text('-12.34%'), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    },
+  );
+}
+
+Future<void> _loadEvaluation(WidgetTester tester) async {
+  await tester.runAsync(() async {
+    await tester.tap(find.text('결과 열기'));
+    await tester.pump();
+    final loading = find.byType(LinearProgressIndicator);
+    final timer = Stopwatch()..start();
+    while (loading.evaluate().isNotEmpty &&
+        timer.elapsed < const Duration(seconds: 3)) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await tester.pump();
+    }
+    expect(loading, findsNothing);
+  });
+  await tester.pumpAndSettle();
+}
+
+Map<String, Object> _evaluationFixture() {
+  const period = {
+    'firstTargetDate': '2026-04-03',
+    'lastTargetDate': '2026-11-02',
+    'samples': 142,
+  };
+  Map<String, Object?> stock(double? threshold) => {
+    'period': period,
+    'version': 'daily-l2-logistic-v1',
+    'threshold': threshold,
+    'prediction': {
+      'model': {'accuracy': 0.5, 'logLoss': 0.7},
+      'trainingFrequency': {'accuracy': 0.45, 'logLoss': 0.69},
+    },
+    'strategies': {
+      for (final scenario in ['base', 'stress'])
+        scenario: {
+          'model': {
+            'netReturn': threshold == null ? 0 : -0.1234,
+            'maxDrawdown': threshold == null ? 0 : 0.2,
+            'trades': threshold == null ? 0 : 70,
+          },
+          for (final name in ['daily', 'trend5', 'cash'])
+            name: {'netReturn': 0, 'maxDrawdown': 0, 'trades': 0},
+        },
+    },
+  };
+  return {
+    'schemaVersion': 'SAGOPALGO_DAILY_LEARNING_SUMMARY_V1',
+    'purpose': 'PERSONAL_LOCAL_RESEARCH',
+    'commonFinalPeriod': period,
+    'costs': {
+      'base': {'feeBpsPerSide': 5, 'slippageBpsPerSide': 5, 'sellTaxBps': 20},
+      'stress': {
+        'feeBpsPerSide': 10,
+        'slippageBpsPerSide': 15,
+        'sellTaxBps': 20,
+      },
+    },
+    'stocks': {'005930': stock(0.525), '000660': stock(null)},
+  };
 }
 
 class _FakeRecommendationRepository implements RecommendationRepository {
+  _FakeRecommendationRepository({this.hasHistory = true});
+
+  final bool hasHistory;
   int? analyzedHoldingId;
   int? analyzedWatchlistId;
 
@@ -122,15 +236,16 @@ class _FakeRecommendationRepository implements RecommendationRepository {
   }) async {
     return RecommendationPage(
       items: [
-        analyzedWatchlistId != null
-            ? _watchlistRecommendation
-            : analyzedHoldingId == null
-            ? _recommendation
-            : _reanalyzedRecommendation,
+        if (hasHistory)
+          analyzedWatchlistId != null
+              ? _watchlistRecommendation
+              : analyzedHoldingId == null
+              ? _recommendation
+              : _reanalyzedRecommendation,
       ],
       page: page,
       size: size,
-      total: 1,
+      total: hasHistory ? 1 : 0,
     );
   }
 }
