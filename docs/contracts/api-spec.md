@@ -570,6 +570,8 @@ KOSPI/KOSDAQ/KONEX 종목이고 시장 데이터 Provider 설정이 켜져 있�
 
 보유 종목 분석은 최근 일봉, 저장 뉴스·공시와 보유 손익·손절·익절 기준을 Python 분석 서버에 전달합니다. 관심 종목 분석은 보유 가격·손익률을 만들어 넣지 않고 실제 현재가와 가격·뉴스·공시만 전달합니다. 분석 결과는 추천 본문, 점수 근거, 요청·응답 원문 스냅샷으로 나누어 저장합니다. Python 서버가 비활성 또는 일시 실패 상태이면 보유 종목은 기존 규칙 엔진, 관심 종목은 판단 보류의 중립 결과를 저장합니다.
 
+KOSPI 삼성전자(`005930`)·SK하이닉스(`000660`) 수동 분석의 `evidence.dailySignal`에는 장 마감 모델 판단을 추가합니다. `decision`은 `BUY_WATCH`, `WAIT`, `WITHHELD`입니다. 추론에 성공하면 `basisDate`, `inputStartDate`, `inputVersion`, `evaluatedAt`, `expiresAt`, `modelVersion`, `modelSha256`, `probability`, `threshold`, `contributions`를 반환합니다. 확률과 임곗값은 0~1이고, 기여값은 표준화 특징과 모델 계수의 곱으로 로그오즈 단위입니다. 시각은 오프셋이 있는 ISO 8601입니다. 보류는 `evaluatedAt`, 확인 가능한 `basisDate`와 `holdReason`을 반환합니다. 원인은 `BAR_NOT_FINAL`, `BAR_MISSING_OR_INVALID`, `CALENDAR_UNAVAILABLE`, `MODEL_UNAVAILABLE`, `SIGNAL_EXPIRED`입니다. 과거 이력과 대상 범위 밖의 분석에서는 필드가 생략됩니다. 기간·가격 기준·입력·만료의 산정 방법은 검증 기록에 있습니다. [장 마감 모델 추론 연결](../project/daily-inference-integration.md)
+
 ### 11.1 보유 종목 분석 및 추천 저장
 
 `POST /api/v1/recommendations/analyze/{holdingId}`

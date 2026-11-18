@@ -83,7 +83,7 @@ public class AlertEvaluationScheduler {
                 if (!Boolean.TRUE.equals(item.getAlertEnabled())) continue;
                 if (owned.contains(stockKey(item.getStockCode(), item.getMarket()))) continue;
                 try {
-                    recommendationService.analyzeWatchlist(userId, item.getWatchlistId());
+                    recommendationService.analyzeWatchlist(userId, item.getWatchlistId(), false);
                 } catch (RuntimeException exception) {
                     log.warn("관심 종목 알림 분석 실패. watchlistId={}", item.getWatchlistId());
                 }
@@ -109,7 +109,7 @@ public class AlertEvaluationScheduler {
             );
         }
         try {
-            recommendationService.analyzeHolding(userId, holdingId);
+            recommendationService.analyzeHolding(userId, holdingId, false);
         } catch (RuntimeException exception) {
             log.warn(
                 "보유 종목 알림 분석 실패. holdingId={} message={}",

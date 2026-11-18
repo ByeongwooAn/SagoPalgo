@@ -51,8 +51,8 @@ class AlertEvaluationSchedulerTest {
         scheduler.analyzeHoldings();
 
         verify(eventAlertService).createPriceAlerts(holding, quote);
-        verify(recommendationService).analyzeHolding(1L, 7L);
-        verify(recommendationService, Mockito.never()).analyzeWatchlist(1L, 12L);
+        verify(recommendationService).analyzeHolding(1L, 7L, false);
+        verify(recommendationService, Mockito.never()).analyzeWatchlist(1L, 12L, false);
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<PortfolioPosition>> captor = ArgumentCaptor.forClass(List.class);
         verify(portfolioRiskAlertService).createAlerts(org.mockito.ArgumentMatchers.eq(1L), captor.capture());
@@ -70,14 +70,14 @@ class AlertEvaluationSchedulerTest {
         second.setStockCode("000660"); second.setMarket("KOSPI");
         var disabled = new com.sagopalgo.api.watchlist.model.WatchlistItem(); disabled.setWatchlistId(13L); disabled.setAlertEnabled(false);
         when(watchlists.findAllByUserId(1L)).thenReturn(List.of(first, second, disabled));
-        when(recommendations.analyzeWatchlist(1L, 11L)).thenThrow(new IllegalStateException("price unavailable"));
+        when(recommendations.analyzeWatchlist(1L, 11L, false)).thenThrow(new IllegalStateException("price unavailable"));
         var scheduler = new AlertEvaluationScheduler(holdings, recommendations, Mockito.mock(MarketPriceService.class),
             Mockito.mock(EventAlertService.class), Mockito.mock(PortfolioRiskAlertService.class),
             new PersonalModeProperties(true, 1L, "사용자", "local@test.local"), watchlists);
         scheduler.analyzeHoldings();
-        verify(recommendations).analyzeWatchlist(1L, 11L);
-        verify(recommendations).analyzeWatchlist(1L, 12L);
-        verify(recommendations, Mockito.never()).analyzeWatchlist(1L, 13L);
+        verify(recommendations).analyzeWatchlist(1L, 11L, false);
+        verify(recommendations).analyzeWatchlist(1L, 12L, false);
+        verify(recommendations, Mockito.never()).analyzeWatchlist(1L, 13L, false);
     }
 
     private Holding holding() {

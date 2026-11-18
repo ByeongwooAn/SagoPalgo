@@ -12,6 +12,7 @@ import 'watchlist_management_sheet.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_text.dart';
+import '../widgets/daily_model_signal_card.dart';
 import '../widgets/gradient_action_button.dart';
 import '../widgets/score_ring.dart';
 import '../widgets/section_header.dart';
@@ -193,6 +194,10 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             const SizedBox(height: 10),
             ScoreDetailCard(recommendation: recommendation),
             AnalysisEvidenceCard(recommendation: recommendation),
+            if (recommendation.evidence?.dailySignal case final signal?) ...[
+              const SizedBox(height: 12),
+              DailyModelSignalCard(signal: signal),
+            ],
             const SizedBox(height: 12),
             RecommendationReasonCard(reasons: recommendation.reasons),
             const SizedBox(height: 12),
@@ -848,6 +853,11 @@ class _RecommendationDetailScreenState
                   const SizedBox(height: 16),
                   ScoreDetailCard(recommendation: recommendation),
                   AnalysisEvidenceCard(recommendation: recommendation),
+                  if (recommendation.evidence?.dailySignal
+                      case final signal?) ...[
+                    const SizedBox(height: 12),
+                    DailyModelSignalCard(signal: signal),
+                  ],
                   const SizedBox(height: 12),
                   RecommendationReasonCard(reasons: recommendation.reasons),
                   const SizedBox(height: 12),

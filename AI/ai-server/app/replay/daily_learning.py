@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass
 from importlib.metadata import version
 from math import log, log1p
 from pathlib import Path
-from statistics import mean, pstdev
+from statistics import mean
 from tempfile import TemporaryDirectory
 from time import perf_counter
 from warnings import catch_warnings, simplefilter
@@ -16,19 +16,16 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from threadpoolctl import threadpool_limits
 
+from ..daily_features import FEATURE_NAMES, LOOKBACK_SESSIONS, daily_features
 from .dataset import canonical, digest, read_bytes, read_json
 from .file_publish import publish_directory
 from .hynix_daily_training import CAPTURE as HYNIX_CAPTURE
 from .models import ResearchError
-from .samsung_daily_training import HISTORY_CAPTURE, LOOKBACK_SESSIONS, SOURCE_SHA256
+from .samsung_daily_training import HISTORY_CAPTURE, SOURCE_SHA256
 
 VERSION = "daily-l2-logistic-v1"
 TRAIN, VALIDATION, FINAL = "TRAIN", "VALIDATION", "FINAL_EVALUATION"
 COUNTS = {TRAIN: 424, VALIDATION: 141, FINAL: 142}
-FEATURE_NAMES = (
-    "openToClose", "closeReturn1", "closeReturn5", "closeReturn20",
-    "rangeOverOpen", "closeVolatility20", "volumeRatio20",
-)
 INPUTS = {
     "005930": (
         (f"{HISTORY_CAPTURE}/job/daily.jsonl", SOURCE_SHA256["daily"]),
@@ -115,23 +112,6 @@ def load_snapshot(root, code):
             raise ResearchError("DAILY_LEARNING_INVALID_BAR")
         bars.append(bar)
     return bars, days
-
-
-def daily_features(window):
-    """Compute the seven features from T-20 through T, inclusive."""
-    if len(window) != LOOKBACK_SESSIONS + 1:
-        raise ResearchError("DAILY_LEARNING_INVALID_LOOKBACK")
-    today = window[-1]
-    returns = [right.closed / left.closed - 1 for left, right in zip(window, window[1:])]
-    return (
-        today.closed / today.opened - 1,
-        returns[-1],
-        today.closed / window[-6].closed - 1,
-        today.closed / window[0].closed - 1,
-        (today.high - today.low) / today.opened,
-        pstdev(returns),
-        today.volume / mean(bar.volume for bar in window[:-1]),
-    )
 
 
 def samples_for(snapshot, use):

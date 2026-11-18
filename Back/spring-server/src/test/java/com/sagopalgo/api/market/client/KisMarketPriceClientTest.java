@@ -203,6 +203,35 @@ class KisMarketPriceClientTest {
     }
 
     @Test
+    void dailyModelUsesKrxRawPriceFlagsForBothEndpoints() {
+        LocalDate date = LocalDate.of(2026, 11, 18);
+        MarketDataRequest request = new MarketDataRequest("005930", "KOSPI");
+        String row = """
+            {"stck_bsop_date":"20261118","stck_oprc":"100","stck_hgpr":"110","stck_lwpr":"95",
+             "stck_clpr":"105","acml_vol":"5000","mod_yn":"N","prtt_rate":"0.00"}
+            """;
+        String chart = "https://kis.test/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
+            + "?FID_COND_MRKT_DIV_CODE=J&FID_INPUT_ISCD=005930&FID_INPUT_DATE_1=20261118"
+            + "&FID_INPUT_DATE_2=20261118&FID_PERIOD_DIV_CODE=D&FID_ORG_ADJ_PRC=1";
+        server.expect(requestTo("https://kis.test/oauth2/tokenP"))
+            .andRespond(withSuccess("{\"access_token\":\"token\",\"expires_in\":3600}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo(chart)).andRespond(withSuccess(
+            "{\"rt_cd\":\"0\",\"output1\":{\"stck_shrn_iscd\":\"005930\"},\"output2\":[" + row + "]}",
+            MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kis.test/uapi/domestic-stock/v1/quotations/inquire-daily-price"
+                + "?FID_COND_MRKT_DIV_CODE=J&FID_INPUT_ISCD=005930&FID_PERIOD_DIV_CODE=D&FID_ORG_ADJ_PRC=0"))
+            .andExpect(header("tr_id", "FHKST01010400"))
+            .andRespond(withSuccess("{\"rt_cd\":\"0\",\"output\":[" + row + "]}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo(chart)).andRespond(withSuccess(
+            "{\"rt_cd\":\"0\",\"output1\":{\"stck_shrn_iscd\":\"005930\"},\"output2\":["
+                + row.replace("\"N\"", "\"Y\"") + "]}", MediaType.APPLICATION_JSON));
+
+        assertThat(client.rawDailyCandles(request, date, date)).containsExactly(client.rawDailyReference(request, date).orElseThrow());
+        assertThatThrownBy(() -> client.rawDailyCandles(request, date, date)).isInstanceOf(ApiException.class);
+        server.verify();
+    }
+
+    @Test
     @DisplayName("KIS가 실패 코드를 반환하면 외부 데이터 오류로 변환한다")
     void currentPriceThrowsExternalDataErrorWhenKisFails() {
         server.expect(requestTo("https://kis.test/oauth2/tokenP"))

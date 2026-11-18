@@ -8,6 +8,10 @@ services:
       dockerfile: Dockerfile
     container_name: sagopalgo-ai-server
     restart: unless-stopped
+    environment:
+      SAGOPALGO_DAILY_MODEL_DIR: /models/daily-learning-v1
+    volumes:
+      - ./AI/ai-server/research-artifacts/daily-learning-v1:/models/daily-learning-v1:ro
     ports:
       - "127.0.0.1:${SAGOPALGO_AI_PORT:-8000}:8000"
     healthcheck:

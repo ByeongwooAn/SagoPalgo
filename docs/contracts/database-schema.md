@@ -124,6 +124,8 @@ users 1 ── N research_sync_status
 
 ### 4.5 `recommendations`
 
+수동 분석의 장 마감 모델 신호는 연결된 `analysis_snapshots.raw_payload`의 `dailySignal` 속성에 저장합니다. 기존 스냅샷과 같은 트랜잭션에서 저장하며 추천 API는 사용자와 추천 ID로 연결된 스냅샷에서 `evidence.dailySignal`을 읽습니다. [추천 API](api-spec.md#11-추천-api)
+
 AI가 생성한 매수/매도/관망 판단의 대표 결과를 저장합니다.
 
 | 컬럼 | 타입 | 설명 |

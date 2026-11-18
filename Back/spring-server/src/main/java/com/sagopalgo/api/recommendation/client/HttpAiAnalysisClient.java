@@ -3,6 +3,7 @@ package com.sagopalgo.api.recommendation.client;
 import com.sagopalgo.api.config.AiAnalysisProperties;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisRequest;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisResponse;
+import com.sagopalgo.api.recommendation.dto.DailyInference;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,23 +29,32 @@ public class HttpAiAnalysisClient implements AiAnalysisGateway {
 
     @Override
     public Optional<AiInvestmentAnalysisResponse> analyze(AiInvestmentAnalysisRequest request) {
+        return post(properties.getAnalysisPath(), request.stockCode(), request, AiInvestmentAnalysisResponse.class);
+    }
+
+    @Override
+    public Optional<DailyInference.Result> inferDaily(DailyInference.Request request) {
+        return post("/internal/ai/infer-daily", request.stockCode(), request, DailyInference.Result.class);
+    }
+
+    private <T> Optional<T> post(String path, String stockCode, Object request, Class<T> responseType) {
         if (!properties.isEnabled()) {
             return Optional.empty();
         }
         try {
-            AiInvestmentAnalysisResponse response = restClient.post()
-                .uri(properties.getBaseUrl() + properties.getAnalysisPath())
+            T response = restClient.post()
+                .uri(properties.getBaseUrl() + path)
                 .body(request)
                 .retrieve()
-                .body(AiInvestmentAnalysisResponse.class);
+                .body(responseType);
             return Optional.ofNullable(response);
         } catch (RuntimeException exception) {
             String diagnostic = exception instanceof RestClientResponseException response
                 ? "httpStatus=" + response.getStatusCode().value()
                 : "type=" + exception.getClass().getSimpleName();
             log.warn(
-                "AI 분석 서버 호출 실패. stockCode={} {}",
-                request.stockCode(),
+                "AI 분석 서버 호출 실패. stockCode={} path={} {}",
+                stockCode, path,
                 diagnostic
             );
             return Optional.empty();

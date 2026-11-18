@@ -4,6 +4,7 @@ import argparse
 from collections import Counter
 from pathlib import Path
 
+from ..daily_features import LOOKBACK_SESSIONS
 from .dataset import canonical, digest, read_bytes, read_json
 from .history import audit as audit_history
 from .local_use import load_local_use
@@ -17,7 +18,6 @@ SOURCE_SHA256 = {
     "calendar": "8803fae3e2bfd85c323693f51a3daba1ed5b9d90df0d99bbeb63fd5f89b23849",
     "localUse": "a4a64585d1b85e78bdd070d4e77522f6ca22d20cfbc828e08e3cbf68be3a81f5",
 }
-LOOKBACK_SESSIONS = 20
 REVIEWED_CASH_DIVIDEND_FLAGS = {
     "2023-12-27": "02",
     "2024-12-27": "02",

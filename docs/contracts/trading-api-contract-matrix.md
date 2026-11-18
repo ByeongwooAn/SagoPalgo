@@ -28,7 +28,7 @@
 | A05 | KB 계좌 목록·관심목록 | 기본 계좌 목록 경로는 비어 있음. 이번 공개 목록의 이름 검색에서 관심 API 미확인 [E01] | 계좌 목록은 경로 설정 필요. 실제 환경의 설정값은 이번 미조회. 앱 관심목록은 자체 DB 관리 | 목록 부재를 API 미지원 확정으로 해석하지 않음. 앱 목록 사용, KB-06 확인 |
 | M01 | KB 현재가 `IVU10140` | 공개 시세 목록 [E01] | REST 조회 구현. 호출 시 스냅샷이며 구독 아님 | R2 기준 스냅샷·출처/거래소 일치 검증에 재사용 |
 | M02 | KB 통합차트 `IVS11560` | 공개 목록·POST 경로 확인 [E01] | 앱은 DAILY/WEEKLY/MONTHLY만 허용. `MINUTE` enum이 있어도 서비스가 거절 | API 전체의 분봉 미지원으로 단정하지 않음. R2 스트리밍 분봉, R5 과거 해상도 별도 확인 |
-| M03 | KIS 국내 현재가·기간별 시세 | 공식 REST/실시간 예제 [E07] | `inquire-price`, `inquire-daily-itemchartprice` 구현 | R2 읽기 전용 Provider로 확장. 계좌/주문은 KB 유지 |
+| M03 | KIS 국내 현재가·기간별 시세 | 공식 REST/실시간 예제 [E07] | `inquire-price`, `inquire-daily-itemchartprice` 구현. 장 마감 모델 입력은 `inquire-daily-price`로 기준일 원주가를 대조 | R2 읽기 전용 Provider로 확장. 장 마감 모델은 두 종목의 오프라인 대조 완료, 실환경 확인 대기. [확정 기준과 검증](../project/daily-inference-integration.md) |
 | M04 | KIS 체결·호가 WebSocket | 공식 인증·구독 예제 확인 [E07] | 서버/앱 구현·025/026 적용·1종목/2구독 실키 수신 확인 | [실제 제한 표본](../market-data/public-tick-collection-recovery.md). 운영 기본 OFF, 더 큰 공유 한도·장기 운용·수급·세션 의미/시각 대조는 후속 |
 | M05 | KB 실시간 구독 | 이번 조사에서 스트리밍 계약 미확인 | KB REST 시세만 구현 | 미확인을 미지원으로 확정하지 않음. KIS 기반 수집을 먼저 설계하고 KB-06으로 확인 |
 | M06 | Toss 현재가·종목·캔들 | 이번 작업은 공식 최신 명세 재검증 범위에서 제외 | 기존 REST Provider 있음. 설정 기본 경로가 공식 지원 증거는 아님 | 기존 읽기 fallback 유지. 신규 연결/확대 전에 현재 계약·권한 검증 |

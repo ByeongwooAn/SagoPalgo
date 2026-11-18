@@ -20,7 +20,8 @@ public interface RecommendationMapper {
           'modelVersion', JSON_UNQUOTE(JSON_EXTRACT(a.raw_payload, '$.analysis.modelVersion')),
           'candleCount', JSON_LENGTH(JSON_EXTRACT(a.raw_payload, '$.request.candles')),
           'newsCount', JSON_LENGTH(JSON_EXTRACT(a.raw_payload, '$.request.news')),
-          'disclosureCount', JSON_LENGTH(JSON_EXTRACT(a.raw_payload, '$.request.disclosures'))
+          'disclosureCount', JSON_LENGTH(JSON_EXTRACT(a.raw_payload, '$.request.disclosures')),
+          'dailySignal', JSON_EXTRACT(a.raw_payload, '$.dailySignal')
         ) ELSE NULL END FROM analysis_snapshots a
         WHERE a.recommendation_id = recommendations.recommendation_id
           AND a.user_id = recommendations.user_id ORDER BY a.snapshot_id DESC LIMIT 1) AS analysis_evidence,
