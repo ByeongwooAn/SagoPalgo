@@ -50,7 +50,9 @@ H05 소각일 미기재 121행 중 보통주 120행의 세이브로 수량을 �
 
 2026년 지급일 차이 11건과 삼익제약 복수일 1건을 배당 회차에 연결했습니다. 신라교역의 예정일과 발행사 보고 지급일을 구분했고, 차이 10건과 삼익제약의 날짜별 지급 범위는 미확인입니다. [12건 판정](../historical-data/corporate-actions/historical-dividend-2026-date-reconciliation.md)
 
-대금지급일정 단독 후보 24행 중 22행을 발행사 회차에 연결했으며 상장형 수익증권 2행의 미연결 사유를 기록했습니다. 대상 시장의 양수 보통주 배당 7행 중 1행은 사후 지급일과 일치합니다. 다음 실행 단위는 **동일 종목·지급일 복수 대응 후보 4행**입니다. 기준일·주당액·지급 차수로 각 행을 회차에 연결하거나 미연결 사유를 기록합니다. 지급일 누락 6행과 공급자 집계 차이 28건의 근거는 남아 있습니다. [24행 판정과 다음 대상](../historical-data/corporate-actions/historical-dividend-payment-schedule-reconciliation.md)
+대금지급일정 단독 후보 24행 중 22행을 발행사 회차에 연결했으며 상장형 수익증권 2행의 미연결 사유를 기록했습니다. 대상 시장의 양수 보통주 배당 7행 중 1행은 사후 지급일과 일치합니다. [24행 판정](../historical-data/corporate-actions/historical-dividend-payment-schedule-reconciliation.md)
+
+동일 종목·지급일 복수 대응 후보 4행을 시알홀딩스 결산배당과 스톰테크 중간배당에 연결했습니다. 다음 실행 단위는 **배당내역 지급일 누락 6행**입니다. 회차 상세와 발행사 원문에서 지급일 또는 미확인 사유를 기록합니다. 공급자 집계 차이 28건의 근거와 두 차등배당 회차의 일 단위 실제 지급일은 미확인입니다. [4행 판정과 다음 대상](../historical-data/corporate-actions/historical-dividend-ambiguous-schedule.md)
 
 H05 거래소 조치는 [기존 표본과 2023년 12월 확대 검토](../historical-data/corporate-actions/historical-market-action-expansion.md) 163건과 [월별 원문 대조](../historical-data/corporate-actions/historical-market-action-monthly.md) 3,870건으로 고정 목록 4,033건의 검토 기록을 갖췄습니다. [상호·보통주 식별자 대조](../historical-data/corporate-actions/historical-market-action-identity.md)에서 고정 범위 내 247행의 당시 코드와 ISIN을 확인했습니다. [코스피 적용 주권 대조](../historical-data/corporate-actions/historical-kospi-halt-scope.md)에서 390건에 KRX 20011 조회 응답 547개를 연결하고 미반환 91개 중 89개를 KIND 종목 범위와 공지상 적용일에 연결했습니다. 삼양홀딩스1우선주의 나머지 2개 날짜의 적용 여부와 실제 조치 시각에는 종목별 상태 전환 자료가 필요하며 당시 최초 공개 시각은 H06에서 확인합니다. 2023년 12월 코스피 7종목의 분 단위 적용 시각은 [보류 작업](deferred-work.md)에서 추적합니다.
 
