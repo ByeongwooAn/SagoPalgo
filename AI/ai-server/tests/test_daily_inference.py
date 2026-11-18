@@ -10,6 +10,7 @@ import pytest
 from app import daily_inference
 from app.main import app
 from app.replay.daily_learning import FINAL, load_snapshot
+from app.replay.us_daily_learning import audit_capture
 
 
 PATH = "/internal/ai/infer-daily"
@@ -58,6 +59,51 @@ def test_rejects_unusable_input_before_loading_the_model(client, problem):
         case "zeroVolume": rows[-1]["volume"] = 0
         case "invalidHigh": rows[-1]["high"] = 1
     assert client.post(PATH, json=request).status_code == 422
+
+
+def test_market_mismatch_and_krx_fractional_price_are_rejected(client):
+    request = payload("AAPL")
+    assert client.post(PATH, json=request).status_code == 422
+    request = payload()
+    request["bars"][0]["opened"] += 0.125
+    assert client.post(PATH, json=request).status_code == 422
+
+
+@pytest.mark.skipif(environ.get("SAGOPALGO_VERIFY_FROZEN_DAILY") != "1", reason="requires private local artifacts")
+@pytest.mark.parametrize("code", ["AAPL", "NVDA"])
+def test_us_frozen_model_matches_all_offline_probabilities(client, code, monkeypatch):
+    artifacts = Path("research-artifacts")
+    models = artifacts / "us-daily-learning-v1"
+    monkeypatch.setenv("SAGOPALGO_US_DAILY_MODEL_DIR", str(models))
+    report = json.loads((models / "evaluation.json").read_bytes())["stocks"][code]
+    sessions, records, _, _ = audit_capture(artifacts / "us-daily-capture-20261119")
+    indices = {str(day): index for index, day in enumerate(sessions)}
+    threshold = report["threshold"]
+    rows = report["details"]["finalRows"]
+    errors = []
+    for offline in rows:
+        index = indices[offline["signalDate"]]
+        bars = [records[code][day] for day in sessions[index - 20:index + 1]]
+        assert str(sessions[index + 1]) == offline["targetDate"]
+        response = client.post(PATH, json={
+            "stockCode": code, "market": "NASDAQ", "provider": "KIS", "priceBasis": "RAW",
+            "signalDate": offline["signalDate"], "bars": [
+                {"businessDate": bar.date, "opened": bar.opened, "high": bar.high,
+                 "low": bar.low, "closed": bar.closed, "volume": bar.volume}
+                for bar in bars
+            ],
+        })
+        assert response.status_code == 200
+        result = response.json()
+        assert result["stockCode"] == code and result["signalDate"] == offline["signalDate"]
+        assert result["modelVersion"] == daily_inference.US_MODEL_VERSION
+        assert result["modelSha256"] == report["modelSha256"] and result["threshold"] == threshold
+        actual, expected = result["probability"], offline["upProbability"]
+        assert (threshold is not None and actual >= threshold) == (threshold is not None and expected >= threshold)
+        errors.append(abs(actual - expected))
+    assert len(errors) == 143
+    assert max(errors) < 1e-12
+    print(f"{code} {len(errors)} dates · max |Δp|={max(errors):.3g}")
 
 
 @pytest.mark.skipif(environ.get("SAGOPALGO_VERIFY_FROZEN_DAILY") != "1", reason="requires private local artifacts")

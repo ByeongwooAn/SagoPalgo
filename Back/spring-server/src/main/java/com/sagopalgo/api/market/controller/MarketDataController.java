@@ -11,6 +11,8 @@ import com.sagopalgo.api.market.model.CandleInterval;
 import com.sagopalgo.api.market.service.MarketCandleService;
 import com.sagopalgo.api.market.service.MarketStockInfoService;
 import com.sagopalgo.api.market.service.MarketPriceService;
+import com.sagopalgo.api.recommendation.dto.DailySignal;
+import com.sagopalgo.api.recommendation.service.DailySignalService;
 import java.util.Locale;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,15 +30,32 @@ public class MarketDataController {
     private final MarketCandleService marketCandleService;
     private final MarketStockInfoService marketStockInfoService;
     private final MarketPriceService marketPriceService;
+    private final DailySignalService dailySignalService;
 
     public MarketDataController(
         MarketCandleService marketCandleService,
         MarketStockInfoService marketStockInfoService,
-        MarketPriceService marketPriceService
+        MarketPriceService marketPriceService,
+        DailySignalService dailySignalService
     ) {
         this.marketCandleService = marketCandleService;
         this.marketStockInfoService = marketStockInfoService;
         this.marketPriceService = marketPriceService;
+        this.dailySignalService = dailySignalService;
+    }
+
+    @GetMapping("/stocks/{stockCode}/daily-signal")
+    public ResponseEntity<ApiResponse<DailySignal>> getUsDailySignal(
+        @org.springframework.web.bind.annotation.PathVariable String stockCode,
+        @RequestParam String market
+    ) {
+        String symbol = stockCode.strip().toUpperCase(Locale.ROOT);
+        String exchange = market.strip().toUpperCase(Locale.ROOT);
+        if (!DailySignalService.supportsUs(symbol, exchange)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "일봉 모델은 NASDAQ의 AAPL과 NVDA를 지원합니다.");
+        }
+        return ResponseEntity.ok(ApiResponse.success(dailySignalService.analyze(symbol, exchange),
+            "미국주식 장 마감 모델 신호를 조회했습니다."));
     }
 
     @GetMapping("/stocks/{stockCode}")

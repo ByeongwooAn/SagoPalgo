@@ -104,6 +104,42 @@ class DailySignalServiceTest {
         verifyNoInteractions(kis, ai);
     }
 
+    @Test
+    void nasdaqUsesNewYorkBasisAndExpiresAtEarlyClose() {
+        LocalDate basis = LocalDate.parse("2026-11-25");
+        var request = new MarketDataRequest("AAPL", "NASDAQ");
+        var rows = NasdaqDailySignalCalendar.window(basis).stream()
+            .map(day -> candle(request, day, "1200")).toList();
+        assertThat(rows).hasSize(21);
+        when(kis.usRawDailyCandles(request, basis)).thenReturn(rows);
+        when(kis.usRawDailyCandles(request, null)).thenReturn(List.of(rows.get(20)));
+        when(ai.inferDaily(any())).thenReturn(Optional.of(new DailyInference.Result("AAPL", basis,
+            "us-daily-l2-logistic-v1", "a".repeat(64), 0.6, 0.6, Map.of(
+                "openToClose", 0.1, "closeReturn1", 0.1, "closeReturn5", 0.1, "closeReturn20", 0.1,
+                "rangeOverOpen", 0.1, "closeVolatility20", 0.1, "volumeRatio20", 0.1))));
+
+        var signal = service("2026-11-26T10:20:00+09:00").analyze("AAPL", "NASDAQ");
+        assertThat(signal.basisDate()).isEqualTo(basis);
+        assertThat(signal.decision()).isEqualTo("BUY_WATCH");
+        assertThat(signal.expiresAt()).isEqualTo(OffsetDateTime.parse("2026-11-27T13:00:00-05:00"));
+        assertThat(signal.inputVersion()).isEqualTo("kis-nasdaq-raw-ohlcv-v1");
+    }
+
+    @Test
+    void nasdaqWithholdsUntilNewYorkConfirmationAndAcrossSplit() {
+        var duringConfirmation = service("2026-11-19T09:30:00+09:00").analyze("NVDA", "NASDAQ");
+        assertThat(duringConfirmation.basisDate()).isEqualTo(LocalDate.parse("2026-11-18"));
+        assertThat(duringConfirmation.holdReason()).isEqualTo("BAR_NOT_FINAL");
+        verifyNoInteractions(kis, ai);
+        LocalDate split = LocalDate.parse("2024-06-10");
+        var request = new MarketDataRequest("NVDA", "NASDAQ");
+        when(kis.usRawDailyCandles(request, split)).thenReturn(NasdaqDailySignalCalendar.window(split).stream()
+            .map(day -> candle(request, day, "1200")).toList());
+        var acrossSplit = service("2024-06-10T20:20:00-04:00").analyze("NVDA", "NASDAQ");
+        assertThat(acrossSplit.holdReason()).isEqualTo("BAR_MISSING_OR_INVALID");
+        verifyNoInteractions(ai);
+    }
+
     private void stubValidInput(String code, LocalDate basisDate, double probability, double threshold) {
         List<LocalDate> dates = KrxDailySignalCalendar.window(basisDate);
         MarketDataRequest request = new MarketDataRequest(code, "KOSPI");
