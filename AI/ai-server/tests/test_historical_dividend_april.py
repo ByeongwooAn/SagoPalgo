@@ -12,12 +12,15 @@ from app.replay.historical_dividend_month import (
     ESRKS_HISTORY_URL,
     HYUNDAI_HISTORY_ID,
     HYUNDAI_HISTORY_URL,
+    IR_HTML,
+    KBIF_2026_Q1_ID,
     SKREIT_HISTORY_ID,
     SKREIT_HISTORY_URL,
     hyundai_payment,
     issuer_history_payment,
     load_document,
     prior_field,
+    read_ir_source,
     reported_payment,
     skreit_payment,
 )
@@ -71,6 +74,37 @@ def test_post_payment_filing_does_not_turn_a_schedule_into_an_actual_payment(mar
     proof = {"receipt": "20251114000708", "reportedOn": "2025-11-14"}
     with pytest.raises(ResearchError, match="APRIL_PAYMENT_EXPRESSION"):
         manual_payment(target, entry, {marker}, proof)
+
+
+def test_distribution_report_uses_payment_column_following_resolution_date():
+    target = {"symbol": "415640", "recordDate": "2025-12-31", "displayedPaymentDate": "2026-02-27"}
+    marker = "분배금 결의일 분배금 지급일 이익분배금 원본상환액 합계 2026-01-30 2026-02-27 39,827,303,100"
+    proof = {"receipt": KBIF_2026_Q1_ID, "reportedOn": "2026-04-30"}
+    entry = {"value": "2026-02-27", "marker": marker}
+    assert manual_payment(target, entry, {marker}, proof)["status"] == "MATCH"
+    with pytest.raises(ResearchError, match="APRIL_PAYMENT_EXPRESSION"):
+        manual_payment(target, entry | {"value": "2026-01-30"}, {marker}, proof)
+
+
+def test_archived_issuer_html_requires_original_hash(tmp_path):
+    source = "kbif-2026-h1-decision"
+    folder = tmp_path / "ir" / source
+    folder.mkdir(parents=True)
+    original = folder / "original.html"
+    raw = "<table><tr><td>분배기준일</td><td>2026-08-18</td></tr></table>".encode()
+    original.write_bytes(raw)
+    url, _, _ = IR_HTML[source]
+    proof = canonical({"url": url, "sha256": digest(raw), "startedAt": "2026-11-18T00:00:00Z",
+                       "capturedAt": "2026-11-18T00:01:00Z"})
+    (folder / "receipt.json").write_bytes(proof)
+    pin = {"sha256": digest(proof)}
+    at = datetime(2026, 11, 18, 1, tzinfo=timezone.utc)
+    text, evidence = read_ir_source(tmp_path, source, pin, at)
+    assert text == "분배기준일 2026-08-18"
+    assert evidence["sourceUrl"] == url
+    original.write_bytes(raw + b" ")
+    with pytest.raises(ResearchError, match="HASH"):
+        read_ir_source(tmp_path, source, pin, at)
 
 
 def test_two_distributions_require_the_selected_round_in_the_same_marker():
