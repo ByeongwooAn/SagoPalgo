@@ -1,6 +1,8 @@
 # 1~5번 작업 완료율과 고정 체크리스트
 
-2026-11-18 [H05 세이브로 대금지급일정 단독 후보 24행](../historical-data/corporate-actions/historical-dividend-payment-schedule-reconciliation.md)의 행별 대조를 완료했습니다. 발행사 회차 연결 22행, 상장형 수익증권 2행이며 다음은 동일 종목·지급일 복수 대응 후보 4행입니다. 5-08은 진행 중입니다.
+2026-11-18 [H05 동일 종목·지급일 복수 대응 후보 4행](../historical-data/corporate-actions/historical-dividend-ambiguous-schedule.md)을 두 차등배당 회차에 연결했습니다. 다음은 지급일 누락 6행입니다. 5-08은 진행 중입니다.
+
+2026-11-18 [H05 세이브로 대금지급일정 단독 후보 24행](../historical-data/corporate-actions/historical-dividend-payment-schedule-reconciliation.md)의 행별 대조를 완료했습니다. 발행사 회차 연결 22행, 상장형 수익증권 2행입니다. 5-08은 진행 중입니다.
 
 2026-11-18 [H05 2026년 지급일 차이·복수일 12건](../historical-data/corporate-actions/historical-dividend-2026-date-reconciliation.md)을 후속 대조했습니다. 12건 모두 동일 배당 회차에 연결했고, 신라교역 1건의 날짜 의미를 구분했습니다. 삼익제약 두 날짜의 배분과 나머지 10건의 차이 원인은 미확인입니다. 5-08은 진행 중입니다.
 

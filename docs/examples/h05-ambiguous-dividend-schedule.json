@@ -1,0 +1,667 @@
+{
+  "fixedCensus": {
+    "path": "action-outcome-census-20261108/outcome-census.json",
+    "sha256": "8bb95c3f3811dcc9ce9e17b17fe85f0a593ec24b751eaf26e8c1802cd422274e",
+    "status": "AMBIGUOUS_SCHEDULE_LINK"
+  },
+  "historicalFirstAvailabilityConfirmed": false,
+  "reviewedAt": "2026-11-18T02:21:18.214868+00:00",
+  "rounds": [
+    {
+      "dartDocumentStatuses": {
+        "20240220800286": "CAPTURED",
+        "20240305000398": "CAPTURED",
+        "20240311800127": "CAPTURED",
+        "20240313001576": "CAPTURED",
+        "20240313001708": "DART_014",
+        "20240315000607": "CAPTURED",
+        "20240321800269": "CAPTURED",
+        "20240321800394": "CAPTURED",
+        "20240514001413": "CAPTURED",
+        "20240624800075": "CAPTURED",
+        "20240624800077": "CAPTURED",
+        "20240814003732": "CAPTURED"
+      },
+      "dartIndexes": [
+        {
+          "capturedAt": "2026-11-18T02:17:54.173016+00:00",
+          "path": "index/000480-20231231-01-post",
+          "receiptSha256": "1212e2e054537f68fae0036fc85f5b908d40b9825983f28d9cc8773e1b1b0705",
+          "request": {
+            "bgn_de": "20231101",
+            "corp_code": "00148984",
+            "end_de": "20240831",
+            "last_reprt_at": "N",
+            "page_count": "100",
+            "page_no": "1"
+          },
+          "returnedRows": 42,
+          "sha256": "9b3bc339fd199c89564802e7fc19e0da55c822fd07609c46c36d19435263b675",
+          "startedAt": "2026-11-18T02:17:54.039706+00:00"
+        }
+      ],
+      "displayedPaymentDate": "2024-03-28",
+      "issuer": "시알홀딩스",
+      "issuerApprovedTotalKrw": 15601735813,
+      "issuerDifferentialKrw": "351",
+      "issuerDifferentialMarketYieldPercent": "5.34",
+      "issuerEvidence": [
+        {
+          "archiveSha256": "8cfe07efed980c89363ab8255c128aa035e221add60248014d569989187b8eb6",
+          "cache": "h05-ambiguous-dividend-20261118",
+          "markers": [
+            "보통주식 410",
+            "1인의 1주당 배당금은 351원",
+            "5.34%",
+            "15,601,735,813"
+          ],
+          "observedAt": "2026-11-18T02:16:35.453231+00:00",
+          "receipt": "20240311800127",
+          "receiptSha256": "123f41872a1d2ff9434d917bb72f663bb552a41af5c0ab86a24f1b7ea6dc7db3",
+          "reportedOn": "2024-03-11",
+          "role": "최종 배당 결정",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240311800127",
+          "status": "CAPTURED",
+          "title": "[기재정정]현금ㆍ현물배당결정"
+        },
+        {
+          "archiveSha256": "5b32d72956e204d13f08a234618306e1b2bdff0ce9465df7586060546756948e",
+          "cache": "h05-ambiguous-dividend-20261118",
+          "markers": [
+            "1인의 1주당 배당금은 350원",
+            "15,725,754,560"
+          ],
+          "observedAt": "2026-11-18T02:16:35.922959+00:00",
+          "receipt": "20240220800286",
+          "receiptSha256": "c464a6e8752b4ffb048ab3a3c33ebb8149f3651a89b9b10255898041fc94a932",
+          "reportedOn": "2024-02-20",
+          "role": "정정 전 배당 결정",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240220800286",
+          "status": "CAPTURED",
+          "title": "현금ㆍ현물배당결정"
+        },
+        {
+          "archiveSha256": "0039f4b05d3402d2956f66da8c100f150a92ff93a1357901ceaf6ae416959e33",
+          "cache": "h05-ambiguous-dividend-20261118",
+          "markers": [
+            "주주총회일자 2024-03-21",
+            "기말배당금 410",
+            "15,601,735,813",
+            "351원",
+            "5.34%"
+          ],
+          "observedAt": "2026-11-18T02:16:34.301976+00:00",
+          "receipt": "20240321800394",
+          "receiptSha256": "5db7883c26e273dd0f3e5d958d05fb9826f0c036083570543e782a81be24a397",
+          "reportedOn": "2024-03-21",
+          "role": "정정 주총 결과",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240321800394",
+          "status": "CAPTURED",
+          "title": "[기재정정]정기주주총회결과"
+        },
+        {
+          "archiveSha256": "23d3509ced3fd859272125c5eb87e2320afba614aa5e47ffb4e1d797ee0ed32e",
+          "cache": "h05-ambiguous-dividend-20261118",
+          "markers": [
+            "배당금지급 (15,598,989,173)"
+          ],
+          "observedAt": "2026-11-18T02:16:34.133646+00:00",
+          "receipt": "20240514001413",
+          "receiptSha256": "a477ef9330b3a271ca858284510b74103f0d98302dd6ea4e05bd3ed0f78a6dda",
+          "reportedOn": "2024-05-14",
+          "role": "분기 배당금 지급 합계",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240514001413",
+          "status": "CAPTURED",
+          "title": "분기보고서 (2024.03)"
+        },
+        {
+          "archiveSha256": "5d1f0ddf557149e11fcc3b6763b58bd4d66d8e0bdb2557069bf071f6a1c5ab55",
+          "cache": "h05-dividend-2024-july-20261117",
+          "markers": [
+            "배당금지급 (15,598,989,173)"
+          ],
+          "observedAt": "2026-11-16T23:59:56.007739+00:00",
+          "receipt": "20240814003732",
+          "receiptSha256": "1ebf5080de62b8889cb523aa17d860bcaa99ddfe3d995946bffd94e1ef29968e",
+          "reportedOn": "2024-08-14",
+          "role": "반기 배당금 지급 합계",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240814003732",
+          "status": "CAPTURED",
+          "title": "반기보고서 (2024.06)"
+        }
+      ],
+      "issuerGeneralKrw": "410",
+      "issuerPayment": {
+        "actualDate": null,
+        "cashFlowBelowApprovedTotalKrw": 2746640,
+        "reason": "정정·승인액과 별도 현금흐름표 지급 합계가 다르고 정확한 지급일을 명시한 발행사 보고는 미확인",
+        "reportedCashFlowKrw": 15598989173,
+        "reportedCashFlowThrough": "2024-03-31",
+        "scheduledDate": null
+      },
+      "market": "KOSPI",
+      "recordDate": "2023-12-31",
+      "roundType": "제76기 결산배당",
+      "rows": [
+        {
+          "allocationDetail": "DIFFERENTIAL_AMOUNT",
+          "issueDetailRowSha256": "ac161a748d5b420749358efd52965811e63cfdc492d514a6bdd7fa83149869c7",
+          "paymentInstallment": 1,
+          "scheduleRowSha256": "038d6a9e4b6f365b56606e2968bea5401ad896e9e4bcee033b4d93b503463cad",
+          "statRawRow": {
+            "AG_ORG_TPNM": "국민은행",
+            "CASH_ALOC_AMT": "410",
+            "CASH_ALOC_RATIO": "82",
+            "DELI_DT": "",
+            "DIFF_ALOC_AMT": "351",
+            "DIFF_ALOC_RATIO1": "",
+            "DIFF_ALOC_RATIO2": "",
+            "DIFF_ALOC_RATIO3": ".702",
+            "ESTM_STDPRC": "410",
+            "ISSUCO_CUSTNO": "48",
+            "KN_DIV_PAY_DT": "",
+            "KOR_SECN_NM": "시알홀딩스",
+            "LIST_TPNM": "유가증권시장",
+            "PVAL": "500",
+            "RGT_RACD": "103",
+            "RGT_RSN_DTAIL_SORT_NM": "현금배당",
+            "RGT_STD_DT": "20231231",
+            "SECN_DTAIL_KANM": "보통주",
+            "SETACC_MM": "12",
+            "SETACC_MMDD": "1231",
+            "SHOTN_ISIN": "000480",
+            "STK_ALOC_RATIO": "0",
+            "STK_FIX_RATIO": "0",
+            "TH1_PAY_TERM_BEGIN_DT": "20240328"
+          },
+          "statRowSha256": "9c5dbabfc260eed1ee6f0896fb1796a04050a6afb2464c0c0f1a5c4c79fb36c5",
+          "status": "LINKED_TO_SAME_ISSUER_ROUND"
+        },
+        {
+          "allocationDetail": "DIFFERENTIAL_MARKET_YIELD",
+          "issueDetailRowSha256": "cd7af7e2094f6d21fd2c4773ef3ae6c147cbf479e235b727aa4160237a400e16",
+          "paymentInstallment": 1,
+          "scheduleRowSha256": "038d6a9e4b6f365b56606e2968bea5401ad896e9e4bcee033b4d93b503463cad",
+          "statRawRow": {
+            "AG_ORG_TPNM": "국민은행",
+            "CASH_ALOC_AMT": "410",
+            "CASH_ALOC_RATIO": "82",
+            "DELI_DT": "",
+            "DIFF_ALOC_AMT": "",
+            "DIFF_ALOC_RATIO1": "",
+            "DIFF_ALOC_RATIO2": "",
+            "DIFF_ALOC_RATIO3": "",
+            "ESTM_STDPRC": "410",
+            "ISSUCO_CUSTNO": "48",
+            "KN_DIV_PAY_DT": "",
+            "KOR_SECN_NM": "시알홀딩스",
+            "LIST_TPNM": "유가증권시장",
+            "PVAL": "500",
+            "RGT_RACD": "103",
+            "RGT_RSN_DTAIL_SORT_NM": "현금배당",
+            "RGT_STD_DT": "20231231",
+            "SECN_DTAIL_KANM": "보통주",
+            "SETACC_MM": "12",
+            "SETACC_MMDD": "1231",
+            "SHOTN_ISIN": "000480",
+            "STK_ALOC_RATIO": "0",
+            "STK_FIX_RATIO": "0",
+            "TH1_PAY_TERM_BEGIN_DT": "20240328"
+          },
+          "statRowSha256": "b58f7c918b3a158bbee2167b2499df7d33eba9c767e0f8dc79c1b16b39af23cf",
+          "status": "LINKED_TO_SAME_ISSUER_ROUND"
+        }
+      ],
+      "scheduleRowSha256": "038d6a9e4b6f365b56606e2968bea5401ad896e9e4bcee033b4d93b503463cad",
+      "seibroAllocations": [
+        {
+          "CASH_ALOC_AMT": "410",
+          "CASH_ALOC_RATIO": "82",
+          "DIFF_ALOC_AMT": "351",
+          "DIFF_ALOC_RATIO": "70.2",
+          "DIFF_ALOC_RATIO2": "",
+          "DIFF_ALOC_RATIO3": "",
+          "KOR_SECN_NM": "시알홀딩스",
+          "MARTP_DIV_RATE": "6.24",
+          "SHOTN_ISIN": "000480",
+          "STK_FIX_RATIO": "0",
+          "STK_KACD": "보통주"
+        },
+        {
+          "CASH_ALOC_AMT": "410",
+          "CASH_ALOC_RATIO": "82",
+          "DIFF_ALOC_AMT": "",
+          "DIFF_ALOC_RATIO": "5.34",
+          "DIFF_ALOC_RATIO2": "5.34",
+          "DIFF_ALOC_RATIO3": "",
+          "KOR_SECN_NM": "시알홀딩스",
+          "MARTP_DIV_RATE": "6.24",
+          "SHOTN_ISIN": "000480",
+          "STK_FIX_RATIO": "0",
+          "STK_KACD": "보통주"
+        }
+      ],
+      "seibroEvidence": {
+        "fixedSchedule": {
+          "bodySha256": "5089bffd38d1b527303abc21ae36439978bcf38c9082c72e1d0763a4cf1ba914",
+          "capture": "ksd-payment-KOSPI-2024-rows",
+          "observedAt": "2026-11-07T16:31:31.135453+00:00",
+          "receiptSha256": "374c822219887e15836a0e352d39a8b50a2aa018e4b7c54343ec0c75733b16cf",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "fixedStat": {
+          "bodySha256": "f82da98756f9905f64eeca6a1baa5159da8197b2c80fddf57e9a51bf7b2af53c",
+          "capture": "ksd-stat-KOSPI-2023-rows",
+          "observedAt": "2026-11-07T16:30:40.039773+00:00",
+          "receiptSha256": "b19c3bb6f39c52ef33db53cb10c4cce68b3348debca8adc6dcc3f30a07fe7c92",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "issue": {
+          "bodySha256": "d258c988e0977b7ba6a8347bea982995770767d64596d24a06d38c98f64fb575",
+          "capture": "ksd-000480-issue",
+          "observedAt": "2026-11-18T02:16:25.761573+00:00",
+          "receiptSha256": "2e2b26dbe777ca66d065697ec08865afa3b2a46f64f9c58897bbf1ce18e8080a",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment": {
+          "bodySha256": "9d0319d5fe16ed15944cd9d4e2ac7e9bc3ff33a26fffc9f44f9bd99735d6d112",
+          "capture": "ksd-000480-payment",
+          "observedAt": "2026-11-18T02:16:25.754257+00:00",
+          "receiptSha256": "0635da4d18c9c76d721be817ea3e9b30c7174d716762670bc423a05b93a91073",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment-count": {
+          "bodySha256": "812e86d5312058c0a10f36b9cf97012bc63e7e2f61e618bfc2e1accd6915ce22",
+          "capture": "ksd-000480-payment-count",
+          "observedAt": "2026-11-18T02:16:26.060670+00:00",
+          "receiptSha256": "d53ea2f032afada163955532c27aac6ac23e0136ec19cd6653809fb55f0c50b2",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment-rows": {
+          "bodySha256": "8a7ce1e77eca1f5ab1e2c0a776c7c65aa46a420e93a56848693ec056e8babdf7",
+          "capture": "ksd-000480-payment-rows",
+          "observedAt": "2026-11-18T02:16:26.146215+00:00",
+          "receiptSha256": "58828b3f1f7e6b9620f8fadd4dfbc3d5c411b271ec65a36c6b738a962cf39249",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "round": {
+          "bodySha256": "5c11701acdd10f0bde68a25d3b9094ca55bd6041868f685a9913e7f498c60895",
+          "capture": "ksd-000480-round",
+          "observedAt": "2026-11-18T02:16:25.762307+00:00",
+          "receiptSha256": "383bca7758b7a2abbaba91b19c6dc71be00d2d9523e1b5d9f93bd863a1ff34f9",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-count": {
+          "bodySha256": "955f85a11d6101ede32cd4b14c83bfbe66603a102c653cf405eddc50068391fb",
+          "capture": "ksd-000480-stat-count",
+          "observedAt": "2026-11-18T02:16:25.822862+00:00",
+          "receiptSha256": "a27d5e765b15e2ee9c49c130b9740390954d6d854f1f0c84458546d6677a9cb6",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-rows": {
+          "bodySha256": "72fed1a45b8d9a0eca2446e6bc7c4cb636f2a8ef1e31eba49453f0bf2ed367b8",
+          "capture": "ksd-000480-stat-rows",
+          "observedAt": "2026-11-18T02:16:26.228930+00:00",
+          "receiptSha256": "5a610ca889153ee2cb3702f019de3b63aae0c91b44f46edc88157e4594eb399b",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        }
+      },
+      "seibroPayments": [
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "20240328",
+          "RN": "1"
+        },
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "2"
+        }
+      ],
+      "seibroRound": {
+        "AG_ORG_TPCD": "국민은행",
+        "ALOC_WHCD": "정액",
+        "CALTOT_MART_TPCD": "유가증권시장",
+        "FIX_TPCD": "확정",
+        "GMET_OMEET_DT": "20240321",
+        "LONGTM_TAX_RDEX_TPCD_NM": "No",
+        "PVAL": "500",
+        "REP_SECN_NM": "시알홀딩스",
+        "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+        "ROST_CLOSE_BEGIN_DT": "20240101",
+        "ROST_CLOSE_EXPRY_DT": "20240131",
+        "SETACC_MM": "12",
+        "SETACC_TPCD": "결산",
+        "TAXA_STND_RATIO": "1",
+        "TOTAL_ISSU_QTY": "46890490"
+      },
+      "symbol": "000480",
+      "uniqueRound": true
+    },
+    {
+      "dartDocumentStatuses": {
+        "20240729900400": "CAPTURED",
+        "20240729900460": "CAPTURED",
+        "20240814003671": "CAPTURED",
+        "20240819000280": "CAPTURED",
+        "20240819000283": "CAPTURED",
+        "20241128001252": "CAPTURED",
+        "20241212901052": "CAPTURED",
+        "20250213901544": "CAPTURED",
+        "20250313001364": "CAPTURED",
+        "20250321001827": "CAPTURED",
+        "20250331902777": "CAPTURED"
+      },
+      "dartIndexes": [
+        {
+          "capturedAt": "2026-11-18T02:17:54.348803+00:00",
+          "path": "index/352090-20240813-01-post",
+          "receiptSha256": "4e894c624c36c5f7c3b2cc95f0dae1a1523b389f5ac4602228176f8c33f1504c",
+          "request": {
+            "bgn_de": "20240614",
+            "corp_code": "01226270",
+            "end_de": "20250331",
+            "last_reprt_at": "N",
+            "page_count": "100",
+            "page_no": "1"
+          },
+          "returnedRows": 34,
+          "sha256": "a30c35095b052c9b5b3ea9375fec8cbbe64f47b3f121bab4d75b1142e785417b",
+          "startedAt": "2026-11-18T02:17:54.040704+00:00"
+        }
+      ],
+      "displayedPaymentDate": "2024-08-28",
+      "issuer": "스톰테크",
+      "issuerApprovedTotalKrw": 2765371180,
+      "issuerDifferentialKrw": "200",
+      "issuerDifferentialMarketYieldPercent": "2.84",
+      "issuerEvidence": [
+        {
+          "archiveSha256": "a2f61e35b381d5418ca98dbd64e1ede82e33856b3cb41de5362047d731fafe45",
+          "cache": "h05-ambiguous-dividend-20261118",
+          "markers": [
+            "보통주식 220",
+            "3인의 1주당 배당금은 200원",
+            "2.84%",
+            "2,765,371,180"
+          ],
+          "observedAt": "2026-11-18T02:16:37.080241+00:00",
+          "receipt": "20240729900460",
+          "receiptSha256": "04be988a180c346578042c139ed477c013462396d0d1f0a119ea60780ff5d699",
+          "reportedOn": "2024-07-29",
+          "role": "최종 배당 결정",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240729900460",
+          "status": "CAPTURED",
+          "title": "현금ㆍ현물배당결정              (중간배당)"
+        },
+        {
+          "archiveSha256": "d5601084be766cb447ce409affcba23d797da6579570fd00ec607cf262b21575",
+          "cache": "h05-dividend-2024-april-20261117",
+          "markers": [
+            "배당금지급 예정일 2024-08-28"
+          ],
+          "observedAt": "2026-11-16T15:14:20.350033+00:00",
+          "receipt": "20240819000283",
+          "receiptSha256": "be51ece24f0051074efe1632130c531f2956d845b423a9baa9d4b02258684bcf",
+          "reportedOn": "2024-08-19",
+          "role": "정정 반기보고서 일정",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240819000283",
+          "status": "CAPTURED",
+          "title": "[기재정정]반기보고서 (2024.06)"
+        },
+        {
+          "archiveSha256": "d60da4d5257fca8750e83dd7bdb88868605e16129cbbcde0de186fb0b2adc71a",
+          "cache": "h05-ambiguous-dividend-20261118",
+          "markers": [
+            "중간배당 2,765,371천원",
+            "2024년 8월 중 지급되었습니다"
+          ],
+          "observedAt": "2026-11-18T02:16:36.433854+00:00",
+          "receipt": "20241128001252",
+          "receiptSha256": "c0b01aad7166de7ec263060d729a1433b0db84cf7333d7fb66017f53b184a62a",
+          "reportedOn": "2024-11-28",
+          "role": "분기보고서 지급월",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20241128001252",
+          "status": "CAPTURED",
+          "title": "분기보고서 (2024.09)"
+        }
+      ],
+      "issuerGeneralKrw": "220",
+      "issuerPayment": {
+        "actualDate": null,
+        "reason": "사후 보고는 지급월을 기재하고 공시와 일치하는 일 단위 표시는 지급예정일",
+        "reportedInterimCashPaidKrwRoundedToThousands": 2765371000,
+        "reportedPaymentMonth": "2024-08",
+        "scheduledDate": "2024-08-28"
+      },
+      "market": "KOSDAQ",
+      "recordDate": "2024-08-13",
+      "roundType": "2024년 중간배당",
+      "rows": [
+        {
+          "allocationDetail": "DIFFERENTIAL_AMOUNT",
+          "issueDetailRowSha256": "726cfad9e610b3c1502e94e4551f9fa4d8ad14237c0d943ff582c5d16430c534",
+          "paymentInstallment": 1,
+          "scheduleRowSha256": "fa78e5c70d03f9d8b2c710ee7b1d39eecf1cd1ad0bb47abe959d54f7651f73a2",
+          "statRawRow": {
+            "AG_ORG_TPNM": "한국예탁결제원",
+            "CASH_ALOC_AMT": "220",
+            "CASH_ALOC_RATIO": "220",
+            "DELI_DT": "",
+            "DIFF_ALOC_AMT": "200",
+            "DIFF_ALOC_RATIO1": "",
+            "DIFF_ALOC_RATIO2": "",
+            "DIFF_ALOC_RATIO3": "2",
+            "ESTM_STDPRC": "0",
+            "ISSUCO_CUSTNO": "38482",
+            "KN_DIV_PAY_DT": "",
+            "KOR_SECN_NM": "스톰테크",
+            "LIST_TPNM": "코스닥시장",
+            "PVAL": "100",
+            "RGT_RACD": "103",
+            "RGT_RSN_DTAIL_SORT_NM": "현금배당",
+            "RGT_STD_DT": "20240813",
+            "SECN_DTAIL_KANM": "보통주",
+            "SETACC_MM": "12",
+            "SETACC_MMDD": "1231",
+            "SHOTN_ISIN": "352090",
+            "STK_ALOC_RATIO": "0",
+            "STK_FIX_RATIO": "0",
+            "TH1_PAY_TERM_BEGIN_DT": "20240828"
+          },
+          "statRowSha256": "54acd2131f045f97c670cf43e5bf98bb247998f0b182f0a6a0e746c1c38f1ac8",
+          "status": "LINKED_TO_SAME_ISSUER_ROUND"
+        },
+        {
+          "allocationDetail": "DIFFERENTIAL_MARKET_YIELD",
+          "issueDetailRowSha256": "c649f0cc57058cbea7e44ab877d31a6d2781334796ee7c4b775e4be8a943bda3",
+          "paymentInstallment": 1,
+          "scheduleRowSha256": "fa78e5c70d03f9d8b2c710ee7b1d39eecf1cd1ad0bb47abe959d54f7651f73a2",
+          "statRawRow": {
+            "AG_ORG_TPNM": "한국예탁결제원",
+            "CASH_ALOC_AMT": "220",
+            "CASH_ALOC_RATIO": "220",
+            "DELI_DT": "",
+            "DIFF_ALOC_AMT": "",
+            "DIFF_ALOC_RATIO1": "",
+            "DIFF_ALOC_RATIO2": "",
+            "DIFF_ALOC_RATIO3": "",
+            "ESTM_STDPRC": "0",
+            "ISSUCO_CUSTNO": "38482",
+            "KN_DIV_PAY_DT": "",
+            "KOR_SECN_NM": "스톰테크",
+            "LIST_TPNM": "코스닥시장",
+            "PVAL": "100",
+            "RGT_RACD": "103",
+            "RGT_RSN_DTAIL_SORT_NM": "현금배당",
+            "RGT_STD_DT": "20240813",
+            "SECN_DTAIL_KANM": "보통주",
+            "SETACC_MM": "12",
+            "SETACC_MMDD": "1231",
+            "SHOTN_ISIN": "352090",
+            "STK_ALOC_RATIO": "0",
+            "STK_FIX_RATIO": "0",
+            "TH1_PAY_TERM_BEGIN_DT": "20240828"
+          },
+          "statRowSha256": "ce9314eccb5ff113750abfd177c63ac1be3fe32ae66d49f23ddfca4c7eb4d10a",
+          "status": "LINKED_TO_SAME_ISSUER_ROUND"
+        }
+      ],
+      "scheduleRowSha256": "fa78e5c70d03f9d8b2c710ee7b1d39eecf1cd1ad0bb47abe959d54f7651f73a2",
+      "seibroAllocations": [
+        {
+          "CASH_ALOC_AMT": "220",
+          "CASH_ALOC_RATIO": "220",
+          "DIFF_ALOC_AMT": "200",
+          "DIFF_ALOC_RATIO": "200",
+          "DIFF_ALOC_RATIO2": "",
+          "DIFF_ALOC_RATIO3": "",
+          "KOR_SECN_NM": "스톰테크",
+          "MARTP_DIV_RATE": "3.12",
+          "SHOTN_ISIN": "352090",
+          "STK_FIX_RATIO": "0",
+          "STK_KACD": "보통주"
+        },
+        {
+          "CASH_ALOC_AMT": "220",
+          "CASH_ALOC_RATIO": "220",
+          "DIFF_ALOC_AMT": "",
+          "DIFF_ALOC_RATIO": "2.84",
+          "DIFF_ALOC_RATIO2": "2.84",
+          "DIFF_ALOC_RATIO3": "",
+          "KOR_SECN_NM": "스톰테크",
+          "MARTP_DIV_RATE": "3.12",
+          "SHOTN_ISIN": "352090",
+          "STK_FIX_RATIO": "0",
+          "STK_KACD": "보통주"
+        }
+      ],
+      "seibroEvidence": {
+        "fixedSchedule": {
+          "bodySha256": "45cd48e9052f3f4cc6e2c8ec81248f78ced0d4498af16f591a8a496b7a127be5",
+          "capture": "ksd-payment-KOSDAQ-2024-rows",
+          "observedAt": "2026-11-07T16:31:47.319807+00:00",
+          "receiptSha256": "9c84103be5fe9b13c3e185ad8cda3544fba0330338230c3ea159f486e64f386e",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "fixedStat": {
+          "bodySha256": "2dcfa8a4762c84739e0445a70dca5d3d996d8f8e8f8ddc2b05fa5f85c61575cc",
+          "capture": "ksd-stat-KOSDAQ-2024-rows",
+          "observedAt": "2026-11-07T16:31:13.940586+00:00",
+          "receiptSha256": "eb3d2bb96822ae05ae33c8231c063d58ee75e017d6eab0671d2a400ddcb9b09b",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "issue": {
+          "bodySha256": "759deea64db55181b22c75dfa801df684afbd3724177a3f4cc86834aebde0ab4",
+          "capture": "ksd-352090-issue",
+          "observedAt": "2026-11-18T02:16:26.442704+00:00",
+          "receiptSha256": "246ba3bdcdf3bd2d71cd7ee8763a016f111e4cd42ceedb255f7346a4157cdd25",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment": {
+          "bodySha256": "e2f7a019643e46bd07d6aa7724291de934d8f0dd7fa4b843c6aa6cb6725cdad4",
+          "capture": "ksd-352090-payment",
+          "observedAt": "2026-11-18T02:16:26.290784+00:00",
+          "receiptSha256": "98fa8387a0a53123496dacf12c2de6166ba1fa938b493efd669c79bc879da58a",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment-count": {
+          "bodySha256": "0590381154992e98077a42363078aa19a827f520112d7230278dcb742c367e6a",
+          "capture": "ksd-352090-payment-count",
+          "observedAt": "2026-11-18T02:16:26.561572+00:00",
+          "receiptSha256": "e456a073100858fd6bd3eb7e9ebbacbd4906d4e9355b27065215b4cd2c20fa43",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment-rows": {
+          "bodySha256": "1a8431dfb2be299551082fb219ca41449f277045ce4e447a7bdf17e03e5fa734",
+          "capture": "ksd-352090-payment-rows",
+          "observedAt": "2026-11-18T02:16:26.606384+00:00",
+          "receiptSha256": "05eb516cea337f816ccdf14fc2cc495e07bce1c9eb215b03b9dbe2d12c3a5fcd",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "round": {
+          "bodySha256": "dcb9ca7475848d983bae89ae8d79a4c90aed5251db0fe5d72523b5ba83403665",
+          "capture": "ksd-352090-round",
+          "observedAt": "2026-11-18T02:16:26.146215+00:00",
+          "receiptSha256": "1f9ee00e65e3fc7dfc98fb58fd8f4f25a663684ced110c1c671ad862049553d1",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-count": {
+          "bodySha256": "14430b2aa7b8891ddbfc704ca96054e603c69d260ed0a810a2977587ab0ddf78",
+          "capture": "ksd-352090-stat-count",
+          "observedAt": "2026-11-18T02:16:26.443705+00:00",
+          "receiptSha256": "a55a74526e25e808c6c52ce256249e87c8332596ff3084324bcec8f63576b31e",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-rows": {
+          "bodySha256": "562b1ef370c9a872f56e151015ff790d2b7b0ae868c667db561576b27fd0d9ba",
+          "capture": "ksd-352090-stat-rows",
+          "observedAt": "2026-11-18T02:16:26.536851+00:00",
+          "receiptSha256": "2bf3e1f4b75b7692612eee0c786a57a429c9ce32b315bec17803722c2765e379",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        }
+      },
+      "seibroPayments": [
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "20240828",
+          "RN": "1"
+        },
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "2"
+        }
+      ],
+      "seibroRound": {
+        "AG_ORG_TPCD": "KSD",
+        "ALOC_WHCD": "정액",
+        "CALTOT_MART_TPCD": "코스닥시장",
+        "FIX_TPCD": "확정",
+        "GMET_OMEET_DT": "20240729",
+        "LONGTM_TAX_RDEX_TPCD_NM": "미정",
+        "PVAL": "100",
+        "REP_SECN_NM": "스톰테크",
+        "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+        "ROST_CLOSE_BEGIN_DT": "",
+        "ROST_CLOSE_EXPRY_DT": "",
+        "SETACC_MM": "12",
+        "SETACC_TPCD": "분기",
+        "TAXA_STND_RATIO": "1",
+        "TOTAL_ISSU_QTY": "26872998"
+      },
+      "symbol": "352090",
+      "uniqueRound": true
+    }
+  ],
+  "schemaVersion": "SAGOPALGO_H05_AMBIGUOUS_DIVIDEND_SCHEDULE_V1",
+  "seibroDetailLayout": {
+    "bodySha256": "5dbb75b5aabeb71b715f7159112c3a50df149d4eff5e07c1118b06c403e0186f",
+    "capture": "ksd-layout-01027",
+    "observedAt": "2026-11-18T01:00:15.076639+00:00",
+    "receiptSha256": "8dffc792af064f60a4e7ea63cf46ad3f383d1342d33885855f6425584d31e23d",
+    "sourceUrl": "https://seibro.or.kr/IPORTAL/user/company/BIP_CNTS01027V.xml"
+  },
+  "summary": {
+    "candidateRows": 4,
+    "dartDocumentStatuses": {
+      "CAPTURED": 22,
+      "DART_014": 1
+    },
+    "exactActualPaymentDatesVerified": 0,
+    "issuerRounds": 2,
+    "linkedRows": 4,
+    "seibroNewResponses": 14,
+    "unlinkedRows": 0
+  },
+  "usableForTrading": false,
+  "usableForTraining": false
+}
