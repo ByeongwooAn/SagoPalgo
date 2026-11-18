@@ -1,0 +1,1805 @@
+{
+  "fixedCensus": {
+    "path": "action-outcome-census-20261108/outcome-census.json",
+    "sha256": "8bb95c3f3811dcc9ce9e17b17fe85f0a593ec24b751eaf26e8c1802cd422274e",
+    "status": "PAYMENT_DATE_MISSING"
+  },
+  "fixedScopeCounts": {
+    "ambiguousRows": 4,
+    "dateMatches": 4343,
+    "outsideScope": {
+      "after": 11,
+      "before": 146
+    },
+    "providerCountGaps": [
+      {
+        "market": "KOSPI",
+        "reportedCount": 921,
+        "reportedMinusReturned": 3,
+        "returnedRows": 918,
+        "year": 2025
+      },
+      {
+        "market": "KOSPI",
+        "reportedCount": 493,
+        "reportedMinusReturned": 7,
+        "returnedRows": 486,
+        "year": 2026
+      },
+      {
+        "market": "KOSDAQ",
+        "reportedCount": 1580,
+        "reportedMinusReturned": 6,
+        "returnedRows": 1574,
+        "year": 2024
+      },
+      {
+        "market": "KOSDAQ",
+        "reportedCount": 1699,
+        "reportedMinusReturned": 11,
+        "returnedRows": 1688,
+        "year": 2025
+      },
+      {
+        "market": "KOSDAQ",
+        "reportedCount": 205,
+        "reportedMinusReturned": 1,
+        "returnedRows": 204,
+        "year": 2026
+      }
+    ],
+    "scheduleOnlyRows": 24
+  },
+  "historicalFirstAvailabilityConfirmed": false,
+  "reviewedAt": "2026-11-18T02:45:05.599142+00:00",
+  "reviewedThrough": "2026-11-18",
+  "rows": [
+    {
+      "dartDocuments": {
+        "20240314000857": {
+          "archiveSha256": "5eba447f38bcdcb5c5840669eecd2d7e8bc57b4b27cb1b11ea8cbea206ba4372",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:43.827868+00:00",
+          "receipt": "20240314000857",
+          "receiptSha256": "d8a0287bafc1ad38c571ac4d9e06b09412777754d671408c6b916b60b9431796",
+          "reportedOn": "2024-03-14",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240314000857",
+          "status": "CAPTURED",
+          "title": "주주총회소집공고"
+        },
+        "20240321001986": {
+          "archiveSha256": "91362080e288506b524c5bf729b2a78538461ca9fd6063808825a3ccee870909",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:43.701077+00:00",
+          "receipt": "20240321001986",
+          "receiptSha256": "ed280dadb078d522c5ddaddd42463ac9647dd63f1cd149a4d32982832c9da08c",
+          "reportedOn": "2024-03-21",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240321001986",
+          "status": "CAPTURED",
+          "title": "사업보고서 (2023.12)"
+        },
+        "20240329901211": {
+          "archiveSha256": "ec280a4a7ea8d6807be674d88a33ba53d3f3180458caff7d49456e4e9718fa1f",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:43.366180+00:00",
+          "receipt": "20240329901211",
+          "receiptSha256": "d9e3151b5970dad53d685636224654cf97b4d7878e6320ab924e1a7c51e9538c",
+          "reportedOn": "2024-03-29",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240329901211",
+          "status": "CAPTURED",
+          "title": "정기주주총회결과"
+        },
+        "20240516000835": {
+          "archiveSha256": "9311411c07774d7d104929b1d6d9af0fcaeb85d8d10f3c13c73961d57ec34683",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:43.200998+00:00",
+          "receipt": "20240516000835",
+          "receiptSha256": "a6fede3abc757e0ea69d23fd8a497f65e1b5e5b581e0da969436c82240a313ee",
+          "reportedOn": "2024-05-16",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240516000835",
+          "status": "CAPTURED",
+          "title": "분기보고서 (2024.03)"
+        },
+        "20240814002941": {
+          "archiveSha256": "21d166fb64ad6135299d57af6d50140b9062a68e26c41df18e4245244abb3710",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:42.962929+00:00",
+          "receipt": "20240814002941",
+          "receiptSha256": "e31152be3c5da1f58c6032e432d0ff43bbaa0ea72d5aebbb6c34f4ccdd4f8450",
+          "reportedOn": "2024-08-14",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240814002941",
+          "status": "CAPTURED",
+          "title": "반기보고서 (2024.06)"
+        }
+      },
+      "dartIndexes": [
+        {
+          "capturedAt": "2026-11-18T02:39:38.329495+00:00",
+          "path": "index/208350-20231231-01-post",
+          "receiptSha256": "6052596b39aca1e2d7b4b97bc66a6e85a4a5e6471cb76093e6d6957e9a91bde8",
+          "request": {
+            "bgn_de": "20231101",
+            "corp_code": "01047169",
+            "end_de": "20240831",
+            "last_reprt_at": "N",
+            "page_count": "100",
+            "page_no": "1"
+          },
+          "returnedRows": 31,
+          "sha256": "f38627e2ade86a76501c70faf35272dca0b3367fd42a62ca6457d3f8d946497e",
+          "startedAt": "2026-11-18T02:39:37.294854+00:00"
+        }
+      ],
+      "issuer": "지란지교시큐리티",
+      "issuerEvidence": [
+        {
+          "archiveSha256": "91362080e288506b524c5bf729b2a78538461ca9fd6063808825a3ccee870909",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "markers": [
+            "현금배당금총액(백만원) - - -"
+          ],
+          "observedAt": "2026-11-18T02:39:43.701077+00:00",
+          "receipt": "20240321001986",
+          "receiptSha256": "ed280dadb078d522c5ddaddd42463ac9647dd63f1cd149a4d32982832c9da08c",
+          "reportedOn": "2024-03-21",
+          "role": "2023년 결산 배당 지표",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240321001986",
+          "status": "CAPTURED",
+          "title": "사업보고서 (2023.12)"
+        },
+        {
+          "archiveSha256": "ec280a4a7ea8d6807be674d88a33ba53d3f3180458caff7d49456e4e9718fa1f",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "markers": [
+            "보통주식 기말배당금 -",
+            "배당금총액(원) -",
+            "주주총회일자 2024-03-29"
+          ],
+          "observedAt": "2026-11-18T02:39:43.366180+00:00",
+          "receipt": "20240329901211",
+          "receiptSha256": "d9e3151b5970dad53d685636224654cf97b4d7878e6320ab924e1a7c51e9538c",
+          "reportedOn": "2024-03-29",
+          "role": "정기주총 결과",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240329901211",
+          "status": "CAPTURED",
+          "title": "정기주주총회결과"
+        }
+      ],
+      "issuerPayment": {
+        "actualDate": null,
+        "issuerCommonAmountKrw": "0",
+        "reason": "발행사 사업보고서와 주총 결과는 무배당입니다. 세이브로 양수 배정액의 생성 사유는 미확인입니다.",
+        "scheduledDate": null,
+        "scope": "legacy-2024",
+        "status": "NO_DIVIDEND"
+      },
+      "market": "KOSDAQ",
+      "recordDate": "2023-12-31",
+      "seibroAllocation": {
+        "CASH_ALOC_AMT": "500",
+        "CASH_ALOC_RATIO": "100",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "KOR_SECN_NM": "지란지교시큐리티",
+        "MARTP_DIV_RATE": "2.6",
+        "SHOTN_ISIN": "208350",
+        "STK_FIX_RATIO": "0",
+        "STK_KACD": "보통주"
+      },
+      "seibroEvidence": {
+        "fixedStat": {
+          "bodySha256": "bdd21636cc165370af2ba88863478b4859ad8e09123bbe866728d185cd7b379b",
+          "capture": "ksd-stat-KOSDAQ-2023-rows",
+          "observedAt": "2026-11-07T16:31:08.906501+00:00",
+          "receiptSha256": "b5a611aff33a260df04b54d81efde511c0dc976a1b6b448693f743fe8c642d4c",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "issue": {
+          "bodySha256": "879e69418567ba94d8906d96c44ead046f9744512477865fa01ffc0f41359e98",
+          "capture": "ksd-208350-issue",
+          "observedAt": "2026-11-18T02:39:31.947903+00:00",
+          "receiptSha256": "36ff2ac02595bac699ff13f302f8c3a130551b08b3947cd45bf7ea9862959358",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment": {
+          "bodySha256": "b3917619bac0e69b9b6aa7a1a37ebc545d1bd3bbab5fd3d37af010ccfef5cf5e",
+          "capture": "ksd-208350-payment",
+          "observedAt": "2026-11-18T02:39:32.008354+00:00",
+          "receiptSha256": "2a067d49f286168855f39686edccef9f7ce1000cfe6f07eeb1068e9c98931b20",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "round": {
+          "bodySha256": "155f18f61b46d1f8c71661f6b3df636d5b1d9bac03d410b0dca05a04013179bc",
+          "capture": "ksd-208350-round",
+          "observedAt": "2026-11-18T02:39:31.889403+00:00",
+          "receiptSha256": "beaf0d8f2498c3e33f69a96715b5c4cf968a3ae9da69b0796c271f4328819652",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-count": {
+          "bodySha256": "9d6d930820b07309c8424be8b7a809aae8e21d5ea9f120051e8152e652421c4c",
+          "capture": "ksd-208350-stat-count",
+          "observedAt": "2026-11-18T02:39:32.008354+00:00",
+          "receiptSha256": "70d04f2e5905b499580e110aef8e6bd0ddbdb07eaead4c8edd1abc693ad3a732",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-rows": {
+          "bodySha256": "aef0f9b4ca9b7fe33d56389da1a440bac1cb4772960b3ca308fbc64d57281800",
+          "capture": "ksd-208350-stat-rows",
+          "observedAt": "2026-11-18T02:39:32.066359+00:00",
+          "receiptSha256": "25740f3baf90df56c2a5ea1f78d062ecd4fba444282e696e9a1786f669f7f66a",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        }
+      },
+      "seibroPayments": [
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "1"
+        },
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "2"
+        }
+      ],
+      "seibroRound": {
+        "AG_ORG_TPCD": "국민은행",
+        "ALOC_WHCD": "정액",
+        "CALTOT_MART_TPCD": "코스닥시장",
+        "FIX_TPCD": "확정",
+        "GMET_OMEET_DT": "20240329",
+        "LONGTM_TAX_RDEX_TPCD_NM": "No",
+        "PVAL": "500",
+        "REP_SECN_NM": "지란지교시큐리티",
+        "RGT_RSN_DTAIL_SORT_CD": "무배당",
+        "ROST_CLOSE_BEGIN_DT": "20240101",
+        "ROST_CLOSE_EXPRY_DT": "20240131",
+        "SETACC_MM": "12",
+        "SETACC_TPCD": "결산",
+        "TAXA_STND_RATIO": "",
+        "TOTAL_ISSU_QTY": "8101570"
+      },
+      "sourceRowSha256": "398844b6a4b350f8d516051596761958902113c3586731fe19118b74258165e9",
+      "statRawRow": {
+        "AG_ORG_TPNM": "국민은행",
+        "CASH_ALOC_AMT": "500",
+        "CASH_ALOC_RATIO": "100",
+        "DELI_DT": "",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO1": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "ESTM_STDPRC": "500",
+        "ISSUCO_CUSTNO": "24103",
+        "KN_DIV_PAY_DT": "",
+        "KOR_SECN_NM": "지란지교시큐리티",
+        "LIST_TPNM": "코스닥시장",
+        "PVAL": "500",
+        "RGT_RACD": "103",
+        "RGT_RSN_DTAIL_SORT_NM": "무배당",
+        "RGT_STD_DT": "20231231",
+        "SECN_DTAIL_KANM": "보통주",
+        "SETACC_MM": "12",
+        "SETACC_MMDD": "1231",
+        "SHOTN_ISIN": "208350",
+        "STK_ALOC_RATIO": "0",
+        "STK_FIX_RATIO": "0",
+        "TH1_PAY_TERM_BEGIN_DT": ""
+      },
+      "symbol": "208350"
+    },
+    {
+      "dartDocuments": {
+        "20240122000372": {
+          "archiveSha256": "b79c6200ba4b13fef4f8cf91006faaa1e815a5502b15db68e75e7e00faf0e150",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:42.691758+00:00",
+          "receipt": "20240122000372",
+          "receiptSha256": "69df62871f1b9788533cf011289dc097c5cf582f3185c9306ed9c3916bbfd2fd",
+          "reportedOn": "2024-01-22",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240122000372",
+          "status": "CAPTURED",
+          "title": "주주총회소집공고"
+        },
+        "20240122000409": {
+          "archiveSha256": "ebce2052edc0b0d3cbe6556060a840ee4bd313b128b93ecca2b086a93d77a613",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:42.458805+00:00",
+          "receipt": "20240122000409",
+          "receiptSha256": "556ccab24994e74522e95fd54276f95bf5b6d7dda7b505c196c833339915bd56",
+          "reportedOn": "2024-01-23",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240122000409",
+          "status": "CAPTURED",
+          "title": "[기재정정]주주총회소집공고"
+        },
+        "20240206900390": {
+          "archiveSha256": "7a9cde16bd89d0db80f9b90314e9b78928a26e1aa5866eae988ff3026d0ded3c",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:42.197234+00:00",
+          "receipt": "20240206900390",
+          "receiptSha256": "783607f7f617fd1ff55e0f7f37b734f8a14ab966edfb591df088dcb4a84c6a50",
+          "reportedOn": "2024-02-06",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240206900390",
+          "status": "CAPTURED",
+          "title": "임시주주총회결과"
+        },
+        "20240313001357": {
+          "archiveSha256": "cac08128c1ecb7019e39554ecad4a71c2022fe19020790cfda2692cd177ab2dc",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:41.980174+00:00",
+          "receipt": "20240313001357",
+          "receiptSha256": "6156683ecbf5dc93fc717efdb7ebcdeacae8f2b70c6f9b0951c03946d6acb208",
+          "reportedOn": "2024-03-13",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240313001357",
+          "status": "CAPTURED",
+          "title": "주주총회소집공고"
+        },
+        "20240320000199": {
+          "archiveSha256": "d63932753fa01c4dcc7865687cbe046bb5803b01f3db8f98c77efa20cc517347",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:41.806484+00:00",
+          "receipt": "20240320000199",
+          "receiptSha256": "1f33c6a2b9563be12de8e2addf99ee66ce51f3093b2942c53c5bbbafaea2abc4",
+          "reportedOn": "2024-03-20",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240320000199",
+          "status": "CAPTURED",
+          "title": "사업보고서 (2023.12)"
+        },
+        "20240328900242": {
+          "archiveSha256": "c41872917a3c227a4bb9b1c6d24cd6a12d84b6e564a517f56b2a76625240ccf7",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:41.535027+00:00",
+          "receipt": "20240328900242",
+          "receiptSha256": "2c879951c017d745e2b1e274593e1a0d9b47a32bffa6c1893b6eb3089e3963f1",
+          "reportedOn": "2024-03-28",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240328900242",
+          "status": "CAPTURED",
+          "title": "정기주주총회결과"
+        },
+        "20240516000326": {
+          "archiveSha256": "47ee2f1bb505fc7620cc6817e7b391dae2febe074333faf6d1d652c3dbf2b35f",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:41.346079+00:00",
+          "receipt": "20240516000326",
+          "receiptSha256": "0081f0090374fc93eab09126e5abadceba79c7565303d33b1cf353b5e8644df1",
+          "reportedOn": "2024-05-16",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240516000326",
+          "status": "CAPTURED",
+          "title": "분기보고서 (2024.03)"
+        },
+        "20240621000527": {
+          "archiveSha256": "f11f012bc4856537a7d4225a41bf45a52322a83d96751344bb8477f809e7c47a",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:41.093776+00:00",
+          "receipt": "20240621000527",
+          "receiptSha256": "b5f82f074892aaa44144099b8623cb0b00dc787c0828208f8a3ab2df39609df4",
+          "reportedOn": "2024-06-21",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240621000527",
+          "status": "CAPTURED",
+          "title": "주주총회소집공고"
+        },
+        "20240709900002": {
+          "archiveSha256": "5c8f89cbbf465394e50b498fbf61c7766ac3bb4e9532a53c9300dc37042e67a5",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:40.817787+00:00",
+          "receipt": "20240709900002",
+          "receiptSha256": "dae121213c0ef18e3934627eee447fc1e90ff41ab7f274b4aae728f473788068",
+          "reportedOn": "2024-07-09",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240709900002",
+          "status": "CAPTURED",
+          "title": "임시주주총회결과"
+        },
+        "20240813000576": {
+          "archiveSha256": "a1c9292ed05b36e73c08c61a42ce5dee1ac4f2f97125d9d17c9be310844454e7",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:40.640891+00:00",
+          "receipt": "20240813000576",
+          "receiptSha256": "d6789774e86c0fde8d2fb0e86cae86bf34a9d476fe831b3789827d8ba0000101",
+          "reportedOn": "2024-08-13",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240813000576",
+          "status": "CAPTURED",
+          "title": "반기보고서 (2024.06)"
+        }
+      },
+      "dartIndexes": [
+        {
+          "capturedAt": "2026-11-18T02:39:38.463101+00:00",
+          "path": "index/340360-20231231-01-post",
+          "receiptSha256": "675ad14d976281a8101fe0c34d9035fbaf389cf27e186865b3eff6ac691e59f3",
+          "request": {
+            "bgn_de": "20231101",
+            "corp_code": "01416642",
+            "end_de": "20240831",
+            "last_reprt_at": "N",
+            "page_count": "100",
+            "page_no": "1"
+          },
+          "returnedRows": 100,
+          "sha256": "dd609950c37d3c9b492583a701d95fbc96eed05a66dcf46ba92507740ca99c49",
+          "startedAt": "2026-11-18T02:39:37.293856+00:00"
+        },
+        {
+          "capturedAt": "2026-11-18T02:39:38.743142+00:00",
+          "path": "index/340360-20231231-02-post",
+          "receiptSha256": "25d080fcece68f05824789beaf24ab2f922693f0a4d25590f25569c6682a0382",
+          "request": {
+            "bgn_de": "20231101",
+            "corp_code": "01416642",
+            "end_de": "20240831",
+            "last_reprt_at": "N",
+            "page_count": "100",
+            "page_no": "2"
+          },
+          "returnedRows": 14,
+          "sha256": "7827b89ef62e72e716ad55567f0d35e09fb2888db2feb936a51f1db999f18c84",
+          "startedAt": "2026-11-18T02:39:38.471101+00:00"
+        }
+      ],
+      "issuer": "다보링크",
+      "issuerEvidence": [
+        {
+          "archiveSha256": "d63932753fa01c4dcc7865687cbe046bb5803b01f3db8f98c77efa20cc517347",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "markers": [
+            "현금배당금총액(백만원) - - -"
+          ],
+          "observedAt": "2026-11-18T02:39:41.806484+00:00",
+          "receipt": "20240320000199",
+          "receiptSha256": "1f33c6a2b9563be12de8e2addf99ee66ce51f3093b2942c53c5bbbafaea2abc4",
+          "reportedOn": "2024-03-20",
+          "role": "2023년 결산 배당 지표",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240320000199",
+          "status": "CAPTURED",
+          "title": "사업보고서 (2023.12)"
+        },
+        {
+          "archiveSha256": "c41872917a3c227a4bb9b1c6d24cd6a12d84b6e564a517f56b2a76625240ccf7",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "markers": [
+            "보통주식 기말배당금 -",
+            "배당금총액(원) -",
+            "주주총회일자 2024-03-28"
+          ],
+          "observedAt": "2026-11-18T02:39:41.535027+00:00",
+          "receipt": "20240328900242",
+          "receiptSha256": "2c879951c017d745e2b1e274593e1a0d9b47a32bffa6c1893b6eb3089e3963f1",
+          "reportedOn": "2024-03-28",
+          "role": "정기주총 결과",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20240328900242",
+          "status": "CAPTURED",
+          "title": "정기주주총회결과"
+        }
+      ],
+      "issuerPayment": {
+        "actualDate": null,
+        "issuerCommonAmountKrw": "0",
+        "reason": "발행사 사업보고서와 주총 결과는 무배당입니다. 세이브로 양수 배정액의 생성 사유는 미확인입니다.",
+        "scheduledDate": null,
+        "scope": "legacy-2024",
+        "status": "NO_DIVIDEND"
+      },
+      "market": "KOSDAQ",
+      "recordDate": "2023-12-31",
+      "seibroAllocation": {
+        "CASH_ALOC_AMT": "250",
+        "CASH_ALOC_RATIO": "250",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "KOR_SECN_NM": "다보링크",
+        "MARTP_DIV_RATE": "2.4",
+        "SHOTN_ISIN": "340360",
+        "STK_FIX_RATIO": "0",
+        "STK_KACD": "보통주"
+      },
+      "seibroEvidence": {
+        "fixedStat": {
+          "bodySha256": "bdd21636cc165370af2ba88863478b4859ad8e09123bbe866728d185cd7b379b",
+          "capture": "ksd-stat-KOSDAQ-2023-rows",
+          "observedAt": "2026-11-07T16:31:08.906501+00:00",
+          "receiptSha256": "b5a611aff33a260df04b54d81efde511c0dc976a1b6b448693f743fe8c642d4c",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "issue": {
+          "bodySha256": "685bb944ff001b5d00339a4f4fa28f9ed87516b46c86f7c8d492f84d31edb0c2",
+          "capture": "ksd-340360-issue",
+          "observedAt": "2026-11-18T02:39:31.681376+00:00",
+          "receiptSha256": "bc6c5d2333802fe2c4454475045a20f561b027feb170d98cd7b3bba9a06a6576",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment": {
+          "bodySha256": "d76cb7911f381027dd94e591d0e47dbde9b76157ec236336ae065ee29fb7b776",
+          "capture": "ksd-340360-payment",
+          "observedAt": "2026-11-18T02:39:31.681376+00:00",
+          "receiptSha256": "4a28b75816c1cc2205d3aefce363e3cf824ecc1f14ca85e7b2331620aa5dd023",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "round": {
+          "bodySha256": "125c6e0df5123fff5b7247582b42487918e7949213a8125b597df16ab54741cc",
+          "capture": "ksd-340360-round",
+          "observedAt": "2026-11-18T02:39:31.576144+00:00",
+          "receiptSha256": "c40a697f63e3bc4815eef5675764171bbf73e09d47d46b569e7bebe2b37e3483",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-count": {
+          "bodySha256": "4ac538e99071a15cf97eac899f2d254d21719f0d26a58f172ef9ed04c9a681bc",
+          "capture": "ksd-340360-stat-count",
+          "observedAt": "2026-11-18T02:39:31.737939+00:00",
+          "receiptSha256": "b014207e2aa9ae7932b454fdcd7a614f71ea5723dcdef40263d8757d550238f8",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-rows": {
+          "bodySha256": "2fbe37a36c48edb23790498aea2941938ac4b680b840337d87faa440e05bb452",
+          "capture": "ksd-340360-stat-rows",
+          "observedAt": "2026-11-18T02:39:31.783350+00:00",
+          "receiptSha256": "281b22c14531868091b25a8631a1bfeff1d48242eec177be287a299cc8b4d539",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        }
+      },
+      "seibroPayments": [
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "1"
+        },
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "2"
+        }
+      ],
+      "seibroRound": {
+        "AG_ORG_TPCD": "국민은행",
+        "ALOC_WHCD": "정액",
+        "CALTOT_MART_TPCD": "코스닥시장",
+        "FIX_TPCD": "확정",
+        "GMET_OMEET_DT": "20240328",
+        "LONGTM_TAX_RDEX_TPCD_NM": "No",
+        "PVAL": "100",
+        "REP_SECN_NM": "다보링크",
+        "RGT_RSN_DTAIL_SORT_CD": "무배당",
+        "ROST_CLOSE_BEGIN_DT": "20240101",
+        "ROST_CLOSE_EXPRY_DT": "20240115",
+        "SETACC_MM": "12",
+        "SETACC_TPCD": "결산",
+        "TAXA_STND_RATIO": "",
+        "TOTAL_ISSU_QTY": "53623872"
+      },
+      "sourceRowSha256": "f0629061e4936c2f72e4fb23e212bb904237d08bd9dd79c68dce6442b39b337e",
+      "statRawRow": {
+        "AG_ORG_TPNM": "국민은행",
+        "CASH_ALOC_AMT": "250",
+        "CASH_ALOC_RATIO": "250",
+        "DELI_DT": "",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO1": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "ESTM_STDPRC": "250",
+        "ISSUCO_CUSTNO": "37114",
+        "KN_DIV_PAY_DT": "",
+        "KOR_SECN_NM": "다보링크",
+        "LIST_TPNM": "코스닥시장",
+        "PVAL": "100",
+        "RGT_RACD": "103",
+        "RGT_RSN_DTAIL_SORT_NM": "무배당",
+        "RGT_STD_DT": "20231231",
+        "SECN_DTAIL_KANM": "보통주",
+        "SETACC_MM": "12",
+        "SETACC_MMDD": "1231",
+        "SHOTN_ISIN": "340360",
+        "STK_ALOC_RATIO": "0",
+        "STK_FIX_RATIO": "0",
+        "TH1_PAY_TERM_BEGIN_DT": ""
+      },
+      "symbol": "340360"
+    },
+    {
+      "dartDocuments": {
+        "20250212000606": {
+          "archiveSha256": "36016abfb32df18a0a8f172e72b280f0eb50d93b9d6e5207153528f6b2dc2c02",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:47.577489+00:00",
+          "receipt": "20250212000606",
+          "receiptSha256": "9c32e121b91385b927a3a77bdf4d0fba18236526474566567826aee7f0f5afb7",
+          "reportedOn": "2025-02-12",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250212000606",
+          "status": "CAPTURED",
+          "title": "[발행조건확정]증권신고서(지분증권)"
+        },
+        "20250314001769": {
+          "archiveSha256": "5571cc34f39ad85ed588b5a827fddd3fc48efe3f145b92e2cc458856894710bf",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:46.385621+00:00",
+          "receipt": "20250314001769",
+          "receiptSha256": "74d24b32790c985bb5d6664911e0ddbd84c767c1c4140a73d5022aeee2ab794e",
+          "reportedOn": "2025-03-14",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250314001769",
+          "status": "CAPTURED",
+          "title": "주주총회소집공고"
+        },
+        "20250314902350": {
+          "archiveSha256": "57d0a707661cc53b34dbd1225cc022eb124e747d72dd831cd876497ee38a55ca",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:46.596538+00:00",
+          "receipt": "20250314902350",
+          "receiptSha256": "e9058bc2fdc014fe204f87acd5d6d032124bd6afed696c1c3db7ca00bd125708",
+          "reportedOn": "2025-03-14",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250314902350",
+          "status": "CAPTURED",
+          "title": "현금ㆍ현물배당결정"
+        },
+        "20250321001208": {
+          "archiveSha256": "a27ea130148ebfeea7cc6fa1f672fe1569e4d42f06eaca48f596bac18a22debd",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:46.259610+00:00",
+          "receipt": "20250321001208",
+          "receiptSha256": "dbba627fcff6f77f02642d5f7e7266f625c0b77bcab3776351fc9dde9da3ddb2",
+          "reportedOn": "2025-03-21",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250321001208",
+          "status": "CAPTURED",
+          "title": "사업보고서 (2024.12)"
+        },
+        "20250331902069": {
+          "archiveSha256": "c9f72cb74494d09e6a98c0b9ae0c4ed9b6e8c1f6f6e658920173dc840bf93fb0",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:45.884102+00:00",
+          "receipt": "20250331902069",
+          "receiptSha256": "a889e7b4a8e71cfaa32005e8b3f20c00743528de11f2a470ff7c33230ac358d7",
+          "reportedOn": "2025-03-31",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250331902069",
+          "status": "CAPTURED",
+          "title": "정기주주총회결과"
+        },
+        "20250515000775": {
+          "archiveSha256": "dbbd40eb65802c8c9efce2aa7215508db6327ab6e4cf950046b5a41c885cd28a",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:45.702488+00:00",
+          "receipt": "20250515000775",
+          "receiptSha256": "b82217c00f8525c425c974edc79137f1d98bf7d1d68b2f4c3af482fbd807771e",
+          "reportedOn": "2025-05-15",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250515000775",
+          "status": "CAPTURED",
+          "title": "분기보고서 (2025.03)"
+        },
+        "20250814001562": {
+          "archiveSha256": "6e486bb268ebc1204f715e4b604a77892d29315732b1d9689b33d47fce25bc23",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:45.494482+00:00",
+          "receipt": "20250814001562",
+          "receiptSha256": "323e7f8467f5c2059bb010aa7899e013d1de17eea10bdc5ed7ab29c5fc136eeb",
+          "reportedOn": "2025-08-14",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250814001562",
+          "status": "CAPTURED",
+          "title": "반기보고서 (2025.06)"
+        },
+        "20251114000709": {
+          "archiveSha256": "3b02f7cbfc459a9868a7bc1a71edc4c6014a7e42393e8f1a7572985549c2fbab",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:45.248893+00:00",
+          "receipt": "20251114000709",
+          "receiptSha256": "bc8c891560f3ff78540ac2730acc03076998ac904192ea4cfdda40cfe498db7c",
+          "reportedOn": "2025-11-14",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20251114000709",
+          "status": "CAPTURED",
+          "title": "분기보고서 (2025.09)"
+        },
+        "20260316000713": {
+          "archiveSha256": "155f42167a1582406973491f5eab44673e376287b85ec98929cfa806af1915c4",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:45.019526+00:00",
+          "receipt": "20260316000713",
+          "receiptSha256": "1b3e0f76006b353183a5c5f0a0f536c07ec5d3595ab4316ae2978e68e8db999c",
+          "reportedOn": "2026-03-16",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260316000713",
+          "status": "CAPTURED",
+          "title": "주주총회소집공고"
+        },
+        "20260316900931": {
+          "archiveSha256": "47f6778f555fa444180342cecc7d735474844348a4cc7a8c807858f8ae372621",
+          "cache": "h05-dividend-2026-20261118",
+          "observedAt": "2026-11-18T00:32:57.030490+00:00",
+          "receipt": "20260316900931",
+          "receiptSha256": "baccf1841e2e50f60ef9966a675b52af71c17d9ae92109bbfba2e1491084918a",
+          "reportedOn": "2026-03-16",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260316900931",
+          "status": "CAPTURED",
+          "title": "현금ㆍ현물배당결정"
+        },
+        "20260323000549": {
+          "archiveSha256": "989d332c854f7d5f47d434f721e8c965d9f95244c7dae3f8ef05999c73a98308",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:44.812483+00:00",
+          "receipt": "20260323000549",
+          "receiptSha256": "d399d1461966a3b0623adaee9e6aec52de0c79c91f06931e62f671c837113380",
+          "reportedOn": "2026-03-23",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260323000549",
+          "status": "CAPTURED",
+          "title": "사업보고서 (2025.12)"
+        },
+        "20260331901421": {
+          "archiveSha256": "40ae0c24f583ecf8ee5f328fe4e3a24876ff55d51f67df16629290ad8ba7a530",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:44.499916+00:00",
+          "receipt": "20260331901421",
+          "receiptSha256": "3abb320fa0c53b6d3297d059baa6bd86c68853137240c07362f833f4366a06d2",
+          "reportedOn": "2026-03-31",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260331901421",
+          "status": "CAPTURED",
+          "title": "정기주주총회결과"
+        },
+        "20260515000313": {
+          "archiveSha256": "cf67b0818aa3fedbe421d66de285cb133877e071968a4e73fccc3dcf1639a3ba",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:44.678489+00:00",
+          "receipt": "20260515000313",
+          "receiptSha256": "186d2f609493384d14cb20f4e1ca39e616e8a644b7dc8dccfa4358f055449199",
+          "reportedOn": "2026-05-15",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260515000313",
+          "status": "CAPTURED",
+          "title": "분기보고서 (2026.03)"
+        },
+        "20260814001867": {
+          "archiveSha256": "8468a9588e699b22a28d710bc2030c4842180c96d1d33e8af00c57f19057b1cc",
+          "cache": "h05-dividend-2026-20261118",
+          "observedAt": "2026-11-18T00:34:58.734071+00:00",
+          "receipt": "20260814001867",
+          "receiptSha256": "6e42a39d0d94a3db75a3a018e3e0bc9e698b6a45e11ecb69e87d0f7e848d251f",
+          "reportedOn": "2026-08-14",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814001867",
+          "status": "CAPTURED",
+          "title": "반기보고서 (2026.06)"
+        },
+        "20261113000312": {
+          "archiveSha256": "e38c072754e59bf31605d7e2ef5b6f8a0ef094174f2220d68998a069430b139c",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:44.091993+00:00",
+          "receipt": "20261113000312",
+          "receiptSha256": "9fe1812bbfdddf7929d5322e7b5378eae4d2bbc7fde45fdf666501ad4129b5e9",
+          "reportedOn": "2026-11-13",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113000312",
+          "status": "CAPTURED",
+          "title": "분기보고서 (2026.09)"
+        }
+      },
+      "dartIndexes": [
+        {
+          "capturedAt": "2026-11-18T02:39:38.556534+00:00",
+          "path": "index/479960-20241231-01-post",
+          "receiptSha256": "a763bf56702c6df4feecf9e712b4ff8cbee52cdc4706bfecf96b1d292cf23d64",
+          "request": {
+            "bgn_de": "20241101",
+            "corp_code": "01137860",
+            "end_de": "20261118",
+            "last_reprt_at": "N",
+            "page_count": "100",
+            "page_no": "1"
+          },
+          "returnedRows": 45,
+          "sha256": "4179d014357d427bf590dbdbd7ac29360783be48f254797fe37264e5d8479791",
+          "startedAt": "2026-11-18T02:39:37.294854+00:00"
+        }
+      ],
+      "issuer": "위너스일렉",
+      "issuerEvidence": [
+        {
+          "archiveSha256": "57d0a707661cc53b34dbd1225cc022eb124e747d72dd831cd876497ee38a55ca",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "markers": [
+            "배당금총액(원) 3,500,000,000"
+          ],
+          "observedAt": "2026-11-18T02:39:46.596538+00:00",
+          "receipt": "20250314902350",
+          "receiptSha256": "e9058bc2fdc014fe204f87acd5d6d032124bd6afed696c1c3db7ca00bd125708",
+          "reportedOn": "2025-03-14",
+          "role": "발행사 배당 결정",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250314902350",
+          "status": "CAPTURED",
+          "title": "현금ㆍ현물배당결정"
+        },
+        {
+          "archiveSha256": "c9f72cb74494d09e6a98c0b9ae0c4ed9b6e8c1f6f6e658920173dc840bf93fb0",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "markers": [
+            "보통주식 기말배당금 686.27",
+            "3,500,000,000",
+            "주주총회일자 2025-03-31"
+          ],
+          "observedAt": "2026-11-18T02:39:45.884102+00:00",
+          "receipt": "20250331902069",
+          "receiptSha256": "a889e7b4a8e71cfaa32005e8b3f20c00743528de11f2a470ff7c33230ac358d7",
+          "reportedOn": "2025-03-31",
+          "role": "정기주총 승인",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250331902069",
+          "status": "CAPTURED",
+          "title": "정기주주총회결과"
+        },
+        {
+          "archiveSha256": "6e486bb268ebc1204f715e4b604a77892d29315732b1d9689b33d47fce25bc23",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "markers": [
+            "배당금지급 (3,500,000,000)"
+          ],
+          "observedAt": "2026-11-18T02:39:45.494482+00:00",
+          "receipt": "20250814001562",
+          "receiptSha256": "323e7f8467f5c2059bb010aa7899e013d1de17eea10bdc5ed7ab29c5fc136eeb",
+          "reportedOn": "2025-08-14",
+          "role": "2025년 상반기 현금흐름 지급 합계",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250814001562",
+          "status": "CAPTURED",
+          "title": "반기보고서 (2025.06)"
+        },
+        {
+          "archiveSha256": "989d332c854f7d5f47d434f721e8c965d9f95244c7dae3f8ef05999c73a98308",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "markers": [
+            "배당금지급 (3,500,000,000)"
+          ],
+          "observedAt": "2026-11-18T02:39:44.812483+00:00",
+          "receipt": "20260323000549",
+          "receiptSha256": "d399d1461966a3b0623adaee9e6aec52de0c79c91f06931e62f671c837113380",
+          "reportedOn": "2026-03-23",
+          "role": "2025년 연간 현금흐름 지급 합계",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260323000549",
+          "status": "CAPTURED",
+          "title": "사업보고서 (2025.12)"
+        }
+      ],
+      "issuerPayment": {
+        "actualDate": null,
+        "issuerCommonAmountKrw": "686.27",
+        "issuerRound": "제21기 결산",
+        "listingEvidence": {
+          "date": "2025-02-24",
+          "knownAt": "2026-11-04T13:05:49.190258+00:00",
+          "sourceIsin": "KR7479960007",
+          "sourceSha256": "3645bb1ed250b04dcf80a429cdc8b982e6034277faca59518bda475703fe07bf",
+          "sourceUrl": "https://kind.krx.co.kr/external/2025/02/20/000603/20250220001722/70760.htm"
+        },
+        "reason": "발행사 지급예정일과 사후 지급 총액은 확인됐으며 1·2차 상세와 사후 공시에 실제 일 단위 지급일이 없습니다.",
+        "reportedCashFlowKrw": 3500000000,
+        "reportedCashFlowThrough": "2025-06-30",
+        "scheduledDate": "2025-04-07",
+        "scope": "winners-2025",
+        "status": "SCHEDULED_DATE_AND_PAID_TOTAL"
+      },
+      "market": "KOSDAQ",
+      "recordDate": "2024-12-31",
+      "seibroAllocation": {
+        "CASH_ALOC_AMT": "686.27",
+        "CASH_ALOC_RATIO": "343.13",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "KOR_SECN_NM": "위너스일렉",
+        "MARTP_DIV_RATE": "0",
+        "SHOTN_ISIN": "479960",
+        "STK_FIX_RATIO": "0",
+        "STK_KACD": "보통주"
+      },
+      "seibroEvidence": {
+        "fixedStat": {
+          "bodySha256": "2dcfa8a4762c84739e0445a70dca5d3d996d8f8e8f8ddc2b05fa5f85c61575cc",
+          "capture": "ksd-stat-KOSDAQ-2024-rows",
+          "observedAt": "2026-11-07T16:31:13.940586+00:00",
+          "receiptSha256": "eb3d2bb96822ae05ae33c8231c063d58ee75e017d6eab0671d2a400ddcb9b09b",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "issue": {
+          "bodySha256": "99c9d6d646c262a3a44370bd4b9de917cc457353d497e86b5729dde018329c0a",
+          "capture": "ksd-479960-issue",
+          "observedAt": "2026-11-18T02:39:32.225102+00:00",
+          "receiptSha256": "8c7d7530ac85ceaebae0fcda9af21dc504ccf16acbb6444a3690196b57855926",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment": {
+          "bodySha256": "b228502a5e07df791890a0e4fc8d94ecf152db435373d16c126c4d3523f5d142",
+          "capture": "ksd-479960-payment",
+          "observedAt": "2026-11-18T02:39:32.286102+00:00",
+          "receiptSha256": "dd95e16c85a01ea0afbe4c6acf1835829be9d3c87945da67d276793ea2ed767d",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "round": {
+          "bodySha256": "70e60c5c480c87cc743cd87f935fae9cc91c889b16aa9245c2276b09f3e9992a",
+          "capture": "ksd-479960-round",
+          "observedAt": "2026-11-18T02:39:32.171975+00:00",
+          "receiptSha256": "d3b7f6fbd6c6da483e9ef74ef0540658b9e07e325ac13a02851a18779c50e343",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-count": {
+          "bodySha256": "0b7ecc7cd27d8505f1438c226b0af16819e20e753594ac3858434c8b393fba64",
+          "capture": "ksd-479960-stat-count",
+          "observedAt": "2026-11-18T02:39:32.286102+00:00",
+          "receiptSha256": "b8b9f2bf89de8328ea7b1b30e888b2de71212d6398d9c397f1bf9c2f35f76758",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-rows": {
+          "bodySha256": "82815f22c51d37759208b9e80bd57b848989b59e695f2077249d365d099f95e3",
+          "capture": "ksd-479960-stat-rows",
+          "observedAt": "2026-11-18T02:39:32.336737+00:00",
+          "receiptSha256": "2f8b389779261afee3a697663a745caf05951c3949afcbc479a0ef48cd1f2abd",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        }
+      },
+      "seibroPayments": [
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "1"
+        },
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "2"
+        }
+      ],
+      "seibroRound": {
+        "AG_ORG_TPCD": "하나은행",
+        "ALOC_WHCD": "정액",
+        "CALTOT_MART_TPCD": "코스닥시장",
+        "FIX_TPCD": "확정",
+        "GMET_OMEET_DT": "20250331",
+        "LONGTM_TAX_RDEX_TPCD_NM": "No",
+        "PVAL": "200",
+        "REP_SECN_NM": "위너스일렉",
+        "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+        "ROST_CLOSE_BEGIN_DT": "20250101",
+        "ROST_CLOSE_EXPRY_DT": "",
+        "SETACC_MM": "12",
+        "SETACC_TPCD": "결산",
+        "TAXA_STND_RATIO": "",
+        "TOTAL_ISSU_QTY": "7126000"
+      },
+      "sourceRowSha256": "b5c1600bd5b30f209c882726b13116e6fd3531a7431fb9e2e5b1dfa7164ead2c",
+      "statRawRow": {
+        "AG_ORG_TPNM": "하나은행",
+        "CASH_ALOC_AMT": "686.27",
+        "CASH_ALOC_RATIO": "343.135",
+        "DELI_DT": "",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO1": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "ESTM_STDPRC": "686",
+        "ISSUCO_CUSTNO": "51344",
+        "KN_DIV_PAY_DT": "",
+        "KOR_SECN_NM": "위너스일렉",
+        "LIST_TPNM": "코스닥시장",
+        "PVAL": "200",
+        "RGT_RACD": "103",
+        "RGT_RSN_DTAIL_SORT_NM": "현금배당",
+        "RGT_STD_DT": "20241231",
+        "SECN_DTAIL_KANM": "보통주",
+        "SETACC_MM": "12",
+        "SETACC_MMDD": "1231",
+        "SHOTN_ISIN": "479960",
+        "STK_ALOC_RATIO": "0",
+        "STK_FIX_RATIO": "0",
+        "TH1_PAY_TERM_BEGIN_DT": ""
+      },
+      "symbol": "479960"
+    },
+    {
+      "dartDocuments": {
+        "20261013800451": {
+          "archiveSha256": "ef78acc37f35d8bedae9606b28a912a98e8e46817f50c3a45bd3a03bd2df7ca2",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:40.375368+00:00",
+          "receipt": "20261013800451",
+          "receiptSha256": "e947e647b8de955b2dc812dbc06361a4420c52c7faaf9449d9288250799c3364",
+          "reportedOn": "2026-10-13",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261013800451",
+          "status": "CAPTURED",
+          "title": "부동산투자회사금전배당결정"
+        },
+        "20261111000251": {
+          "archiveSha256": "63c044140a3a87d526b77703ca167c61529cca84f4dd8b66618594a2b7ebddb7",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:40.126630+00:00",
+          "receipt": "20261111000251",
+          "receiptSha256": "d013ec45b4a1b311abdfeb03be1a7f6bb26f7de9794c63219023f5f84ed4db7e",
+          "reportedOn": "2026-11-11",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000251",
+          "status": "CAPTURED",
+          "title": "주주총회소집공고"
+        }
+      },
+      "dartIndexes": [
+        {
+          "capturedAt": "2026-11-18T02:39:37.827553+00:00",
+          "path": "index/481850-20260831-01-post",
+          "receiptSha256": "6b1b3ae5e8d61c29303e38ae0cd356f02ff2a3f914bed7f969deb33982328a3e",
+          "request": {
+            "bgn_de": "20260702",
+            "corp_code": "01714997",
+            "end_de": "20261118",
+            "last_reprt_at": "N",
+            "page_count": "100",
+            "page_no": "1"
+          },
+          "returnedRows": 15,
+          "sha256": "2be91d7f1402a7f079bfa30247b229c9ae2f7d2cf6031a128dbe51b5b74547cf",
+          "startedAt": "2026-11-18T02:39:37.293856+00:00"
+        }
+      ],
+      "issuer": "신한글로벌액티브위탁관리부동산투자회사",
+      "issuerEvidence": [
+        {
+          "archiveSha256": "ef78acc37f35d8bedae9606b28a912a98e8e46817f50c3a45bd3a03bd2df7ca2",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "markers": [
+            "1,500,000,000",
+            "주주총회 예정일자 2026-11-26"
+          ],
+          "observedAt": "2026-11-18T02:39:40.375368+00:00",
+          "receipt": "20261013800451",
+          "receiptSha256": "e947e647b8de955b2dc812dbc06361a4420c52c7faaf9449d9288250799c3364",
+          "reportedOn": "2026-10-13",
+          "role": "발행사 이사회 결정",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261013800451",
+          "status": "CAPTURED",
+          "title": "부동산투자회사금전배당결정"
+        },
+        {
+          "archiveSha256": "63c044140a3a87d526b77703ca167c61529cca84f4dd8b66618594a2b7ebddb7",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "markers": [
+            "제8기 현금배당 결의의 건",
+            "주당 배당금: 34원"
+          ],
+          "observedAt": "2026-11-18T02:39:40.126630+00:00",
+          "receipt": "20261111000251",
+          "receiptSha256": "d013ec45b4a1b311abdfeb03be1a7f6bb26f7de9794c63219023f5f84ed4db7e",
+          "reportedOn": "2026-11-11",
+          "role": "발행사 주총 소집공고",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000251",
+          "status": "CAPTURED",
+          "title": "주주총회소집공고"
+        }
+      ],
+      "issuerPayment": {
+        "actualDate": null,
+        "issuerCommonAmountKrw": "34",
+        "issuerMeetingScheduledDate": "2026-11-26",
+        "issuerRound": "제8기",
+        "reason": "검토일 현재 주총 예정일이 지나지 않았고 발행사 결정과 세이브로 지급 상세에서 일 단위 지급일을 확인할 수 없습니다.",
+        "scheduledDate": null,
+        "scheduledPaymentWindow": "정기주주총회일로부터 1개월 이내",
+        "scope": "reits-2026",
+        "status": "PENDING_SHAREHOLDER_APPROVAL"
+      },
+      "market": "KOSPI",
+      "recordDate": "2026-08-31",
+      "seibroAllocation": {
+        "CASH_ALOC_AMT": "34",
+        "CASH_ALOC_RATIO": "3.4",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "KOR_SECN_NM": "신한글로벌액티브위탁관리부동산투자회사",
+        "MARTP_DIV_RATE": "3.4",
+        "SHOTN_ISIN": "481850",
+        "STK_FIX_RATIO": "0",
+        "STK_KACD": "보통주"
+      },
+      "seibroEvidence": {
+        "fixedStat": {
+          "bodySha256": "e8b8d9d26460873bea4f37877db9b592609c8e1f61dd2475c0cc95d0626ba556",
+          "capture": "ksd-stat-KOSPI-2026-rows",
+          "observedAt": "2026-11-07T16:31:04.052694+00:00",
+          "receiptSha256": "3ef93c5df066965fa4da4efc683837e39e9a191791a715f811f0d43521f18cd8",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "issue": {
+          "bodySha256": "4b0afccafaa29675beb645ebb472bbb9c59e27045723a963485376ed34b61890",
+          "capture": "ksd-481850-issue",
+          "observedAt": "2026-11-18T02:39:31.414739+00:00",
+          "receiptSha256": "5c11e95de9db85fea1e46a7570c7124b4b8db57bb380a258fbff59e3231f10e6",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment": {
+          "bodySha256": "c270414ccc0336c339e5a1d3dfbe90d050f7a6cf35801f8d4145ab52c3bd6f4b",
+          "capture": "ksd-481850-payment",
+          "observedAt": "2026-11-18T02:39:31.467862+00:00",
+          "receiptSha256": "aad708b46ba3c951890e9b370055ac9cdb6f6f76942efbaac3563a1a4c6329c5",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "round": {
+          "bodySha256": "5114c0206d83c0f13619818b3febfd70944897676dd7cc86d2fe7d99ccdbd058",
+          "capture": "ksd-481850-round",
+          "observedAt": "2026-11-18T02:39:31.358119+00:00",
+          "receiptSha256": "c5b0e390a90c96007a0ffd8daf187dbc18ff28164e305a954f3858975fb0f517",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-count": {
+          "bodySha256": "84c90fed8df3b64b5f8f9db293e86028e60c3621de20368c1bfca52c16144841",
+          "capture": "ksd-481850-stat-count",
+          "observedAt": "2026-11-18T02:39:31.521518+00:00",
+          "receiptSha256": "69351c63138a52b116480240057c24f7d4269475992a9308a7728b453b67d080",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-rows": {
+          "bodySha256": "690429c4b57014d56aed6baefb842adbfe3503420aa1fe5adb2aa69a2d0cf2d4",
+          "capture": "ksd-481850-stat-rows",
+          "observedAt": "2026-11-18T02:39:31.576663+00:00",
+          "receiptSha256": "2e1b038e231379811c6ab3941a341e3197ac99077869317a008ef66b20168877",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        }
+      },
+      "seibroPayments": [
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "1"
+        },
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "2"
+        }
+      ],
+      "seibroRound": {
+        "AG_ORG_TPCD": "국민은행",
+        "ALOC_WHCD": "정액",
+        "CALTOT_MART_TPCD": "유가증권시장",
+        "FIX_TPCD": "예고",
+        "GMET_OMEET_DT": "20261126",
+        "LONGTM_TAX_RDEX_TPCD_NM": "No",
+        "PVAL": "1000",
+        "REP_SECN_NM": "신한글로벌액티브위탁관리부동산투자회사",
+        "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+        "ROST_CLOSE_BEGIN_DT": "20260901",
+        "ROST_CLOSE_EXPRY_DT": "",
+        "SETACC_MM": "08",
+        "SETACC_TPCD": "결산",
+        "TAXA_STND_RATIO": "",
+        "TOTAL_ISSU_QTY": "43477664"
+      },
+      "sourceRowSha256": "4c8f608a24cc4d5bc0ddcaed0c7c967df9e64b292dd0e36b20cfe310c0dca3a9",
+      "statRawRow": {
+        "AG_ORG_TPNM": "국민은행",
+        "CASH_ALOC_AMT": "34",
+        "CASH_ALOC_RATIO": "3.4",
+        "DELI_DT": "",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO1": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "ESTM_STDPRC": "34",
+        "ISSUCO_CUSTNO": "51263",
+        "KN_DIV_PAY_DT": "",
+        "KOR_SECN_NM": "신한글로벌액티브위탁관리부동산투자회사",
+        "LIST_TPNM": "유가증권시장",
+        "PVAL": "1000",
+        "RGT_RACD": "103",
+        "RGT_RSN_DTAIL_SORT_NM": "현금배당",
+        "RGT_STD_DT": "20260831",
+        "SECN_DTAIL_KANM": "보통주",
+        "SETACC_MM": "08",
+        "SETACC_MMDD": "0831",
+        "SHOTN_ISIN": "481850",
+        "STK_ALOC_RATIO": "0",
+        "STK_FIX_RATIO": "0",
+        "TH1_PAY_TERM_BEGIN_DT": ""
+      },
+      "symbol": "481850"
+    },
+    {
+      "dartDocuments": {
+        "20260824000210": {
+          "archiveSha256": "e4ee71ffb2dc7d99d64fc58ce5868250a62f5c4ec8949f01af24d38a4cbf69d9",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:39.901119+00:00",
+          "receipt": "20260824000210",
+          "receiptSha256": "109d78cd006cd1037ff4ab385fd9e0acfa5e2e6c3f70a30c54b4644228763298",
+          "reportedOn": "2026-08-24",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260824000210",
+          "status": "CAPTURED",
+          "title": "주주총회소집공고"
+        },
+        "20260908800331": {
+          "archiveSha256": "143a90e012a7d4c0a8d0ff641560fa7bb4c0745597f90ca49ee43d1f2d604a03",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:39.688937+00:00",
+          "receipt": "20260908800331",
+          "receiptSha256": "d09998dce4eed749f901f257420146864d63a28acdfa177dcb29d83c8fec7c49",
+          "reportedOn": "2026-09-08",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908800331",
+          "status": "CAPTURED",
+          "title": "임시주주총회결과"
+        },
+        "20261019000208": {
+          "archiveSha256": "6d6d25e338de8558a320f82ce358a5888a54c01fb031ea5ab10404c007d49448",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:39.454815+00:00",
+          "receipt": "20261019000208",
+          "receiptSha256": "aa450eda0b3a719c8c7afeb7d3a8871cc4c132975954e7d4ad109e83af63bdfe",
+          "reportedOn": "2026-10-19",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261019000208",
+          "status": "CAPTURED",
+          "title": "주주총회소집공고"
+        },
+        "20261028800527": {
+          "archiveSha256": "3222e69083d77314d464e01d0513e93935baf77c15fab7cfb89abe3897a75f89",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:39.218158+00:00",
+          "receipt": "20261028800527",
+          "receiptSha256": "2626b39ad6b46cd83c370d232defd5a9c96e7c26f20c84e4455d01163b55c13b",
+          "reportedOn": "2026-10-28",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800527",
+          "status": "CAPTURED",
+          "title": "부동산투자회사금전배당결정"
+        },
+        "20261103800259": {
+          "archiveSha256": "a56c1bfb6351be75fcde0228bd8fa227998748f0c09aa8362b614f118a708527",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "observedAt": "2026-11-18T02:39:38.985451+00:00",
+          "receipt": "20261103800259",
+          "receiptSha256": "5f188813260257b43ee8b7ad3703d72dc5e08d0fbbdae61996cb7b8b707e6f61",
+          "reportedOn": "2026-11-03",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800259",
+          "status": "CAPTURED",
+          "title": "임시주주총회결과"
+        }
+      },
+      "dartIndexes": [
+        {
+          "capturedAt": "2026-11-18T02:39:37.444993+00:00",
+          "path": "index/377190-20260930-01-post",
+          "receiptSha256": "20d6a1f550fa793f5e3c4147f3d4f5ed47a8aa2394d37f85dd69842facc8497f",
+          "request": {
+            "bgn_de": "20260801",
+            "corp_code": "01475609",
+            "end_de": "20261118",
+            "last_reprt_at": "N",
+            "page_count": "100",
+            "page_no": "1"
+          },
+          "returnedRows": 32,
+          "sha256": "90112ef662f0ec6984c92f997d8e5fc440985a3d3061ca69338bb5da847ed4a7",
+          "startedAt": "2026-11-18T02:39:37.292855+00:00"
+        }
+      ],
+      "issuer": "디앤디플랫폼위탁관리부동산투자회사",
+      "issuerEvidence": [
+        {
+          "archiveSha256": "3222e69083d77314d464e01d0513e93935baf77c15fab7cfb89abe3897a75f89",
+          "cache": "h05-missing-dividend-payment-dates-20261118",
+          "markers": [
+            "18,564,000,000",
+            "주주총회 예정일자 2026-12-10"
+          ],
+          "observedAt": "2026-11-18T02:39:39.218158+00:00",
+          "receipt": "20261028800527",
+          "receiptSha256": "2626b39ad6b46cd83c370d232defd5a9c96e7c26f20c84e4455d01163b55c13b",
+          "reportedOn": "2026-10-28",
+          "role": "발행사 이사회 결정",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800527",
+          "status": "CAPTURED",
+          "title": "부동산투자회사금전배당결정"
+        }
+      ],
+      "issuerPayment": {
+        "actualDate": null,
+        "issuerCommonAmountKrw": "210",
+        "issuerIrEvidence": {
+          "bodySha256": "954da6c8b06ccddccd3065d061b0577d8362cafaea04b123bef4d0ffa52a5919",
+          "capture": "ir-377190",
+          "markers": [
+            "2026년 9월 30일",
+            "210 원",
+            "2026년 12월 말 예정"
+          ],
+          "observedAt": "2026-11-18T02:39:33.635161+00:00",
+          "receiptSha256": "b26ba9da927d2ecc9702a929955799c1de1d852c3f19abf4a6e8f4a5f7c0dac1",
+          "sourceUrl": "https://www.dndplatformreit.com/sub/sub03_02.php"
+        },
+        "issuerIrSchedule": "2026년 12월 말 예정",
+        "issuerMeetingScheduledDate": "2026-12-10",
+        "issuerRound": "제13기",
+        "reason": "검토일 현재 주총 예정일이 지나지 않았고 발행사 결정과 세이브로 지급 상세에서 일 단위 지급일을 확인할 수 없습니다.",
+        "scheduledDate": null,
+        "scheduledPaymentWindow": "정기주주총회일로부터 1개월 이내",
+        "scope": "reits-2026",
+        "status": "PENDING_SHAREHOLDER_APPROVAL"
+      },
+      "market": "KOSPI",
+      "recordDate": "2026-09-30",
+      "seibroAllocation": {
+        "CASH_ALOC_AMT": "210",
+        "CASH_ALOC_RATIO": "21",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "KOR_SECN_NM": "디앤디플랫폼위탁관리부동산투자회사",
+        "MARTP_DIV_RATE": "9.32",
+        "SHOTN_ISIN": "377190",
+        "STK_FIX_RATIO": "0",
+        "STK_KACD": "보통주"
+      },
+      "seibroEvidence": {
+        "fixedStat": {
+          "bodySha256": "e8b8d9d26460873bea4f37877db9b592609c8e1f61dd2475c0cc95d0626ba556",
+          "capture": "ksd-stat-KOSPI-2026-rows",
+          "observedAt": "2026-11-07T16:31:04.052694+00:00",
+          "receiptSha256": "3ef93c5df066965fa4da4efc683837e39e9a191791a715f811f0d43521f18cd8",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "issue": {
+          "bodySha256": "aa211cd7b698276debf7c3c988f42b20049f8c55da5f86a9f0a8a22dac3f1c33",
+          "capture": "ksd-377190-issue",
+          "observedAt": "2026-11-18T02:39:30.821222+00:00",
+          "receiptSha256": "427f0f32fe4f286dc257d02eb5964adfe60756abba6a8a95cd1969743569f6fc",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment": {
+          "bodySha256": "d8f09f56b19b0c3e4c98abca12c4a2d8ba578a214f219104bfb786b552ade383",
+          "capture": "ksd-377190-payment",
+          "observedAt": "2026-11-18T02:39:30.821222+00:00",
+          "receiptSha256": "ef286bbb7e9095c1dc098f7d0f35afef59e6687e17a6d4f699aa4ba562da9140",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "round": {
+          "bodySha256": "e2d5c1edbfd949fcfc87eeba882873c1cd993184c273f11ca274187319a31aba",
+          "capture": "ksd-377190-round",
+          "observedAt": "2026-11-18T02:39:30.875256+00:00",
+          "receiptSha256": "33252fda3cae8b52c9a79d2d0e66579a7d83de3991b91bbc558cd5e8a3d91758",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-count": {
+          "bodySha256": "38a4b17475c1ced18a4af4fc46d2291150204a44fc50e96c18ce4046fb330a5a",
+          "capture": "ksd-377190-stat-count",
+          "observedAt": "2026-11-18T02:39:30.875256+00:00",
+          "receiptSha256": "870168f6a6f0062a1927c261c4f785aeb68ad47d12d8278734a917f0c0c35fa4",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-rows": {
+          "bodySha256": "cb7b81d77434af45662b5d0070925f089e5d1935a4b3545aa80956bc1c3bc675",
+          "capture": "ksd-377190-stat-rows",
+          "observedAt": "2026-11-18T02:39:31.039273+00:00",
+          "receiptSha256": "16798fb3e4b5bb90b04b979421aa4502f566acb0fbbfe1ba86287b6ae17af8c2",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        }
+      },
+      "seibroPayments": [
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "1"
+        },
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "2"
+        }
+      ],
+      "seibroRound": {
+        "AG_ORG_TPCD": "국민은행",
+        "ALOC_WHCD": "정액",
+        "CALTOT_MART_TPCD": "유가증권시장",
+        "FIX_TPCD": "예고",
+        "GMET_OMEET_DT": "",
+        "LONGTM_TAX_RDEX_TPCD_NM": "No",
+        "PVAL": "1000",
+        "REP_SECN_NM": "디앤디플랫폼위탁관리부동산투자회사",
+        "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+        "ROST_CLOSE_BEGIN_DT": "20261001",
+        "ROST_CLOSE_EXPRY_DT": "20261231",
+        "SETACC_MM": "09",
+        "SETACC_TPCD": "결산",
+        "TAXA_STND_RATIO": "",
+        "TOTAL_ISSU_QTY": "88400000"
+      },
+      "sourceRowSha256": "3b17750dc058e46214f24b4b1e9a1efa4d48a1f3781359325e6ff3956918be5f",
+      "statRawRow": {
+        "AG_ORG_TPNM": "국민은행",
+        "CASH_ALOC_AMT": "210",
+        "CASH_ALOC_RATIO": "21",
+        "DELI_DT": "",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO1": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "ESTM_STDPRC": "210",
+        "ISSUCO_CUSTNO": "42533",
+        "KN_DIV_PAY_DT": "",
+        "KOR_SECN_NM": "디앤디플랫폼위탁관리부동산투자회사",
+        "LIST_TPNM": "유가증권시장",
+        "PVAL": "1000",
+        "RGT_RACD": "103",
+        "RGT_RSN_DTAIL_SORT_NM": "현금배당",
+        "RGT_STD_DT": "20260930",
+        "SECN_DTAIL_KANM": "보통주",
+        "SETACC_MM": "09",
+        "SETACC_MMDD": "0930",
+        "SHOTN_ISIN": "377190",
+        "STK_ALOC_RATIO": "0",
+        "STK_FIX_RATIO": "0",
+        "TH1_PAY_TERM_BEGIN_DT": ""
+      },
+      "symbol": "377190"
+    },
+    {
+      "dartDocuments": {
+        "20260805800558": {
+          "archiveSha256": "be49f63c95901412900eed49d621ab987ccc9ec65de373483a169bd9d5163000",
+          "cache": "h05-dividend-2026-20261118",
+          "observedAt": "2026-11-18T00:27:59.360996+00:00",
+          "receipt": "20260805800558",
+          "receiptSha256": "eab7b15a0314e6e9d9c150b5f88d714f031cce67dfd231db9e6d0b7c7abc1910",
+          "reportedOn": "2026-08-05",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260805800558",
+          "status": "CAPTURED",
+          "title": "부동산투자회사금전배당결정"
+        },
+        "20260902000318": {
+          "archiveSha256": "feb196a6f79455e3a9a0040b2481d592898b66a9f8365c8f64540004855b6bc3",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "observedAt": "2026-11-18T00:54:38.030719+00:00",
+          "receipt": "20260902000318",
+          "receiptSha256": "6d7bdf3b5e0d3130657dfd358a2403c8245dd1c93e7ccb2a0842214cacdd09eb",
+          "reportedOn": "2026-09-02",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260902000318",
+          "status": "CAPTURED",
+          "title": "주주총회소집공고"
+        },
+        "20260917800515": {
+          "archiveSha256": "178243ca1afce718d389dc11ec5b011566a51a24b78314685463a34dca41b399",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "observedAt": "2026-11-18T00:54:37.762056+00:00",
+          "receipt": "20260917800515",
+          "receiptSha256": "966d4a688c4886266f3206799161aaee4327a9a97edeb22f603d92a5025c8dc5",
+          "reportedOn": "2026-09-17",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260917800515",
+          "status": "CAPTURED",
+          "title": "정기주주총회결과"
+        },
+        "20261104800457": {
+          "archiveSha256": "70ed300d75dfd2f3574fcc0a6709ad25af545d12719fb4563bea9c6462672560",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "observedAt": "2026-11-18T00:54:37.528020+00:00",
+          "receipt": "20261104800457",
+          "receiptSha256": "72df25624a0937ce291acf14578efea97eab0cb20884894a121df935eb0fc11c",
+          "reportedOn": "2026-11-04",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800457",
+          "status": "CAPTURED",
+          "title": "부동산투자회사금전배당결정"
+        }
+      },
+      "dartIndexes": [
+        {
+          "capturedAt": "2026-11-18T02:39:37.656500+00:00",
+          "path": "index/395400-20260930-01-post",
+          "receiptSha256": "761936b3b2e5254e6a7ac2b4a3510e2e8a76a49f754644e430be7b9ea4084642",
+          "request": {
+            "bgn_de": "20260801",
+            "corp_code": "01535150",
+            "end_de": "20261118",
+            "last_reprt_at": "N",
+            "page_count": "100",
+            "page_no": "1"
+          },
+          "returnedRows": 47,
+          "sha256": "4bdb5cbf10362cdefd01223dd71a6bbdd71ce4797a0f603643d2a1337cb9e0b2",
+          "startedAt": "2026-11-18T02:39:37.293856+00:00"
+        }
+      ],
+      "issuer": "에스케이위탁관리부동산투자회사",
+      "issuerEvidence": [
+        {
+          "archiveSha256": "70ed300d75dfd2f3574fcc0a6709ad25af545d12719fb4563bea9c6462672560",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "markers": [
+            "21,673,268,640",
+            "주주총회 예정일자 2026-12-17"
+          ],
+          "observedAt": "2026-11-18T00:54:37.528020+00:00",
+          "receipt": "20261104800457",
+          "receiptSha256": "72df25624a0937ce291acf14578efea97eab0cb20884894a121df935eb0fc11c",
+          "reportedOn": "2026-11-04",
+          "role": "발행사 이사회 결정",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800457",
+          "status": "CAPTURED",
+          "title": "부동산투자회사금전배당결정"
+        },
+        {
+          "archiveSha256": "be49f63c95901412900eed49d621ab987ccc9ec65de373483a169bd9d5163000",
+          "cache": "h05-dividend-2026-20261118",
+          "markers": [
+            "배당기준일 2026-06-30",
+            "보통주식 68"
+          ],
+          "observedAt": "2026-11-18T00:27:59.360996+00:00",
+          "receipt": "20260805800558",
+          "receiptSha256": "eab7b15a0314e6e9d9c150b5f88d714f031cce67dfd231db9e6d0b7c7abc1910",
+          "reportedOn": "2026-08-05",
+          "role": "별도 회차의 배당 결정",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260805800558",
+          "status": "CAPTURED",
+          "title": "부동산투자회사금전배당결정"
+        }
+      ],
+      "issuerPayment": {
+        "actualDate": null,
+        "issuerCommonAmountKrw": "72",
+        "issuerMeetingScheduledDate": "2026-12-17",
+        "issuerRound": "제22기",
+        "reason": "검토일 현재 주총 예정일이 지나지 않았고 발행사 결정과 세이브로 지급 상세에서 일 단위 지급일을 확인할 수 없습니다.",
+        "scheduledDate": null,
+        "scheduledPaymentWindow": "정기주주총회일로부터 1개월 이내",
+        "scope": "reits-2026",
+        "separateScheduleMatch": {
+          "amountKrw": "68",
+          "displayedPaymentDate": "2026-09-28",
+          "dividendRecordDate": "2026-06-30",
+          "evidence": {
+            "bodySha256": "8bf0f894d9544256708af31367dee9ddc8820505fce6c42c22f2da0d79010c07",
+            "capture": "ir-395400",
+            "markers": [
+              "제21기 2026-06-30 2026-09-28 68"
+            ],
+            "observedAt": "2026-11-18T02:39:33.686696+00:00",
+            "receiptSha256": "c6ea8a119fea44ab7ee61563f5b17966c28a18116b36172dc3a17762e3f0af31",
+            "sourceUrl": "https://www.skreit.co.kr/investment/dividend.php"
+          }
+        },
+        "status": "PENDING_SHAREHOLDER_APPROVAL"
+      },
+      "market": "KOSPI",
+      "recordDate": "2026-09-30",
+      "seibroAllocation": {
+        "CASH_ALOC_AMT": "72",
+        "CASH_ALOC_RATIO": "14.4",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "KOR_SECN_NM": "에스케이위탁관리부동산투자회사",
+        "MARTP_DIV_RATE": "1.35",
+        "SHOTN_ISIN": "395400",
+        "STK_FIX_RATIO": "0",
+        "STK_KACD": "보통주"
+      },
+      "seibroEvidence": {
+        "fixedStat": {
+          "bodySha256": "e8b8d9d26460873bea4f37877db9b592609c8e1f61dd2475c0cc95d0626ba556",
+          "capture": "ksd-stat-KOSPI-2026-rows",
+          "observedAt": "2026-11-07T16:31:04.052694+00:00",
+          "receiptSha256": "3ef93c5df066965fa4da4efc683837e39e9a191791a715f811f0d43521f18cd8",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "issue": {
+          "bodySha256": "77f14d731ff5da32d32ae56a8b05300194c08318a65454e29fc309ce7207083e",
+          "capture": "ksd-395400-issue",
+          "observedAt": "2026-11-18T02:39:31.092366+00:00",
+          "receiptSha256": "424c5c1bdbc8269b4d6aa26197687d5d5da11bd53835faaf54270029beb853c0",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "payment": {
+          "bodySha256": "2e5f7e70bf23a3a5ed778776fbbbe45d23adb604fe8aa356916e35e029417c85",
+          "capture": "ksd-395400-payment",
+          "observedAt": "2026-11-18T02:39:31.092366+00:00",
+          "receiptSha256": "1a2be7f978b0f930822599ec43740a901b67a67d2f0829957587d235f7d0210a",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "round": {
+          "bodySha256": "28c0dd23e07545bb5432106d510cf166dcc391e889a8fcf9f523a954194225ba",
+          "capture": "ksd-395400-round",
+          "observedAt": "2026-11-18T02:39:31.041274+00:00",
+          "receiptSha256": "a8eb3d39ab9956a882915e9e02a2ad0ef5a2d5c09f26f697dbdc8ebd288950ed",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-count": {
+          "bodySha256": "becd19dc00695505b30538ea36414c095c929c9f38e429d2d6628c62fc89e3c0",
+          "capture": "ksd-395400-stat-count",
+          "observedAt": "2026-11-18T02:39:31.248099+00:00",
+          "receiptSha256": "c63b3171285cee24c6c102b1ab65abd24529e3a091d06697c9bb6d6372c1b8f3",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        },
+        "stat-rows": {
+          "bodySha256": "65492e6e355a82d8ad9c643ee9138957de157829b7741f124f5e83b15d8ffb90",
+          "capture": "ksd-395400-stat-rows",
+          "observedAt": "2026-11-18T02:39:31.308391+00:00",
+          "receiptSha256": "3b4c7a85ea2b336d0c35a5d47a891ffde743fb814b89289612e3ec9513ddaa6f",
+          "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+        }
+      },
+      "seibroPayments": [
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "1"
+        },
+        {
+          "ESTM_STD_DT": "",
+          "ESTM_STD_TPCD_NM": "해당없음",
+          "PAY_COST_TPCD_NM": "배당/분배금",
+          "PAY_TERM_BEGIN_DT": "",
+          "RN": "2"
+        }
+      ],
+      "seibroRound": {
+        "AG_ORG_TPCD": "KSD",
+        "ALOC_WHCD": "정액",
+        "CALTOT_MART_TPCD": "유가증권시장",
+        "FIX_TPCD": "예고",
+        "GMET_OMEET_DT": "",
+        "LONGTM_TAX_RDEX_TPCD_NM": "No",
+        "PVAL": "500",
+        "REP_SECN_NM": "에스케이위탁관리부동산투자회사",
+        "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+        "ROST_CLOSE_BEGIN_DT": "20261001",
+        "ROST_CLOSE_EXPRY_DT": "",
+        "SETACC_MM": "03",
+        "SETACC_TPCD": "결산",
+        "TAXA_STND_RATIO": "1",
+        "TOTAL_ISSU_QTY": "301017620"
+      },
+      "sourceRowSha256": "c85f1581d5de5cecdd88b08176390d1251c0e907fa979e565fd9dc6ec54c6bf9",
+      "statRawRow": {
+        "AG_ORG_TPNM": "한국예탁결제원",
+        "CASH_ALOC_AMT": "72",
+        "CASH_ALOC_RATIO": "14.4",
+        "DELI_DT": "",
+        "DIFF_ALOC_AMT": "",
+        "DIFF_ALOC_RATIO1": "",
+        "DIFF_ALOC_RATIO2": "",
+        "DIFF_ALOC_RATIO3": "",
+        "ESTM_STDPRC": "72",
+        "ISSUCO_CUSTNO": "42695",
+        "KN_DIV_PAY_DT": "",
+        "KOR_SECN_NM": "에스케이위탁관리부동산투자회사",
+        "LIST_TPNM": "유가증권시장",
+        "PVAL": "500",
+        "RGT_RACD": "103",
+        "RGT_RSN_DTAIL_SORT_NM": "현금배당",
+        "RGT_STD_DT": "20260930",
+        "SECN_DTAIL_KANM": "보통주",
+        "SETACC_MM": "03",
+        "SETACC_MMDD": "0331",
+        "SHOTN_ISIN": "395400",
+        "STK_ALOC_RATIO": "0",
+        "STK_FIX_RATIO": "0",
+        "TH1_PAY_TERM_BEGIN_DT": ""
+      },
+      "symbol": "395400"
+    }
+  ],
+  "scheduleScans": {
+    "legacy-2024": {
+      "countEvidence": {
+        "bodySha256": "6c551418e2663a1e2470dc1d22955c8b16bdd8616da311aeef27ac29d788abac",
+        "capture": "ksd-legacy-2024-payment-count",
+        "observedAt": "2026-11-18T02:39:33.136326+00:00",
+        "receiptSha256": "809719527fd7e7f6b3070d362010435c945756e2dda6a3f6ac540b7f355c7fad",
+        "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+      },
+      "dateFrom": "20240101",
+      "dateThrough": "20241231",
+      "market": "KOSDAQ",
+      "matchedRows": [],
+      "returnedRows": 644,
+      "rowsEvidence": {
+        "bodySha256": "e27ec4f18e536793d695acc05fa900a7f42f600bc20f3522f809865fd5016e12",
+        "capture": "ksd-legacy-2024-payment-rows",
+        "observedAt": "2026-11-18T02:39:33.437112+00:00",
+        "receiptSha256": "323ab2505fbc87ed0afc6831e8428de510305da10cad7ba2c839fa6e825ac272",
+        "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+      },
+      "symbols": [
+        "208350",
+        "340360"
+      ]
+    },
+    "reits-2026": {
+      "countEvidence": {
+        "bodySha256": "df4844ca3b8aeef1e84cd3241cc3b78bc73ba7c66a51bb4d5e0dbb274d08c303",
+        "capture": "ksd-reits-2026-payment-count",
+        "observedAt": "2026-11-18T02:39:33.438112+00:00",
+        "receiptSha256": "39bf175b88431163f9b25020c95ade93d1538ca695143f6d702ce09a69efee94",
+        "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+      },
+      "dateFrom": "20260831",
+      "dateThrough": "20261118",
+      "market": "KOSPI",
+      "matchedRows": [
+        {
+          "rawRow": {
+            "CALTOT_MART_TPCD": "유가증권시장",
+            "ISSU_FORM": "전자증권",
+            "PAY_COST_TPCD": "배당/분배금",
+            "REP_SECN_NM": "에스케이위탁관리부동산투자회사",
+            "RGT_RACD": "배당/분배",
+            "RGT_STD_DT": "20260928",
+            "SECN_KACD": "보통주",
+            "SHOTN_ISIN": "395400"
+          },
+          "sha256": "3d0cefc03fd0000aeb814899d110c694d39053567bbcd98233f03c289ca8e2da"
+        }
+      ],
+      "returnedRows": 87,
+      "rowsEvidence": {
+        "bodySha256": "c8818a52aca000faee348ccd37d6ee93224352edf7943997c75abbb28f3645cd",
+        "capture": "ksd-reits-2026-payment-rows",
+        "observedAt": "2026-11-18T02:39:33.566102+00:00",
+        "receiptSha256": "f3e00963ce113c46dec3a9802ffdd9cf89b6165bca345b5eb4c86a1469409b5c",
+        "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+      },
+      "symbols": [
+        "377190",
+        "395400",
+        "481850"
+      ]
+    },
+    "winners-2025": {
+      "countEvidence": {
+        "bodySha256": "7c29f836f1640d10a774ccbb46667567a7a88dea99cde885232cb4ff94c7b81b",
+        "capture": "ksd-winners-2025-payment-count",
+        "observedAt": "2026-11-18T02:39:33.135323+00:00",
+        "receiptSha256": "5421d4a5fac99f75ce292d332116dbe54b816afcdb4d1dd38cdecd0778803877",
+        "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+      },
+      "dateFrom": "20250101",
+      "dateThrough": "20251231",
+      "market": "KOSDAQ",
+      "matchedRows": [],
+      "returnedRows": 676,
+      "rowsEvidence": {
+        "bodySha256": "32f21466530a6e586ddb4fced012986a53ecabc24a072ea6f33b7ef0e5d9a95b",
+        "capture": "ksd-winners-2025-payment-rows",
+        "observedAt": "2026-11-18T02:39:33.577618+00:00",
+        "receiptSha256": "ea32038418ce475fa30cfd554124873c308a843065e52a92e360fc717526390f",
+        "sourceUrl": "https://seibro.or.kr/websquare/engine/proworks/callServletService.jsp"
+      },
+      "symbols": [
+        "479960"
+      ]
+    }
+  },
+  "schemaVersion": "SAGOPALGO_H05_MISSING_DIVIDEND_PAYMENT_DATES_V1",
+  "summary": {
+    "actualExactDatesVerified": 0,
+    "candidateRows": 6,
+    "dartDocumentStatuses": {
+      "CAPTURED": 41
+    },
+    "issuerIrPages": 2,
+    "reviewedRows": 6,
+    "seibroResponses": 36,
+    "statusCounts": {
+      "NO_DIVIDEND": 2,
+      "PENDING_SHAREHOLDER_APPROVAL": 3,
+      "SCHEDULED_DATE_AND_PAID_TOTAL": 1
+    }
+  },
+  "usableForTrading": false,
+  "usableForTraining": false
+}
