@@ -48,7 +48,7 @@ U02는 ①-06의 남은 시각·소비 근거를 좁혀 처리하는 작업입�
 
 H05 소각일 미기재 121행 중 보통주 120행의 세이브로 수량을 대조했고 107행의 단일 날짜 근거를 기록했습니다. 나머지 보통주 13행과 기존 고려아연·셀트리온 2행을 재검증해 11행의 단일 날짜와 노머스 1행의 두 사건을 기록했습니다. 날짜 충돌이 남은 3행은 정정 또는 소각 처리일을 명시한 근거를 확보할 때까지 단일일자 사건에서 제외합니다. 상장일 경계 밖의 소각 사건과 당시 최초 공개 시각 감사가 남았습니다. [121행 대조](../historical-data/corporate-actions/historical-cancellation-date-followup.md) · [15행 사건 단위 재검증](../historical-data/corporate-actions/historical-cancellation-event-dates.md)
 
-2026년 1~10월 지급 후보 1,503건을 검토해 77건을 추가 확인했습니다. 다음 실행 단위는 H05의 **2026년 지급일 차이 11건과 복수일 1건의 후속 대조**입니다. 발행사 정정·후속 공시, 예탁결제원 및 거래소 기록에서 같은 회차를 찾아 두 날짜의 의미와 해결 여부 또는 미확인 사유를 기록합니다. [2026년 지급 대조와 다음 대상](../historical-data/corporate-actions/historical-dividend-2026-jan-oct.md#다음-대상)
+2026년 지급일 차이 11건과 삼익제약 복수일 1건의 후속 대조를 완료했습니다. 12건 모두 같은 배당 회차에 연결했고, 신라교역의 예정일과 발행사 보고 지급일을 구분했습니다. 차이 10건과 삼익제약의 날짜별 지급 범위는 미확인입니다. 다음 실행 단위는 **대금지급일정에만 남은 보통주 24행 대조**입니다. 기준일·보통주 주당액·지급 표시와 발행사 회차를 대조해 각 행의 연결 여부 또는 미연결 사유를 기록합니다. [12건 판정과 다음 대상](../historical-data/corporate-actions/historical-dividend-2026-date-reconciliation.md)
 
 H05 거래소 조치는 [기존 표본과 2023년 12월 확대 검토](../historical-data/corporate-actions/historical-market-action-expansion.md) 163건과 [월별 원문 대조](../historical-data/corporate-actions/historical-market-action-monthly.md) 3,870건으로 고정 목록 4,033건의 검토 기록을 갖췄습니다. [상호·보통주 식별자 대조](../historical-data/corporate-actions/historical-market-action-identity.md)에서 고정 범위 내 247행의 당시 코드와 ISIN을 확인했습니다. [코스피 적용 주권 대조](../historical-data/corporate-actions/historical-kospi-halt-scope.md)에서 390건에 KRX 20011 조회 응답 547개를 연결하고 미반환 91개 중 89개를 KIND 종목 범위와 공지상 적용일에 연결했습니다. 삼양홀딩스1우선주의 나머지 2개 날짜의 적용 여부와 실제 조치 시각에는 종목별 상태 전환 자료가 필요하며 당시 최초 공개 시각은 H06에서 확인합니다. 2023년 12월 코스피 7종목의 분 단위 적용 시각은 [보류 작업](deferred-work.md)에서 추적합니다.
 
