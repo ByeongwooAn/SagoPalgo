@@ -50,7 +50,7 @@
 
 ## 다음 작업과 남은 흐름
 
-과거 기준정보의 다음 실행 단위는 **H05 배당내역 지급일 누락 6행 대조**입니다. 회차별 지급 상세와 발행사 결정·정정·사후 보고에서 지급일 또는 미확인 사유를 확인합니다. 동일 종목·지급일 복수 후보 4행은 두 발행사 회차에 연결했습니다. [4행 회차 대조](../historical-data/corporate-actions/historical-dividend-ambiguous-schedule.md) · [보류 작업](deferred-work.md)
+과거 기준정보의 다음 실행 단위는 **H05 시장·연도별 5구간의 세이브로 집계 차이 28건 대조**입니다. 응답 필터·집계 정의·반환 행을 비교해 차이의 원인 또는 공개 조회에서 확인 가능한 범위를 기록합니다. 배당내역 지급일 누락 6행은 판정했습니다. [지급일 누락 대조](../historical-data/corporate-actions/historical-dividend-missing-payment-dates.md) · [보류 작업](deferred-work.md)
 
 - **U06-B 실제 KIS 장중 복구 — 완료.** 2026-11-16 삼성전자 체결·호가 2구독에서 단절 후 재구독 응답, 약 6.14초 뒤 새 체결·호가 수신, 정상 종료를 확인했습니다. [실증 근거](../market-data/kis-intraday-recovery-probe.md#2026-11-16-실제-장중-실증)
 - **U07-D 전체 세션·장기 관찰 — 실제 관찰 준비.** 일정 계획 형식과 보고서의 합성 검증과 U06-B 실증을 완료했습니다. 거래 일정·관찰 기간·구독 예산을 확정한 뒤 개장 전부터 마감 이후까지 관찰하고, 휴장일의 실행 여부·재접속·저장 기록을 보고서에 연결합니다. [세션 관찰 완료 조건](../market-data/stream-restart-session-observation.md#u07-d-관찰-계획과-보고서)

@@ -1,6 +1,8 @@
 # 1~5번 작업 완료율과 고정 체크리스트
 
-2026-11-18 [H05 동일 종목·지급일 복수 대응 후보 4행](../historical-data/corporate-actions/historical-dividend-ambiguous-schedule.md)을 두 차등배당 회차에 연결했습니다. 다음은 지급일 누락 6행입니다. 5-08은 진행 중입니다.
+2026-11-18 [H05 배당내역 지급일 누락 6행](../historical-data/corporate-actions/historical-dividend-missing-payment-dates.md)을 판정했습니다. 다음은 세이브로 5구간의 공급자 집계 차이 28건입니다. 5-08은 진행 중입니다.
+
+2026-11-18 [H05 동일 종목·지급일 복수 대응 후보 4행](../historical-data/corporate-actions/historical-dividend-ambiguous-schedule.md)을 두 차등배당 회차에 연결했습니다.
 
 2026-11-18 [H05 세이브로 대금지급일정 단독 후보 24행](../historical-data/corporate-actions/historical-dividend-payment-schedule-reconciliation.md)의 행별 대조를 완료했습니다. 발행사 회차 연결 22행, 상장형 수익증권 2행입니다. 5-08은 진행 중입니다.
 
