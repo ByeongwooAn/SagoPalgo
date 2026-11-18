@@ -27,6 +27,8 @@ OCTOBER_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_OCTOBER_V1"
 NOVEMBER_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_NOVEMBER_V1"
 DECEMBER_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2024_DECEMBER_V1"
 YEAR_2025_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2025_V1"
+JAN_OCT_2026_SCHEMA = "SAGOPALGO_H05_DIVIDEND_2026_JAN_OCT_V1"
+FOLLOWUP_SCHEMAS = {YEAR_2025_SCHEMA, JAN_OCT_2026_SCHEMA}
 SCOPES = {
     SCHEMA: ("2024-04", {CONFIRMED: 3, UNRESOLVED: 4, UNREVIEWED: 1123}),
     MAY_SCHEMA: ("2024-05", {UNREVIEWED: 23}),
@@ -38,6 +40,7 @@ SCOPES = {
     NOVEMBER_SCHEMA: ("2024-11", {UNREVIEWED: 26, UNRESOLVED: 1}),
     DECEMBER_SCHEMA: ("2024-12", {UNREVIEWED: 7}),
     YEAR_2025_SCHEMA: ("2025-", {CONFIRMED: 10, UNRESOLVED: 10, UNREVIEWED: 1426}),
+    JAN_OCT_2026_SCHEMA: ("2026-", {CONFIRMED: 11, UNRESOLVED: 10, UNREVIEWED: 1482}),
 }
 MARKETS = {"Y": "KOSPI", "K": "KOSDAQ"}
 ROW_ID = re.compile(r"[0-9]{14}")
@@ -66,7 +69,9 @@ MKIF_Q3_ID = "mkif-2024-q3-presentation"
 DND_Q3_ID = "dnd-platform-reit-2024-q3-report"
 MKIF_IR = "https://www.mkif.com/assets/mkif/ko-kr/investor-centre/public-filings-and-reports/2024/"
 MKIF_2025_IR = "https://www.mkif.com/assets/mkif/ko-kr/investor-centre/public-filings-and-reports/2025/"
+MKIF_2026_IR = "https://www.mkif.com/assets/mkif/ko-kr/investor-centre/public-filings-and-reports/2026/"
 KBIF_Q1_ID = "kbif-2025-q1-results"
+KBIF_2026_Q1_ID = "kbif-2026-q1-management"
 YEAR_2025_IR_ROUNDS = {
     "mkif-2024-h2-distribution": ("088980", "2024-12-31", "decisions"),
     "mkif-2025-q1-presentation": ("088980", "2024-12-31", "reports"),
@@ -77,6 +82,19 @@ YEAR_2025_IR_ROUNDS = {
     "maps-realty-2025-february": ("094800", "2024-12-31", "reports"),
     "maps-realty-2025-march": ("094800", "2024-12-31", "reports"),
 }
+JAN_OCT_2026_IR_ROUNDS = {
+    "mkif-2025-h2-distribution": ("088980", "2025-12-31", "decisions"),
+    "mkif-2026-q1-presentation": ("088980", "2025-12-31", "reports"),
+    "mkif-2026-h1-distribution": ("088980", "2026-06-30", "decisions"),
+    "mkif-2026-q3-presentation": ("088980", "2026-06-30", "reports"),
+    KBIF_2026_Q1_ID: ("415640", "2025-12-31", "reports"),
+    "kbif-2025-h2-decision": ("415640", "2025-12-31", "decisions"),
+    "kbif-2026-h1-decision": ("415640", "2026-08-18", "decisions"),
+    "hanwha-2026-january": ("451800", "2025-10-31", "reports"),
+    "maps-realty-2026-march": ("094800", "2025-12-31", "reports"),
+    "maps-realty-2026-august": ("094800", "2026-06-30", "reports"),
+}
+FOLLOWUP_IR_ROUNDS = {YEAR_2025_SCHEMA: YEAR_2025_IR_ROUNDS, JAN_OCT_2026_SCHEMA: JAN_OCT_2026_IR_ROUNDS}
 IR_PDFS = {
     IR_ID: (NAVER_IR, "NAVER 2023 통합보고서", "2024-06-26"),
     MKIF_H1_ID: (MKIF_IR + "ir-release-2407-1h-2024-financial%2Btraffic-results-kor.pdf",
@@ -101,7 +119,30 @@ IR_PDFS = {
                                  "맵스리얼티1 2025년 2월 말 월간보고서", None),
     "maps-realty-2025-march": ("https://re1.miraeasset.com/upload/1748482444089.pdf",
                               "맵스리얼티1 2025년 3월 말 월간보고서", None),
+    "mkif-2025-h2-distribution": (MKIF_2026_IR + "ir-release-2601-4q-2025-financial-traffic-results-kor.pdf",
+                                  "맥쿼리인프라 2025년 재무실적 및 투자법인의 운영성과 발표", "2026-01-30"),
+    "mkif-2026-q1-presentation": (MKIF_2026_IR + "2604-ir-general-presentation-1Q-2026-kor.pdf",
+                                  "맥쿼리인프라 2026년 1분기 실적발표", "2026-04-30"),
+    "mkif-2026-h1-distribution": (MKIF_2026_IR + "ir-release-2607-1h-2026-financial-traffic-results-kor.pdf",
+                                  "맥쿼리인프라 2026년 상반기 재무실적 및 투자법인의 운영성과 발표", "2026-07-29"),
+    "mkif-2026-q3-presentation": (MKIF_2026_IR + "2610-ir-general-presentation-3q-2026-kor.pdf",
+                                  "맥쿼리인프라 2026년 3분기 실적발표", "2026-10-30"),
+    KBIF_2026_Q1_ID: ("https://kbif.co.kr/upload/2026/4/20260430105430003151.pdf",
+                      "KB발해인프라 2026년 1분기 자산운용보고서", "2026-04-30"),
+    "hanwha-2026-january": ("https://www.hanwhareit.com/module/board/download.php?boardid=ir&b_idx=59&idx=60",
+                             "한화리츠 2026년 1월 월간보고서", "2026-02-19"),
+    "maps-realty-2026-march": ("https://re1.miraeasset.com/upload/1781155745031.pdf",
+                              "맵스리얼티1 2026년 3월 말 월간보고서", None),
+    "maps-realty-2026-august": ("https://re1.miraeasset.com/upload/1790753573870.pdf",
+                               "맵스리얼티1 2026년 8월 말 월간보고서", None),
 }
+IR_HTML = {
+    "kbif-2025-h2-decision": ("https://kind.krx.co.kr/external/2026/01/30/001365/20260130000096/68210.htm",
+                              "KB발해인프라 2025년 하반기 분배금 결의", "2026-01-30"),
+    "kbif-2026-h1-decision": ("https://kind.krx.co.kr/external/2026/07/31/000951/20260729001809/68504.htm",
+                              "KB발해인프라 2026년 상반기 금전분배 결의", "2026-07-31"),
+}
+IR_SOURCES = IR_PDFS | IR_HTML
 SKREIT_HISTORY_ID = "skreit-dividend-history"
 SKREIT_HISTORY_URL = "https://www.skreit.co.kr/investment/dividend.php"
 SKREIT_HISTORY_HEADER = ["구분", "배당기준일", "배당지급일", "주당배당(원)", "배당총액 (백만원)"]
@@ -272,9 +313,12 @@ def manual_payment(target, entry, markers_found, report):
     dnd_payment = (dnd_timeline and dates(dnd_timeline["payment"]) == [value]
                    and dnd_timeline["amount"] == target["commonCashPerShare"])
     first_kbif_payment = report["receipt"] == KBIF_Q1_ID and "상장 후 최초 배당 실시하였" in marker
+    kbif_payment_table = (report["receipt"] == KBIF_2026_Q1_ID
+                          and marker.startswith("분배금 결의일 분배금 지급일 이익분배금 원본상환액 합계 ")
+                          and dates(marker) == ["2026-01-30", value])
     require(not re.search(r"지급(?:할|될)?\s*예정|지급\s*결의일", marker) and
             (POST_PAYMENT.search(marker) or PAID_DIVIDEND_NOTE.search(marker) or completed_progress
-             or dnd_payment or first_kbif_payment
+             or dnd_payment or first_kbif_payment or kbif_payment_table
              or re.search(r"배당(?:금)?\s*지급\s*일(?:자)?(?:은|는|\s|[:：])", marker)
              or (entry.get("dateContext") == "RECORD_YEAR" and "현금배당을 실시하였" in marker
                  and expected_basis in dates(marker))),
@@ -298,23 +342,27 @@ def reported_payment(target, entries, reports, markers, reason):
     return unknown(target["displayedPaymentDate"], reason, evidence)
 
 
-def read_ir_pdf(job, receipt, pin, at):
-    from pypdf import PdfReader
-
-    url, title, reported_on = IR_PDFS[receipt]
+def read_ir_source(job, receipt, pin, at):
+    url, title, reported_on = IR_SOURCES[receipt]
     folder = job / "ir" / receipt
     proof = read_json(checked_read(folder / "receipt.json", pin["sha256"]))
     require(proof["url"] == url and utc(proof["startedAt"]) <= utc(proof["capturedAt"]) <= at,
             "APRIL_IR_BINDING")
+    evidence = {"receipt": receipt, "sourceUrl": url, "reportedOn": reported_on, "title": title,
+                "observedAt": proof["capturedAt"], "archiveSha256": proof["sha256"], "status": "CAPTURED"}
+    if receipt in IR_HTML:
+        raw = checked_read(folder / "original.html", proof["sha256"])
+        return plain(raw.decode("utf-8-sig")), evidence
+
+    from pypdf import PdfReader
+
     raw = checked_read(folder / "original.pdf", proof["sha256"])
     page = pin["page"]
     pages = PdfReader(BytesIO(raw)).pages
     require(type(page) is int and 1 <= page <= len(pages), "APRIL_IR_PAGE")
     mode = "layout" if receipt == DND_Q3_ID else "plain"
-    return " ".join(pages[page - 1].extract_text(extraction_mode=mode).split()), {
-        "receipt": receipt, "sourceUrl": f"{url}#page={page}", "reportedOn": reported_on,
-        "title": title, "observedAt": proof["capturedAt"], "archiveSha256": proof["sha256"],
-        "status": "CAPTURED", "page": page,
+    return " ".join(pages[page - 1].extract_text(extraction_mode=mode).split()), evidence | {
+        "sourceUrl": f"{url}#page={page}", "page": page,
     }
 
 
@@ -423,7 +471,8 @@ def build(manifest, artifacts, job, *, schema=None):
     parent = read_json(checked_read(artifacts / parent_spec["path"], parent_spec["sha256"]))
     require(utc(parent["knownAt"]) <= at, "APRIL_FUTURE_PARENT")
     targets = {r["ksdRowSha256"]: r for group in parent["issuerYears"] for r in group["events"]
-               if r["displayedPaymentDate"].startswith(payment_prefix)}
+               if r["displayedPaymentDate"].startswith(payment_prefix)
+               and (version != JAN_OCT_2026_SCHEMA or r["displayedPaymentDate"] <= "2026-10-31")}
     require(set(targets) == set(spec["rows"]) and Counter(row["status"] for row in targets.values()) == expected_prior,
             "DIVIDEND_MONTH_SCOPE")
     inventory = load_indexes(job, spec["indexPages"], set(spec["documents"]), at)
@@ -438,11 +487,12 @@ def build(manifest, artifacts, job, *, schema=None):
                 markers_by_receipt.setdefault(entry["receipt"], set()).add(entry["marker"])
         for field in row.get("fieldEvidence", {}).values():
             markers_by_receipt.setdefault(field["receipt"], set()).update(field["markers"])
-    ir_pins = spec.get("irPdfs", {}) | ({IR_ID: spec["naverIr"]} if "naverIr" in spec else {})
-    for receipt in ir_pins.keys() | (markers_by_receipt.keys() & IR_PDFS.keys()):
-        content, proof = read_ir_pdf(job, receipt, ir_pins[receipt], at)
+    ir_pins = spec.get("irPdfs", {}) | spec.get("irHtml", {}) | ({IR_ID: spec["naverIr"]} if "naverIr" in spec else {})
+    ir_rounds = FOLLOWUP_IR_ROUNDS.get(version, {})
+    for receipt in ir_pins.keys() | (markers_by_receipt.keys() & IR_SOURCES.keys()):
+        content, proof = read_ir_source(job, receipt, ir_pins[receipt], at)
         checked_markers[receipt] = {marker for marker in markers_by_receipt.get(receipt, ()) if marker in content}
-        round_binding = YEAR_2025_IR_ROUNDS.get(receipt)
+        round_binding = ir_rounds.get(receipt)
         if receipt == MKIF_H1_ID or round_binding and round_binding[2] == "decisions":
             decision_cache[receipt] = ({}, {}, {}), proof
         else:
@@ -457,18 +507,19 @@ def build(manifest, artifacts, job, *, schema=None):
         if target["status"] != CONFIRMED:
             for kind, cache in (("decisions", decision_cache), ("reports", report_cache)):
                 for receipt in row[kind]:
-                    if receipt in IR_PDFS:
+                    if receipt in IR_SOURCES:
                         if receipt == IR_ID:
                             valid = kind == "reports" and target["symbol"] == "035420"
                         elif receipt == DND_Q3_ID:
                             valid = (version == DECEMBER_SCHEMA and kind == "reports" and target["symbol"] == "377190"
                                      and target["market"] == "KOSPI" and target["recordDate"] == "2024-09-30")
-                        elif receipt in YEAR_2025_IR_ROUNDS:
-                            valid = (version == YEAR_2025_SCHEMA and target["market"] == "KOSPI"
-                                     and YEAR_2025_IR_ROUNDS[receipt] == (target["symbol"], target["recordDate"], kind))
+                        elif receipt in ir_rounds:
+                            valid = (target["market"] == "KOSPI"
+                                     and ir_rounds[receipt] == (target["symbol"], target["recordDate"], kind))
                         else:
                             role = "decisions" if receipt == MKIF_H1_ID else "reports"
-                            valid = (version == AUGUST_SCHEMA and kind == role and target["symbol"] == "088980"
+                            valid = (receipt in {MKIF_H1_ID, MKIF_Q3_ID} and version == AUGUST_SCHEMA
+                                     and kind == role and target["symbol"] == "088980"
                                      and target["market"] == "KOSPI" and target["recordDate"] == "2024-06-30")
                         require(valid and receipt in cache, "APRIL_IR_ISSUER")
                         documents[kind].append(cache[receipt])
@@ -477,7 +528,7 @@ def build(manifest, artifacts, job, *, schema=None):
                     require(MARKETS[item["corp_cls"]] == target["market"] and item["stock_code"] == target["symbol"],
                             "APRIL_DOCUMENT_WRONG_ISSUER")
                     title = DECISION_TITLE if kind == "decisions" else REPORT_TITLE
-                    prospectus = (version == YEAR_2025_SCHEMA and kind == "reports"
+                    prospectus = (version in FOLLOWUP_SCHEMAS and kind == "reports"
                                   and target["symbol"] == "439270" and "투자설명서" in item["report_nm"])
                     require(title.search(item["report_nm"]) or prospectus, "APRIL_DOCUMENT_TITLE")
                     if receipt not in cache:
@@ -509,20 +560,20 @@ def build(manifest, artifacts, job, *, schema=None):
             expected = target["displayedPaymentDate"]
             fields["actualPaymentDate"] = prior_field(target, "actualPaymentDate")
             if "skreitHistory" in row:
-                require(version in {JUNE_SCHEMA, SEPTEMBER_SCHEMA, DECEMBER_SCHEMA, YEAR_2025_SCHEMA}
+                require(version in FOLLOWUP_SCHEMAS | {JUNE_SCHEMA, SEPTEMBER_SCHEMA, DECEMBER_SCHEMA}
                         and "actual" not in row,
                         "SKREIT_HISTORY_SCOPE")
                 fields["actualPaymentDate"] = skreit_payment(target, job, row["skreitHistory"], at)
             if "hyundaiHistory" in row:
-                require(version in {AUGUST_SCHEMA, NOVEMBER_SCHEMA, YEAR_2025_SCHEMA} and "actual" not in row,
+                require(version in FOLLOWUP_SCHEMAS | {AUGUST_SCHEMA, NOVEMBER_SCHEMA} and "actual" not in row,
                         "HYUNDAI_HISTORY_SCOPE")
                 fields["actualPaymentDate"] = hyundai_payment(target, job, row["hyundaiHistory"], at)
             if "esrksHistory" in row:
-                require(version in {SEPTEMBER_SCHEMA, YEAR_2025_SCHEMA} and "actual" not in row,
+                require(version in FOLLOWUP_SCHEMAS | {SEPTEMBER_SCHEMA} and "actual" not in row,
                         "ESRKS_HISTORY_SCOPE")
                 fields["actualPaymentDate"] = issuer_history_payment(target, job, row["esrksHistory"], at, ESRKS_HISTORY_ID)
             if row_hash in actual_by_row:
-                require(target["status"] == UNREVIEWED or version == YEAR_2025_SCHEMA, "APRIL_PRIOR_STATUS")
+                require(target["status"] == UNREVIEWED or version in FOLLOWUP_SCHEMAS, "APRIL_PRIOR_STATUS")
                 reports = {proof["receipt"]: proof for body, proof in documents["reports"] if body is not None}
                 fields["actualPaymentDate"] = reported_payment(target, actual_by_row[row_hash], reports,
                                                                checked_markers, row.get("paymentGap"))
@@ -535,7 +586,7 @@ def build(manifest, artifacts, job, *, schema=None):
                 if plan and plan != "-":
                     reason += f" · 결정공시 예정 표기 {plan}"
                 fields["actualPaymentDate"] = unknown(expected, reason, (proof for _, proof in documents["reports"]))
-            elif (version in {NOVEMBER_SCHEMA, YEAR_2025_SCHEMA} and target["status"] == UNRESOLVED
+            elif (version in FOLLOWUP_SCHEMAS | {NOVEMBER_SCHEMA} and target["status"] == UNRESOLVED
                   and fields["actualPaymentDate"]["status"] == "UNVERIFIED"):
                 previous = fields["actualPaymentDate"]
                 followup = row.get("paymentGap")
@@ -550,13 +601,13 @@ def build(manifest, artifacts, job, *, schema=None):
         else:
             fields = {name: prior_field(target, name) for name in FIELD_INPUTS}
         status = CONFIRMED if all(field["status"] == "MATCH" for field in fields.values()) else UNRESOLVED
-        if (version == YEAR_2025_SCHEMA and target["status"] == UNREVIEWED
+        if (version in FOLLOWUP_SCHEMAS and target["status"] == UNREVIEWED
                 and not any(proof["status"] == "CAPTURED"
                             for group in documents.values() for _, proof in group)
                 and not any(field["status"] != "UNVERIFIED" for field in fields.values())):
             status = UNREVIEWED
         require(target["status"] == UNREVIEWED or target["status"] == status
-                or (version == YEAR_2025_SCHEMA and target["status"] == UNRESOLVED), "APRIL_PRIOR_STATUS")
+                or (version in FOLLOWUP_SCHEMAS and target["status"] == UNRESOLVED), "APRIL_PRIOR_STATUS")
         results.append({"market": target["market"], "symbol": target["symbol"], "issuer": target["issuer"],
                         "ksdRowSha256": row_hash, "ksdScheduleRowSha256": target["ksdScheduleRowSha256"],
                         "priorStatus": target["status"], "status": status, "fields": fields,
