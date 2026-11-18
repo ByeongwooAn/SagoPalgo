@@ -1,0 +1,3487 @@
+{
+  "schemaVersion": "SAGOPALGO_H05_DIVIDEND_DATE_RECONCILIATION_V1",
+  "searchThroughDateKst": "2026-11-18",
+  "baseline": {
+    "path": "h05-2026-jan-oct-dividend-rows.jsonl",
+    "sha256Lf": "949792c1607c86c9b11e89b6c4a9dd2883817c75c8769b7dfc94a3a502d467d6"
+  },
+  "publishedCoverage": {
+    "fixedCandidates": 4343,
+    "confirmed": 241,
+    "reviewedUnconfirmed": 4102
+  },
+  "summary": {
+    "reviewed": 12,
+    "singleDateConflicts": 11,
+    "multipleDateRows": 1,
+    "sameRoundBound": 12,
+    "singleCanonicalActualPaymentDatesConfirmed": 0,
+    "sourceDateDispositions": {
+      "UNEXPLAINED_DATE_DIFFERENCE": 10,
+      "SCHEDULE_AND_ISSUER_PAYMENT_DISTINGUISHED": 1,
+      "MULTIPLE_DATES_ALLOCATION_UNVERIFIED": 1
+    }
+  },
+  "localReview": {
+    "job": "h05-dividend-date-reconciliation-20261118",
+    "dartDocuments": 94,
+    "kindReceipts": 36,
+    "dartIndexSha256": "696f6dc7ffd1b5fbdd095870115dacd8f1da51baf01847d7888a2a8d6e723b8d",
+    "kindIndexSha256": "e5c4f8b93315b4890cc532deeb9892cbf5694a65d09bec3329f71ab49fcbb3fc"
+  },
+  "historicalFirstAvailabilityConfirmed": false,
+  "usableForTraining": false,
+  "usableForTrading": false,
+  "ksdScreenEvidence": {
+    "01041": {
+      "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-layout-01041",
+      "bodySha256": "4d5e9e56055318be73c45fc9ea1c19e818365b5b65a0f48bdc855c8ece0209dd",
+      "receiptSha256": "e930bed654ae1ae7ffdc8bd8958988599052e99d4f18750014b4e8d6c9daa95e",
+      "observedAt": "2026-11-18T00:57:58.826648+00:00",
+      "sourceUrl": "https://seibro.or.kr/IPORTAL/user/company/BIP_CNTS01041V.xml"
+    },
+    "01022": {
+      "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-layout-01022",
+      "bodySha256": "a3e08b30615d52120fd0bea98bd8e68d82b9ba8dfb99807d36deb5d5ef7e8ff2",
+      "receiptSha256": "6375ff77b9b00c948710254335f03f4c44aaebe31c4378119eb20a9a72ac5f90",
+      "observedAt": "2026-11-18T00:57:58.937216+00:00",
+      "sourceUrl": "https://seibro.or.kr/IPORTAL/user/company/BIP_CNTS01022V.xml"
+    },
+    "01027": {
+      "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-layout-01027",
+      "bodySha256": "5dbb75b5aabeb71b715f7159112c3a50df149d4eff5e07c1118b06c403e0186f",
+      "receiptSha256": "8dffc792af064f60a4e7ea63cf46ad3f383d1342d33885855f6425584d31e23d",
+      "observedAt": "2026-11-18T01:00:15.076639+00:00",
+      "sourceUrl": "https://seibro.or.kr/IPORTAL/user/company/BIP_CNTS01027V.xml"
+    }
+  },
+  "ksdRecheckQueries": [
+    {
+      "query": {
+        "AG_ORG_TPCD": "",
+        "CALTOT_MART_TPCD": "12",
+        "ENDPAGE": "10000",
+        "ISSUCO_CUSTNO": "",
+        "PAY_COST_TPCD": "1",
+        "RGT_STD_DT_FROM": "20260101",
+        "RGT_STD_DT_TO": "20261118",
+        "STARTPAGE": "1"
+      },
+      "reportedCount": 754,
+      "returnedRows": 754,
+      "countEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSDAQ-2026-count",
+        "bodySha256": "01ff712006f05cd3c486f266b72c91c27e64a7ea60440d948af86a7033054589",
+        "receiptSha256": "b10576e31dcc2e15eb503013da7bde9d6841f8aa9b5ca922ad11d230008e3b49",
+        "observedAt": "2026-11-18T00:57:58.684757+00:00"
+      },
+      "rowsEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSDAQ-2026-rows",
+        "bodySha256": "8d8c14abe9ccd210f5ee3a2f0519d04d446c6c11d26b05cd6288f59218656c6c",
+        "receiptSha256": "a7f15f5903cdc62e48f1d8161efd7a622eb1fddeb7f220b55d22bc1c92f5216d",
+        "observedAt": "2026-11-18T00:57:59.366646+00:00"
+      }
+    },
+    {
+      "query": {
+        "AG_ORG_TPCD": "",
+        "CALTOT_MART_TPCD": "11",
+        "ENDPAGE": "10000",
+        "ISSUCO_CUSTNO": "",
+        "PAY_COST_TPCD": "1",
+        "RGT_STD_DT_FROM": "20260101",
+        "RGT_STD_DT_TO": "20261118",
+        "STARTPAGE": "1"
+      },
+      "reportedCount": 885,
+      "returnedRows": 885,
+      "countEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSPI-2026-count",
+        "bodySha256": "c45fa0fd574e0967f710909ed09db5126ce0e0bc04f026ea9b240197ea59a274",
+        "receiptSha256": "c974c4cc61ae436910d98a74360527c6615d9286de225a6cbb754c8779706c75",
+        "observedAt": "2026-11-18T00:57:57.960648+00:00"
+      },
+      "rowsEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSPI-2026-rows",
+        "bodySha256": "6b0707688c6ffa7e72e272b80ae6722768dd63e7228b13ba1a1e9360d62064f0",
+        "receiptSha256": "e7835657a53c583ee3d750ad328736c6d083c4596c184b6128a2f20a1b77b976",
+        "observedAt": "2026-11-18T00:57:59.220626+00:00"
+      }
+    },
+    {
+      "query": {
+        "END_PAGE": "10000",
+        "ISSUCO_CUSTNO": "",
+        "KOR_SECN_NM": "",
+        "LIST_TPCD": "12",
+        "RGT_RSN_DTAIL_SORT_CD": "",
+        "RGT_STD_DT_FROM": "20250101",
+        "RGT_STD_DT_TO": "20251231",
+        "SECN_KACD": "0101",
+        "START_PAGE": "1"
+      },
+      "reportedCount": 1697,
+      "returnedRows": 1686,
+      "countEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSDAQ-2025-count",
+        "bodySha256": "813ddc6b66b70ca2ca87ecf575683baebd6b53e0a5e9ad99553dfc5e2d24b93e",
+        "receiptSha256": "99aa9e059c0c2fc06a6b6fe5bb664a62a77b3b0384efa746c1831a0153a5c859",
+        "observedAt": "2026-11-18T00:57:56.883915+00:00"
+      },
+      "rowsEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSDAQ-2025-rows",
+        "bodySha256": "fbee97232f702ed55022d484e57f969c32ffaae49a26b19abbb573fbcf1cade9",
+        "receiptSha256": "ee5c8df4dae3b33ac61875f1e697dfcd5531c17bcff690b120ddbca125a49314",
+        "observedAt": "2026-11-18T00:57:59.484837+00:00"
+      }
+    },
+    {
+      "query": {
+        "END_PAGE": "10000",
+        "ISSUCO_CUSTNO": "",
+        "KOR_SECN_NM": "",
+        "LIST_TPCD": "12",
+        "RGT_RSN_DTAIL_SORT_CD": "",
+        "RGT_STD_DT_FROM": "20260101",
+        "RGT_STD_DT_TO": "20261118",
+        "SECN_KACD": "0101",
+        "START_PAGE": "1"
+      },
+      "reportedCount": 209,
+      "returnedRows": 208,
+      "countEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSDAQ-2026-count",
+        "bodySha256": "1349c7e708a2c8e78b99a02ec2938ad9e7ea163e9426ccc190a296739ab624d7",
+        "receiptSha256": "96d4e8a405fad0f1b8451d21214d3309e1b627f35d60efbd6236ff9dc522a5dd",
+        "observedAt": "2026-11-18T00:57:57.109343+00:00"
+      },
+      "rowsEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSDAQ-2026-rows",
+        "bodySha256": "30546587c25555221cef06053e908d24bd6bb3bd72b02028263a35670a03532e",
+        "receiptSha256": "7ed7a388b662a969907a450632ce5f94e9469fe384f9868de0c293dc8cff0e66",
+        "observedAt": "2026-11-18T00:57:57.803026+00:00"
+      }
+    },
+    {
+      "query": {
+        "END_PAGE": "10000",
+        "ISSUCO_CUSTNO": "",
+        "KOR_SECN_NM": "",
+        "LIST_TPCD": "11",
+        "RGT_RSN_DTAIL_SORT_CD": "",
+        "RGT_STD_DT_FROM": "20250101",
+        "RGT_STD_DT_TO": "20251231",
+        "SECN_KACD": "0101",
+        "START_PAGE": "1"
+      },
+      "reportedCount": 921,
+      "returnedRows": 918,
+      "countEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSPI-2025-count",
+        "bodySha256": "57e35325e1aa23b97a4f3c0b13bbde351905909b0870ab4e573860a2de4742b3",
+        "receiptSha256": "cead875f6f013891b1c5c3ab5950211b9ec8bc26efeea46236d43ddc81e6fbbb",
+        "observedAt": "2026-11-18T00:57:56.594903+00:00"
+      },
+      "rowsEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSPI-2025-rows",
+        "bodySha256": "879188104b7524955af87e283a19966b455bad90ee590f8f1e78dfb48d346137",
+        "receiptSha256": "7e2f42f74f430397ddbd7d5370a84c01781179ee200a32ec199ef8c03e5fe642",
+        "observedAt": "2026-11-18T00:57:57.960648+00:00"
+      }
+    },
+    {
+      "query": {
+        "END_PAGE": "10000",
+        "ISSUCO_CUSTNO": "",
+        "KOR_SECN_NM": "",
+        "LIST_TPCD": "11",
+        "RGT_RSN_DTAIL_SORT_CD": "",
+        "RGT_STD_DT_FROM": "20260101",
+        "RGT_STD_DT_TO": "20261118",
+        "SECN_KACD": "0101",
+        "START_PAGE": "1"
+      },
+      "reportedCount": 509,
+      "returnedRows": 502,
+      "countEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSPI-2026-count",
+        "bodySha256": "04314a4c9ac0d3b9cfdfa67fd989c638a08e126d48ec9b0f94766f6a62dcd058",
+        "receiptSha256": "c0c8cd89ab5f95c34e4ac819af21f6e48f63fe821738777a4f4c590c37f54765",
+        "observedAt": "2026-11-18T00:57:56.522326+00:00"
+      },
+      "rowsEvidence": {
+        "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSPI-2026-rows",
+        "bodySha256": "9cd86c48c4e12c119662770419cadc17a41e90e52b5d1cc20c645b17271726f0",
+        "receiptSha256": "2e194a4d3b3b79bcc5a914a2ec70653720af6495c4909b44a0b0347862e58683",
+        "observedAt": "2026-11-18T00:57:57.236349+00:00"
+      }
+    }
+  ],
+  "rows": [
+    {
+      "issuer": "에스케이위탁관리부동산투자회사",
+      "market": "KOSPI",
+      "symbol": "395400",
+      "securityClass": "COMMON",
+      "recordDate": "2025-12-31",
+      "commonCashPerShareKrw": "66",
+      "approvalDate": "2026-03-19",
+      "baselinePaymentStatus": "DIFFERS",
+      "sourceDateDisposition": "UNEXPLAINED_DATE_DIFFERENCE",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-03-30"
+      ],
+      "issuerEvidence": [
+        {
+          "archiveSha256": "fd2e2bc6b491fae009293a04ad14b2b16099212cf8fb5aacefceed33be3dc8c3",
+          "markers": [
+            "구분",
+            "배당기준일",
+            "배당지급일",
+            "주당배당(원)",
+            "배당총액 (백만원)",
+            "정기배당",
+            "특별배당",
+            "합계",
+            "제19기",
+            "2025-12-31",
+            "2026-03-30",
+            "66",
+            "0",
+            "66",
+            "19,197"
+          ],
+          "observedAt": "2026-11-16T23:24:35.959185+00:00",
+          "receipt": "skreit-dividend-history",
+          "reportedOn": null,
+          "sourceUrl": "https://www.skreit.co.kr/investment/dividend.php",
+          "status": "CAPTURED",
+          "title": "SK리츠 배당 이력",
+          "reportedDates": [
+            "2026-03-30"
+          ],
+          "statementLocations": [
+            "ISSUER_DIVIDEND_HISTORY"
+          ],
+          "receiptSha256": "1155bb6a94575558cc86ad62dc48b4913dd4bf019718f375699bc15c6a7ffb7c",
+          "cache": "h05-dividend-2026-20261118/ir/skreit-dividend-history"
+        }
+      ],
+      "dartCorrectionsReviewed": [],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/395400-01",
+            "request": {
+              "bgn_de": "20251030",
+              "corp_code": "01535150",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "72b2bece758ae225f5d742d43200951248bfab23a53906daaacf58c1408e9351",
+            "observedAt": "2026-11-18T00:54:23.739615+00:00",
+            "receiptSha256": "99927310f95a05e3c200d72293d32c1292953efb2ecf81b43bfa79fa2d8dd829"
+          },
+          {
+            "path": "index/395400-02",
+            "request": {
+              "bgn_de": "20251030",
+              "corp_code": "01535150",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "2"
+            },
+            "bodySha256": "5008916b479625f3d168ef27ac1d1e68b9e53957b7bb4e9877555197bd47ddf1",
+            "observedAt": "2026-11-18T00:54:24.194223+00:00",
+            "receiptSha256": "23d86579d8046b82b67c5974d4f6e6fadac7f2108edab1c64876436aecfdae56"
+          }
+        ],
+        "listed": 166,
+        "documentsReviewed": 17
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260204000925",
+          "title": "부동산투자회사 금전배당 결정",
+          "listedMinuteKst": "2026-02-04 16:43",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260204000925&method=search",
+          "indexBodySha256": "21c9f7bfe667452e934ad2f56fd7124af8c12b36578bb5173f00c5b1f8b050bc",
+          "viewerBodySha256": "adb0831187d019a69427c712e8c0119ec60e532c75e9c7e553856b0873d15631",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260202002075",
+              "bodySha256": "f2bc5192c1182af3d7b29dbf18a625b57816ca12d38366d7036c5703b02b7573",
+              "receiptSha256": "955edbcec47cf8c58bb62deeb432180c00de0eecfc237499df9878e2f9e2c19d",
+              "observedAt": "2026-11-18T00:58:34.292196+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/02/04/000925/20260202002075/91560.htm",
+              "document": "20260202002075",
+              "publishedOn": "2026-02-04",
+              "label": "부동산투자회사 금전배당 결정 (2026.02.04)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "approval": {
+          "receipt": "20260319001964",
+          "title": "정기주주총회결과",
+          "listedMinuteKst": "2026-03-19 18:04",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260319001964&method=search",
+          "indexBodySha256": "53e473ace4653191fad84ade8063729df770bd45f57555efbde657b93fe1e5ed",
+          "viewerBodySha256": "a24e3a7890a722eac1bba21b6501ee61a030a98d06d94fb48a8a4f7fd9c0c6b9",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260319008117",
+              "bodySha256": "19bc5917da5e265a76b594d34e105467a1430ef0c8e7f3862b25051dd6876de1",
+              "receiptSha256": "72bab44acfe84c353742341590c80ae4b60e34e52b584a02b0d5f7c0c3e6e8ac",
+              "observedAt": "2026-11-18T00:58:33.814434+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/19/001964/20260319008117/91482.htm",
+              "document": "20260319008117",
+              "publishedOn": "2026-03-19",
+              "label": "정기주주총회결과 (2026.03.19)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "exactPlannedPaymentDate": null
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "53e473ace4653191fad84ade8063729df770bd45f57555efbde657b93fe1e5ed",
+            "capture": "kind-list-395400-all-01",
+            "observedAt": "2026-11-18T00:58:26.267300+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2025-10-30",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "1d2b4b257d6635312ab92ab95ffe3a1795913beb0913facf16b11ffedd92ff1f",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 2,
+            "totalRows": 168
+          },
+          {
+            "bodySha256": "21c9f7bfe667452e934ad2f56fd7124af8c12b36578bb5173f00c5b1f8b050bc",
+            "capture": "kind-list-395400-all-02",
+            "observedAt": "2026-11-18T00:58:26.490748+00:00",
+            "page": 2,
+            "query": {
+              "fromDate": "2025-10-30",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "5eca0d941a0664cfe557c2a08f1aff01e46d17d57f812f35f84ddb4e624b5252",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 2,
+            "totalRows": 168
+          }
+        ],
+        "selectedReceipts": [
+          "20261104000457",
+          "20260928000397",
+          "20260917000515",
+          "20260805000558",
+          "20260618000841",
+          "20260506000503",
+          "20260319001964",
+          "20260204000925",
+          "20251218000588",
+          "20251118000273",
+          "20251105000557"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=42695&rgt_racd=103&rgt_std_dt=20251231",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-395400-round",
+            "bodySha256": "b137813cc9305fc2c7166326308e41a8cb4a4bef6247d853a06061c891e96d7c",
+            "receiptSha256": "6c2335fd4ee66ecbc989f07cc78c52cd763140d5ac5103d4f1b27ad35261bfeb",
+            "observedAt": "2026-11-18T01:00:43.343541+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "결산",
+              "GMET_OMEET_DT": "20260319",
+              "AG_ORG_TPCD": "KSD"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-395400-payment",
+            "bodySha256": "104c938170ed98256b00e73e092b6c84e4410a6468882328fa9c53ab59b3bfef",
+            "receiptSha256": "37989ec588cd8a6dc8975e3d0abf50ac607dd8b07441ccc4ec9ef1b635712911",
+            "observedAt": "2026-11-18T01:00:43.339511+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20260331"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-395400-issue",
+            "bodySha256": "8ab56e34d619301bc180fe750f9f85d7a6e7ee5d938147484b0f86a7b40cc66b",
+            "receiptSha256": "14bdf9646fd86bf957f2f75387faa591d74d509aa406f05b777cf51619d2dcae",
+            "observedAt": "2026-11-18T01:00:43.362817+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "395400",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "66"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSPI-2025-rows",
+            "bodySha256": "983ac2a7d5da8d6f7f2deb6f03059ae7027ca9651a02e1a89cb8af55733a1b0e",
+            "receiptSha256": "a7af8b6bf0e680ece606b7f4491f13cc59031d8ed7c918c92f271a959388c244",
+            "observedAt": "2026-11-07T16:30:48.737861+00:00",
+            "rowSha256": "e4bf2f27973437d01daeb3dc66b6f25aa11d7a98ceed6005adae5279d0677658"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSPI-2026-rows",
+            "bodySha256": "53aa10bd884df2872b16d996c83f385d3aeb46fd263d22a098d3377412191456",
+            "receiptSha256": "4f6107e77d66cd7d0c627512a33e8460e0062130f52272b47d95d04ed57cef4a",
+            "observedAt": "2026-11-07T16:31:40.299212+00:00",
+            "rowSha256": "ddd696c906e33c1e4bec6e931a2632cf5ebad25581baf196ca7132771f7e83cc"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSPI-2025-rows",
+            "bodySha256": "879188104b7524955af87e283a19966b455bad90ee590f8f1e78dfb48d346137",
+            "receiptSha256": "7e2f42f74f430397ddbd7d5370a84c01781179ee200a32ec199ef8c03e5fe642",
+            "observedAt": "2026-11-18T00:57:57.960648+00:00",
+            "rowSha256": "e4bf2f27973437d01daeb3dc66b6f25aa11d7a98ceed6005adae5279d0677658"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSPI-2026-rows",
+            "bodySha256": "6b0707688c6ffa7e72e272b80ae6722768dd63e7228b13ba1a1e9360d62064f0",
+            "receiptSha256": "e7835657a53c583ee3d750ad328736c6d083c4596c184b6128a2f20a1b77b976",
+            "observedAt": "2026-11-18T00:57:59.220626+00:00",
+            "rowSha256": "ddd696c906e33c1e4bec6e931a2632cf5ebad25581baf196ca7132771f7e83cc"
+          },
+          "datesQueried": [
+            "2026-03-30",
+            "2026-03-31"
+          ],
+          "scheduleDatesFound": [
+            "2026-03-31"
+          ]
+        },
+        "displayedPaymentDate": "2026-03-31",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "제19기 기준일과 주당 66원으로 회차를 연결했다. IR 지급일 3월 30일과 세이브로 1차 일자에 차이가 있고 IR 총액 표시 19,197백만원은 KIND 승인 19,797,222,720원과 차이가 난다. 지급 실행일과 총액 차이의 근거는 미확인이다."
+    },
+    {
+      "issuer": "케이젯정밀",
+      "market": "KOSDAQ",
+      "symbol": "036560",
+      "securityClass": "COMMON",
+      "recordDate": "2025-12-31",
+      "commonCashPerShareKrw": "800",
+      "approvalDate": "2026-03-19",
+      "baselinePaymentStatus": "DIFFERS",
+      "sourceDateDisposition": "UNEXPLAINED_DATE_DIFFERENCE",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-04-01"
+      ],
+      "issuerEvidence": [
+        {
+          "receipt": "20260515001210",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260515001210",
+          "reportedOn": "2026-05-15",
+          "title": "분기보고서 (2026.03)",
+          "observedAt": "2026-11-18T00:54:26.958715+00:00",
+          "archiveSha256": "718470311c3a2e486808d43728c0611f84fe2fbb8df6aafff21be6c874bd2130",
+          "status": "CAPTURED",
+          "receiptSha256": "3f7ea3eacfa7e6d2756eafe108669b3cb7818284a975af91c90d94bcba21e228",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-01"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "2025년 12월 31일로 종료하는 회계기간에 대한 보통주 배당금은 2026년 4월 1일에 지급되었습니다."
+          ]
+        },
+        {
+          "receipt": "20260814001897",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814001897",
+          "reportedOn": "2026-08-14",
+          "title": "반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:35:00.213702+00:00",
+          "archiveSha256": "9348b2ff85d3a328710b8817094e530815faf65de0dda772b542930b76fc2645",
+          "status": "CAPTURED",
+          "receiptSha256": "e359a088c6ed2cdabc2770b3610358b796a032dbe64c00a3167d22ec39802142",
+          "cache": "h05-dividend-2026-20261118",
+          "reportedDates": [
+            "2026-04-01"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "2025년 12월 31일로 종료하는 회계기간에 대한 보통주 배당금은 2026년 4월 1일에 지급되었습니다."
+          ]
+        },
+        {
+          "receipt": "20261116001467",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116001467",
+          "reportedOn": "2026-11-16",
+          "title": "분기보고서 (2026.09)",
+          "observedAt": "2026-11-18T00:54:27.205825+00:00",
+          "archiveSha256": "9e439c787cd9dd248aece47099a1fde83b04d23f12b21319c6b4f7f2cbc6ebfa",
+          "status": "CAPTURED",
+          "receiptSha256": "f0e42971337304dc3ae610aaede637232dae84f58664b4c3acd63e34c6899a9d",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-01"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "2025년 12월 31일로 종료하는 회계기간에 대한 보통주 배당금은 2026년 4월 1일에 지급되었습니다."
+          ]
+        }
+      ],
+      "dartCorrectionsReviewed": [],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/036560-01",
+            "request": {
+              "bgn_de": "20251030",
+              "corp_code": "00141389",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "5df9cf4d69f1aff8ac0f59d8f6299d9aa3d36d59464866faef242db1ae3f52fd",
+            "observedAt": "2026-11-18T00:54:21.446152+00:00",
+            "receiptSha256": "39ff8174b7e7af0555559097d3d9cec66bd74b9b3311604f261862de94e3e57b"
+          }
+        ],
+        "listed": 36,
+        "documentsReviewed": 6
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260304001083",
+          "title": "현금ㆍ현물배당 결정",
+          "listedMinuteKst": "2026-03-04 16:13",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260304001083&method=search",
+          "indexBodySha256": "c26e7a3836c09ab25e07dbb2ab3020a637da339363a98dcb2bb27fd84692d7b9",
+          "viewerBodySha256": "6776d0325b03a34c2e91131685b46d9ecfaf520a74ce7cebf6b0749fc483b758",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260211002966",
+              "bodySha256": "5fe6564db71193bdbd38456ba753b41af48e0392385a2b3e0f4ab64de943097e",
+              "receiptSha256": "1788f8765454eacb2c129256b48cb2933fba422cd0696baa58d4bbdc7d6a9d76",
+              "observedAt": "2026-11-18T00:58:27.703708+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/04/001083/20260211002966/71500.htm",
+              "document": "20260211002966",
+              "publishedOn": "2026-03-04",
+              "label": "현금ㆍ현물배당 결정 (2026.03.04)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "approval": {
+          "receipt": "20260319000525",
+          "title": "정기주주총회결과",
+          "listedMinuteKst": "2026-03-19 14:20",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260319000525&method=search",
+          "indexBodySha256": "c26e7a3836c09ab25e07dbb2ab3020a637da339363a98dcb2bb27fd84692d7b9",
+          "viewerBodySha256": "0ba8ed9913ce24b008919ee6aa55d199b08f4ce214696b26c86fa3fad7f79a90",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260309001898",
+              "bodySha256": "225996041b95c44c5035fcf6f5a735d6dd6a6467f234f4005a4fcff10594c1a2",
+              "receiptSha256": "c8c5961675b1739d8b974380b97e164f28ad84b81fdf77b7c17da9657b3f9285",
+              "observedAt": "2026-11-18T00:58:27.702709+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/19/000525/20260309001898/70482.htm",
+              "document": "20260309001898",
+              "publishedOn": "2026-03-19",
+              "label": "정기주주총회결과 (2026.03.19)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "exactPlannedPaymentDate": null
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "c26e7a3836c09ab25e07dbb2ab3020a637da339363a98dcb2bb27fd84692d7b9",
+            "capture": "kind-list-036560-all-01",
+            "observedAt": "2026-11-18T00:57:04.499402+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2025-10-30",
+              "kind": "TITLE",
+              "market": "KOSDAQ",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "bc46d24b9b23b7a1388af474fa0d425dc7d9b42c0ee420e79873107a8dca864c",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 1,
+            "totalRows": 30
+          }
+        ],
+        "selectedReceipts": [
+          "20260319000525",
+          "20260304001083"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=3656&rgt_racd=103&rgt_std_dt=20251231",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-036560-round",
+            "bodySha256": "14cf9ddd293d67238e5c62290a57f34d967215194b631e10a6b5503e1c3acb23",
+            "receiptSha256": "4131dec3f4c95628104040098f02cc63e9da65fb750f825f0d9ee968405acb03",
+            "observedAt": "2026-11-18T01:00:41.524290+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "결산",
+              "GMET_OMEET_DT": "20260319",
+              "AG_ORG_TPCD": "KSD"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-036560-payment",
+            "bodySha256": "4d9ea0557cab7c7e635bcb0962edb16f0dd6c33ea88d6046a70065a2ebb5b424",
+            "receiptSha256": "aeb44d1f83244a9a6b230e0981b53d9e6806a5f6c6f3fc62cdb98908ee692f32",
+            "observedAt": "2026-11-18T01:00:41.764731+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20260402"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-036560-issue",
+            "bodySha256": "17f58ff291422a431a7360d96c3451b186867d88a4136092d65b90192d587680",
+            "receiptSha256": "db7ef49d07a194634fcaad7d25f662f9b26fb0b8f3b6e76f57c1e8718fcf506e",
+            "observedAt": "2026-11-18T01:00:41.820193+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "036560",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "800"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSDAQ-2025-rows",
+            "bodySha256": "40cd80f6024cf4e7a1d1fd8e659f39dd57ce5b9dd8275e1d32516d214bb8a25c",
+            "receiptSha256": "03840da20ab2ec4bbbdcba20ec6dc07e56726aefa339ec0a524d8564f499bd79",
+            "observedAt": "2026-11-07T16:31:20.437152+00:00",
+            "rowSha256": "fb8900bb30dbac19698d17b06bba7e4f98f0acbe04799b47567c5407ab172023"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSDAQ-2026-rows",
+            "bodySha256": "b51cc056b5ee3ecc8635dcf57583356160a00bc2d3d890335e6df059d957ff95",
+            "receiptSha256": "4bfba1ac31fbaee51285aae2763f54b4631327132dc3086d8af5063f8be873f2",
+            "observedAt": "2026-11-07T16:31:55.722857+00:00",
+            "rowSha256": "787c2ede1775827ed7ec7f6fe6bf296797555ba5c5a08010a43a422845e65624"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSDAQ-2025-rows",
+            "bodySha256": "fbee97232f702ed55022d484e57f969c32ffaae49a26b19abbb573fbcf1cade9",
+            "receiptSha256": "ee5c8df4dae3b33ac61875f1e697dfcd5531c17bcff690b120ddbca125a49314",
+            "observedAt": "2026-11-18T00:57:59.484837+00:00",
+            "rowSha256": "fb8900bb30dbac19698d17b06bba7e4f98f0acbe04799b47567c5407ab172023"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSDAQ-2026-rows",
+            "bodySha256": "8d8c14abe9ccd210f5ee3a2f0519d04d446c6c11d26b05cd6288f59218656c6c",
+            "receiptSha256": "a7f15f5903cdc62e48f1d8161efd7a622eb1fddeb7f220b55d22bc1c92f5216d",
+            "observedAt": "2026-11-18T00:57:59.366646+00:00",
+            "rowSha256": "787c2ede1775827ed7ec7f6fe6bf296797555ba5c5a08010a43a422845e65624"
+          },
+          "datesQueried": [
+            "2026-04-01",
+            "2026-04-02"
+          ],
+          "scheduleDatesFound": [
+            "2026-04-02"
+          ]
+        },
+        "displayedPaymentDate": "2026-04-02",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "제42기 보통주 결산배당 12,600백만원에 같은 지급일을 1분기·반기·3분기 보고서가 기재했다. 세이브로 1차 일자와의 차이 또는 지급 단계 구분은 미확인이다."
+    },
+    {
+      "issuer": "송원산업",
+      "market": "KOSPI",
+      "symbol": "004430",
+      "securityClass": "COMMON",
+      "recordDate": "2026-03-31",
+      "commonCashPerShareKrw": "300",
+      "approvalDate": "2026-03-19",
+      "baselinePaymentStatus": "DIFFERS",
+      "sourceDateDisposition": "UNEXPLAINED_DATE_DIFFERENCE",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-04-08"
+      ],
+      "issuerEvidence": [
+        {
+          "receipt": "20260813000597",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260813000597",
+          "reportedOn": "2026-08-13",
+          "title": "반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:33:30.849749+00:00",
+          "archiveSha256": "7b552a5da5604a6077942572935ee0f36c633820a928d0f1b586b598f4cfa0af",
+          "status": "CAPTURED",
+          "receiptSha256": "5a461f35b846fa383a16a534fba28a65c3fff2dd9742718d3f94b9852022ca89",
+          "cache": "h05-dividend-2026-20261118",
+          "reportedDates": [
+            "2026-04-08"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "2026년 3월 19일 개최된 정기주주총회 결과 승인된 배당금 7,200백만원은 2026년 4월 8일자로 지급되었으며, 이와 관"
+          ]
+        },
+        {
+          "receipt": "20261113000345",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113000345",
+          "reportedOn": "2026-11-13",
+          "title": "분기보고서 (2026.09)",
+          "observedAt": "2026-11-18T00:54:32.753917+00:00",
+          "archiveSha256": "5a93aeb955657757cf6d4f57a6431ac998a3e134b54f63265353660aa5997bf3",
+          "status": "CAPTURED",
+          "receiptSha256": "5c4776180bc4159348cffeefac2bbd575778d7c96f7813f3f4137edf930936ce",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-08"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "2026년 3월 19일 개최된 정기주주총회 결과 승인된 배당금 7,200백만원은 2026년 4월 8일자로 지급되었으며, 이와 관"
+          ]
+        }
+      ],
+      "dartCorrectionsReviewed": [
+        {
+          "receipt": "20260602000117",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260602000117",
+          "reportedOn": "2026-06-02",
+          "title": "[기재정정]사업보고서 (2025.12)",
+          "observedAt": "2026-11-18T00:54:33.015119+00:00",
+          "archiveSha256": "adad179e40e5aded37861649e41cab691517d3f4680544431bd729dc42851b65",
+          "status": "CAPTURED",
+          "receiptSha256": "9534a5923e614c6fd2e2975d0bca12744f53b40334549b2484fbf826a465466a",
+          "cache": "h05-dividend-date-reconciliation-20261118"
+        }
+      ],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/004430-01",
+            "request": {
+              "bgn_de": "20260128",
+              "corp_code": "00134963",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "af7dbf8e55d9944ee5a1f78b78cf50b34e1b67a5e077079d6a2e37f3b7fd0824",
+            "observedAt": "2026-11-18T00:54:22.824858+00:00",
+            "receiptSha256": "23db56cf1e7bdeab2c95d10b471418150264d6b314d65081e4ab7a3c69bf3c60"
+          }
+        ],
+        "listed": 18,
+        "documentsReviewed": 8
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260223000528",
+          "title": "현금ㆍ현물 배당 결정",
+          "listedMinuteKst": "2026-02-23 15:06",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260223000528&method=search",
+          "indexBodySha256": "a3fff1b2fea8e6b6a243087434e1deeeb2cd244609cb7b53f139813de1c30f5c",
+          "viewerBodySha256": "792a9b856396845122b1707c9bf0a1f124ec8e59d725016629f72d3b4d7bf095",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260210000052",
+              "bodySha256": "7727a8630a14e964fd50536993e7cc54226110f09c5b35efd2e44fdaae48b103",
+              "receiptSha256": "59970ce4b24b7dd926414bc219932ab26ce6cad32454df0eab02b890b7f7fef0",
+              "observedAt": "2026-11-18T00:58:31.367541+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/02/23/000528/20260210000052/61500.htm",
+              "document": "20260210000052",
+              "publishedOn": "2026-02-23",
+              "label": "현금ㆍ현물 배당 결정 (2026.02.23)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "approval": {
+          "receipt": "20260319000820",
+          "title": "정기주주총회결과",
+          "listedMinuteKst": "2026-03-19 15:50",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260319000820&method=search",
+          "indexBodySha256": "a3fff1b2fea8e6b6a243087434e1deeeb2cd244609cb7b53f139813de1c30f5c",
+          "viewerBodySha256": "b7edfa0f35fc0922765d7743963580181aa68a9b5d91b97c94841a47a563101c",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260319003471",
+              "bodySha256": "31c35bcdd880bf4037c1e4031c2f3c4afbd7f59c022ce5453f0f90c929cbd79b",
+              "receiptSha256": "b12f0419405acf667314d50586e84bb5839129609534d31a7b2625306ee4cc28",
+              "observedAt": "2026-11-18T00:58:30.993620+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/19/000820/20260319003471/91482.htm",
+              "document": "20260319003471",
+              "publishedOn": "2026-03-19",
+              "label": "정기주주총회결과 (2026.03.19)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "exactPlannedPaymentDate": null
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "a3fff1b2fea8e6b6a243087434e1deeeb2cd244609cb7b53f139813de1c30f5c",
+            "capture": "kind-list-004430-all-01",
+            "observedAt": "2026-11-18T00:57:04.884266+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2026-01-28",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "095595e8f3bd1ed1cc4d7e3aa2b200a7eb6345cdbe7463c241efca53e2c99bf7",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 1,
+            "totalRows": 21
+          }
+        ],
+        "selectedReceipts": [
+          "20260319000820",
+          "20260223000528"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=443&rgt_racd=103&rgt_std_dt=20260331",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-004430-round",
+            "bodySha256": "50b0bf351eb6ab7f7613ade1a511ed6791f62d9dfd4f4318dc04e3cc3f4ce4c4",
+            "receiptSha256": "ee518e9890d7d29abf7cf89534e44c28cc99d15bfb107871d61729764b357a16",
+            "observedAt": "2026-11-18T01:00:42.663338+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "결산",
+              "GMET_OMEET_DT": "20260319",
+              "AG_ORG_TPCD": "하나은행"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-004430-payment",
+            "bodySha256": "d202d591380fe3f34c12b5b8e782514070930b6aefe332a9bf7f74da3c978133",
+            "receiptSha256": "b32992b5db2da3f303c7aa4488e339cd878c9baff42e61be14c592f70cdfc364",
+            "observedAt": "2026-11-18T01:00:42.719279+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20260415"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-004430-issue",
+            "bodySha256": "89b2cecaafee0e4bc9e7867e4a0501012db60544cecdbb5c0a9286d35ecc59a4",
+            "receiptSha256": "d7c28e771b91354c16eae0c3f2749ef58b0f2897315a43aca19f142bb1bafdf1",
+            "observedAt": "2026-11-18T01:00:42.822702+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "004430",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "300"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSPI-2026-rows",
+            "bodySha256": "e8b8d9d26460873bea4f37877db9b592609c8e1f61dd2475c0cc95d0626ba556",
+            "receiptSha256": "3ef93c5df066965fa4da4efc683837e39e9a191791a715f811f0d43521f18cd8",
+            "observedAt": "2026-11-07T16:31:04.052694+00:00",
+            "rowSha256": "d9ef85019befdd3ac6d2a1f88ce50c44c3eb99a4d41e84fd14a055b7cc1d808c"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSPI-2026-rows",
+            "bodySha256": "53aa10bd884df2872b16d996c83f385d3aeb46fd263d22a098d3377412191456",
+            "receiptSha256": "4f6107e77d66cd7d0c627512a33e8460e0062130f52272b47d95d04ed57cef4a",
+            "observedAt": "2026-11-07T16:31:40.299212+00:00",
+            "rowSha256": "e0eeee6ff9dc5908f7f6f40a495d2ab2081cad050f6a0aa90de17b23f1af4062"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSPI-2026-rows",
+            "bodySha256": "9cd86c48c4e12c119662770419cadc17a41e90e52b5d1cc20c645b17271726f0",
+            "receiptSha256": "2e194a4d3b3b79bcc5a914a2ec70653720af6495c4909b44a0b0347862e58683",
+            "observedAt": "2026-11-18T00:57:57.236349+00:00",
+            "rowSha256": "d9ef85019befdd3ac6d2a1f88ce50c44c3eb99a4d41e84fd14a055b7cc1d808c"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSPI-2026-rows",
+            "bodySha256": "6b0707688c6ffa7e72e272b80ae6722768dd63e7228b13ba1a1e9360d62064f0",
+            "receiptSha256": "e7835657a53c583ee3d750ad328736c6d083c4596c184b6128a2f20a1b77b976",
+            "observedAt": "2026-11-18T00:57:59.220626+00:00",
+            "rowSha256": "e0eeee6ff9dc5908f7f6f40a495d2ab2081cad050f6a0aa90de17b23f1af4062"
+          },
+          "datesQueried": [
+            "2026-04-08",
+            "2026-04-15"
+          ],
+          "scheduleDatesFound": [
+            "2026-04-15"
+          ]
+        },
+        "displayedPaymentDate": "2026-04-15",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "3월 19일 승인 총액 72억원에 대해 반기·3분기가 같은 지급일을 기재했다. 6월 2일 사업보고서 정정은 주석 금액 단위 관련이다. 7일 차이의 지급 단계 또는 날짜 변경 근거는 미확인이다."
+    },
+    {
+      "issuer": "신라교역",
+      "market": "KOSPI",
+      "symbol": "004970",
+      "securityClass": "COMMON",
+      "recordDate": "2026-02-27",
+      "commonCashPerShareKrw": "500",
+      "approvalDate": "2026-03-26",
+      "baselinePaymentStatus": "DIFFERS",
+      "sourceDateDisposition": "SCHEDULE_AND_ISSUER_PAYMENT_DISTINGUISHED",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-04-16"
+      ],
+      "issuerEvidence": [
+        {
+          "receipt": "20260515001077",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260515001077",
+          "reportedOn": "2026-05-15",
+          "title": "분기보고서 (2026.03)",
+          "observedAt": "2026-11-18T00:54:34.663311+00:00",
+          "archiveSha256": "3b3c0fc2e5d0f764ebbabba781591b332eff556f1cc992028e1b6a691df439f4",
+          "status": "CAPTURED",
+          "receiptSha256": "fdb76ef819285cf1081afa3edc5790d68e865cd4f3bb916af0b221cd57ce419a",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-16"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "2026년 4월 16일"
+          ]
+        },
+        {
+          "receipt": "20260814002067",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814002067",
+          "reportedOn": "2026-08-14",
+          "title": "반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:35:08.708546+00:00",
+          "archiveSha256": "d27bc681aae875522587da779e627f1dee50507791181e1ec3618cfa59ea0794",
+          "status": "CAPTURED",
+          "receiptSha256": "568193806653d641cb3dd052f328be6e1d8e972e1b4ebbed8933e3ad7b1d22e2",
+          "cache": "h05-dividend-2026-20261118",
+          "reportedDates": [
+            "2026-04-16"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "배당금 지급에 대한 기술 당반기 배당금은 2026년 4월 16일 지급되었습니다."
+          ]
+        },
+        {
+          "receipt": "20261116000727",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116000727",
+          "reportedOn": "2026-11-16",
+          "title": "분기보고서 (2026.09)",
+          "observedAt": "2026-11-18T00:54:34.161549+00:00",
+          "archiveSha256": "3dbaef82a301ca14815a1b2eb0b6decf29f59e26d5d940f7070c909e220a3662",
+          "status": "CAPTURED",
+          "receiptSha256": "55b36105142ebc6fe5235825e5c9b708b08c685bd9a33fe5660b8864779a40e6",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-16"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "2026년 4월 16일"
+          ]
+        }
+      ],
+      "dartCorrectionsReviewed": [
+        {
+          "receipt": "20260515001873",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260515001873",
+          "reportedOn": "2026-05-15",
+          "title": "[기재정정]사업보고서 (2025.12)",
+          "observedAt": "2026-11-18T00:54:34.422708+00:00",
+          "archiveSha256": "7af28ec0dce299beac9fb5aee47694e404f295ed79ec2a24f7a41f5ce8a61bd8",
+          "status": "CAPTURED",
+          "receiptSha256": "8bdffa7354c070959c038132eebb2a5eb5246beaf2c4873b0d9b13cbcf0af991",
+          "cache": "h05-dividend-date-reconciliation-20261118"
+        },
+        {
+          "receipt": "20260319000468",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260319000468",
+          "reportedOn": "2026-03-19",
+          "title": "[기재정정]주주총회소집공고",
+          "observedAt": "2026-11-18T00:54:35.053066+00:00",
+          "archiveSha256": "ca378c84afb858105d620285cfe950e2eb600f86444426d2eea39b41fc68c35d",
+          "status": "CAPTURED",
+          "receiptSha256": "19b49a041c1e990d15a69641ec4686b0efca3cb06ee6a3bea66ff15b1735dfa3",
+          "cache": "h05-dividend-date-reconciliation-20261118"
+        }
+      ],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/004970-01",
+            "request": {
+              "bgn_de": "20251227",
+              "corp_code": "00135962",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "a9e6bfedfb2212724511a372edec67ece032c9a11088804d6eccd1bf28f5fd58",
+            "observedAt": "2026-11-18T00:54:23.054155+00:00",
+            "receiptSha256": "23eb80dfcfd776d2f4f2df5a9d0cd19be4d686addc6d2a227665f261d8b6ed71"
+          }
+        ],
+        "listed": 34,
+        "documentsReviewed": 9
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260203000636",
+          "title": "현금ㆍ현물 배당 결정",
+          "listedMinuteKst": "2026-02-03 15:20",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260203000636&method=search",
+          "indexBodySha256": "413544ab3770ecb9f8b9a99a9a740accc0acac0573df0855e871f3a1a04278fe",
+          "viewerBodySha256": "384dee19d72a7b740e3caa6cb21c110f283bb36e65617254340b1ad4037e88b1",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260123001149",
+              "bodySha256": "55410345df556109db9de78d51062a9f55538d5828e6a235fdb1db79b970406f",
+              "receiptSha256": "bb678c6cb32f96ffc53ec62d2680d223b35f442c40a070d92576e58517295771",
+              "observedAt": "2026-11-18T00:58:31.448416+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/02/03/000636/20260123001149/61500.htm",
+              "document": "20260123001149",
+              "publishedOn": "2026-02-03",
+              "label": "현금ㆍ현물 배당 결정 (2026.02.03)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "approval": {
+          "receipt": "20260326001339",
+          "title": "정기주주총회결과",
+          "listedMinuteKst": "2026-03-26 15:18",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260326001339&method=search",
+          "indexBodySha256": "413544ab3770ecb9f8b9a99a9a740accc0acac0573df0855e871f3a1a04278fe",
+          "viewerBodySha256": "04f727f32d5a3d045e7763535ac6b299ec093eb34179bd29c7a3441d77083f01",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260326003418",
+              "bodySha256": "4ddcf51fc0a1ae759e3a37a8336b41d80d6ba6e2d1f327db53f0fcf66816b33d",
+              "receiptSha256": "7b8bfcb00613886f76fefe82f6c7b0711539b6fd08035588f06e602e8f2ecbd6",
+              "observedAt": "2026-11-18T00:58:31.609486+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/26/001339/20260326003418/91482.htm",
+              "document": "20260326003418",
+              "publishedOn": "2026-03-26",
+              "label": "정기주주총회결과 (2026.03.26)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "exactPlannedPaymentDate": "2026-04-17"
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "413544ab3770ecb9f8b9a99a9a740accc0acac0573df0855e871f3a1a04278fe",
+            "capture": "kind-list-004970-all-01",
+            "observedAt": "2026-11-18T00:57:04.908671+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2025-12-27",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "2cd31f19280392721933383e607708e5f68501b2ac850b7b9152cefa3009b196",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 1,
+            "totalRows": 34
+          }
+        ],
+        "selectedReceipts": [
+          "20260326001339",
+          "20260203000636"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=497&rgt_racd=103&rgt_std_dt=20260227",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-004970-round",
+            "bodySha256": "81e646361b69a14e9f6bc05bdde5a639be820b7251e7320dedc364d88009e4f7",
+            "receiptSha256": "5347df14e611087534270012260a51459c87da160cd0156f1b9248f5d1f6a5e1",
+            "observedAt": "2026-11-18T01:00:42.822702+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "결산",
+              "GMET_OMEET_DT": "20260326",
+              "AG_ORG_TPCD": "KSD"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-004970-payment",
+            "bodySha256": "b62886e1e6870e0e91746aa644822fb71541c1f0a75fe8f013984325e3bfbbb6",
+            "receiptSha256": "f6ecd7882dd3ac83ffde80034bb7d65c78e1d2af0bdda44ba02dae738b6a9694",
+            "observedAt": "2026-11-18T01:00:42.926011+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20260417"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-004970-issue",
+            "bodySha256": "b2a860ace5814cf720e264ea439c835914b13c09f61a6cc5b345ab023f0adb7d",
+            "receiptSha256": "2b671fdea6e0a1e34d44363a86df019f50f62d089d8d70b72c23504a8fa68f6e",
+            "observedAt": "2026-11-18T01:00:42.925008+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "004970",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "500"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSPI-2026-rows",
+            "bodySha256": "e8b8d9d26460873bea4f37877db9b592609c8e1f61dd2475c0cc95d0626ba556",
+            "receiptSha256": "3ef93c5df066965fa4da4efc683837e39e9a191791a715f811f0d43521f18cd8",
+            "observedAt": "2026-11-07T16:31:04.052694+00:00",
+            "rowSha256": "b85d9bb7e04e0cb3e76bab187ce4a26697087ad32545b35606375e0ec1e842bc"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSPI-2026-rows",
+            "bodySha256": "53aa10bd884df2872b16d996c83f385d3aeb46fd263d22a098d3377412191456",
+            "receiptSha256": "4f6107e77d66cd7d0c627512a33e8460e0062130f52272b47d95d04ed57cef4a",
+            "observedAt": "2026-11-07T16:31:40.299212+00:00",
+            "rowSha256": "2429bfcf2232b2e7e32cd60a1201084b56f4808b432ddd76603fe8f92b7aeff7"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSPI-2026-rows",
+            "bodySha256": "9cd86c48c4e12c119662770419cadc17a41e90e52b5d1cc20c645b17271726f0",
+            "receiptSha256": "2e194a4d3b3b79bcc5a914a2ec70653720af6495c4909b44a0b0347862e58683",
+            "observedAt": "2026-11-18T00:57:57.236349+00:00",
+            "rowSha256": "b85d9bb7e04e0cb3e76bab187ce4a26697087ad32545b35606375e0ec1e842bc"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSPI-2026-rows",
+            "bodySha256": "6b0707688c6ffa7e72e272b80ae6722768dd63e7228b13ba1a1e9360d62064f0",
+            "receiptSha256": "e7835657a53c583ee3d750ad328736c6d083c4596c184b6128a2f20a1b77b976",
+            "observedAt": "2026-11-18T00:57:59.220626+00:00",
+            "rowSha256": "2429bfcf2232b2e7e32cd60a1201084b56f4808b432ddd76603fe8f92b7aeff7"
+          },
+          "datesQueried": [
+            "2026-04-16",
+            "2026-04-17"
+          ],
+          "scheduleDatesFound": [
+            "2026-04-17"
+          ]
+        },
+        "displayedPaymentDate": "2026-04-17",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "2월 3일 KIND 결정의 4월 17일 지급예정일이 세이브로 1차 표시와 같다. 1분기·반기·3분기 주석은 보통주 7,892,500천원을 4월 16일에 지급했다고 기재했다. 날짜의 문서상 의미를 구분했고 실제 분배 단계와 수령일은 미확인이다."
+    },
+    {
+      "issuer": "삼익제약",
+      "market": "KOSDAQ",
+      "symbol": "014950",
+      "securityClass": "COMMON",
+      "recordDate": "2025-12-31",
+      "commonCashPerShareKrw": "40",
+      "approvalDate": "2026-03-31",
+      "baselinePaymentStatus": "UNVERIFIED",
+      "sourceDateDisposition": "MULTIPLE_DATES_ALLOCATION_UNVERIFIED",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-04-17",
+        "2026-04-20"
+      ],
+      "issuerEvidence": [
+        {
+          "receipt": "20260515000100",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260515000100",
+          "reportedOn": "2026-05-15",
+          "title": "분기보고서 (2026.03)",
+          "observedAt": "2026-11-18T00:54:26.054275+00:00",
+          "archiveSha256": "131c66d518c48071c69664aa3496792cd1c6dfb82769dcca28ee6444fa3ea417",
+          "status": "CAPTURED",
+          "receiptSha256": "6c7e5f8dfed871955199e8fa5cd740cb21919cde85dcf45f06926985acf24534",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-17",
+            "2026-04-20"
+          ],
+          "statementLocations": [
+            "CONSOLIDATED_2026_04_17",
+            "SEPARATE_2026_04_20"
+          ],
+          "markers": [
+            "2026년 4월 17일에 지급되었습니다.",
+            "2026년 4월 20일에 지급되었습니다."
+          ]
+        },
+        {
+          "receipt": "20260814001066",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814001066",
+          "reportedOn": "2026-08-14",
+          "title": "반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:34:25.898132+00:00",
+          "archiveSha256": "fb29b87d845addae8d9461ade3061311328393ba1f74357ad5025745fcdd7e97",
+          "status": "CAPTURED",
+          "receiptSha256": "fa76cbe0a5e150e5a5dc5ca34c58c9371d83cfce33327cfa37506fe5cfc91cc2",
+          "cache": "h05-dividend-2026-20261118",
+          "reportedDates": [
+            "2026-04-17",
+            "2026-04-20"
+          ],
+          "statementLocations": [
+            "CONSOLIDATED_BOTH",
+            "SEPARATE_BOTH"
+          ],
+          "markers": [
+            "2026년 4월 17일 및 2026년 4월 20일에 지급되었습니다."
+          ]
+        },
+        {
+          "receipt": "20261113000842",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113000842",
+          "reportedOn": "2026-11-13",
+          "title": "분기보고서 (2026.09)",
+          "observedAt": "2026-11-18T00:54:25.411796+00:00",
+          "archiveSha256": "82c181e500a2e4eafd39fccac359a4d4277b3021eaea1f6d702ec5e79eeeedf4",
+          "status": "CAPTURED",
+          "receiptSha256": "d5c4d727fd81e3005687a6020c808d77c2d9497edf2c71e08de17bcc57d14d64",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-17",
+            "2026-04-20"
+          ],
+          "statementLocations": [
+            "CONSOLIDATED_BOTH",
+            "SEPARATE_BOTH"
+          ],
+          "markers": [
+            "2026년 4월 17일 및 2026년 4월 20일에 지급되었습니다."
+          ]
+        }
+      ],
+      "dartCorrectionsReviewed": [],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/014950-01",
+            "request": {
+              "bgn_de": "20251030",
+              "corp_code": "00127875",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "1e217fe2474dd458a2bb008bb1ed2e884b7e1b7ee444e64512f533895df1a0b7",
+            "observedAt": "2026-11-18T00:54:21.252300+00:00",
+            "receiptSha256": "73d3f182c1903f755f60d80edb1253681425a496ccb1758d7560e7511d7dc65b"
+          }
+        ],
+        "listed": 44,
+        "documentsReviewed": 8
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260227000752",
+          "title": "현금ㆍ현물배당 결정",
+          "listedMinuteKst": "2026-02-27 15:17",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260227000752&method=search",
+          "indexBodySha256": "7d0d9b4cdff38e42f462390db36c3981cb5826f0e2fa7a38def45630a86088a8",
+          "viewerBodySha256": "948555b3a18e455fb2f3f7988b18d1352d2af37c685711c88d2d0d746b77df78",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20251224002248",
+              "bodySha256": "461ebe7bdb996d02f40cda8fa6728e8f1879dd02423d31de755948c6a19959fa",
+              "receiptSha256": "2b23436b8d0d2b2b9181226e4c5aef508b440340348bfdadd0b2661daf9fbfb7",
+              "observedAt": "2026-11-18T00:58:27.643334+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/02/27/000752/20251224002248/71500.htm",
+              "document": "20251224002248",
+              "publishedOn": "2026-02-27",
+              "label": "현금ㆍ현물배당 결정 (2026.02.27)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "approval": {
+          "receipt": "20260331000473",
+          "title": "정기주주총회결과",
+          "listedMinuteKst": "2026-03-31 11:06",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260331000473&method=search",
+          "indexBodySha256": "7d0d9b4cdff38e42f462390db36c3981cb5826f0e2fa7a38def45630a86088a8",
+          "viewerBodySha256": "f1b7a9faa8d2435439a5c0de108f6f32169a366a920681ed41a0c322de802aef",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260320004026",
+              "bodySha256": "264f86506bba49112a405b3e81c0702458a3cace6b5c1cd30ceff3b9939a1f37",
+              "receiptSha256": "ec664eb48634c3edb7ff9c6662043a10dea2c538a68fb0a765e39c0f9ace8f87",
+              "observedAt": "2026-11-18T00:58:27.581032+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/31/000473/20260320004026/70482.htm",
+              "document": "20260320004026",
+              "publishedOn": "2026-03-31",
+              "label": "정기주주총회결과 (2026.03.31)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "exactPlannedPaymentDate": null
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "7d0d9b4cdff38e42f462390db36c3981cb5826f0e2fa7a38def45630a86088a8",
+            "capture": "kind-list-014950-all-01",
+            "observedAt": "2026-11-18T00:57:04.589424+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2025-10-30",
+              "kind": "TITLE",
+              "market": "KOSDAQ",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "f19f27bd3dcdc930824f9e7dc8b5b458b1fe97f02b261924d3f49347f28b999e",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 1,
+            "totalRows": 56
+          }
+        ],
+        "selectedReceipts": [
+          "20260703000468",
+          "20260331000473",
+          "20260227000752"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=1495&rgt_racd=103&rgt_std_dt=20251231",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-014950-round",
+            "bodySha256": "45620b2b9bc3f18a9c55b27c68fd6d37db625ecb56a5082983c98e7d9251c7ef",
+            "receiptSha256": "2590de4a03d7207d4ce1e2ccdea38146e73b69a6862a8185da4ef84b18dfee5a",
+            "observedAt": "2026-11-18T01:00:41.528290+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "결산",
+              "GMET_OMEET_DT": "20260331",
+              "AG_ORG_TPCD": "KSD"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-014950-payment",
+            "bodySha256": "556d39f7fd8ff1b54af7fb4198c5fbf17aeb2a2f88b0e19cc2655534a3a908ae",
+            "receiptSha256": "8dd2555cf85f4e81da171a1031de29f774a195a87f86b061a6205d2ad146bcca",
+            "observedAt": "2026-11-18T01:00:41.524290+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20260420"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-014950-issue",
+            "bodySha256": "56710dca3381870389a6e284f05d36fa57d9ff2baddc606642a1fab21e1bf0ae",
+            "receiptSha256": "8fcfeb42d92ef14434ef316950c8d18a3f263f1ea937c8d4f748960927580ef3",
+            "observedAt": "2026-11-18T01:00:41.524290+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "014950",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "40"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSDAQ-2025-rows",
+            "bodySha256": "40cd80f6024cf4e7a1d1fd8e659f39dd57ce5b9dd8275e1d32516d214bb8a25c",
+            "receiptSha256": "03840da20ab2ec4bbbdcba20ec6dc07e56726aefa339ec0a524d8564f499bd79",
+            "observedAt": "2026-11-07T16:31:20.437152+00:00",
+            "rowSha256": "d1bd56630d4d88c0ab70e90dd2c83291dafa0ad9bf4d55956daea1fff77fae3d"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSDAQ-2026-rows",
+            "bodySha256": "b51cc056b5ee3ecc8635dcf57583356160a00bc2d3d890335e6df059d957ff95",
+            "receiptSha256": "4bfba1ac31fbaee51285aae2763f54b4631327132dc3086d8af5063f8be873f2",
+            "observedAt": "2026-11-07T16:31:55.722857+00:00",
+            "rowSha256": "17bd18899969a190ac321fea35c37560a3a2e8fec6a4bc7607eaddec92b45615"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSDAQ-2025-rows",
+            "bodySha256": "fbee97232f702ed55022d484e57f969c32ffaae49a26b19abbb573fbcf1cade9",
+            "receiptSha256": "ee5c8df4dae3b33ac61875f1e697dfcd5531c17bcff690b120ddbca125a49314",
+            "observedAt": "2026-11-18T00:57:59.484837+00:00",
+            "rowSha256": "d1bd56630d4d88c0ab70e90dd2c83291dafa0ad9bf4d55956daea1fff77fae3d"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSDAQ-2026-rows",
+            "bodySha256": "8d8c14abe9ccd210f5ee3a2f0519d04d446c6c11d26b05cd6288f59218656c6c",
+            "receiptSha256": "a7f15f5903cdc62e48f1d8161efd7a622eb1fddeb7f220b55d22bc1c92f5216d",
+            "observedAt": "2026-11-18T00:57:59.366646+00:00",
+            "rowSha256": "17bd18899969a190ac321fea35c37560a3a2e8fec6a4bc7607eaddec92b45615"
+          },
+          "datesQueried": [
+            "2026-04-17",
+            "2026-04-20"
+          ],
+          "scheduleDatesFound": [
+            "2026-04-20"
+          ]
+        },
+        "displayedPaymentDate": "2026-04-20",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "1분기 연결 주석 4월 17일·별도 주석 4월 20일. 반기와 3분기는 양쪽 주석 모두 같은 367,785천원(주당 40원)에 두 날짜를 병기한다. 세이브로 1차는 4월 20일, 2차 일자는 공란이다. 두 날짜의 지급 대상·금액 배분은 미확인이다."
+    },
+    {
+      "issuer": "이엠넷",
+      "market": "KOSDAQ",
+      "symbol": "123570",
+      "securityClass": "COMMON",
+      "recordDate": "2025-12-31",
+      "commonCashPerShareKrw": "60",
+      "approvalDate": "2026-04-07",
+      "baselinePaymentStatus": "DIFFERS",
+      "sourceDateDisposition": "UNEXPLAINED_DATE_DIFFERENCE",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-04-20"
+      ],
+      "issuerEvidence": [
+        {
+          "receipt": "20260814002770",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814002770",
+          "reportedOn": "2026-08-14",
+          "title": "반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:35:44.262772+00:00",
+          "archiveSha256": "b4dcb20db70c37ffa08518381a6c3c3acddd83979a5afd8913fbdbf1ca9ac93c",
+          "status": "CAPTURED",
+          "receiptSha256": "57a14582a12041385c729c43b2e7d422182bbc6de68d6cd5a1da727a705fed0a",
+          "cache": "h05-dividend-2026-20261118",
+          "reportedDates": [
+            "2026-04-20"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "(*) 2025년 12월31일로 종료하는 회계연도에 대한 배당금 1,281백만원은 2026년 4월20일 지급되었습니다.25."
+          ]
+        },
+        {
+          "receipt": "20261113001692",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113001692",
+          "reportedOn": "2026-11-13",
+          "title": "분기보고서 (2026.09)",
+          "observedAt": "2026-11-18T00:54:29.511617+00:00",
+          "archiveSha256": "9d36b48c6aa5d8e6f593e005d2f812ff216a1eec7e95930c5cbbeeba1dc79726",
+          "status": "CAPTURED",
+          "receiptSha256": "0c896dce649a5816804b9d4882f08a50a15dac4cccb2d5a708cccda23c2f0dea",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-20"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "(*) 2025년 12월31일로 종료하는 회계연도에 대한 배당금 1,281백만원은 2026년 4월20일 지급되었습니다.25."
+          ]
+        }
+      ],
+      "dartCorrectionsReviewed": [
+        {
+          "receipt": "20260407900547",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260407900547",
+          "reportedOn": "2026-04-07",
+          "title": "[기재정정]정기주주총회결과",
+          "observedAt": "2026-11-18T00:54:30.006636+00:00",
+          "archiveSha256": "28783062fc802cfd8a78361c1d9efc740f5199a376d2e2a0a4735eb7fcebc537",
+          "status": "CAPTURED",
+          "receiptSha256": "4f9caaa216b86dc1c66fb2ecd153d5c53711ab50995c0fcacf21baaec8be2dd5",
+          "cache": "h05-dividend-date-reconciliation-20261118"
+        },
+        {
+          "receipt": "20260309901454",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260309901454",
+          "reportedOn": "2026-03-09",
+          "title": "[기재정정]현금ㆍ현물배당결정",
+          "observedAt": "2026-11-18T00:32:17.635151+00:00",
+          "archiveSha256": "b7b5163fa2e09f5d429d0ce7c9e2a9eb5e1f938aa70995184b45a0d6d05969b7",
+          "status": "CAPTURED",
+          "receiptSha256": "aaff01e0272fbffe3d11a599aa8c2f560538a54bcb4fb25697cafe18442e5ff1",
+          "cache": "h05-dividend-2026-20261118"
+        }
+      ],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/123570-01",
+            "request": {
+              "bgn_de": "20251030",
+              "corp_code": "00616290",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "f7548b2ffd29f347720e9c0318c0f8aab5b8d67c073e814029bb7cd0b5dd1729",
+            "observedAt": "2026-11-18T00:54:22.647470+00:00",
+            "receiptSha256": "d681481f0fefcbc38e68e151b6947d7136af56fc70b91bebf197802bd0a36176"
+          }
+        ],
+        "listed": 20,
+        "documentsReviewed": 9
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260309001454",
+          "title": "[정정] 현금ㆍ현물배당 결정",
+          "listedMinuteKst": "2026-03-09 18:04",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260309001454&method=search",
+          "indexBodySha256": "584646ca4c7f362f22654792c0ea16d5da076c40373046c58562c24e7b542185",
+          "viewerBodySha256": "4b4628a25ecba786788b540371f3a714404c76e658f08a29015a117dca6f5e15",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260227000695",
+              "bodySha256": "b1cdeffd81af8bcd56cb679d7fb6a2f1d016f30d0947689500302c0fc352ba71",
+              "receiptSha256": "4f8f2b387eb981bfa5d146ece702bbdcbd52ae49e1a7792e0c9bb7d249423457",
+              "observedAt": "2026-11-18T00:58:29.643690+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/02/27/001117/20260227000695/71500.htm",
+              "document": "20260227000695",
+              "publishedOn": "2026-02-27",
+              "label": "현금ㆍ현물배당 결정 (2026.02.27)",
+              "correctionMarked": false
+            },
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260309000002",
+              "bodySha256": "92532d120c6c9f35d6a4d990ea9692b6b04bf46fb5dfa5a43f75574997becafd",
+              "receiptSha256": "8d1108eae8c5ff5e11882519d74ec319b35c0e601d6496d3850b558840c4bfce",
+              "observedAt": "2026-11-18T00:58:30.595034+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/09/001454/20260309000002/71500.htm",
+              "document": "20260309000002",
+              "publishedOn": "2026-03-09",
+              "label": "[정정]현금ㆍ현물배당 결정 (2026.03.09)",
+              "correctionMarked": true
+            }
+          ]
+        },
+        "approval": {
+          "receipt": "20260407000547",
+          "title": "[정정] 정기주주총회결과",
+          "listedMinuteKst": "2026-04-07 15:30",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260407000547&method=search",
+          "indexBodySha256": "584646ca4c7f362f22654792c0ea16d5da076c40373046c58562c24e7b542185",
+          "viewerBodySha256": "b7b7348b78714a33e91dc495c7aa561ec7c1c223cbed55d9ff8b161091642d04",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260331008648",
+              "bodySha256": "6fe69c0d09a92de87390bf97b382fbf1da9d43dc3c7996766b8ade366bee79a4",
+              "receiptSha256": "5e6d99d83f11dfa141cf6122a4df50ecb78091c41947ad174971fff674e3d8de",
+              "observedAt": "2026-11-18T00:58:29.011493+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/31/004357/20260331008648/70482.htm",
+              "document": "20260331008648",
+              "publishedOn": "2026-03-31",
+              "label": "정기주주총회결과 (2026.03.31)",
+              "correctionMarked": false
+            },
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260407001419",
+              "bodySha256": "eeb1a920cda62ccc859e93934718a5f83d30f19eff2642fbc9f1f7a2effb7c6e",
+              "receiptSha256": "526557c7866618670fa2ec2fdd669f54032c41df7a1f29bd884055135c3fc680",
+              "observedAt": "2026-11-18T00:58:29.372679+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/04/07/000547/20260407001419/70482.htm",
+              "document": "20260407001419",
+              "publishedOn": "2026-04-07",
+              "label": "[정정]정기주주총회결과 (2026.04.07)",
+              "correctionMarked": true
+            }
+          ]
+        },
+        "exactPlannedPaymentDate": null
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "584646ca4c7f362f22654792c0ea16d5da076c40373046c58562c24e7b542185",
+            "capture": "kind-list-123570-all-01",
+            "observedAt": "2026-11-18T00:57:04.507570+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2025-10-30",
+              "kind": "TITLE",
+              "market": "KOSDAQ",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "43aca2df27211e6095dece9ed9c8f36c80527a0ea9f4e40e3ec909f1e1224953",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 1,
+            "totalRows": 20
+          }
+        ],
+        "selectedReceipts": [
+          "20260407000547",
+          "20260331004357",
+          "20260309001454",
+          "20260227001117"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=15248&rgt_racd=103&rgt_std_dt=20251231",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-123570-round",
+            "bodySha256": "b858ba9720f543fbbf60dd238968d17fc39e5743d21d8b2acf80af7d170b4970",
+            "receiptSha256": "d3b5d4afa73d10a23bacce0241e66dba042161d7a3f18899c541a5aeb495de20",
+            "observedAt": "2026-11-18T01:00:42.147213+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "결산",
+              "GMET_OMEET_DT": "20260407",
+              "AG_ORG_TPCD": "국민은행"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-123570-payment",
+            "bodySha256": "88641f451d3da1aabaabca92d0b5f87826dfd83be2373cff02345608ed26ce74",
+            "receiptSha256": "c2613153a64a314736048ce32547377f0f661d441aa0158c5138a70106a3e33d",
+            "observedAt": "2026-11-18T01:00:42.259371+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20260421"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-123570-issue",
+            "bodySha256": "afd254b9c50b1e4535055fa795c328f83f9f096cd206ca5d697d940481d37579",
+            "receiptSha256": "e4f9de10b8302fcd586ae96470e22530f512466c80f5454ba9c7a94f185b8b36",
+            "observedAt": "2026-11-18T01:00:42.258848+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "123570",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "60"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSDAQ-2025-rows",
+            "bodySha256": "40cd80f6024cf4e7a1d1fd8e659f39dd57ce5b9dd8275e1d32516d214bb8a25c",
+            "receiptSha256": "03840da20ab2ec4bbbdcba20ec6dc07e56726aefa339ec0a524d8564f499bd79",
+            "observedAt": "2026-11-07T16:31:20.437152+00:00",
+            "rowSha256": "1a6bd64f0aa111c25d7542cfc203a9d8ceaadbbd5c20dd7c530977cabf901fd2"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSDAQ-2026-rows",
+            "bodySha256": "b51cc056b5ee3ecc8635dcf57583356160a00bc2d3d890335e6df059d957ff95",
+            "receiptSha256": "4bfba1ac31fbaee51285aae2763f54b4631327132dc3086d8af5063f8be873f2",
+            "observedAt": "2026-11-07T16:31:55.722857+00:00",
+            "rowSha256": "e04fedb2efeebd18c8dd0935e0c99b9314e2c297c21f683a7a9787da111688bb"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSDAQ-2025-rows",
+            "bodySha256": "fbee97232f702ed55022d484e57f969c32ffaae49a26b19abbb573fbcf1cade9",
+            "receiptSha256": "ee5c8df4dae3b33ac61875f1e697dfcd5531c17bcff690b120ddbca125a49314",
+            "observedAt": "2026-11-18T00:57:59.484837+00:00",
+            "rowSha256": "1a6bd64f0aa111c25d7542cfc203a9d8ceaadbbd5c20dd7c530977cabf901fd2"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSDAQ-2026-rows",
+            "bodySha256": "8d8c14abe9ccd210f5ee3a2f0519d04d446c6c11d26b05cd6288f59218656c6c",
+            "receiptSha256": "a7f15f5903cdc62e48f1d8161efd7a622eb1fddeb7f220b55d22bc1c92f5216d",
+            "observedAt": "2026-11-18T00:57:59.366646+00:00",
+            "rowSha256": "e04fedb2efeebd18c8dd0935e0c99b9314e2c297c21f683a7a9787da111688bb"
+          },
+          "datesQueried": [
+            "2026-04-20",
+            "2026-04-21"
+          ],
+          "scheduleDatesFound": [
+            "2026-04-21"
+          ]
+        },
+        "displayedPaymentDate": "2026-04-21",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "3월 9일 정정은 주당 50원을 60원으로 변경했고, 4월 7일 속행 주총에서 60원을 승인했다. 세이브로 확정 상세도 4월 7일을 표시한다. 반기·3분기의 지급일과 세이브로 1차 일자의 차이는 미확인이다."
+    },
+    {
+      "issuer": "유안타증권",
+      "market": "KOSPI",
+      "symbol": "003470",
+      "securityClass": "COMMON",
+      "recordDate": "2026-03-31",
+      "commonCashPerShareKrw": "220",
+      "approvalDate": "2026-03-26",
+      "baselinePaymentStatus": "DIFFERS",
+      "sourceDateDisposition": "UNEXPLAINED_DATE_DIFFERENCE",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-04-22"
+      ],
+      "issuerEvidence": [
+        {
+          "receipt": "20260814002465",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814002465",
+          "reportedOn": "2026-08-14",
+          "title": "반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:35:28.975500+00:00",
+          "archiveSha256": "8993cf32037916051ba8a9afb3bbe51a6b85d396b6c107e99e06bbbe8dddaffb",
+          "status": "CAPTURED",
+          "receiptSha256": "5d43ea9a8daf652689779c711c159f914ba3df40f7e2204d145c39b1b3fda70b",
+          "cache": "h05-dividend-2026-20261118",
+          "reportedDates": [
+            "2026-04-22"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "배당금 지급일 2026-04-22"
+          ]
+        },
+        {
+          "receipt": "20261112000197",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261112000197",
+          "reportedOn": "2026-11-12",
+          "title": "분기보고서 (2026.09)",
+          "observedAt": "2026-11-18T00:54:31.438304+00:00",
+          "archiveSha256": "e4e2f5c33ec7016ba2270427b5321fab0217b0303e57b3a69e86eec68aa3c1b8",
+          "status": "CAPTURED",
+          "receiptSha256": "ea7d886f6e0afbcb1d3e697eec5f96b0769de6388657b6261f3f65bb2403c8e3",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-22"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "배당금 지급일 2026-04-22"
+          ]
+        }
+      ],
+      "dartCorrectionsReviewed": [
+        {
+          "receipt": "20260311004478",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260311004478",
+          "reportedOn": "2026-03-11",
+          "title": "[기재정정]주주총회소집공고",
+          "observedAt": "2026-11-18T00:54:32.085922+00:00",
+          "archiveSha256": "3a02779a348597554bd3ffa41e4def42d2b91a51c6c0848799e2969d2b2228cf",
+          "status": "CAPTURED",
+          "receiptSha256": "a777b53a49ccadf26f95ad1c0e1a86a1f944f16c873825056455649292bebebf",
+          "cache": "h05-dividend-date-reconciliation-20261118"
+        }
+      ],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/003470-01",
+            "request": {
+              "bgn_de": "20260128",
+              "corp_code": "00117601",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "e02214c2776590e34d69657c6adc8338d273cb5f89e887c8c3f3d61b3ec31baa",
+            "observedAt": "2026-11-18T00:54:22.696479+00:00",
+            "receiptSha256": "7770e4c545307dec35f5300fc87e301b36c6ea18bdc591292aa1dfa8f3d4ebc9"
+          },
+          {
+            "path": "index/003470-02",
+            "request": {
+              "bgn_de": "20260128",
+              "corp_code": "00117601",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "2"
+            },
+            "bodySha256": "62a5e97ae837ea835f9f5e4a949872b66149999ee2fd6129679b8e1f66ac01ef",
+            "observedAt": "2026-11-18T00:54:24.097319+00:00",
+            "receiptSha256": "2ca9083ed909f0c45f8feb913b1826a912c857c38a92eff49171e102f01040aa"
+          },
+          {
+            "path": "index/003470-03",
+            "request": {
+              "bgn_de": "20260128",
+              "corp_code": "00117601",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "3"
+            },
+            "bodySha256": "c890430ca79a64a24d482a312bf03bc392815fc30bef23a68fbf8dd78d960321",
+            "observedAt": "2026-11-18T00:54:24.532025+00:00",
+            "receiptSha256": "331157511159e8528fcff6e499d0111a127aaf68ec62cd77b84d2e880009597c"
+          },
+          {
+            "path": "index/003470-04",
+            "request": {
+              "bgn_de": "20260128",
+              "corp_code": "00117601",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "4"
+            },
+            "bodySha256": "15a43c2638aad22d938374d2284bd2427e324de35ca13b31f5997ab3a1d4427a",
+            "observedAt": "2026-11-18T00:54:24.766206+00:00",
+            "receiptSha256": "c66ad0680e713e93b192b26ed8bb10995754ab85160ef7672dd0a427d3626b6c"
+          },
+          {
+            "path": "index/003470-05",
+            "request": {
+              "bgn_de": "20260128",
+              "corp_code": "00117601",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "5"
+            },
+            "bodySha256": "f994c52aa8c68d47fb15c9fbf428000c79c4036ca28d5ac3c17c93449f4a434c",
+            "observedAt": "2026-11-18T00:54:24.999565+00:00",
+            "receiptSha256": "b96a1fa50a856707e89df1a68fa6b49851b28784fa53572c135a62d4d7409855"
+          },
+          {
+            "path": "index/003470-06",
+            "request": {
+              "bgn_de": "20260128",
+              "corp_code": "00117601",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "6"
+            },
+            "bodySha256": "17b7283b7781b6c75497414b4e25240291e5965471654452ba1dfc3f8108eda7",
+            "observedAt": "2026-11-18T00:54:25.210398+00:00",
+            "receiptSha256": "2597907f1e645014f5fe5e4d4bebee73975dd026226fa48babe02a8b813ed598"
+          }
+        ],
+        "listed": 513,
+        "documentsReviewed": 8
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260305001790",
+          "title": "현금ㆍ현물 배당 결정",
+          "listedMinuteKst": "2026-03-05 17:54",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260305001790&method=search",
+          "indexBodySha256": "19a1d9a8a566b6c24360734061de32fb3f76809c5d724b5475d801ace3c1aaa7",
+          "viewerBodySha256": "647cbef30ddbeab7584d52cb0ec20ef5a97ea3f102f9368e46cd7e9eabf0b99f",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260226000554",
+              "bodySha256": "ea666e579300598ec2fd03da6e3c40ca78e210afcb62423b300a3789bca2c940",
+              "receiptSha256": "25785efecdde392c5e0dfaf594e0784aa62458777887fa4b45c0f23e5554a749",
+              "observedAt": "2026-11-18T00:58:30.667295+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/05/001790/20260226000554/61500.htm",
+              "document": "20260226000554",
+              "publishedOn": "2026-03-05",
+              "label": "현금ㆍ현물 배당 결정 (2026.03.05)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "approval": {
+          "receipt": "20260326003196",
+          "title": "정기주주총회결과",
+          "listedMinuteKst": "2026-03-26 18:35",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260326003196&method=search",
+          "indexBodySha256": "19a1d9a8a566b6c24360734061de32fb3f76809c5d724b5475d801ace3c1aaa7",
+          "viewerBodySha256": "e13574af3e5b6542ce6eb2ff9da2ffd124af0f6265e6d854e7a19db4de4a6c3c",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260316000337",
+              "bodySha256": "73af2e3a0602046c1bb1eda1b7a83cdeb1bea3c299d0c62c53de018ffced8434",
+              "receiptSha256": "818ed9770e7bac98c108405098dcc7ddd04f99eb85880356dfa2a49ef747a3f1",
+              "observedAt": "2026-11-18T00:58:30.517681+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/26/003196/20260316000337/91482.htm",
+              "document": "20260316000337",
+              "publishedOn": "2026-03-26",
+              "label": "정기주주총회결과 (2026.03.26)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "exactPlannedPaymentDate": null
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "34d804d7e939d359f1d4aeb52b0b48b6aa5bf01f2ff06fb76502dfa575ad248d",
+            "capture": "kind-list-003470-all-01",
+            "observedAt": "2026-11-18T00:57:04.934227+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2026-01-28",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "e2c0d457f3d78e5cff95ff1f8dbd7e104f8fd8045cbfc4675b1ef4f0365e2caa",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 6,
+            "totalRows": 515
+          },
+          {
+            "bodySha256": "e44348de5620e2bbb839b19fd2722d33fc61f17c28db009c69ca4e6187698977",
+            "capture": "kind-list-003470-all-02",
+            "observedAt": "2026-11-18T00:57:05.229456+00:00",
+            "page": 2,
+            "query": {
+              "fromDate": "2026-01-28",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "b7cb69cf49ce3231e119322871b197880674917c25f9bbf1f55c02c3e0af4919",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 6,
+            "totalRows": 515
+          },
+          {
+            "bodySha256": "88fdb1c742b6b657b9d2006ded2e3bd16e1193a2416dc415e890da2affd00501",
+            "capture": "kind-list-003470-all-03",
+            "observedAt": "2026-11-18T00:57:05.468467+00:00",
+            "page": 3,
+            "query": {
+              "fromDate": "2026-01-28",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "6d89dcc0fbf3dce42eb0b47eeb44129169087d0b497044370972df57f5112b94",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 6,
+            "totalRows": 515
+          },
+          {
+            "bodySha256": "dbc7d34d648d7239afc4d5952bc92cff7a6104cd133e02aee3b7e58d7cbad27b",
+            "capture": "kind-list-003470-all-04",
+            "observedAt": "2026-11-18T00:57:05.700263+00:00",
+            "page": 4,
+            "query": {
+              "fromDate": "2026-01-28",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "9a4ca30d591330b9991c62b91564ba9578b63a455b14d8ad7154a271037a6f20",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 6,
+            "totalRows": 515
+          },
+          {
+            "bodySha256": "19a1d9a8a566b6c24360734061de32fb3f76809c5d724b5475d801ace3c1aaa7",
+            "capture": "kind-list-003470-all-05",
+            "observedAt": "2026-11-18T00:57:05.986985+00:00",
+            "page": 5,
+            "query": {
+              "fromDate": "2026-01-28",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "7093d45a3b7c1aeedeb185d89ab0cd385b2b82ab29126ebe829c118a49765dc8",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 6,
+            "totalRows": 515
+          },
+          {
+            "bodySha256": "8018f218a55c504c5c1e0a25ce849e435ac1499373d3abd3b1877f63cd2ab615",
+            "capture": "kind-list-003470-all-06",
+            "observedAt": "2026-11-18T00:57:06.183908+00:00",
+            "page": 6,
+            "query": {
+              "fromDate": "2026-01-28",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "8f116e55439ae552f89228c32b41f5807c77a22ef96debbb443cba0480280122",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 6,
+            "totalRows": 515
+          }
+        ],
+        "selectedReceipts": [
+          "20260326003196",
+          "20260305001790"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=347&rgt_racd=103&rgt_std_dt=20260331",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-003470-round",
+            "bodySha256": "4421c83bbf004153bc73c34369a7a0ca04e7f6c75db9ef64cb0f9bb5ec941369",
+            "receiptSha256": "591389bd73d98f13847294e55100d2c8944de785a20992c4b1b939acbbb31c4e",
+            "observedAt": "2026-11-18T01:00:42.547511+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "결산",
+              "GMET_OMEET_DT": "20260326",
+              "AG_ORG_TPCD": "KSD"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-003470-payment",
+            "bodySha256": "cfa6ba33ab67f673142476e8db23cd70d7ba40c9710fbf9e0cdd20237a410c90",
+            "receiptSha256": "9cdccbf33e74ae360520e4f36ec2e742873e0a0d132a91171cd9305ad2037fec",
+            "observedAt": "2026-11-18T01:00:42.609448+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20260423"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-003470-issue",
+            "bodySha256": "6edbc2354c1dbb895b41ac7a58d386224a1947ba1ccbb722c341ca3818d3508c",
+            "receiptSha256": "c82cde5f103a1fc26794d4bfefd0dfdc49368690c9791b7ae68594ae8d55fcf1",
+            "observedAt": "2026-11-18T01:00:42.608447+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "003470",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "220"
+              },
+              {
+                "SHOTN_ISIN": "003475",
+                "STK_KACD": "우선주",
+                "CASH_ALOC_AMT": "270"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSPI-2026-rows",
+            "bodySha256": "e8b8d9d26460873bea4f37877db9b592609c8e1f61dd2475c0cc95d0626ba556",
+            "receiptSha256": "3ef93c5df066965fa4da4efc683837e39e9a191791a715f811f0d43521f18cd8",
+            "observedAt": "2026-11-07T16:31:04.052694+00:00",
+            "rowSha256": "abab38945ba352268cc59abf37c3ddee3c610c5a71e94dc2e6411354351862bb"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSPI-2026-rows",
+            "bodySha256": "53aa10bd884df2872b16d996c83f385d3aeb46fd263d22a098d3377412191456",
+            "receiptSha256": "4f6107e77d66cd7d0c627512a33e8460e0062130f52272b47d95d04ed57cef4a",
+            "observedAt": "2026-11-07T16:31:40.299212+00:00",
+            "rowSha256": "1bd92c27be1f5fb4e638de212cce6e93f1d94581492b356aaea0c1f27b3dcfb2"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSPI-2026-rows",
+            "bodySha256": "9cd86c48c4e12c119662770419cadc17a41e90e52b5d1cc20c645b17271726f0",
+            "receiptSha256": "2e194a4d3b3b79bcc5a914a2ec70653720af6495c4909b44a0b0347862e58683",
+            "observedAt": "2026-11-18T00:57:57.236349+00:00",
+            "rowSha256": "abab38945ba352268cc59abf37c3ddee3c610c5a71e94dc2e6411354351862bb"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSPI-2026-rows",
+            "bodySha256": "6b0707688c6ffa7e72e272b80ae6722768dd63e7228b13ba1a1e9360d62064f0",
+            "receiptSha256": "e7835657a53c583ee3d750ad328736c6d083c4596c184b6128a2f20a1b77b976",
+            "observedAt": "2026-11-18T00:57:59.220626+00:00",
+            "rowSha256": "1bd92c27be1f5fb4e638de212cce6e93f1d94581492b356aaea0c1f27b3dcfb2"
+          },
+          "datesQueried": [
+            "2026-04-22",
+            "2026-04-23"
+          ],
+          "scheduleDatesFound": [
+            "2026-04-23"
+          ]
+        },
+        "displayedPaymentDate": "2026-04-23",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "KIND·세이브로 상세에서 보통주 220원과 우선주 270원을 각각 확인했다. 반기·3분기의 보통주 배당 지급일과 같은 회차 세이브로 1차 일자의 차이 또는 주권별 지급 단계는 미확인이다."
+    },
+    {
+      "issuer": "토탈소프트뱅크",
+      "market": "KOSDAQ",
+      "symbol": "045340",
+      "securityClass": "COMMON",
+      "recordDate": "2025-12-31",
+      "commonCashPerShareKrw": "100",
+      "approvalDate": "2026-03-26",
+      "baselinePaymentStatus": "DIFFERS",
+      "sourceDateDisposition": "UNEXPLAINED_DATE_DIFFERENCE",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-04-22"
+      ],
+      "issuerEvidence": [
+        {
+          "receipt": "20260813001058",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260813001058",
+          "reportedOn": "2026-08-13",
+          "title": "반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:33:38.307381+00:00",
+          "archiveSha256": "dc84f8f6ac4c98ccc8ab36e06cc041c7548b6e4da586d1cc2e3af6a0089be885",
+          "status": "CAPTURED",
+          "receiptSha256": "837a899aa787a63db6e75206a4712a56163da73af2e1d0192dadd496c8f9174e",
+          "cache": "h05-dividend-2026-20261118",
+          "reportedDates": [
+            "2026-04-22"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "(4) 배당금2026년 3월 26일 제37기 정기주주총회에서 승인된 2025년 회계연도에 대한 배당금855,804천원(주당 100원)은 2026년 4월 22일자로 지급되었으며, 이와 관"
+          ]
+        },
+        {
+          "receipt": "20261111000277",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000277",
+          "reportedOn": "2026-11-11",
+          "title": "분기보고서 (2026.09)",
+          "observedAt": "2026-11-18T00:54:28.575465+00:00",
+          "archiveSha256": "9353c602ccbdb0c7b1d2a43e54d9c860332363293682f33726b4245a23df666a",
+          "status": "CAPTURED",
+          "receiptSha256": "96f951d4a810af734e7f29e730e0bf6881de402ac7ba1be0cda9f5ff746ed904",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-22"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "(4) 배당금2026년 3월 26일 제37기 정기주주총회에서 승인된 2025년 회계연도에 대한 배당금855,804천원(주당 100원)은 2026년 4월 22일자로 지급되었으며, 이와 관"
+          ]
+        }
+      ],
+      "dartCorrectionsReviewed": [],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/045340-01",
+            "request": {
+              "bgn_de": "20251030",
+              "corp_code": "00355089",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "e8bb56b20a5c8c64d9b6709a04e3ac158f91d6849f0f02a57728062f89bb4d10",
+            "observedAt": "2026-11-18T00:54:21.901168+00:00",
+            "receiptSha256": "e1a565df8421702627e7667075d74c8508a409bf5af8a0e318ea93cc4ab7917f"
+          }
+        ],
+        "listed": 29,
+        "documentsReviewed": 6
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260305001458",
+          "title": "현금ㆍ현물배당 결정",
+          "listedMinuteKst": "2026-03-05 17:01",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260305001458&method=search",
+          "indexBodySha256": "3f58727cb5631f048d5d1942eecdee5d1008d5aa2d1f54e13e4779893680e26a",
+          "viewerBodySha256": "0aaff538d4dfb08e0eb17cdc9df03cf74f81237d839bc33b62446a39e3866170",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260303003134",
+              "bodySha256": "3a905b198014b47ac0e10cbfdbdb0fcae2d883f063d45177aea57e5802c0149e",
+              "receiptSha256": "561d1013b1074700c80d0898ab5c96df1bf4582137e23cba5efdf88daf1668ea",
+              "observedAt": "2026-11-18T00:58:28.815436+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/05/001458/20260303003134/71500.htm",
+              "document": "20260303003134",
+              "publishedOn": "2026-03-05",
+              "label": "현금ㆍ현물배당 결정 (2026.03.05)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "approval": {
+          "receipt": "20260326000968",
+          "title": "정기주주총회결과",
+          "listedMinuteKst": "2026-03-26 14:41",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260326000968&method=search",
+          "indexBodySha256": "3f58727cb5631f048d5d1942eecdee5d1008d5aa2d1f54e13e4779893680e26a",
+          "viewerBodySha256": "aa98ae12bc939d5e2a62614e600864091c28b2845afe6f7f5dbc290224ba0b21",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260323008350",
+              "bodySha256": "00ddb3954f2e874c238cd05426c1043141539e6b218de3576ceb1201ff180d81",
+              "receiptSha256": "ef1c54695df004c082480a9d21fd1c791dfabe5de4ff25a8ef63567d00abb27c",
+              "observedAt": "2026-11-18T00:58:28.514500+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/26/000968/20260323008350/70482.htm",
+              "document": "20260323008350",
+              "publishedOn": "2026-03-26",
+              "label": "정기주주총회결과 (2026.03.26)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "exactPlannedPaymentDate": null
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "3f58727cb5631f048d5d1942eecdee5d1008d5aa2d1f54e13e4779893680e26a",
+            "capture": "kind-list-045340-all-01",
+            "observedAt": "2026-11-18T00:57:04.520080+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2025-10-30",
+              "kind": "TITLE",
+              "market": "KOSDAQ",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "e66cc087f2698d4d57444e4173bbe82d02ccbdc8f1de456d681d4599093b7dee",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 1,
+            "totalRows": 31
+          }
+        ],
+        "selectedReceipts": [
+          "20260326000968",
+          "20260305001458"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=5038&rgt_racd=103&rgt_std_dt=20251231",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-045340-round",
+            "bodySha256": "7ef4d8209f4453b16c9faeb1046cefa108297a4e4f9f53de4e1297238ddef3e6",
+            "receiptSha256": "764e81642a12557a0218d8c6f15bc57853db94bcb0f9356349214e3805bb79ba",
+            "observedAt": "2026-11-18T01:00:42.025667+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "결산",
+              "GMET_OMEET_DT": "20260326",
+              "AG_ORG_TPCD": "국민은행"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-045340-payment",
+            "bodySha256": "17340ec1f272475dc5c5902dac3447583cf88392d174a2784fde378fa186e6a9",
+            "receiptSha256": "ac7be4e28b17081fa77c221de0d082936e336b2d917ad9cee6d00b216606594e",
+            "observedAt": "2026-11-18T01:00:42.085069+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20260423"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-045340-issue",
+            "bodySha256": "849343a89cb0d0f3931da203389e4e2efe6a4b5de1ab7519b7dcf297fa3e5733",
+            "receiptSha256": "2dc4076385c277a0eb9b6180b09eea5d0f99d1463b73f4517c62327b4f2e80cf",
+            "observedAt": "2026-11-18T01:00:42.147213+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "045340",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "100"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSDAQ-2025-rows",
+            "bodySha256": "40cd80f6024cf4e7a1d1fd8e659f39dd57ce5b9dd8275e1d32516d214bb8a25c",
+            "receiptSha256": "03840da20ab2ec4bbbdcba20ec6dc07e56726aefa339ec0a524d8564f499bd79",
+            "observedAt": "2026-11-07T16:31:20.437152+00:00",
+            "rowSha256": "4035b5fbea5967e82ca16de98176682b71ca38d59301367a13d8c5a6c75aaa5d"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSDAQ-2026-rows",
+            "bodySha256": "b51cc056b5ee3ecc8635dcf57583356160a00bc2d3d890335e6df059d957ff95",
+            "receiptSha256": "4bfba1ac31fbaee51285aae2763f54b4631327132dc3086d8af5063f8be873f2",
+            "observedAt": "2026-11-07T16:31:55.722857+00:00",
+            "rowSha256": "4a8126b753df9200b248d2923d2267d04b9a651ce42f5d098b30adf78e632f88"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSDAQ-2025-rows",
+            "bodySha256": "fbee97232f702ed55022d484e57f969c32ffaae49a26b19abbb573fbcf1cade9",
+            "receiptSha256": "ee5c8df4dae3b33ac61875f1e697dfcd5531c17bcff690b120ddbca125a49314",
+            "observedAt": "2026-11-18T00:57:59.484837+00:00",
+            "rowSha256": "4035b5fbea5967e82ca16de98176682b71ca38d59301367a13d8c5a6c75aaa5d"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSDAQ-2026-rows",
+            "bodySha256": "8d8c14abe9ccd210f5ee3a2f0519d04d446c6c11d26b05cd6288f59218656c6c",
+            "receiptSha256": "a7f15f5903cdc62e48f1d8161efd7a622eb1fddeb7f220b55d22bc1c92f5216d",
+            "observedAt": "2026-11-18T00:57:59.366646+00:00",
+            "rowSha256": "4a8126b753df9200b248d2923d2267d04b9a651ce42f5d098b30adf78e632f88"
+          },
+          "datesQueried": [
+            "2026-04-22",
+            "2026-04-23"
+          ],
+          "scheduleDatesFound": [
+            "2026-04-23"
+          ]
+        },
+        "displayedPaymentDate": "2026-04-23",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "제37기 주총 승인 배당 855,804천원(주당 100원)의 지급일이 반기·3분기에 일치한다. 세이브로 1차 일자와의 차이 또는 지급 단계 구분은 미확인이다."
+    },
+    {
+      "issuer": "에스엠엔터테인먼트",
+      "market": "KOSDAQ",
+      "symbol": "041510",
+      "securityClass": "COMMON",
+      "recordDate": "2025-12-31",
+      "commonCashPerShareKrw": "1620",
+      "approvalDate": "2026-03-25",
+      "baselinePaymentStatus": "DIFFERS",
+      "sourceDateDisposition": "UNEXPLAINED_DATE_DIFFERENCE",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-04-23"
+      ],
+      "issuerEvidence": [
+        {
+          "receipt": "20260515002991",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260515002991",
+          "reportedOn": "2026-05-15",
+          "title": "분기보고서 (2026.03)",
+          "observedAt": "2026-11-18T00:54:27.927373+00:00",
+          "archiveSha256": "e0670a32e1019c538e19b7e1b2c8415f0d056e72c23818be5ca16bbd55b5dc68",
+          "status": "CAPTURED",
+          "receiptSha256": "74fbac472178bd9466f3cc5fec4cf80d7fd4a2edb14781352522143f3c9bc525",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-23"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "배당금에 대한 설명 2025년 12월 31일로 종료하는 회계기간에 대한 지배기업의 보통주 배당금 37,089,398천원은 2026년 4월 23일에 지급되었습니다(전기 지"
+          ]
+        },
+        {
+          "receipt": "20260814002930",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814002930",
+          "reportedOn": "2026-08-14",
+          "title": "반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:35:55.249533+00:00",
+          "archiveSha256": "908d4e61e04939a6127e5ac5469aca17f240383f4eb9ff630aa7c37795eaca6c",
+          "status": "CAPTURED",
+          "receiptSha256": "8436270b8364d3d299df17ed1187ddf24e3545c9294878ecbcdf763ba5a8c447",
+          "cache": "h05-dividend-2026-20261118",
+          "reportedDates": [
+            "2026-04-23"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "배당금에 대한 설명 2025년 12월 31일로 종료하는 회계기간에 대한 지배기업의 보통주 배당금 37,089,398천원은 2026년 4월 23일에 지급되었습니다(전기 지"
+          ]
+        },
+        {
+          "receipt": "20261113001370",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113001370",
+          "reportedOn": "2026-11-13",
+          "title": "분기보고서 (2026.09)",
+          "observedAt": "2026-11-18T00:54:27.710210+00:00",
+          "archiveSha256": "93d6c127339919dfe4d1548fdcf5dc915c170098a51691e1eb13015f1446c699",
+          "status": "CAPTURED",
+          "receiptSha256": "400240b8f57d705f64e96f8fddb2234834b3f149db8f0b1f13a1517cd394cbd5",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-23"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "2026년 4월 23일"
+          ]
+        }
+      ],
+      "dartCorrectionsReviewed": [],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/041510-01",
+            "request": {
+              "bgn_de": "20251030",
+              "corp_code": "00260930",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "11c655bd3b82c3644f12b7ee0433531eebcfc247944b5d8d3a6dab652fe5ac5c",
+            "observedAt": "2026-11-18T00:54:21.664559+00:00",
+            "receiptSha256": "eb2991ce777358c98f3430b7f0333ac9f3dcb0857191c181ec430ad57320b9a8"
+          }
+        ],
+        "listed": 55,
+        "documentsReviewed": 6
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260211000729",
+          "title": "현금ㆍ현물배당 결정",
+          "listedMinuteKst": "2026-02-11 15:03",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260211000729&method=search",
+          "indexBodySha256": "aa9db48842b48919e6addc02ecfe89614fb836b6bb7e0104126af778b61ea521",
+          "viewerBodySha256": "56358c915de5e54b9cd530e5c1a8300f8180f512821021780b799ee081359443",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260209004392",
+              "bodySha256": "3be0e209326c486fe48b092531e09bbe812c9d49f9461d67a82585ef37007df6",
+              "receiptSha256": "576c429f13ec76c1dc11029a87434106e15e951610cee4772a75c706e8eb4ae1",
+              "observedAt": "2026-11-18T00:58:28.584306+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/02/11/000729/20260209004392/71500.htm",
+              "document": "20260209004392",
+              "publishedOn": "2026-02-11",
+              "label": "현금ㆍ현물배당 결정 (2026.02.11)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "approval": {
+          "receipt": "20260325001323",
+          "title": "정기주주총회결과",
+          "listedMinuteKst": "2026-03-25 17:30",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260325001323&method=search",
+          "indexBodySha256": "aa9db48842b48919e6addc02ecfe89614fb836b6bb7e0104126af778b61ea521",
+          "viewerBodySha256": "e9e157e9c72d656b927ef329e8ed52ad0d4921cb12740ac40795bbeb6d12badb",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260321000120",
+              "bodySha256": "41df44038c7dd55b19f80f30494a48276e12fc010ffca302abd8fd1c36e9a367",
+              "receiptSha256": "a74a5289b013bd971e71eb48054593f04f771315e44ea23e10ba6d7cc9f558f9",
+              "observedAt": "2026-11-18T00:58:28.269782+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/25/001323/20260321000120/70482.htm",
+              "document": "20260321000120",
+              "publishedOn": "2026-03-25",
+              "label": "정기주주총회결과 (2026.03.25)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "exactPlannedPaymentDate": null
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "aa9db48842b48919e6addc02ecfe89614fb836b6bb7e0104126af778b61ea521",
+            "capture": "kind-list-041510-all-01",
+            "observedAt": "2026-11-18T00:57:04.707300+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2025-10-30",
+              "kind": "TITLE",
+              "market": "KOSDAQ",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "07f48bf4c697a68ee186b9934d173579faf59a0bc60217d635ad61e6f833b25b",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 1,
+            "totalRows": 62
+          }
+        ],
+        "selectedReceipts": [
+          "20260325001323",
+          "20260211000729"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=6473&rgt_racd=103&rgt_std_dt=20251231",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-041510-round",
+            "bodySha256": "e348956d95123e34e7eed2851b3eb70035a72f6eddb1a2acdf2d0f882fb9946a",
+            "receiptSha256": "4c891f39a84bad3d0f35de3c45cf8246e4aef6e24fd7a1614d9a97855b12bddb",
+            "observedAt": "2026-11-18T01:00:41.820193+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "결산",
+              "GMET_OMEET_DT": "20260325",
+              "AG_ORG_TPCD": "국민은행"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-041510-payment",
+            "bodySha256": "71abdafede57eb8885ba41509e8548c073a90f99c78784c6c6b521c56e68f8df",
+            "receiptSha256": "6e48b336d6e46b4fab8710bebfec726e3db21a4740608fbdf646ac7817318e39",
+            "observedAt": "2026-11-18T01:00:41.820581+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20260424"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-041510-issue",
+            "bodySha256": "136481c15f1a2ad57647c17e40dad734da7964e432c6f3a77453628e4f8d1ee5",
+            "receiptSha256": "e5febda0a44bdbd294dde3e4680d0ee1d42302c02271a0037c3c2dd29315abbf",
+            "observedAt": "2026-11-18T01:00:41.972909+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "041510",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "1620"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSDAQ-2025-rows",
+            "bodySha256": "40cd80f6024cf4e7a1d1fd8e659f39dd57ce5b9dd8275e1d32516d214bb8a25c",
+            "receiptSha256": "03840da20ab2ec4bbbdcba20ec6dc07e56726aefa339ec0a524d8564f499bd79",
+            "observedAt": "2026-11-07T16:31:20.437152+00:00",
+            "rowSha256": "7c9b37175f015ae9ea2645b49bef90b5b4946f03f2931fbbcc64d1f8548a3458"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSDAQ-2026-rows",
+            "bodySha256": "b51cc056b5ee3ecc8635dcf57583356160a00bc2d3d890335e6df059d957ff95",
+            "receiptSha256": "4bfba1ac31fbaee51285aae2763f54b4631327132dc3086d8af5063f8be873f2",
+            "observedAt": "2026-11-07T16:31:55.722857+00:00",
+            "rowSha256": "b9b4cefa321b1ef31f420d70ab88ef442675a5883c3218556b28fa14c071d786"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSDAQ-2025-rows",
+            "bodySha256": "fbee97232f702ed55022d484e57f969c32ffaae49a26b19abbb573fbcf1cade9",
+            "receiptSha256": "ee5c8df4dae3b33ac61875f1e697dfcd5531c17bcff690b120ddbca125a49314",
+            "observedAt": "2026-11-18T00:57:59.484837+00:00",
+            "rowSha256": "7c9b37175f015ae9ea2645b49bef90b5b4946f03f2931fbbcc64d1f8548a3458"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSDAQ-2026-rows",
+            "bodySha256": "8d8c14abe9ccd210f5ee3a2f0519d04d446c6c11d26b05cd6288f59218656c6c",
+            "receiptSha256": "a7f15f5903cdc62e48f1d8161efd7a622eb1fddeb7f220b55d22bc1c92f5216d",
+            "observedAt": "2026-11-18T00:57:59.366646+00:00",
+            "rowSha256": "b9b4cefa321b1ef31f420d70ab88ef442675a5883c3218556b28fa14c071d786"
+          },
+          "datesQueried": [
+            "2026-04-23",
+            "2026-04-24"
+          ],
+          "scheduleDatesFound": [
+            "2026-04-24"
+          ]
+        },
+        "displayedPaymentDate": "2026-04-24",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "연결·별도 주석의 보통주 연차배당 37,089,398천원 지급일이 후속 보고서에서 반복된다. 세이브로 1차 일자와의 차이 또는 지급 단계 구분은 미확인이다."
+    },
+    {
+      "issuer": "롯데렌탈(주)",
+      "market": "KOSPI",
+      "symbol": "089860",
+      "securityClass": "COMMON",
+      "recordDate": "2026-03-31",
+      "commonCashPerShareKrw": "1200",
+      "approvalDate": "2026-03-26",
+      "baselinePaymentStatus": "DIFFERS",
+      "sourceDateDisposition": "UNEXPLAINED_DATE_DIFFERENCE",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-04-23"
+      ],
+      "issuerEvidence": [
+        {
+          "receipt": "20260814001915",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814001915",
+          "reportedOn": "2026-08-14",
+          "title": "반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:35:01.331112+00:00",
+          "archiveSha256": "8fc71172d36e14ce6e0299ad4bf45913a6bd13a36f5c280b175922dcf7000004",
+          "status": "CAPTURED",
+          "receiptSha256": "d2ea3fa3b49685557114ad5085010bea115f7460cd762f296920b8a1b71a927f",
+          "cache": "h05-dividend-2026-20261118",
+          "reportedDates": [
+            "2026-04-23"
+          ],
+          "statementLocations": [
+            "RELATED_PARTY_PAYMENT_TABLE"
+          ],
+          "markers": [
+            "배당금 지급일 2026-04-23 20"
+          ]
+        },
+        {
+          "receipt": "20261113000762",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113000762",
+          "reportedOn": "2026-11-13",
+          "title": "분기보고서 (2026.09)",
+          "observedAt": "2026-11-18T00:54:35.767205+00:00",
+          "archiveSha256": "6de2bdc75636954bb6579c6d4dda97087c22548de7c6fd93dcceefaa6c906e80",
+          "status": "CAPTURED",
+          "receiptSha256": "480d6eca998eeef3ad86ca03de4232727574d1639c7f7c1542ad896ade59a5c7",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-04-23"
+          ],
+          "statementLocations": [
+            "RELATED_PARTY_PAYMENT_TABLE"
+          ],
+          "markers": [
+            "배당금 지급일 2026-04-23 20"
+          ]
+        }
+      ],
+      "dartCorrectionsReviewed": [],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/089860-01",
+            "request": {
+              "bgn_de": "20260128",
+              "corp_code": "00545716",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "95e37ad6c64ae820202afb502dfdd3b3a257d12123735fb6aeb8422200edebb6",
+            "observedAt": "2026-11-18T00:54:23.279577+00:00",
+            "receiptSha256": "89dc7d37ac511c10dcc3f725d6bd7611c1c61ca897042bda10986de82d22445f"
+          }
+        ],
+        "listed": 86,
+        "documentsReviewed": 9
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260210000643",
+          "title": "현금ㆍ현물 배당 결정",
+          "listedMinuteKst": "2026-02-10 15:29",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260210000643&method=search",
+          "indexBodySha256": "694cee07b889dfb399fee792ecc58846dfb0f5217d3f04d90a8df019d6962eb0",
+          "viewerBodySha256": "e8562b8bbb19ccfe218a1af24f7a5266a40fe9b6a028dfd7735122cbf40a3063",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260209001437",
+              "bodySha256": "cf8e1309a21ac433bd141a40f4a1f14e78cd817f4ab4c98a94b3e5a34b1e520a",
+              "receiptSha256": "ddcd6666cca1828518a0a4d1907b944067ced9e4051a8f99b1e1b33ef5edc979",
+              "observedAt": "2026-11-18T00:58:32.576494+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/02/10/000643/20260209001437/61500.htm",
+              "document": "20260209001437",
+              "publishedOn": "2026-02-10",
+              "label": "현금ㆍ현물 배당 결정 (2026.02.10)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "approval": {
+          "receipt": "20260326000895",
+          "title": "정기주주총회결과",
+          "listedMinuteKst": "2026-03-26 14:30",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260326000895&method=search",
+          "indexBodySha256": "694cee07b889dfb399fee792ecc58846dfb0f5217d3f04d90a8df019d6962eb0",
+          "viewerBodySha256": "ee49da650f8f7a301296d7ace29dd94d5804a40172661da216dd37a92fb5b4ac",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260318000997",
+              "bodySha256": "dcb1339b0ea1f43725aa8604eec8c97b2d94ca3d9d5aa28ebb5789c20dabe9cd",
+              "receiptSha256": "cfbe03c632d7e48d00e56576d311c7a32e74e59f3dece7cfa065e8ecacc1379e",
+              "observedAt": "2026-11-18T00:58:32.200586+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/03/26/000895/20260318000997/91482.htm",
+              "document": "20260318000997",
+              "publishedOn": "2026-03-26",
+              "label": "정기주주총회결과 (2026.03.26)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "exactPlannedPaymentDate": null
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "694cee07b889dfb399fee792ecc58846dfb0f5217d3f04d90a8df019d6962eb0",
+            "capture": "kind-list-089860-all-01",
+            "observedAt": "2026-11-18T00:58:26.348944+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2026-01-28",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "e46bce9e35ede1ea05fc680fb94605eaf6d92b7a9e650580feef011f482f3b36",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 1,
+            "totalRows": 83
+          }
+        ],
+        "selectedReceipts": [
+          "20261030000701",
+          "20260326000895",
+          "20260210000643"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=10471&rgt_racd=103&rgt_std_dt=20260331",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-089860-round",
+            "bodySha256": "c6fdced0b393b9885a747078f80694ada27c59012e95448f0af0d38c38918369",
+            "receiptSha256": "587c6c69dba46073bb3107a5cd1b935758fc138b61d9781caaf9a943434cbde2",
+            "observedAt": "2026-11-18T01:00:43.036019+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "결산",
+              "GMET_OMEET_DT": "20260326",
+              "AG_ORG_TPCD": "KSD"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-089860-payment",
+            "bodySha256": "b65557d7d0f0d1504d2d7181c26a17604b09188312651720e1a7d8c99959e64b",
+            "receiptSha256": "f6a1ddba75290d49cd3259c834ac4f23b09dd0804023c474bd10d4c08f28ab8c",
+            "observedAt": "2026-11-18T01:00:43.092127+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20260424"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-089860-issue",
+            "bodySha256": "d3a4186a8d88537f2daad1c1b746bcd428347e98630956ff6aafa72950ab7712",
+            "receiptSha256": "3b82f39a14d578364104d213674906231180c78e79d9242bcaf4a4cc73a66015",
+            "observedAt": "2026-11-18T01:00:43.150076+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "089860",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "1200"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSPI-2026-rows",
+            "bodySha256": "e8b8d9d26460873bea4f37877db9b592609c8e1f61dd2475c0cc95d0626ba556",
+            "receiptSha256": "3ef93c5df066965fa4da4efc683837e39e9a191791a715f811f0d43521f18cd8",
+            "observedAt": "2026-11-07T16:31:04.052694+00:00",
+            "rowSha256": "693161316a0f8b75dedf2db23723d58b0ef060dda5e8784f42df11b94100d9e2"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSPI-2026-rows",
+            "bodySha256": "53aa10bd884df2872b16d996c83f385d3aeb46fd263d22a098d3377412191456",
+            "receiptSha256": "4f6107e77d66cd7d0c627512a33e8460e0062130f52272b47d95d04ed57cef4a",
+            "observedAt": "2026-11-07T16:31:40.299212+00:00",
+            "rowSha256": "9fbc6a244c7145c30aa2a7163fa6465b9e07c84c3285420ee0b7ca89b97beb42"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSPI-2026-rows",
+            "bodySha256": "9cd86c48c4e12c119662770419cadc17a41e90e52b5d1cc20c645b17271726f0",
+            "receiptSha256": "2e194a4d3b3b79bcc5a914a2ec70653720af6495c4909b44a0b0347862e58683",
+            "observedAt": "2026-11-18T00:57:57.236349+00:00",
+            "rowSha256": "693161316a0f8b75dedf2db23723d58b0ef060dda5e8784f42df11b94100d9e2"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSPI-2026-rows",
+            "bodySha256": "6b0707688c6ffa7e72e272b80ae6722768dd63e7228b13ba1a1e9360d62064f0",
+            "receiptSha256": "e7835657a53c583ee3d750ad328736c6d083c4596c184b6128a2f20a1b77b976",
+            "observedAt": "2026-11-18T00:57:59.220626+00:00",
+            "rowSha256": "9fbc6a244c7145c30aa2a7163fa6465b9e07c84c3285420ee0b7ca89b97beb42"
+          },
+          "datesQueried": [
+            "2026-04-23",
+            "2026-04-24"
+          ],
+          "scheduleDatesFound": [
+            "2026-04-24"
+          ]
+        },
+        "displayedPaymentDate": "2026-04-24",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "주총 승인 보통주 주당 1,200원 회차다. 반기·3분기 특수관계자 표의 호텔롯데·부산롯데호텔에 지급한 날짜를 확인했다. 다른 보통주 주주에 같은 지급일이 적용됐는지 또는 세이브로 1차와 어떤 관계인지는 미확인이다."
+    },
+    {
+      "issuer": "동성케미컬",
+      "market": "KOSPI",
+      "symbol": "102260",
+      "securityClass": "COMMON",
+      "recordDate": "2026-06-30",
+      "commonCashPerShareKrw": "100",
+      "approvalDate": "2026-07-15",
+      "baselinePaymentStatus": "DIFFERS",
+      "sourceDateDisposition": "UNEXPLAINED_DATE_DIFFERENCE",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-07-30"
+      ],
+      "issuerEvidence": [
+        {
+          "receipt": "20260814003663",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003663",
+          "reportedOn": "2026-08-14",
+          "title": "반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:36:35.498475+00:00",
+          "archiveSha256": "7ae33f84c7c42f8823c2c4099bfce1f0621dba09986c35db91917434f30c1122",
+          "status": "CAPTURED",
+          "receiptSha256": "5cc74a84b2d1b868a5031ab44dd514d474815faa41d26797743ee883789b2b71",
+          "cache": "h05-dividend-2026-20261118",
+          "reportedDates": [
+            "2026-07-30"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "배당지급일은 2026년 7월 30일입니"
+          ]
+        },
+        {
+          "receipt": "20261116001387",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116001387",
+          "reportedOn": "2026-11-16",
+          "title": "[기재정정]반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:54:37.397401+00:00",
+          "archiveSha256": "0678fb6c349c9f8291b5ee387be9caec9d7b83f8c3c16e0257377e874c4e8eaf",
+          "status": "CAPTURED",
+          "receiptSha256": "0e27b989d1d4c537211eae8465ceb6fa6cf6dd2d180f0d51d890160345ca60dd",
+          "cache": "h05-dividend-date-reconciliation-20261118",
+          "reportedDates": [
+            "2026-07-30"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "배당지급일은 2026년 7월 30일입니"
+          ]
+        }
+      ],
+      "dartCorrectionsReviewed": [
+        {
+          "receipt": "20261116001387",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116001387",
+          "reportedOn": "2026-11-16",
+          "title": "[기재정정]반기보고서 (2026.06)",
+          "observedAt": "2026-11-18T00:54:37.397401+00:00",
+          "archiveSha256": "0678fb6c349c9f8291b5ee387be9caec9d7b83f8c3c16e0257377e874c4e8eaf",
+          "status": "CAPTURED",
+          "receiptSha256": "0e27b989d1d4c537211eae8465ceb6fa6cf6dd2d180f0d51d890160345ca60dd",
+          "cache": "h05-dividend-date-reconciliation-20261118"
+        }
+      ],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/102260-01",
+            "request": {
+              "bgn_de": "20260429",
+              "corp_code": "00679314",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "df0ca9f73035234bebd3e0b20c66c526d42778785b92308700878de9514cc894",
+            "observedAt": "2026-11-18T00:54:23.506400+00:00",
+            "receiptSha256": "6ae3c010d87952565a163fad0858b826a6f20c7fb46806c85793633675b552b9"
+          }
+        ],
+        "listed": 15,
+        "documentsReviewed": 4
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260715000643",
+          "title": "현금ㆍ현물 배당 결정",
+          "listedMinuteKst": "2026-07-15 16:30",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260715000643&method=search",
+          "indexBodySha256": "b1c571047b6dea14924e1201c0891761e8b0c7e2d1243cf5f284ace476afceb4",
+          "viewerBodySha256": "64f8db0d3b226949db6f30c5cfa83cfe5dd4e7b23f3373adc6064fc46263220f",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260610002110",
+              "bodySha256": "4658429acb0d107e7ca27ef601da2bb861e242b305a05171079c977893671949",
+              "receiptSha256": "29607d706305c4aa2e91a95b0d8373a58726f4d5922cafb309b06951ad8573ed",
+              "observedAt": "2026-11-18T00:58:32.652892+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/07/15/000643/20260610002110/61500.htm",
+              "document": "20260610002110",
+              "publishedOn": "2026-07-15",
+              "label": "현금ㆍ현물 배당 결정 (2026.07.15)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "approval": null,
+        "exactPlannedPaymentDate": null
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "b1c571047b6dea14924e1201c0891761e8b0c7e2d1243cf5f284ace476afceb4",
+            "capture": "kind-list-102260-all-01",
+            "observedAt": "2026-11-18T00:58:26.212871+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2026-04-29",
+              "kind": "TITLE",
+              "market": "KOSPI",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "fa74aa99fd38812bfc9aefd22f538391a686169084487142b21d9aef91fdb52a",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 1,
+            "totalRows": 15
+          }
+        ],
+        "selectedReceipts": [
+          "20260715000643"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=12835&rgt_racd=103&rgt_std_dt=20260630",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-102260-round",
+            "bodySha256": "473789b6be2ed61ab8d5637820f182ea1b7b1d886b7e8586bd68142bfac8e3b5",
+            "receiptSha256": "c638d9749bf99960ea5af92734113af9198046d962f8fc3ec3766557b3deace2",
+            "observedAt": "2026-11-18T01:00:43.151075+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "분기",
+              "GMET_OMEET_DT": "20260715",
+              "AG_ORG_TPCD": "KSD"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-102260-payment",
+            "bodySha256": "c2b07c5097498991af9d32290b16290b1f860ca19e410979ab773513c6d9893b",
+            "receiptSha256": "2204e68c382370d28aa7a694faa4c1b5daf302fa5680bda62a6fbc7257c4ecd9",
+            "observedAt": "2026-11-18T01:00:43.257733+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20260731"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-102260-issue",
+            "bodySha256": "6c5e254cb8fa918185ec4fb492ff59ec3eb88d7e12285ce80911316648d96079",
+            "receiptSha256": "13748c7fd3a74c70e9d2d8d707c30cd87fd773d0d78196c37f056adc704fb128",
+            "observedAt": "2026-11-18T01:00:43.257733+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "102260",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "100"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSPI-2026-rows",
+            "bodySha256": "e8b8d9d26460873bea4f37877db9b592609c8e1f61dd2475c0cc95d0626ba556",
+            "receiptSha256": "3ef93c5df066965fa4da4efc683837e39e9a191791a715f811f0d43521f18cd8",
+            "observedAt": "2026-11-07T16:31:04.052694+00:00",
+            "rowSha256": "426532452eb4fe7783c3c4cd27adfdab2bebb1fc7faf0bd89ad84bbbdc231a15"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSPI-2026-rows",
+            "bodySha256": "53aa10bd884df2872b16d996c83f385d3aeb46fd263d22a098d3377412191456",
+            "receiptSha256": "4f6107e77d66cd7d0c627512a33e8460e0062130f52272b47d95d04ed57cef4a",
+            "observedAt": "2026-11-07T16:31:40.299212+00:00",
+            "rowSha256": "e2a6ff5a49e6df0c37dcb99174c42d423e426c9cced01a73710ef0279e96a91f"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSPI-2026-rows",
+            "bodySha256": "9cd86c48c4e12c119662770419cadc17a41e90e52b5d1cc20c645b17271726f0",
+            "receiptSha256": "2e194a4d3b3b79bcc5a914a2ec70653720af6495c4909b44a0b0347862e58683",
+            "observedAt": "2026-11-18T00:57:57.236349+00:00",
+            "rowSha256": "426532452eb4fe7783c3c4cd27adfdab2bebb1fc7faf0bd89ad84bbbdc231a15"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSPI-2026-rows",
+            "bodySha256": "6b0707688c6ffa7e72e272b80ae6722768dd63e7228b13ba1a1e9360d62064f0",
+            "receiptSha256": "e7835657a53c583ee3d750ad328736c6d083c4596c184b6128a2f20a1b77b976",
+            "observedAt": "2026-11-18T00:57:59.220626+00:00",
+            "rowSha256": "e2a6ff5a49e6df0c37dcb99174c42d423e426c9cced01a73710ef0279e96a91f"
+          },
+          "datesQueried": [
+            "2026-07-30",
+            "2026-07-31"
+          ],
+          "scheduleDatesFound": [
+            "2026-07-31"
+          ]
+        },
+        "displayedPaymentDate": "2026-07-31",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "7월 15일 이사회 결의의 주당 100원 분기배당이다. 11월 16일 반기보고서 정정은 생산능력 기재 관련이며 주석 지급일은 7월 30일로 유지됐다. 세이브로 1차 일자와의 차이 또는 지급 단계 구분은 미확인이다."
+    },
+    {
+      "issuer": "포시에스",
+      "market": "KOSDAQ",
+      "symbol": "189690",
+      "securityClass": "COMMON",
+      "recordDate": "2026-06-30",
+      "commonCashPerShareKrw": "115",
+      "approvalDate": "2026-09-22",
+      "baselinePaymentStatus": "DIFFERS",
+      "sourceDateDisposition": "UNEXPLAINED_DATE_DIFFERENCE",
+      "canonicalActualPaymentDate": null,
+      "issuerReportedPaymentDates": [
+        "2026-10-06"
+      ],
+      "issuerEvidence": [
+        {
+          "receipt": "20261116000270",
+          "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261116000270",
+          "reportedOn": "2026-11-16",
+          "title": "분기보고서 (2026.09)",
+          "observedAt": "2026-11-18T00:29:16.162265+00:00",
+          "archiveSha256": "da7f7074bd96a5d0501d71cebc4d0455d5b7d801a407f6d52b35e975017c4e2c",
+          "status": "CAPTURED",
+          "receiptSha256": "1500fc5258ebf3423d3b34d20a9c59d49bdc7cac896f0ebd427faf9decdae0b7",
+          "cache": "h05-dividend-2026-20261118",
+          "reportedDates": [
+            "2026-10-06"
+          ],
+          "statementLocations": [
+            "DIVIDEND_NOTE"
+          ],
+          "markers": [
+            "20. 배당금연결회사는 보고서 제출일 기준 현재 2026년 6월 30일로 종료하는 회계기간에 대한 보통주 배당금 3,016,705천원(현금배당)을 2026년 10월 6일에 지급하였습니다. (전기"
+          ]
+        }
+      ],
+      "dartCorrectionsReviewed": [],
+      "dartSearch": {
+        "pages": [
+          {
+            "path": "index/189690-01",
+            "request": {
+              "bgn_de": "20260429",
+              "corp_code": "00939942",
+              "end_de": "20261118",
+              "last_reprt_at": "N",
+              "page_count": "100",
+              "page_no": "1"
+            },
+            "bodySha256": "4950be3c243bc5c32649bde4e027e149f334d375f13a70163090cbaa82979a45",
+            "observedAt": "2026-11-18T00:54:22.348170+00:00",
+            "receiptSha256": "dfcc39f277b236d5d027fac4dbea8b61ddd45e336a52674a2abaa919018e5c87"
+          }
+        ],
+        "listed": 17,
+        "documentsReviewed": 4
+      },
+      "kindEvidence": {
+        "decision": {
+          "receipt": "20260904000284",
+          "title": "현금ㆍ현물배당 결정",
+          "listedMinuteKst": "2026-09-04 15:45",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260904000284&method=search",
+          "indexBodySha256": "c1ac11795f1e87992493a5fd61f6220e65d2f72d8468e22319d753f88956d729",
+          "viewerBodySha256": "2f3e95f8e3b419e0449326f78a44873f4fa8336fa6bf337e994e631c7e1c0786",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260831002049",
+              "bodySha256": "198bbbbbef7d9ce1e9fc5355fc77618fb6c56b7b6d47fa6ae64e46b07ab9a5c8",
+              "receiptSha256": "7a5934489de1ddb3a11771bebb17e39bd9a55f0f3877a03f436bb6715a8200d3",
+              "observedAt": "2026-11-18T00:58:30.333488+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/09/04/000284/20260831002049/71500.htm",
+              "document": "20260831002049",
+              "publishedOn": "2026-09-04",
+              "label": "현금ㆍ현물배당 결정 (2026.09.04)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "approval": {
+          "receipt": "20260922000140",
+          "title": "정기주주총회결과",
+          "listedMinuteKst": "2026-09-22 11:06",
+          "viewerUrl": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260922000140&method=search",
+          "indexBodySha256": "c1ac11795f1e87992493a5fd61f6220e65d2f72d8468e22319d753f88956d729",
+          "viewerBodySha256": "f3b31d19405562add4c9d75eda4100330114da0e6850555100efb6226e239c27",
+          "versions": [
+            {
+              "path": "h05-dividend-date-reconciliation-20261118/captures/kind-body-20260918001620",
+              "bodySha256": "d3d8c08e3e905c97dc292cb4a05b3eed1973b4391b312c84216ed30875783a75",
+              "receiptSha256": "69e025f7f7be6268a4c572e70e42ee72ccc2c2d07e2ac1100674f513b09c7178",
+              "observedAt": "2026-11-18T00:58:29.586019+00:00",
+              "sourceUrl": "https://kind.krx.co.kr/external/2026/09/22/000140/20260918001620/70482.htm",
+              "document": "20260918001620",
+              "publishedOn": "2026-09-22",
+              "label": "정기주주총회결과 (2026.09.22)",
+              "correctionMarked": false
+            }
+          ]
+        },
+        "exactPlannedPaymentDate": null
+      },
+      "kindSearch": {
+        "pages": [
+          {
+            "bodySha256": "c1ac11795f1e87992493a5fd61f6220e65d2f72d8468e22319d753f88956d729",
+            "capture": "kind-list-189690-all-01",
+            "observedAt": "2026-11-18T00:57:04.782232+00:00",
+            "page": 1,
+            "query": {
+              "fromDate": "2026-04-29",
+              "kind": "TITLE",
+              "market": "KOSDAQ",
+              "toDate": "2026-11-18"
+            },
+            "receiptSha256": "e692e59297534ac6501425de759d811ffc6ac093e67c7fe10023793602f66069",
+            "sourceUrl": "https://kind.krx.co.kr/disclosure/details.do",
+            "term": "",
+            "totalPages": 1,
+            "totalRows": 17
+          }
+        ],
+        "selectedReceipts": [
+          "20260922000140",
+          "20260904000284"
+        ]
+      },
+      "ksdEvidence": {
+        "detailUrl": "https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01027V.xml&menuNo=21&issuco_custno=22198&rgt_racd=103&rgt_std_dt=20260630",
+        "detail": {
+          "round": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-189690-round",
+            "bodySha256": "09245faafb35f34283b2cb61c13afbcab4fa60414175339a9af1b6a4b0eda054",
+            "receiptSha256": "85b5f3c73cc316fa27480ac65e7b5a484f4b1ade4ce1d040cfc1ffe40c72fc8a",
+            "observedAt": "2026-11-18T01:00:42.366845+00:00",
+            "providerFields": {
+              "FIX_TPCD": "확정",
+              "RGT_RSN_DTAIL_SORT_CD": "현금배당",
+              "SETACC_TPCD": "결산",
+              "GMET_OMEET_DT": "20260922",
+              "AG_ORG_TPCD": "국민은행"
+            }
+          },
+          "payment": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-189690-payment",
+            "bodySha256": "db0260a520ce5954947a249bb6b6ad33a3c2f2e00107b6cfde525f1fe78c1833",
+            "receiptSha256": "848d862bddc92d4da8254cd07137c5bbc0f9dc7dc6f10e973d94187fc753e842",
+            "observedAt": "2026-11-18T01:00:42.428650+00:00",
+            "installments": [
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "1",
+                "PAY_TERM_BEGIN_DT": "20261008"
+              },
+              {
+                "PAY_COST_TPCD_NM": "배당/분배금",
+                "ESTM_STD_TPCD_NM": "해당없음",
+                "ESTM_STD_DT": "",
+                "RN": "2",
+                "PAY_TERM_BEGIN_DT": ""
+              }
+            ]
+          },
+          "issue": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-detail-189690-issue",
+            "bodySha256": "71ffaa07c32e065fb1d8f423295eaae3a49811b2b879d028337e0e461b66ef07",
+            "receiptSha256": "6a5b1132c33321170f82d85d243800cc5a5c33a580f43431388e5deb55d29e3d",
+            "observedAt": "2026-11-18T01:00:42.484913+00:00",
+            "shareClasses": [
+              {
+                "SHOTN_ISIN": "189690",
+                "STK_KACD": "보통주",
+                "CASH_ALOC_AMT": "115"
+              }
+            ]
+          }
+        },
+        "baseline": {
+          "stat": {
+            "path": "action-outcome-census-20261108/captures/ksd-stat-KOSDAQ-2026-rows",
+            "bodySha256": "f2dcb6383425efbfee6c0fa90bf9a14b284756d6a4ecc0dbae6acaa55246d112",
+            "receiptSha256": "57afa6b442c7faae937921e026ccfc840d95cb2fb16cb9003e9a2921539983bd",
+            "observedAt": "2026-11-07T16:31:23.500033+00:00",
+            "rowSha256": "e851d5c0152b01f7923b3371ed23d676988641fa78b857a90025fefe3e059c9b"
+          },
+          "schedule": {
+            "path": "action-outcome-census-20261108/captures/ksd-payment-KOSDAQ-2026-rows",
+            "bodySha256": "b51cc056b5ee3ecc8635dcf57583356160a00bc2d3d890335e6df059d957ff95",
+            "receiptSha256": "4bfba1ac31fbaee51285aae2763f54b4631327132dc3086d8af5063f8be873f2",
+            "observedAt": "2026-11-07T16:31:55.722857+00:00",
+            "rowSha256": "55e77805c245d9cfa55b9112a48faa4681a06875d26f75ab1218d2920cfdff0c"
+          }
+        },
+        "recheck": {
+          "stat": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-stat-KOSDAQ-2026-rows",
+            "bodySha256": "30546587c25555221cef06053e908d24bd6bb3bd72b02028263a35670a03532e",
+            "receiptSha256": "7ed7a388b662a969907a450632ce5f94e9469fe384f9868de0c293dc8cff0e66",
+            "observedAt": "2026-11-18T00:57:57.803026+00:00",
+            "rowSha256": "e851d5c0152b01f7923b3371ed23d676988641fa78b857a90025fefe3e059c9b"
+          },
+          "schedule": {
+            "path": "h05-dividend-date-reconciliation-20261118/captures/ksd-fresh-payment-KOSDAQ-2026-rows",
+            "bodySha256": "8d8c14abe9ccd210f5ee3a2f0519d04d446c6c11d26b05cd6288f59218656c6c",
+            "receiptSha256": "a7f15f5903cdc62e48f1d8161efd7a622eb1fddeb7f220b55d22bc1c92f5216d",
+            "observedAt": "2026-11-18T00:57:59.366646+00:00",
+            "rowSha256": "55e77805c245d9cfa55b9112a48faa4681a06875d26f75ab1218d2920cfdff0c"
+          },
+          "datesQueried": [
+            "2026-10-06",
+            "2026-10-08"
+          ],
+          "scheduleDatesFound": [
+            "2026-10-08"
+          ]
+        },
+        "displayedPaymentDate": "2026-10-08",
+        "paymentDateMeaning": "FIRST_INSTALLMENT_IN_CONFIRMED_DIVIDEND_SCHEDULE"
+      },
+      "finding": "제18기 6월 결산 주당 115원과 승인 총액 3,016,704,840원이 3분기보고서의 3,016,705천원과 연결된다. 세이브로 1차 일자의 근거 변경 또는 지급 단계 구분은 미확인이다."
+    }
+  ]
+}
