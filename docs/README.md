@@ -1,5 +1,7 @@
 # SagoPalgo 문서
 
+AI 모델 설계와 학습 결과는 `docs/project/`에서 관리합니다. [학습 보고서 작성 기준](project/ai-model-reporting.md) · [삼성전자·SK하이닉스 독립 평가와 지표 해석](project/daily-learning-evaluation.md)
+
 | 폴더 | 내용 |
 |---|---|
 | [project](project/) | [1차 학습 프로토타입](project/learning-prototype.md), [개발 로드맵](project/realtime-trading-roadmap.md), [미국주식 AI 학습·자동매매 로드맵](project/us-equity-ai-trading-roadmap.md), [현재 진척도](project/numbered-work-progress.md#현재-개발-진척도), [남은 실행 단위](project/remaining-development-units.md), [보류 작업](project/deferred-work.md) |
