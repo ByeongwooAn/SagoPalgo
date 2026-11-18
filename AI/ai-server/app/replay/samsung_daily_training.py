@@ -38,18 +38,21 @@ def read_pinned(path, source):
     return raw
 
 
-def audit_boundaries(job, responses, rows):
+def boundary_observations(sources):
     changes = {}
-    for response in responses:
-        raw = read_bytes(job / response["file"])
-        if digest(raw) != response["sha256"]:
+    for path, expected_sha256 in sources:
+        raw = read_bytes(path)
+        if digest(raw) != expected_sha256:
             raise ResearchError("HISTORY_RESPONSE_TAMPERED")
         for row in read_json(raw)["output2"]:
             stamp = row["stck_bsop_date"]
             change = (row["prdy_vrss"], row["flng_cls_code"], row["prtt_rate"], row["mod_yn"], row["revl_issu_reas"])
             if changes.setdefault(stamp, change) != change:
                 raise ResearchError("SAMSUNG_DAILY_BOUNDARY_OVERLAP_CONFLICT")
+    return changes
 
+
+def inspect_boundaries(changes, rows):
     dividend_flags, large_moves = {}, {}
     for index, row in enumerate(rows):
         stamp = row["businessDate"]
@@ -71,8 +74,17 @@ def audit_boundaries(job, responses, rows):
             flags.append("CLOSE_MOVE_AT_LEAST_15_PERCENT")
         if flags:
             large_moves[stamp] = flags
+    return dividend_flags, large_moves
 
-    if dividend_flags != REVIEWED_CASH_DIVIDEND_FLAGS or large_moves != REVIEWED_LARGE_MOVES:
+
+def audit_boundaries(job, responses, rows):
+    changes = boundary_observations((job / response["file"], response["sha256"]) for response in responses)
+    return review_boundaries(changes, rows, REVIEWED_CASH_DIVIDEND_FLAGS, REVIEWED_LARGE_MOVES)
+
+
+def review_boundaries(changes, rows, reviewed_dividends, reviewed_moves):
+    dividend_flags, large_moves = inspect_boundaries(changes, rows)
+    if dividend_flags != reviewed_dividends or large_moves != reviewed_moves:
         raise ResearchError("SAMSUNG_DAILY_UNREVIEWED_PRICE_BOUNDARY")
     reviews = {date: ["CASH_DIVIDEND_BOUNDARY_KEEP_RAW"] for date in dividend_flags}
     for date, flags in large_moves.items():
