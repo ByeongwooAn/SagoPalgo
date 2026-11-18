@@ -57,7 +57,7 @@ KIND 고정 목록에서 동일 발행사·시장에 연결된 지급일 이후 
 - 2026년 지급일 차이 11건과 삼익제약 복수일 1건을 같은 배당 회차에 연결했습니다. 신라교역의 예정일과 사후 지급 보고를 구분했고, 차이 10건과 삼익제약의 날짜별 지급 범위는 미확인입니다. [12건 후속 대조](historical-dividend-2026-date-reconciliation.md)
 - 대금지급일정 단독 후보 24행 중 22행을 발행사 배당에 연결했습니다. 대상 시장의 양수 보통주 7행 중 1행은 사후 지급일과 일치합니다. [24행 후속 대조](historical-dividend-payment-schedule-reconciliation.md)
 - 동일 종목·지급일 복수 대응 후보 4행을 두 차등배당 회차에 연결했습니다. 시알홀딩스는 승인액과 현금흐름 지급 합계 차이가 남고, 스톰테크는 발행사 보고에서 지급월을 확인했습니다. [4행 후속 대조](historical-dividend-ambiguous-schedule.md)
-- 지급일 공란 6행을 주총 승인 전 3행, 무배당 2행, 지급예정일과 사후 지급 총액 확인 1행으로 판정했습니다. 다음은 세이브로 시장·연도별 5구간의 공급자 집계 차이 28건입니다. [지급일 누락 대조](historical-dividend-missing-payment-dates.md)
+- 지급일 공란 6행을 주총 승인 전 3행, 무배당 2행, 지급예정일과 사후 지급 총액 확인 1행으로 판정했습니다. 시장·연도별 집계 차이와 실제 지급일의 후속 대조는 보류 목록에서 재개 조건을 관리합니다. [지급일 누락 대조](historical-dividend-missing-payment-dates.md) · [보류 작업](../../project/deferred-work.md)
 
 로컬 원문을 관측한 시각과 보고서 접수일을 보존합니다. 최초 공개 시각의 역사적 가용성은 H06에서 확인하며, 이 보고서의 `usableForTraining`과 `usableForTrading`은 `false`입니다.
 

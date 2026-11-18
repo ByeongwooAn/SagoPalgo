@@ -2,7 +2,7 @@
 
 기준일: 2026-11-02 · 상태: 합의된 목표를 구체화한 개발 계획. 이 문서의 추가는 기능 구현·배포·실거래 검증 완료를 뜻하지 않습니다.
 
-이 문서를 **향후 개발 순서와 완료 조건의 단일 기준**으로 사용합니다. [기존 설계·구현 이력](../architecture/personal-windows-investment-assistant.md)은 보존하고, [개발 진척도](development-progress.md)는 현재 범위의 증거를 관리합니다. 보류한 작업의 범위와 재개·완료 조건은 [보류 작업](deferred-work.md)에서 관리합니다. 현재 배포 방식은 [Docker 구조](../architecture/docker-architecture.md), 목표 서비스·데이터 흐름은 [목표 아키텍처](../architecture/target-system-architecture.md)를 따릅니다. 과거 `sagopalgo_development_roadmap.pdf`는 이전 계획 자료이며 최신 진행 기준이 아닙니다.
+이 문서는 전체 자동매매 개발의 단계별 범위와 완료 조건을 정의합니다. 2026-11-18부터 현재 착수 순서는 [1차 학습 프로토타입 실행 순서](remaining-development-units.md#1차-학습-프로토타입-실행-순서)를 따릅니다. [기존 설계·구현 이력](../architecture/personal-windows-investment-assistant.md)은 보존하고, [개발 진척도](development-progress.md)는 현재 범위의 증거를 관리합니다. 보류한 작업의 범위와 재개·완료 조건은 [보류 작업](deferred-work.md)에서 관리합니다. 현재 배포 방식은 [Docker 구조](../architecture/docker-architecture.md), 목표 서비스·데이터 흐름은 [목표 아키텍처](../architecture/target-system-architecture.md)를 따릅니다. 과거 `sagopalgo_development_roadmap.pdf`는 이전 계획 자료이며 최신 진행 기준이 아닙니다.
 
 R0의 착수 문서: [API 지원·계약 매트릭스](../contracts/trading-api-contract-matrix.md) · [KB 계약 보류·재개 조건](../contracts/kb-contract-blockers.md) · [단기·중기·최종 목표와 초기 운용 초안](initial-trading-policy.md). 문서 기반 조사를 완료했으며 KB 답변·실환경 권한/한도·운용 수치 확정은 남아 있습니다.
 
@@ -240,6 +240,10 @@ KRX 기준표 후속: [과거 기준일 수집기·공시 대조](../historical-
 각 단계는 **계획 → 구현 중 → 자동 검증 → 실환경 검증 → 운영 확인**으로 기록합니다. 실주문이 없는 단계의 실환경 검증은 실제 데이터 연결을 뜻하며, 실거래 승인을 포함하지 않습니다. 막힌 외부 계약은 근거·질문·영향 단계로 기록하고 독립적인 수집·학습·모의 작업은 진행합니다. 현재 개발 범위의 집계는 [1~5번 체크리스트](numbered-work-progress.md#현재-개발-진척도)를 따릅니다.
 
 ## 6. 바로 착수할 작업
+
+현재는 **삼성전자 일봉 학습 입력과 평가 구간 확정**부터 진행합니다. [1차 학습 프로토타입 실행 순서](remaining-development-units.md#1차-학습-프로토타입-실행-순서)
+
+### 전체 자동매매 로드맵의 초기 착수 계획
 
 1. R0 API 지원표에 KB 실제 주문 완료/잔량/예약금의 기존 미확정 사항을 먼저 이관하고 공식 근거와 실제 성공 증거를 분리합니다.
 2. 국내 온주와 초기 전략 보유 시간을 기준으로 데이터 해상도·구독/호출 상한을 측정합니다.

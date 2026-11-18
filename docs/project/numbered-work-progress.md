@@ -1,6 +1,8 @@
 # 1~5번 작업 완료율과 고정 체크리스트
 
-2026-11-18 [H05 배당내역 지급일 누락 6행](../historical-data/corporate-actions/historical-dividend-missing-payment-dates.md)을 판정했습니다. 다음은 세이브로 5구간의 공급자 집계 차이 28건입니다. 5-08은 진행 중입니다.
+2026-11-18 현재 착수 순서는 1차 학습 프로토타입 실행 순서를 따릅니다. 번호별 진척도는 전체 범위의 완료 조건을 기준으로 집계합니다. [1차 학습 프로토타입 실행 순서](remaining-development-units.md#1차-학습-프로토타입-실행-순서)
+
+2026-11-18 [H05 배당내역 지급일 누락 6행](../historical-data/corporate-actions/historical-dividend-missing-payment-dates.md)을 판정했습니다. 세이브로 배당 후속 대조 2개 단위는 보류했으며 5-08은 진행 중입니다. [보류 작업](deferred-work.md)
 
 2026-11-18 [H05 동일 종목·지급일 복수 대응 후보 4행](../historical-data/corporate-actions/historical-dividend-ambiguous-schedule.md)을 두 차등배당 회차에 연결했습니다.
 
