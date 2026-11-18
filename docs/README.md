@@ -2,7 +2,7 @@
 
 | 폴더 | 내용 |
 |---|---|
-| [project](project/) | [개발 로드맵](project/realtime-trading-roadmap.md), [현재 진척도](project/numbered-work-progress.md#현재-개발-진척도), [남은 실행 단위](project/remaining-development-units.md), [보류 작업](project/deferred-work.md) |
+| [project](project/) | [개발 로드맵](project/realtime-trading-roadmap.md), [미국주식 AI 학습·자동매매 로드맵](project/us-equity-ai-trading-roadmap.md), [현재 진척도](project/numbered-work-progress.md#현재-개발-진척도), [남은 실행 단위](project/remaining-development-units.md), [보류 작업](project/deferred-work.md) |
 | [architecture](architecture/) | [목표 시스템 구조](architecture/target-system-architecture.md), [Docker 배포 구조](architecture/docker-architecture.md), 기존 설계 이력 |
 | [contracts](contracts/) | [API 명세](contracts/api-spec.md), [DB 스키마](contracts/database-schema.md), 증권사 API 지원 범위와 계약 보류 조건 |
 | [operations](operations/) | [수동 테스트 가이드](operations/manual-test-guide.md), Windows 파일 게시 복구 |
