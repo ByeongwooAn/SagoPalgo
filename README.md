@@ -5,6 +5,12 @@ SagoPalgo는 개인용 Windows 투자 프로그램입니다. 최종 목표는 KB
 
 최근에는 [H04 합병·분할 종료보고서 전수 대조](docs/historical-data/corporate-actions/historical-restructuring-census.md)에서 기존 후보 351건과 별도 발행실적보고서 68건의 본문을 대조했습니다. [현재 개발 진척도](docs/project/numbered-work-progress.md#현재-개발-진척도)는 **27/46 · 59%**입니다. [프로젝트·AI 작업 단위별 진척도](docs/project/project-and-ai-progress.md)에서 구현과 검증 범위를, [보류 작업](docs/project/deferred-work.md)에서 재개 조건과 진척을 확인할 수 있습니다.
 
+## 삼성전자 1차 학습 프로토타입
+
+첫 기준 모델은 **L2 로지스틱 회귀**입니다. 장 마감까지 확정된 가격·거래량 특징 7개로 다음 개장일에 종가가 시가보다 높을 확률을 추정합니다. 가중치 7개와 절편으로 계산해 한 종목의 제한된 학습 표본에서 먼저 검증하기 쉽고, 날짜별로 어떤 특징이 점수를 높이거나 낮췄는지 확인할 수 있습니다. [로지스틱 회귀의 원리·계산 예시·다른 모델과의 비교](docs/project/logistic-regression-baseline.md)
+
+1단계에서 원주가 일봉 730건의 입력을 감사하고 학습 424건·검증 141건·최종 평가 142건을 고정했습니다. 2단계에서 첫 모델을 학습해 단순 기준보다 예측과 비용 반영 모의매매 성과가 개선되는지 확인합니다. [고정 학습·평가 구간](docs/project/samsung-daily-training-input.md) · [단계별 계획](docs/project/learning-prototype.md#실행-순서와-완료-기준)
+
 ## 프로젝트 방향
 
 - 공개 앱스토어 출시나 상용 SaaS 운영이 아닌 개인용 Windows 프로그램을 우선합니다.
