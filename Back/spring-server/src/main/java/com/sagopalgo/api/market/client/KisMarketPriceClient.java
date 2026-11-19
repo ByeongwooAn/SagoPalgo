@@ -419,7 +419,26 @@ public class KisMarketPriceClient implements MarketDataProvider {
         URI uri = usQuotation("/dailyprice", request.stockCode(), exchange)
             .queryParam("GUBN", period).queryParam("BYMD", "").queryParam("MODP", "0")
             .build().encode().toUri();
-        JsonNode rows = readJson(uri, "HHDFS76240000", "US_CANDLES", "미국주식 기간별 시세").path("output2");
+        List<StockCandle> candles = readUsCandles(request, interval,
+            readJson(uri, "HHDFS76240000", "US_CANDLES", "미국주식 기간별 시세").path("output2"));
+        return candles.subList(Math.max(0, candles.size() - count), candles.size());
+    }
+
+    public List<StockCandle> usRawDailyCandles(MarketDataRequest request, LocalDate end) {
+        var exchange = UsStockExchange.fromMarket(request.market())
+            .orElseThrow(() -> new ApiException(ErrorCode.VALIDATION_ERROR, "미국주식 거래소가 필요합니다."));
+        String date = end == null ? "" : end.format(DateTimeFormatter.BASIC_ISO_DATE);
+        URI uri = usQuotation("/dailyprice", request.stockCode(), exchange)
+            .queryParam("GUBN", "0").queryParam("BYMD", date).queryParam("MODP", "0").build().encode().toUri();
+        JsonNode response = readJson(uri, "HHDFS76240000", "US_DAILY_RAW", "미국주식 원주가 일봉");
+        String identity = response.path("output1").path("rsym").asText();
+        if (!identity.equals("D" + exchange.kisCode() + request.stockCode())) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "미국주식 원주가 일봉 종목이 다릅니다.");
+        }
+        return readUsCandles(request, CandleInterval.DAILY, response.path("output2"));
+    }
+
+    private List<StockCandle> readUsCandles(MarketDataRequest request, CandleInterval interval, JsonNode rows) {
         if (!rows.isArray()) return List.of();
         List<StockCandle> candles = new java.util.ArrayList<>();
         for (JsonNode row : rows) {
@@ -430,7 +449,7 @@ public class KisMarketPriceClient implements MarketDataProvider {
                 row.path("tvol").asText(), null, null)));
         }
         candles.sort(Comparator.comparing(StockCandle::dateTime));
-        return candles.subList(Math.max(0, candles.size() - count), candles.size());
+        return candles;
     }
 
     private UriComponentsBuilder usQuotation(String path, String ticker, UsStockExchange exchange) {

@@ -1,4 +1,5 @@
 import 'package:app_version/models/market_candle.dart';
+import 'package:app_version/models/recommendation.dart';
 import 'package:app_version/repositories/market_data_repository.dart';
 import 'package:app_version/screens/market_candle_screen.dart';
 import 'package:app_version/theme/app_theme.dart';
@@ -61,14 +62,39 @@ void main() {
     expect(find.text('AAPL · NASDAQ'), findsOneWidget);
     expect(find.text('현재가 223.125 USD · KIS'), findsOneWidget);
     expect(find.text('223.12 USD'), findsOneWidget);
+    expect(repository.signalRequests, 0);
+    await tester.tap(find.text('장 마감 모델'));
+    await tester.pumpAndSettle();
+    expect(repository.signalRequests, 1);
+    expect(find.text('AAPL 장 마감 모델'), findsOneWidget);
+    expect(find.text('기준 거래일 2026-11-18'), findsOneWidget);
+    expect(find.text('장 마감 모델 · 신호 보류'), findsOneWidget);
   });
 }
 
-class _FakeMarketDataRepository implements MarketDataRepository, UsStockLookup {
+class _FakeMarketDataRepository
+    implements MarketDataRepository, UsStockLookup, UsDailySignalAccess {
   _FakeMarketDataRepository({this.currency = 'KRW'});
 
   final List<MarketCandleInterval> requestedIntervals = [];
   final String currency;
+  int signalRequests = 0;
+
+  @override
+  Future<DailyModelSignal> fetchUsDailySignal(
+    String ticker,
+    String market,
+  ) async {
+    expect(ticker, 'AAPL');
+    expect(market, 'NASDAQ');
+    signalRequests++;
+    return const DailyModelSignal(
+      decision: 'WITHHELD',
+      holdReason: 'BAR_NOT_FINAL',
+      basisDate: '2026-11-18',
+      contributions: {},
+    );
+  }
 
   @override
   Future<({String provider, double price})> fetchUsQuote(

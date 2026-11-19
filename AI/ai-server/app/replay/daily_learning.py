@@ -166,9 +166,9 @@ def entries_for(probabilities_, threshold):
     return [threshold is not None and p >= threshold for p in probabilities_]
 
 
-def select_threshold(validation, predictions):
+def select_threshold(validation, predictions, cost=COSTS["base"]):
     candidates = [
-        {"threshold": threshold, **performance(validation, entries_for(predictions, threshold), COSTS["base"])}
+        {"threshold": threshold, **performance(validation, entries_for(predictions, threshold), cost)}
         for threshold in THRESHOLDS
     ]
     selected = max(candidates, key=lambda result: (
@@ -178,7 +178,7 @@ def select_threshold(validation, predictions):
     return selected["threshold"], candidates
 
 
-def freeze_model(code, train, validation, input_hashes, runtime):
+def freeze_model(code, train, validation, input_hashes, runtime, cost=COSTS["base"]):
     previous = train
     predictions, folds = [], []
     for start in range(0, len(validation), VALIDATION_BLOCK_SIZE):
@@ -193,7 +193,7 @@ def freeze_model(code, train, validation, input_hashes, runtime):
         })
         previous = previous + block
 
-    threshold, candidates = select_threshold(validation, predictions)
+    threshold, candidates = select_threshold(validation, predictions, cost)
     model = fit(train)
     scaler, classifier = model
     manifest = {
@@ -232,7 +232,7 @@ def prediction_metrics(samples, predictions):
     }
 
 
-def evaluate(samples, model, manifest):
+def evaluate(samples, model, manifest, scenarios=COSTS):
     if samples[0].signal_date <= manifest["trainedOn"]["lastTargetDate"]:
         raise ResearchError("DAILY_LEARNING_FINAL_OVERLAPS_TRAINING")
     predictions = probabilities(model, samples)
@@ -251,7 +251,7 @@ def evaluate(samples, model, manifest):
         },
         "strategies": {
             scenario: {name: performance(samples, signals, costs) for name, signals in entries.items()}
-            for scenario, costs in COSTS.items()
+            for scenario, costs in scenarios.items()
         },
     }, prediction_rows(samples, predictions)
 

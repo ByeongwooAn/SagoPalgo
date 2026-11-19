@@ -5,11 +5,13 @@ SagoPalgo는 개인용 Windows 투자 프로그램입니다. 최종 목표는 KB
 
 최근에는 [H04 합병·분할 종료보고서 전수 대조](docs/historical-data/corporate-actions/historical-restructuring-census.md)에서 기존 후보 351건과 별도 발행실적보고서 68건의 본문을 대조했습니다. [현재 개발 진척도](docs/project/numbered-work-progress.md#현재-개발-진척도)는 **27/46 · 59%**입니다. [프로젝트·AI 작업 단위별 진척도](docs/project/project-and-ai-progress.md)에서 구현과 검증 범위를, [보류 작업](docs/project/deferred-work.md)에서 재개 조건과 진척을 확인할 수 있습니다.
 
-## 삼성전자·SK하이닉스 1차 학습 프로토타입
+## 삼성전자·SK하이닉스·애플·엔비디아 1차 학습 프로토타입
 
-삼성전자(005930)와 SK하이닉스(000660)에 **L2 로지스틱 회귀를 한 종목당 하나씩** 적용합니다. 장 마감까지 확정된 가격·거래량 특징 7개로 다음 개장일에 종가가 시가보다 높을 확률을 추정합니다. 가중치 7개와 절편으로 계산해 한 종목의 제한된 학습 표본에서 먼저 검증하기 쉽고, 날짜별로 어떤 특징이 점수를 높이거나 낮췄는지 확인할 수 있습니다. [로지스틱 회귀의 원리·계산 예시·다른 모델과의 비교](docs/project/logistic-regression-baseline.md)
+삼성전자(005930)·SK하이닉스(000660)와 애플(AAPL)·엔비디아(NVDA)에 **L2 로지스틱 회귀를 한 종목당 하나씩** 적용합니다. 확정된 현지 일봉의 가격·거래량 특징 7개로 다음 개장일에 종가가 시가보다 높을 확률을 추정합니다. [로지스틱 회귀 설계](docs/project/logistic-regression-baseline.md)
 
 종목별 가격 모델을 학습하고 검증에서 임곗값을 정해 공통 142일을 독립 평가했습니다. 기본 비용에서 삼성전자는 0회 진입, SK하이닉스는 70회 진입해 −47.91%였습니다. 3단계에서 수동 추천에 장 마감 모델 신호를 연결하고 두 종목 284건의 같은 날짜 확률을 대조했습니다. 실제 KIS 일봉과 앱의 통합 검증은 11월 22일 관찰 종료 및 보고서 생성 후 진행합니다. [평가 결과](docs/project/daily-learning-evaluation.md) · [장 마감 모델 연결과 대조 결과](docs/project/daily-inference-integration.md) · [단계별 계획](docs/project/learning-prototype.md#실행-순서와-완료-기준)
+
+애플·엔비디아는 각각 NASDAQ 원주가 753거래일을 감사하고 공통 143일을 독립 평가했습니다. 애플은 기본 비용에서 4회 진입해 +0.37%였고 엔비디아는 0회 진입했습니다. 미국주식 시세 화면의 장 마감 모델과 로컬 평가 화면을 연결했습니다. [미국 모델 학습·평가](docs/project/us-daily-learning-evaluation.md)
 
 ## 프로젝트 방향
 
@@ -18,7 +20,7 @@ SagoPalgo는 개인용 Windows 투자 프로그램입니다. 최종 목표는 KB
 - KIS와 Toss Open API는 계좌/주문 연동 없이 읽기 전용 시장 데이터 Provider로 사용합니다.
 - 같은 현재가를 여러 증권사에서 매번 합치지 않고, 기본 Provider와 fallback Provider를 분리합니다.
 - 실시간 수집·시장 전체 탐색·과거 데이터 학습·AI 자금 배분을 개발하고, 재현 검증·실시간 모의·제한 실거래 검증을 거쳐 자동매매를 도입합니다.
-- 국내 대상 시장의 온주 단타를 현재 개발 범위로 삼습니다. 소수점 상품과 추가 시장은 [보류 작업](docs/project/deferred-work.md)에서 관리합니다.
+- 국내 대상 시장의 온주 단타와 미국 2종목의 일봉·수동 모의 프로토타입을 현재 개발 범위로 삼습니다. 소수점 상품과 미국 자동매매 확장은 [보류 작업](docs/project/deferred-work.md)에서 관리합니다.
 
 향후 개발 기준은 [실시간 AI 단기 자동매매 로드맵](docs/project/realtime-trading-roadmap.md)입니다. [목표 아키텍처](docs/architecture/target-system-architecture.md), [현재 배포 구조](docs/architecture/docker-architecture.md), [개발 진척도](docs/project/development-progress.md)를 구분해 확인하세요. [기존 설계·구현 이력](docs/architecture/personal-windows-investment-assistant.md)은 보존합니다.
 

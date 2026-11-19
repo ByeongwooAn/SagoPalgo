@@ -15,7 +15,12 @@ class LearningEvaluation {
 
   static const scenarios = ['base', 'stress'];
   static const strategies = ['model', 'daily', 'trend5', 'cash'];
-  static const stockNames = {'005930': '삼성전자', '000660': 'SK하이닉스'};
+  static const stockNames = {
+    '005930': '삼성전자',
+    '000660': 'SK하이닉스',
+    'AAPL': '애플',
+    'NVDA': '엔비디아',
+  };
 
   final String firstTargetDate;
   final String lastTargetDate;
@@ -32,6 +37,15 @@ class LearningEvaluation {
     final period = json['commonFinalPeriod'] as Map<String, dynamic>;
     final stocks = json['stocks'] as Map<String, dynamic>;
     final costs = json['costs'] as Map<String, dynamic>;
+    final codes = switch ((json['market'], json['currency'])) {
+      (null, null) => const ['005930', '000660'],
+      ('NASDAQ', 'USD') => const ['AAPL', 'NVDA'],
+      _ => throw const FormatException('Unsupported evaluation market'),
+    };
+    if (stocks.length != codes.length ||
+        codes.any((code) => !stocks.containsKey(code))) {
+      throw const FormatException('Inconsistent evaluation stocks');
+    }
     return LearningEvaluation(
       firstTargetDate: period['firstTargetDate'] as String,
       lastTargetDate: period['lastTargetDate'] as String,
@@ -41,7 +55,7 @@ class LearningEvaluation {
           scenario: _costs(costs[scenario] as Map<String, dynamic>),
       },
       stocks: [
-        for (final code in stockNames.keys)
+        for (final code in codes)
           StockLearningEvaluation.fromJson(
             code,
             stocks[code] as Map<String, dynamic>,

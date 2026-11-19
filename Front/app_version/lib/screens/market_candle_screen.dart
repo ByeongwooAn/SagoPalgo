@@ -9,6 +9,7 @@ import 'market_realtime_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/app_text.dart';
+import '../widgets/daily_model_signal_card.dart';
 import '../widgets/status_chip.dart';
 import 'dashboard_screen.dart';
 
@@ -50,6 +51,7 @@ class _MarketCandleScreenState extends State<MarketCandleScreen> {
   @override
   Widget build(BuildContext context) {
     final palette = AppPalette.of(context);
+    final lookup = widget.usLookup;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: palette.surface,
@@ -84,6 +86,13 @@ class _MarketCandleScreenState extends State<MarketCandleScreen> {
           ],
         ),
         actions: [
+          if (lookup is UsDailySignalAccess &&
+              widget.market == 'NASDAQ' &&
+              const {'AAPL', 'NVDA'}.contains(widget.stockCode))
+            TextButton(
+              onPressed: () => _showDailySignal(lookup as UsDailySignalAccess),
+              child: const Text('장 마감 모델'),
+            ),
           if (widget.usLookup == null &&
               widget.repository is RealtimeMarketAccess)
             IconButton(
@@ -204,6 +213,42 @@ class _MarketCandleScreenState extends State<MarketCandleScreen> {
       throw const MarketDataRepositoryException('미국주식 캔들 통화가 올바르지 않습니다.');
     }
     return data;
+  }
+
+  void _showDailySignal(UsDailySignalAccess access) {
+    final signal = access.fetchUsDailySignal(widget.stockCode, widget.market);
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${widget.stockCode} 장 마감 모델'),
+        content: SizedBox(
+          width: 520,
+          child: SingleChildScrollView(
+            child: FutureBuilder(
+              future: signal,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Text('장 마감 모델 신호를 불러오지 못했습니다.');
+                }
+                if (snapshot.data case final value?) {
+                  return DailyModelSignalCard(
+                    signal: value,
+                    inputLabel: 'KIS NASDAQ USD 원주가 일봉',
+                  );
+                }
+                return const Center(child: CircularProgressIndicator());
+              },
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('닫기'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _fetchUsDetails() {

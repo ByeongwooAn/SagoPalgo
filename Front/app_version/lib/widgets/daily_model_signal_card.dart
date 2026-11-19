@@ -7,9 +7,14 @@ import 'app_card.dart';
 import 'app_text.dart';
 
 class DailyModelSignalCard extends StatefulWidget {
-  const DailyModelSignalCard({super.key, required this.signal});
+  const DailyModelSignalCard({
+    super.key,
+    required this.signal,
+    this.inputLabel = 'KIS KRX 원주가 일봉',
+  });
 
   final DailyModelSignal signal;
+  final String inputLabel;
 
   @override
   State<DailyModelSignalCard> createState() => _DailyModelSignalCardState();
@@ -78,7 +83,7 @@ class _DailyModelSignalCardState extends State<DailyModelSignalCard> {
               Text('매수 관찰 기준 ${_percent(signal.threshold!)}'),
             Text('만료 ${_koreaTime(expiresAt)} KST'),
             if (signal.modelVersion != null)
-              TextCaption('모델 ${signal.modelVersion} · KIS KRX 원주가 일봉'),
+              TextCaption('모델 ${signal.modelVersion} · ${widget.inputLabel}'),
             if (factors.isNotEmpty)
               Text(
                 '주요 판단 근거 · ${factors.take(2).map((factor) => '${_featureLabels[factor.key]}(${factor.value > 0 ? '상승 확률 높임' : '상승 확률 낮춤'})').join(' · ')}',
@@ -106,7 +111,7 @@ const _featureLabels = {
 String _holdDescription(String? reason) => switch (reason) {
   'BAR_NOT_FINAL' => '기준 거래일의 일봉 확정을 기다리고 있습니다.',
   'BAR_MISSING_OR_INVALID' => '필요한 거래일의 KIS 원주가 일봉을 확인할 수 없습니다.',
-  'CALENDAR_UNAVAILABLE' => '입력과 만료에 필요한 KRX 거래일 일정이 없습니다.',
+  'CALENDAR_UNAVAILABLE' => '입력과 만료에 필요한 거래일 일정이 없습니다.',
   'SIGNAL_EXPIRED' => '평가 도중 다음 거래일의 정규장이 종료되었습니다.',
   _ => '이 종목의 장 마감 모델을 사용할 수 없습니다.',
 };

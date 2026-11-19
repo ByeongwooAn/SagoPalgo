@@ -134,6 +134,31 @@ class KisMarketPriceClientTest {
     }
 
     @Test
+    void nasdaqModelRequestsDatedRawPricesAndChecksProviderIdentity() {
+        server.expect(requestTo("https://kis.test/oauth2/tokenP"))
+            .andRespond(withSuccess("{\"access_token\":\"access-token\",\"expires_in\":3600}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kis.test/uapi/overseas-price/v1/quotations/dailyprice?AUTH=&EXCD=NAS&SYMB=AAPL&GUBN=0&BYMD=20261118&MODP=0"))
+            .andExpect(header("tr_id", "HHDFS76240000"))
+            .andRespond(withSuccess("""
+                {"rt_cd":"0","output1":{"rsym":"DNASAAPL"},
+                 "output2":[{"xymd":"20261118","open":"223.015","high":"224.0","low":"223.0","clos":"223.125","tvol":"1000"}]}
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://kis.test/uapi/overseas-price/v1/quotations/dailyprice?AUTH=&EXCD=NAS&SYMB=AAPL&GUBN=0&BYMD=&MODP=0"))
+            .andRespond(withSuccess("""
+                {"rt_cd":"0","output1":{"rsym":"DNASNVDA"},"output2":[]}
+                """, MediaType.APPLICATION_JSON));
+
+        var request = new MarketDataRequest("AAPL", "NASDAQ");
+        var day = LocalDate.of(2026, 11, 18);
+        assertThat(client.usRawDailyCandles(request, day)).singleElement().satisfies(candle -> {
+            assertThat(candle.dateTime()).isEqualTo(day.atStartOfDay());
+            assertThat(candle.closePrice()).isEqualByComparingTo("223.125");
+        });
+        assertThatThrownBy(() -> client.usRawDailyCandles(request, null)).isInstanceOf(ApiException.class);
+        server.verify();
+    }
+
+    @Test
     @DisplayName("국내 주식 기간별 시세를 시간 오름차순 표준 캔들로 변환한다")
     void candlesFetchDomesticStockHistory() {
         LocalDate endDate = LocalDate.now(ZoneId.of("Asia/Seoul"));

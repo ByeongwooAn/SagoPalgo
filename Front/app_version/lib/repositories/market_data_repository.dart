@@ -1,4 +1,5 @@
 import '../models/market_candle.dart';
+import '../models/recommendation.dart';
 
 /// 종목별 기간 시세를 화면에 제공하는 Repository 경계입니다.
 abstract class MarketDataRepository {
@@ -16,6 +17,10 @@ abstract interface class UsStockLookup {
     String market,
   );
   Future<String> fetchUsStockName(String ticker, String market);
+}
+
+abstract interface class UsDailySignalAccess {
+  Future<DailyModelSignal> fetchUsDailySignal(String ticker, String market);
 }
 
 class MarketDataRepositoryException implements Exception {

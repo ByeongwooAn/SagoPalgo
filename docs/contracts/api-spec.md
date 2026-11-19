@@ -363,6 +363,8 @@ Toss 공식 `GET /api/v1/stocks?symbols=종목코드` 응답을 사용합니다.
 - 미국주식 캔들은 원주가이며 응답의 `currency`는 `USD`입니다. 일봉 `dateTime`은 미국 동부 거래일의 자정으로 표시합니다. 조회 시점의 최신 거래일 포함 여부는 공급자에 따라 달라질 수 있습니다. 주봉·월봉은 KB와 KIS를 사용합니다. 토스는 일봉 대체 조회에 참여합니다.
 - Flutter 포트폴리오 상단의 **미국주식 시세 조회**에서 거래소와 티커를 입력하면 종목명, 현재가, 차트를 조회합니다. 미국주식 조회 응답은 달러 표시용입니다. 원화 보유 종목 평가·관심 종목 등 기존 현재가 경로에서는 해당 미국 거래소 종목의 등록가 또는 0원 대체값을 사용합니다.
 
+- `GET /api/v1/market/stocks/{stockCode}/daily-signal?market=NASDAQ`은 AAPL·NVDA의 장 마감 모델 신호를 반환합니다. 앱의 **장 마감 모델** 버튼에서 호출합니다. 응답은 추천 API의 `dailySignal`과 동일한 구조이며, 기준일과 만료는 미국 동부 정규장 일정에 따릅니다. 다른 시장·티커 조합은 `VALIDATION_ERROR`를 반환합니다. [NASDAQ 신호 검증](../project/us-daily-learning-evaluation.md#재현과-앱-연결)
+
 #### 6.0.3 실시간 시세와 연구 변경 조회
 
 `GET /api/v1/market/realtime?stockCode=005930`, `GET /api/v1/market/realtime/events?stockCode=005930`(SSE), `GET /api/v1/research/changes?stockCode=005930&afterId=0&limit=100`은 [실시간 데이터 수집 계약](../market-data/realtime-data-pipeline.md)을 따릅니다. KIS 공개 KRX 시세와 저장된 연구 버전이며 계좌 관찰/주문 상태와 분리합니다. 신규 기능은 기본 OFF이고 025/026 적용·배포·권한/예산 확인 후 사용합니다. 스냅샷은 항상 usableForTrading=false이며, 분봉은 OBSERVED_ONLY입니다.

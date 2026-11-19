@@ -4,13 +4,18 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 import '../models/market_candle.dart';
+import '../models/recommendation.dart';
 import 'market_data_repository.dart';
 import 'realtime_market_repository.dart';
 import 'spring_realtime_market_repository.dart';
 
 /// Spring Boot 시장 데이터 API에서 정규화된 캔들을 조회합니다.
 class SpringMarketDataRepository
-    implements MarketDataRepository, RealtimeMarketAccess, UsStockLookup {
+    implements
+        MarketDataRepository,
+        RealtimeMarketAccess,
+        UsStockLookup,
+        UsDailySignalAccess {
   @override
   RealtimeMarketRepository get realtime =>
       SpringRealtimeMarketRepository(accessToken: accessToken, config: config);
@@ -24,6 +29,15 @@ class SpringMarketDataRepository
   final String accessToken;
   final ApiConfig config;
   final http.Client client;
+
+  @override
+  Future<DailyModelSignal> fetchUsDailySignal(
+    String ticker,
+    String market,
+  ) async {
+    final data = await _fetchStock(ticker, market, 'daily-signal');
+    return DailyModelSignal.fromJson(data);
+  }
 
   @override
   Future<({String provider, double price})> fetchUsQuote(
