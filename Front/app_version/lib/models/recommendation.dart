@@ -109,11 +109,13 @@ class AnalysisEvidence {
     this.candleCount,
     this.newsCount,
     this.disclosureCount,
+    this.dailySignal,
   });
   final String? modelVersion;
   final int? candleCount;
   final int? newsCount;
   final int? disclosureCount;
+  final DailyModelSignal? dailySignal;
   bool get isFallback => modelVersion?.contains('FALLBACK') ?? false;
   factory AnalysisEvidence.fromJson(Map<String, dynamic> json) =>
       AnalysisEvidence(
@@ -121,7 +123,54 @@ class AnalysisEvidence {
         candleCount: _readOptionalInt(json['candleCount']),
         newsCount: _readOptionalInt(json['newsCount']),
         disclosureCount: _readOptionalInt(json['disclosureCount']),
+        dailySignal: json['dailySignal'] is Map<String, dynamic>
+            ? DailyModelSignal.fromJson(
+                json['dailySignal'] as Map<String, dynamic>,
+              )
+            : null,
       );
+}
+
+class DailyModelSignal {
+  const DailyModelSignal({
+    required this.decision,
+    required this.contributions,
+    this.holdReason,
+    this.modelVersion,
+    this.basisDate,
+    this.evaluatedAt,
+    this.expiresAt,
+    this.probability,
+    this.threshold,
+  });
+
+  final String decision;
+  final String? holdReason;
+  final String? modelVersion;
+  final String? basisDate;
+  final DateTime? evaluatedAt;
+  final DateTime? expiresAt;
+  final double? probability;
+  final double? threshold;
+  final Map<String, double> contributions;
+
+  factory DailyModelSignal.fromJson(Map<String, dynamic> json) {
+    final contributions =
+        json['contributions'] as Map<String, dynamic>? ?? const {};
+    return DailyModelSignal(
+      decision: json['decision'] as String,
+      holdReason: json['holdReason'] as String?,
+      modelVersion: json['modelVersion'] as String?,
+      basisDate: json['basisDate'] as String?,
+      evaluatedAt: DateTime.tryParse(json['evaluatedAt'] as String? ?? ''),
+      expiresAt: DateTime.tryParse(json['expiresAt'] as String? ?? ''),
+      probability: _readOptionalDouble(json['probability']),
+      threshold: _readOptionalDouble(json['threshold']),
+      contributions: contributions.map(
+        (key, value) => MapEntry(key, _readDouble(value)),
+      ),
+    );
+  }
 }
 
 /// 추천 이력 API의 페이지 정보와 항목을 함께 보관합니다.

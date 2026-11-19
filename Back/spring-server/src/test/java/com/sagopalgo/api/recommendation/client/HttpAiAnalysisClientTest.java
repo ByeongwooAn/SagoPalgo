@@ -11,9 +11,11 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import com.sagopalgo.api.config.AiAnalysisProperties;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisRequest;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisResponse;
+import com.sagopalgo.api.recommendation.dto.DailyInference;
 import java.math.BigDecimal;
 import java.util.List;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.net.SocketTimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -75,6 +77,26 @@ class HttpAiAnalysisClientTest {
         assertThat(response.status()).isEqualTo("BUY_WATCH");
         assertThat(response.reasons()).extracting(AiInvestmentAnalysisResponse.Reason::type)
             .containsExactly("PRICE");
+        server.verify();
+    }
+
+    @Test
+    void dailyInferenceSendsDateOnlyAndMapsUnroundedProbability() {
+        LocalDate date = LocalDate.of(2026, 10, 30);
+        server.expect(requestTo("http://ai.test/internal/ai/infer-daily"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(jsonPath("$.priceBasis").value("RAW"))
+            .andExpect(jsonPath("$.bars[0].businessDate").value("2026-10-30"))
+            .andRespond(withSuccess("""
+                {"stockCode":"000660","signalDate":"2026-10-30","modelVersion":"daily-l2-logistic-v1",
+                 "modelSha256":"hash","probability":0.56789123456789,"threshold":0.5,"contributions":{"openToClose":0.1}}
+                """, MediaType.APPLICATION_JSON));
+        var request = new DailyInference.Request("000660", "KOSPI", "KIS", "RAW", date,
+            List.of(new DailyInference.Bar(date, BigDecimal.TEN, BigDecimal.TEN, BigDecimal.ONE, BigDecimal.TEN, BigDecimal.TEN)));
+        var result = client.inferDaily(request).orElseThrow();
+        assertThat(result.signalDate()).isEqualTo(date);
+        assertThat(result.probability()).isEqualTo(0.56789123456789);
+        assertThat(result.contributions()).containsEntry("openToClose", 0.1);
         server.verify();
     }
 

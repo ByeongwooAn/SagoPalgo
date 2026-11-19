@@ -2,6 +2,7 @@ package com.sagopalgo.api.recommendation.client;
 
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisRequest;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisResponse;
+import com.sagopalgo.api.recommendation.dto.DailyInference;
 import java.util.Optional;
 
 /**
@@ -10,4 +11,6 @@ import java.util.Optional;
 public interface AiAnalysisGateway {
 
     Optional<AiInvestmentAnalysisResponse> analyze(AiInvestmentAnalysisRequest request);
+
+    Optional<DailyInference.Result> inferDaily(DailyInference.Request request);
 }

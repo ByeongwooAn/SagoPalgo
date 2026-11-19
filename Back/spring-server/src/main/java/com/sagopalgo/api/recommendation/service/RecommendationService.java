@@ -22,6 +22,7 @@ import com.sagopalgo.api.market.service.MarketPriceService;
 import com.sagopalgo.api.recommendation.client.AiAnalysisGateway;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisRequest;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisResponse;
+import com.sagopalgo.api.recommendation.dto.DailySignal;
 import com.sagopalgo.api.recommendation.dto.RecommendationListResponse;
 import com.sagopalgo.api.recommendation.dto.RecommendationReasonResponse;
 import com.sagopalgo.api.recommendation.dto.RecommendationResponse;
@@ -38,6 +39,7 @@ import com.sagopalgo.api.watchlist.model.WatchlistItem;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -67,6 +69,7 @@ public class RecommendationService {
     private final AlertService alertService;
     private final AiAnalysisProperties properties;
     private final ObjectMapper objectMapper;
+    private final DailySignalService dailySignalService;
 
     public RecommendationService(
         HoldingService holdingService,
@@ -79,7 +82,8 @@ public class RecommendationService {
         RecommendationStore recommendationStore,
         AlertService alertService,
         AiAnalysisProperties properties,
-        ObjectMapper objectMapper
+        ObjectMapper objectMapper,
+        DailySignalService dailySignalService
     ) {
         this.holdingService = holdingService;
         this.watchlistMapper = watchlistMapper;
@@ -92,10 +96,16 @@ public class RecommendationService {
         this.alertService = alertService;
         this.properties = properties;
         this.objectMapper = objectMapper;
+        this.dailySignalService = dailySignalService;
     }
 
     @Transactional
     public RecommendationResponse analyzeHolding(Long userId, Long holdingId) {
+        return analyzeHolding(userId, holdingId, true);
+    }
+
+    @Transactional
+    public RecommendationResponse analyzeHolding(Long userId, Long holdingId, boolean includeDailySignal) {
         Holding record = holdingService.findRecord(userId, holdingId);
         StockQuote quote = marketPriceService.quoteMarket(MarketDataRequest.from(record));
         if (!hasRealPrice(quote)) {
@@ -116,7 +126,7 @@ public class RecommendationService {
         StoredRecommendation stored = recommendationStore.save(
             recommendationRecord(userId, request, analysis),
             reasonRecords(analysis),
-            snapshotRecord(userId, analysis, request)
+            snapshotRecord(userId, analysis, request, includeDailySignal)
         );
         alertService.createFromRecommendation(stored);
         return response(stored);
@@ -124,6 +134,11 @@ public class RecommendationService {
 
     @Transactional
     public RecommendationResponse analyzeWatchlist(Long userId, Long watchlistId) {
+        return analyzeWatchlist(userId, watchlistId, true);
+    }
+
+    @Transactional
+    public RecommendationResponse analyzeWatchlist(Long userId, Long watchlistId, boolean includeDailySignal) {
         WatchlistItem item = watchlistMapper.findByIdAndUserId(watchlistId, userId)
             .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "관심 종목을 찾을 수 없습니다."));
         StockQuote quote = marketPriceService.quoteMarket(
@@ -142,7 +157,7 @@ public class RecommendationService {
         StoredRecommendation stored = recommendationStore.save(
             recommendationRecord(userId, request, analysis),
             reasonRecords(analysis),
-            snapshotRecord(userId, analysis, request)
+            snapshotRecord(userId, analysis, request, includeDailySignal)
         );
         alertService.createFromRecommendation(stored);
         return response(stored);
@@ -387,7 +402,8 @@ public class RecommendationService {
     private AnalysisSnapshotRecord snapshotRecord(
         Long userId,
         AiInvestmentAnalysisResponse analysis,
-        AiInvestmentAnalysisRequest request
+        AiInvestmentAnalysisRequest request,
+        boolean includeDailySignal
     ) {
         AnalysisSnapshotRecord record = new AnalysisSnapshotRecord();
         record.setUserId(userId);
@@ -395,19 +411,22 @@ public class RecommendationService {
         record.setMarket(request.market());
         record.setAnalysisType("WATCHLIST".equals(request.analysisType()) ? "WATCHLIST" : "TOTAL");
         record.setScore(analysis.score());
-        record.setRawPayload(rawPayload(request, analysis));
+        DailySignal dailySignal = includeDailySignal ? dailySignalService.analyze(request.stockCode(), request.market()) : null;
+        record.setRawPayload(rawPayload(request, analysis, dailySignal));
         return record;
     }
 
     private String rawPayload(
         AiInvestmentAnalysisRequest request,
-        AiInvestmentAnalysisResponse analysis
+        AiInvestmentAnalysisResponse analysis,
+        DailySignal dailySignal
     ) {
         try {
-            return objectMapper.writeValueAsString(Map.of(
-                "request", request,
-                "analysis", analysis
-            ));
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("request", request);
+            payload.put("analysis", analysis);
+            if (dailySignal != null) payload.put("dailySignal", dailySignal);
+            return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("AI 분석 원문을 JSON으로 저장할 수 없습니다.", exception);
         }

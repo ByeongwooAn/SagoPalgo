@@ -22,6 +22,7 @@ import com.sagopalgo.api.market.service.MarketPriceService;
 import com.sagopalgo.api.recommendation.client.AiAnalysisGateway;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisRequest;
 import com.sagopalgo.api.recommendation.dto.AiInvestmentAnalysisResponse;
+import com.sagopalgo.api.recommendation.dto.DailySignal;
 import com.sagopalgo.api.recommendation.dto.RecommendationResponse;
 import com.sagopalgo.api.recommendation.model.AnalysisSnapshotRecord;
 import com.sagopalgo.api.recommendation.model.RecommendationReasonRecord;
@@ -36,6 +37,7 @@ import com.sagopalgo.api.watchlist.model.WatchlistItem;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,6 +75,9 @@ class RecommendationServiceTest {
     @Mock
     private AlertService alertService;
 
+    @Mock
+    private DailySignalService dailySignalService;
+
     private RecommendationService service;
 
     @BeforeEach
@@ -89,13 +94,14 @@ class RecommendationServiceTest {
             recommendationStore,
             alertService,
             properties,
-            new ObjectMapper().findAndRegisterModules()
+            new ObjectMapper().findAndRegisterModules(),
+            dailySignalService
         );
     }
 
     @Test
     @DisplayName("가격·뉴스·공시를 AI 서버에 전달하고 추천 결과를 저장한다")
-    void analyzeHoldingCombinesSignalsAndStoresResult() {
+    void analyzeHoldingCombinesSignalsAndStoresResult() throws Exception {
         when(holdingService.findRecord(1L, 21L)).thenReturn(holding("9"));
         when(marketPriceService.quoteMarket(any())).thenReturn(quote("KB", "75200"));
         when(holdingService.costExposure(1L, "005930", "KOSPI")).thenReturn(Optional.of(
@@ -139,6 +145,8 @@ class RecommendationServiceTest {
                 ))
             )
         ));
+        when(dailySignalService.analyze("005930", "KOSPI")).thenReturn(DailySignal.withheld(
+            "BAR_NOT_FINAL", LocalDate.of(2026, 11, 18), OffsetDateTime.parse("2026-11-18T16:00:00+09:00")));
         stubStore();
 
         RecommendationResponse response = service.analyzeHolding(1L, 21L);
@@ -160,6 +168,11 @@ class RecommendationServiceTest {
         assertThat(requestCaptor.getValue().portfolioWeightRate()).isEqualByComparingTo("40");
         assertThat(requestCaptor.getValue().capitalWeightRate()).isEqualByComparingTo("18");
         assertThat(requestCaptor.getValue().maxCapitalWeightRate()).isEqualByComparingTo("20");
+        var snapshotCaptor = ArgumentCaptor.forClass(AnalysisSnapshotRecord.class);
+        verify(recommendationStore).save(any(), anyList(), snapshotCaptor.capture());
+        var dailySignal = new ObjectMapper().readTree(snapshotCaptor.getValue().getRawPayload()).path("dailySignal");
+        assertThat(dailySignal.path("holdReason").asText()).isEqualTo("BAR_NOT_FINAL");
+        assertThat(dailySignal.path("basisDate").asText()).isEqualTo("2026-11-18");
     }
 
     @Test
@@ -343,12 +356,19 @@ class RecommendationServiceTest {
         RecommendationRecord record = new RecommendationRecord();
         record.setRecommendationId(99L); record.setUserId(1L); record.setStatus("HOLD");
         record.setAnalysisContext("WATCHLIST");
-        record.setAnalysisEvidence("{\"modelVersion\":\"WATCHLIST_SAFE_FALLBACK_V1\",\"candleCount\":0,\"newsCount\":2,\"disclosureCount\":1}");
+        record.setAnalysisEvidence("""
+            {"modelVersion":"WATCHLIST_SAFE_FALLBACK_V1","candleCount":0,"newsCount":2,"disclosureCount":1,
+             "dailySignal":{"decision":"WAIT","basisDate":"2026-10-30","expiresAt":"2026-11-02T15:30:00+09:00",
+                            "probability":0.43210123456789,"threshold":0.5}}
+            """);
         when(recommendationStore.findById(1L, 99L)).thenReturn(Optional.of(new StoredRecommendation(record, List.of())));
         var response = service.findOne(1L, 99L);
         assertThat(response.evidence().modelVersion()).isEqualTo("WATCHLIST_SAFE_FALLBACK_V1");
         assertThat(response.evidence().newsCount()).isEqualTo(2);
         assertThat(response.evidence().candleCount()).isZero();
+        assertThat(response.evidence().dailySignal().probability()).isEqualTo(0.43210123456789);
+        assertThat(response.evidence().dailySignal().expiresAt())
+            .isEqualTo(OffsetDateTime.parse("2026-11-02T15:30:00+09:00"));
     }
 
     @Test

@@ -284,17 +284,65 @@ public class KisMarketPriceClient implements MarketDataProvider {
         ensureCandleConfigured();
         var exchange = UsStockExchange.fromMarket(request.market());
         if (exchange.isPresent()) return usCandles(request, exchange.orElseThrow(), interval, count);
-        String periodCode = periodCode(interval);
+        KisCandleResponse response = requestCandles(candleUri(request.stockCode(), interval, periodCode(interval), count));
+        List<StockCandle> candles = toCandles(request, interval, response.output2());
+        return candles.size() <= count ? candles : candles.subList(candles.size() - count, candles.size());
+    }
 
+    /** KRX 원주가만 조회하며 공급자 변경·분할 표시가 있는 봉은 사용하지 않습니다. */
+    public List<StockCandle> rawDailyCandles(MarketDataRequest request, LocalDate start, LocalDate end) {
+        ensureRawDailySupported(request);
+        ensureCandleConfigured();
+        KisCandleResponse response = requestCandles(candleUri(request.stockCode(), "D", start, end, "1"));
+        if (!"0".equals(response.resultCode()) || response.output1() == null
+                || !request.stockCode().equals(response.output1().stockCode())) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KIS 원주가 응답의 종목을 확인할 수 없습니다.");
+        }
+        List<CandleOutput> rows = response.output2();
+        if (rows != null && rows.stream().filter(item -> StringUtils.hasText(item.date())).anyMatch(item ->
+                !"N".equals(item.modified()) || requiredDecimal(item.splitRate(), "KIS 분할 비율 누락").signum() != 0)) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KIS 원주가 입력에 변경 또는 분할 표시가 있습니다.");
+        }
+        return toCandles(request, CandleInterval.DAILY, rows);
+    }
+
+    /** 기간별 시세와 별개인 KIS 일자별 시세에서 기준일의 원주가·거래량을 대조합니다. */
+    public Optional<StockCandle> rawDailyReference(MarketDataRequest request, LocalDate date) {
+        ensureRawDailySupported(request);
+        ensureCandleConfigured();
+        URI uri = UriComponentsBuilder.fromUri(endpoint("/uapi/domestic-stock/v1/quotations/inquire-daily-price"))
+            .queryParam("FID_COND_MRKT_DIV_CODE", DOMESTIC_STOCK_MARKET_DIVISION)
+            .queryParam("FID_INPUT_ISCD", request.stockCode())
+            .queryParam("FID_PERIOD_DIV_CODE", "D")
+            .queryParam("FID_ORG_ADJ_PRC", "0")
+            .build().encode().toUri();
+        KisCandleResponse response = requestCandles(uri, "FHKST01010400");
+        if (!"0".equals(response.resultCode()) || response.output() == null) return Optional.empty();
+        String businessDate = date.format(DateTimeFormatter.BASIC_ISO_DATE);
+        List<CandleOutput> matches = response.output().stream().filter(item -> businessDate.equals(item.date())).toList();
+        return matches.size() == 1 ? Optional.of(toCandle(request, CandleInterval.DAILY, matches.get(0))) : Optional.empty();
+    }
+
+    private void ensureRawDailySupported(MarketDataRequest request) {
+        if (!supports(request) || !SUPPORTED_MARKETS.contains(normalizeMarket(request.market()))) {
+            throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KIS 국내 원주가 조회를 사용할 수 없습니다.");
+        }
+    }
+
+    private KisCandleResponse requestCandles(URI uri) {
+        return requestCandles(uri, properties.getCandleTransactionId());
+    }
+
+    private KisCandleResponse requestCandles(URI uri, String transactionId) {
         KisCandleResponse response;
         try {
             response = restClient.get()
-                .uri(candleUri(request.stockCode(), interval, periodCode, count))
+                .uri(uri)
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken())
                 .header("appkey", properties.getAppKey())
                 .header("appsecret", properties.getAppSecret())
-                .header("tr_id", properties.getCandleTransactionId())
+                .header("tr_id", transactionId)
                 .header("custtype", properties.getCustomerType())
                 .retrieve()
                 .body(KisCandleResponse.class);
@@ -308,16 +356,18 @@ public class KisMarketPriceClient implements MarketDataProvider {
         if (StringUtils.hasText(response.resultCode()) && !"0".equals(response.resultCode())) {
             throw KisApiErrors.responseFailure("CANDLES", "기간별 시세", response.resultCode(), response.messageCode());
         }
-        if (response.output2() == null) {
+        return response;
+    }
+
+    private List<StockCandle> toCandles(MarketDataRequest request, CandleInterval interval, List<CandleOutput> rows) {
+        if (rows == null) {
             return List.of();
         }
-
-        List<StockCandle> candles = response.output2().stream()
+        return rows.stream()
             .filter(item -> StringUtils.hasText(item.date()))
             .map(item -> toCandle(request, interval, item))
             .sorted(Comparator.comparing(StockCandle::dateTime))
             .toList();
-        return candles.size() <= count ? candles : candles.subList(candles.size() - count, candles.size());
     }
 
     @Override
@@ -377,7 +427,7 @@ public class KisMarketPriceClient implements MarketDataProvider {
             if (!StringUtils.hasText(date)) continue;
             candles.add(toCandle(request, interval, new CandleOutput(date, row.path("open").asText(),
                 row.path("high").asText(), row.path("low").asText(), row.path("clos").asText(),
-                row.path("tvol").asText())));
+                row.path("tvol").asText(), null, null)));
         }
         candles.sort(Comparator.comparing(StockCandle::dateTime));
         return candles.subList(Math.max(0, candles.size() - count), candles.size());
@@ -494,6 +544,10 @@ public class KisMarketPriceClient implements MarketDataProvider {
             case MONTHLY -> endDate.minusMonths(count + 3L);
             case MINUTE -> endDate;
         };
+        return candleUri(stockCode, periodCode, startDate, endDate, "0");
+    }
+
+    private URI candleUri(String stockCode, String periodCode, LocalDate startDate, LocalDate endDate, String priceBasis) {
         DateTimeFormatter formatter = DateTimeFormatter.BASIC_ISO_DATE;
         return UriComponentsBuilder
             .fromUri(endpoint(properties.getCandlePath()))
@@ -502,7 +556,7 @@ public class KisMarketPriceClient implements MarketDataProvider {
             .queryParam("FID_INPUT_DATE_1", startDate.format(formatter))
             .queryParam("FID_INPUT_DATE_2", endDate.format(formatter))
             .queryParam("FID_PERIOD_DIV_CODE", periodCode)
-            .queryParam("FID_ORG_ADJ_PRC", "0")
+            .queryParam("FID_ORG_ADJ_PRC", priceBasis)
             .build()
             .encode()
             .toUri();
@@ -644,9 +698,13 @@ public class KisMarketPriceClient implements MarketDataProvider {
         @JsonProperty("msg_cd")
         String messageCode,
 
-        List<CandleOutput> output2
+        CandleIdentity output1,
+        List<CandleOutput> output2,
+        List<CandleOutput> output
     ) {
     }
+
+    private record CandleIdentity(@JsonProperty("stck_shrn_iscd") String stockCode) {}
 
     private record CandleOutput(
         @JsonProperty("stck_bsop_date")
@@ -665,7 +723,13 @@ public class KisMarketPriceClient implements MarketDataProvider {
         String closePrice,
 
         @JsonProperty("acml_vol")
-        String volume
+        String volume,
+
+        @JsonProperty("mod_yn")
+        String modified,
+
+        @JsonProperty("prtt_rate")
+        String splitRate
     ) {
     }
 
