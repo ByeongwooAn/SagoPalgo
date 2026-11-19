@@ -12,7 +12,7 @@
 | 독립 OHLCV 표본 | 기존 KRX 캐시와 공통인 2023-11-01의 시가·고가·저가·종가·거래량 5필드가 일치합니다. 나머지 729일의 OHLCV 검사는 KIS 원문과 내부 대조를 사용했습니다. |
 | 전일 종가 연결 | 첫 봉 이후 729개 날짜에서 `종가 − 직전 개장일 종가`가 KIS 원문의 부호 있는 `prdy_vrss`와 일치합니다. 중첩·재조회 응답의 전일 대비와 락·분할·수정·재평가 필드도 일치했습니다. |
 
-[KIS 원주가 수집](../historical-data/replay/historical-price-acquisition.md) · [KRX 개장일 근거](../historical-data/sessions/market-calendar-session-coverage.md) · [장중 거래중단 근거](../historical-data/replay/intraday-session-replay.md#실제-근거-연결) · [KRX 1일 대조](../market-data/tick-reference-validation.md#실제-자료-대조)
+[KIS 원주가 수집](../historical-data/replay/historical-price-acquisition.md) · [KRX 개장일 근거](../historical-data/sessions/market-calendar-session-coverage.md) · [장중 거래중단 근거](../historical-data/replay/intraday-session-replay.md#실제-근거-연결) · [KRX 1일 대조](../market-data/tick-reference-validation.md#표본-계획과-실제-확보-상태)
 
 가격 단절 후보는 공급자의 락·분할·수정·재평가 표시, 직전 종가 대비 시가 갭 절댓값 10% 이상, 종가 변화 절댓값 15% 이상으로 찾았습니다. 두 수치 기준은 이번 검토에서 후보를 찾기 위해 선택했습니다. 분할 비율, 수정 여부, 재평가 사유에는 별도 변동이 없었습니다. 표본 기간의 삼성전자 공시 인덱스 204건을 재감사했고, 삼성전자 상장현황에서 확인한 50:1 분할은 2018-05-04로 표본 밖입니다. 2025-02-20과 2026-04-02의 자기주식 소각은 기존 주주의 주식 수를 비례 변경하는 분할과 구분했고, 해당 일봉과 연결 가격을 유지했습니다. [삼성전자 상장현황](https://www.samsung.com/sec/ir/stock-information/listing-Info/) · [공시 자료 감사](../historical-data/corporate-actions/dart-historical-disclosures.md)
 

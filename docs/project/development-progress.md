@@ -2,17 +2,44 @@
 
 현재 개발 진척도는 **27/46 · 59%**, 4번은 **7/11 · 64%**, 5번은 **7/17 · 41%**입니다. 2026-11-18 기준 보류 작업은 **0/12 · 0%**입니다. 아래 날짜별 수치는 당시 범위의 기록입니다. [현재 개발 진척도](numbered-work-progress.md#현재-개발-진척도) · [보류 작업](deferred-work.md)
 
-2026-11-19 애플·엔비디아를 1차 학습 프로토타입에 추가했습니다. 각각 NASDAQ 거래일 753일을 대조하고 공통 최종 143일에서 두 모델을 평가했습니다. 장 마감 신호를 앱의 미국주식 시세 화면에 연결하고 오프라인 추론 286건을 대조했습니다. 3단계의 실제 KIS 일봉·앱 확인이 남았습니다. [4종목 실행 순서](learning-prototype.md#실행-순서와-완료-기준) · [미국 독립 평가와 추론 규칙](us-daily-learning-evaluation.md)
+- [1차 학습 프로토타입 기록](#1차-학습-프로토타입-기록) · [최신 목표의 진행 기준](#최신-목표의-진행-기준) · [데이터·운영 검증 기록](#데이터운영-검증-기록)
+- [초기 로드맵 착수 기록](#r0-착수-기록--2026-11-02) · [기존 11단계 진척도](#기존-11단계-진척도-기록) · [화면 기준 실행 계획](#화면-기준-실행-계획)
+- [당시 단계의 경계](#이번-단계의-경계) · [당시 다음 우선순위](#다음-우선순위)
 
-2026-11-18 삼성전자 1종목의 **1차 학습 프로토타입**을 최우선으로 확정했습니다. 일봉 가격 모델로 수동 모의매매까지 검증한 뒤 개인·기관·외국인 수급과 공시·뉴스의 추가 효과를 순차적으로 비교합니다. 단계별 완료 조건과 상태는 실행 순서에서 관리합니다. [1차 학습 프로토타입 실행 순서](learning-prototype.md#실행-순서와-완료-기준)
+## 1차 학습 프로토타입 기록
 
-2026-11-18 **프로토타입 1단계 완료.** KIS 원주가 730개 날짜가 KRX 재구성 개장일과 일치했고, 배당·가격 경계 검토와 원본 해시 재감사를 마쳤습니다. 특징·다음 거래일 정답을 정의하고 학습 424·검증 141·최종 평가 142개 날짜를 고정했습니다. [삼성전자 1단계 감사 결과](samsung-daily-training-input.md)
+- 2026-11-19 애플·엔비디아를 1차 학습 프로토타입에 추가했습니다. 각각 NASDAQ 거래일 753일을 대조하고 공통 최종 143일에서 두 모델을 평가했습니다. 장 마감 신호를 앱의 미국주식 시세 화면에 연결하고 오프라인 추론 286건을 대조했습니다. 3단계의 실제 KIS 일봉·앱 확인이 남았습니다. [4종목 실행 순서](learning-prototype.md#실행-순서와-완료-기준) · [미국 독립 평가와 추론 규칙](us-daily-learning-evaluation.md)
+- 2026-11-18 삼성전자 1종목의 **1차 학습 프로토타입**을 최우선으로 확정했습니다. 일봉 가격 모델로 수동 모의매매까지 검증한 뒤 개인·기관·외국인 수급과 공시·뉴스의 추가 효과를 순차적으로 비교합니다. 단계별 완료 조건과 상태는 실행 순서에서 관리합니다. [1차 학습 프로토타입 실행 순서](learning-prototype.md#실행-순서와-완료-기준)
+- 2026-11-18 **프로토타입 1단계 완료.** KIS 원주가 730개 날짜가 KRX 재구성 개장일과 일치했고, 배당·가격 경계 검토와 원본 해시 재감사를 마쳤습니다. 특징·다음 거래일 정답을 정의하고 학습 424·검증 141·최종 평가 142개 날짜를 고정했습니다. [삼성전자 1단계 감사 결과](samsung-daily-training-input.md)
+- 2026-11-18 SK하이닉스(000660)를 1차 프로토타입에 추가했습니다. 같은 기간 KIS 원주가 일봉 730건을 확보·감사해 **두 종목의 1단계를 완료**했습니다. 공통 학습 424·검증 141·최종 평가 142쌍을 고정했습니다. [SK하이닉스 감사와 공통 날짜](hynix-daily-training-input.md)
+- 2026-11-18 **두 종목의 3단계 앱 연결·오프라인 대조 완료.** 수동 추천에 장 마감 모델 판단을 저장하고 기존 평가와 같은 날짜 284건의 확률과 판정을 대조했습니다. 11월 22일 관찰 종료와 보고서 생성 후 실제 KIS 일봉·앱 통합 검증을 진행합니다. [연결 범위와 대조 결과](daily-inference-integration.md)
+- 2026-11-18 **두 종목의 2단계 완료.** L2 로지스틱 모델과 검증 임곗값을 고정한 뒤 공통 142일에서 예측과 비용 차감 성과를 대조했습니다. 기본 비용에서 삼성전자는 0회 진입, SK하이닉스는 70회 진입해 −47.91%였습니다. 앱의 추천 화면에서 로컬 평가 요약을 열 수 있습니다. [최종 평가·검증·재현](daily-learning-evaluation.md)
 
-2026-11-18 SK하이닉스(000660)를 1차 프로토타입에 추가했습니다. 같은 기간 KIS 원주가 일봉 730건을 확보·감사해 **두 종목의 1단계를 완료**했습니다. 공통 학습 424·검증 141·최종 평가 142쌍을 고정했습니다. [SK하이닉스 감사와 공통 날짜](hynix-daily-training-input.md)
+향후 개발 기준은 [실시간 AI 단기 자동매매 로드맵](realtime-trading-roadmap.md) R0~R10입니다. 새 목표의 전체 백분율은 산정하지 않으며 단계별 구현·자동 검증·실환경 검증·운영 확인을 증거로 관리합니다. [목표 아키텍처](../architecture/target-system-architecture.md)의 전체 구현·운영 완료를 뜻하지 않습니다.
 
-2026-11-18 **두 종목의 3단계 앱 연결·오프라인 대조 완료.** 수동 추천에 장 마감 모델 판단을 저장하고 기존 평가와 같은 날짜 284건의 확률과 판정을 대조했습니다. 11월 22일 관찰 종료와 보고서 생성 후 실제 KIS 일봉·앱 통합 검증을 진행합니다. [연결 범위와 대조 결과](daily-inference-integration.md)
+## 최신 목표의 진행 기준
 
-2026-11-18 **두 종목의 2단계 완료.** L2 로지스틱 모델과 검증 임곗값을 고정한 뒤 공통 142일에서 예측과 비용 차감 성과를 대조했습니다. 기본 비용에서 삼성전자는 0회 진입, SK하이닉스는 70회 진입해 −47.91%였습니다. 앱의 추천 화면에서 로컬 평가 요약을 열 수 있습니다. [최종 평가·검증·재현](daily-learning-evaluation.md)
+단계별 증거와 현재 실행 범위를 정리합니다. 로드맵·이미지 작성만으로 아래 기능을 구현 완료로 올리지 않습니다. 상태 변경 시 코드/검증/배포 근거와 일자를 연결합니다. 아래 과거 작업 기록은 당시 검증 범위를 보존합니다.
+
+| 단계 | 현재 상태 | 재사용 기반 / 다음 증거 |
+|---|---|---|
+| R0 계약·운용 기준 | 진행 중·문서 기반 조사 완료 | [지원표](../contracts/trading-api-contract-matrix.md)·[KB 보류/재개 조건](../contracts/kb-contract-blockers.md)·[초기 운용/측정 초안](initial-trading-policy.md) 작성. 답변·권한/한도·실측·정책 수치 확정은 남음 |
+| R1 계좌 동기화·원장 | 일부 구현·관찰/저장/비교/앱/주기 수집·상태/재개 UI | [스냅샷](../accounts/account-snapshot-contract.md)·[저장/이력](../accounts/account-observation-history.md)·[비교](../accounts/account-observation-comparison.md)·[앱](../accounts/account-observation-ui.md)·[기본 OFF 수집](../accounts/account-observation-collection.md) 구현·격리 검증. [실제 보유/현금 대조](../accounts/account-observation-live-validation.md)와 [단일 자동 주기의 부분 실패 중단/재시작/OFF 재개](../accounts/account-collection-operations.md) 확인. 최종 OFF·IDLE, 수동/자동 각 1건. KB-07·정상 연속 운용·Ubuntu·원장 자동 반영은 후속 |
+| R2 실시간 시세·수급 | 일부 구현·기본 OFF·1종목/2구독 실키 표본 검증 | [KIS 체결/호가·저장/관측 분봉·SSE/Flutter](../market-data/realtime-data-pipeline.md) 구현·모의/격리 검증. [025/026 적용·실연결·실제 표본](../market-data/public-tick-collection-recovery.md) 확인. 공유 예산·부하/지연·수급·단일 배포의 누락 보완·실제 장중 복구·장기 관찰은 후속 |
+| R3 뉴스·공시 사건 | 일부 구현·기본 OFF 증분/변경 버전 | [다중 페이지·체크포인트·버전·앱 이력](../market-data/realtime-data-pipeline.md) 구현·모의/격리 검증. 실환경 페이지/한도·원문 사건 추출·정정 계보·전략 재평가는 후속 |
+| R4 시장 후보 탐색 | 미착수 | 시장 후보 편입/제외·순위 재현, 보유 포지션·후보의 정밀 구독·우선순위·한도 검증 필요 |
+| R5 과거 데이터·재현 | 일부 구현·KRX 일별 목록/관찰 이력 수집·감사 | [실제 일봉](../historical-data/replay/historical-price-acquisition.md)·[과거 공시](../historical-data/corporate-actions/dart-historical-disclosures.md)·[원문 사실](../historical-data/corporate-actions/corporate-action-facts.md)·[배당/소각/취득결과](../historical-data/corporate-actions/distribution-completion-evidence.md)·[완료 조건](../historical-data/replay/multi-company-reference-cases.md)·[식별 목록/시장 사건](../historical-data/universe/historical-universe-seed.md)·[시작 기준표](../historical-data/universe/krx-baseline-live-validation.md)·[기간 전체 목록/관찰 이력](../historical-data/universe/krx-universe-history.md) 구현/검증. 전체 종목 법적 사건/총수 대조·합병 완료/비율·달력/세션·시점·호가 재생·독립 평가는 후속 |
+| R6 학습·실시간 전략 | 미착수·규칙 분석 기반 있음 | 학습 모델·독립 평가·실시간 shadow·버전 복구 필요 |
+| R7 자금 배분·위험 | 계획·사전검증/제출 가드 기반 있음 | 계좌 전체 예약·AI 목표 비중·동시 주문/한도 검증 필요 |
+| R8 자동 주문·실운영 | 미착수·수동 주문/시뮬레이터 기반 있음 | 기존 실제 계약/종결 제약 해소, 모의·제한 실거래·복구 검증 필요 |
+| R10 기간별 성과 | 계획·평가손익/모의 성과 기반 있음 | R1부터 온주 원장 기록, R8 전에 기본 성과 대조, 이후 일·주·월·연 기본 차트 |
+
+보류 단계 R9와 각 단계에서 이관한 확장은 [보류 작업](deferred-work.md)에서 관리합니다.
+
+## 데이터·운영 검증 기록
+
+<details>
+<summary>2026년 11월 6~18일 데이터·운영 검증 기록 펼치기</summary>
 
 2026-11-18 [H05 배당내역 지급일 누락 6행](../historical-data/corporate-actions/historical-dividend-missing-payment-dates.md)을 모두 판정했습니다. 주총 승인 전 3행, 무배당 2행, 지급예정일과 사후 지급 총액 확인 1행입니다. 세이브로 배당 후속 대조 2개 단위는 보류했으며 5-08은 진행 중입니다. [보류 작업](deferred-work.md)
 
@@ -142,26 +169,7 @@ U04 기반 구현 기록: [비용·세금 팩과 계좌 적용 대기](../execut
 
 최신 후속: [실제 틱 입력 규격·기존 자료 대조](../market-data/tick-reference-validation.md). 필드/시각/누락·중복·비교 판정과 후보 표본을 구현했습니다. 실제 일봉 730건 재감사·독립 KRX 1일 OHLCV 5필드 일치이며 실제 틱은 자료 부재로 판정 불가입니다. 5-08 진행 중·7/18·39%, 1~5번 26/48·54% 유지입니다. [주 30시간 개발 일정 추정](development-completion-estimate.md)은 남은 작업량과 외부 의존성을 명시합니다.
 
-향후 개발 기준은 [실시간 AI 단기 자동매매 로드맵](realtime-trading-roadmap.md) R0~R10입니다. 새 목표의 전체 백분율은 산정하지 않으며 단계별 구현·자동 검증·실환경 검증·운영 확인을 증거로 관리합니다. [목표 아키텍처](../architecture/target-system-architecture.md)의 전체 구현·운영 완료를 뜻하지 않습니다.
-
-## 최신 목표의 진행 기준
-
-단계별 증거와 현재 실행 범위를 정리합니다. 로드맵·이미지 작성만으로 아래 기능을 구현 완료로 올리지 않습니다. 상태 변경 시 코드/검증/배포 근거와 일자를 연결합니다. 아래 과거 작업 기록은 당시 검증 범위를 보존합니다.
-
-| 단계 | 현재 상태 | 재사용 기반 / 다음 증거 |
-|---|---|---|
-| R0 계약·운용 기준 | 진행 중·문서 기반 조사 완료 | [지원표](../contracts/trading-api-contract-matrix.md)·[KB 보류/재개 조건](../contracts/kb-contract-blockers.md)·[초기 운용/측정 초안](initial-trading-policy.md) 작성. 답변·권한/한도·실측·정책 수치 확정은 남음 |
-| R1 계좌 동기화·원장 | 일부 구현·관찰/저장/비교/앱/주기 수집·상태/재개 UI | [스냅샷](../accounts/account-snapshot-contract.md)·[저장/이력](../accounts/account-observation-history.md)·[비교](../accounts/account-observation-comparison.md)·[앱](../accounts/account-observation-ui.md)·[기본 OFF 수집](../accounts/account-observation-collection.md) 구현·격리 검증. [실제 보유/현금 대조](../accounts/account-observation-live-validation.md)와 [단일 자동 주기의 부분 실패 중단/재시작/OFF 재개](../accounts/account-collection-operations.md) 확인. 최종 OFF·IDLE, 수동/자동 각 1건. KB-07·정상 연속 운용·Ubuntu·원장 자동 반영은 후속 |
-| R2 실시간 시세·수급 | 일부 구현·기본 OFF·1종목/2구독 실키 표본 검증 | [KIS 체결/호가·저장/관측 분봉·SSE/Flutter](../market-data/realtime-data-pipeline.md) 구현·모의/격리 검증. [025/026 적용·실연결·실제 표본](../market-data/public-tick-collection-recovery.md) 확인. 공유 예산·부하/지연·수급·단일 배포의 누락 보완·실제 장중 복구·장기 관찰은 후속 |
-| R3 뉴스·공시 사건 | 일부 구현·기본 OFF 증분/변경 버전 | [다중 페이지·체크포인트·버전·앱 이력](../market-data/realtime-data-pipeline.md) 구현·모의/격리 검증. 실환경 페이지/한도·원문 사건 추출·정정 계보·전략 재평가는 후속 |
-| R4 시장 후보 탐색 | 미착수 | 시장 후보 편입/제외·순위 재현, 보유 포지션·후보의 정밀 구독·우선순위·한도 검증 필요 |
-| R5 과거 데이터·재현 | 일부 구현·KRX 일별 목록/관찰 이력 수집·감사 | [실제 일봉](../historical-data/replay/historical-price-acquisition.md)·[과거 공시](../historical-data/corporate-actions/dart-historical-disclosures.md)·[원문 사실](../historical-data/corporate-actions/corporate-action-facts.md)·[배당/소각/취득결과](../historical-data/corporate-actions/distribution-completion-evidence.md)·[완료 조건](../historical-data/replay/multi-company-reference-cases.md)·[식별 목록/시장 사건](../historical-data/universe/historical-universe-seed.md)·[시작 기준표](../historical-data/universe/krx-baseline-live-validation.md)·[기간 전체 목록/관찰 이력](../historical-data/universe/krx-universe-history.md) 구현/검증. 전체 종목 법적 사건/총수 대조·합병 완료/비율·달력/세션·시점·호가 재생·독립 평가는 후속 |
-| R6 학습·실시간 전략 | 미착수·규칙 분석 기반 있음 | 학습 모델·독립 평가·실시간 shadow·버전 복구 필요 |
-| R7 자금 배분·위험 | 계획·사전검증/제출 가드 기반 있음 | 계좌 전체 예약·AI 목표 비중·동시 주문/한도 검증 필요 |
-| R8 자동 주문·실운영 | 미착수·수동 주문/시뮬레이터 기반 있음 | 기존 실제 계약/종결 제약 해소, 모의·제한 실거래·복구 검증 필요 |
-| R10 기간별 성과 | 계획·평가손익/모의 성과 기반 있음 | R1부터 온주 원장 기록, R8 전에 기본 성과 대조, 이후 일·주·월·연 기본 차트 |
-
-보류 단계 R9와 각 단계에서 이관한 확장은 [보류 작업](deferred-work.md)에서 관리합니다.
+</details>
 
 ## R0 착수 기록 · 2026-11-02
 
