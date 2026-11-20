@@ -1,6 +1,7 @@
 # Spring Boot 애플리케이션을 빌드하는 단계입니다.
 # Gradle Wrapper를 사용하므로 로컬 PC에 Gradle이 설치되어 있지 않아도 컨테이너 안에서 빌드됩니다.
-FROM eclipse-temurin:17-jdk-jammy AS builder
+# Java4Shell(CVE-2026-114938)이 수정된 Java 17 업데이트의 이미지 다이제스트입니다.
+FROM azul/zulu-openjdk:17.0.21.1-jdk@sha256:4a90876af5459eba762bf028926a84733ded1db6f57cf74e59ef3588c149e17b AS builder
 
 # 애플리케이션 소스가 놓일 컨테이너 내부 작업 디렉터리입니다.
 WORKDIR /workspace
@@ -19,7 +20,7 @@ COPY src ./src
 RUN ./gradlew bootJar -x test --no-daemon
 
 # 빌드된 jar만 담는 가벼운 런타임 단계입니다.
-FROM eclipse-temurin:17-jre-jammy
+FROM azul/zulu-openjdk:17.0.21.1-jre@sha256:56f084bf5b0be4886d28321f90f24071bf2f42ecb908467792d342aa17f53af7
 
 # Spring Boot 서버가 컨테이너 안에서 사용할 작업 디렉터리입니다.
 WORKDIR /app
