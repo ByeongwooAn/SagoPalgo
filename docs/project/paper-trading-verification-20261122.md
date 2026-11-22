@@ -1,6 +1,6 @@
 # 1차 학습 프로토타입 4단계 수동 모의매매 검증 · 2026-11-22
 
-**검증 진행 중.** Windows 앱과 운영 API에서 신호·모의 화면을 확인했습니다. 별도 MySQL 8.4에서 네 종목의 모의 체결 8건을 API와 KRW·USD 원장에 대조했습니다. 만료, 시세 지연, KRW 재전송, USD 운영 스키마의 미충족 조건을 확인했습니다. [4단계 완료 기준](learning-prototype.md#4단계-앱에서-수동-모의매매-검증)
+**검증 진행 중.** 별도 MySQL 8.4에서 네 종목의 모의 체결 8건을 API와 KRW·USD 원장에 대조했습니다. 운영 DB에 028을 적용하고 Windows 앱의 USD 모의 현황을 복구했습니다. 주문 단계의 만료·시세 지연·KRW 재전송과 정규장 앱 체결 대조가 남았습니다. [4단계 완료 기준](learning-prototype.md#4단계-앱에서-수동-모의매매-검증)
 
 ## 운영 신호와 Windows 앱
 
@@ -15,9 +15,21 @@
 
 KRW 모의 현황은 HTTP 200이었습니다. Windows 앱에서 SK하이닉스는 **보유 유지**로 표시됐고 **AI 신호로 모의매수** 버튼은 비활성이었습니다. 주문 경로는 장 마감 모델의 `BUY_WATCH`와 별도로 저장 추천의 `BUY`를 요구합니다.
 
-Windows 앱에서 **모의 → 미국주식 모의매매 (USD)**를 열었을 때 서버 내부 오류가 표시됐습니다. 해당 API는 HTTP 500 `INTERNAL_ERROR`를 반환했습니다. 운영 MySQL의 스키마 조회에서 `trade_records`가 있었고 `paper_us_accounts`와 `paper_us_trades`는 조회되지 않았습니다. 서버 로그에서 `paper_us_accounts` 부재로 초기 자금 조회가 실패한 것을 확인했습니다. [028 마이그레이션](../../Back/database/migrations/028_us_paper_trading.sql) · [모의매매 API](../contracts/api-spec.md#14-모의매매-api)
+028 적용 전 Windows 앱에서 **모의 → 미국주식 모의매매 (USD)**를 열었을 때 서버 내부 오류가 표시됐습니다. 해당 API는 HTTP 500 `INTERNAL_ERROR`를 반환했습니다. 운영 MySQL의 스키마 조회에서 `trade_records`가 있었고 `paper_us_accounts`와 `paper_us_trades`는 조회되지 않았습니다. 서버 로그에서 `paper_us_accounts` 부재로 초기 자금 조회가 실패한 것을 확인했습니다. [028 마이그레이션](../../Back/database/migrations/028_us_paper_trading.sql) · [모의매매 API](../contracts/api-spec.md#14-모의매매-api)
 
 애플·엔비디아의 주말 KB 시세 응답에는 가격과 서버 수신 시각 `receivedAt`이 있었습니다. 응답에는 거래소 체결 시각이나 지연 여부가 없었습니다. 이후 장중 검증에서는 공급자 체결 시각과 서버 수신 및 가상 체결 시각을 각각 확인해야 합니다.
+
+## 운영 DB 028 적용과 USD 화면 복구
+
+11월 22일 21시대 KST에 로컬 운영 MySQL의 전체 논리 백업을 사용자 프로필의 접근 제한 폴더에 저장했습니다. gzip 검사를 통과했고 컨테이너 원본과 호스트 백업의 SHA-256이 일치했습니다. 검증된 백업을 확보한 뒤 028 SQL을 운영 DB에 적용했습니다. [백업·마이그레이션 절차](../architecture/docker-architecture.md#기존-ubuntu-db의-kb-점검-이력-테이블)
+
+| 확인 항목 | 결과 |
+| --- | --- |
+| USD 스키마 | `paper_us_accounts`·`paper_us_trades`, 외래 키 2개, `(user_id, request_id)` 고유 키 확인 |
+| 기존 KRW 원장 | `trade_records` 덤프의 적용 전후 SHA-256과 API 체결 목록 일치 |
+| USD 현황 API | HTTP 200, 통화 `USD`, 미개설 계좌의 포지션과 체결 목록 0건 |
+| Windows 앱 | **미국주식 가상 계좌** 진입 및 **USD 시작 자금 설정** 버튼 표시 |
+| USD 모의계좌 개설 | 사용자 요청액을 직전 거래일 기준환율로 환산해 앱에서 개설. 앱과 API의 시작 자금·현금이 DB와 일치했고 체결 0건 확인 |
 
 ## 격리 MySQL 원장 대조
 
@@ -62,6 +74,6 @@ docker stop sagopalgo-stage-four-mysql
 ## 4단계에서 남은 검증
 
 1. 장 마감 모델과 주문 요청의 연결 기준을 정하고, 만료·지연 시세·KRW 재전송에서 추가 체결이나 잔고 변화가 없음을 API와 DB에서 재검증합니다. 장 마감 모델이 매수 관찰을 반환한 경우의 KRW 저장 추천 처리와 USD 주문에 대응 신호를 남기는 범위도 확인합니다.
-2. 운영 DB에 028을 적용한 뒤 USD 화면의 현황 조회를 확인합니다. 두 시장의 정규장에서 Windows 앱으로 수동 모의 주문을 실행해 네 종목의 신호, 공급자 시세·시각, 수량, 손익, 통화별 원장을 대조합니다. 관망 신호는 실제 모델 결과를 기록하고 주문 경로는 테스트 입력으로 확인합니다.
+2. 두 시장의 정규장에서 Windows 앱으로 수동 모의 주문을 실행합니다. 네 종목의 신호, 공급자 시세·시각, 수량, 손익, 통화별 원장을 대조합니다. 관망 신호는 실제 모델 결과를 기록하고 주문 경로는 테스트 입력으로 확인합니다. 다음 정규장 기준은 KOSPI 11월 23일 09:00~15:30 KST, NASDAQ 11월 23일 23:30~11월 24일 06:00 KST입니다. [KRX 정규장](https://global.krx.co.kr/contents/GLB/06/0602/0602020204/GLB0602020204T1.jsp) · [NASDAQ 정규장과 휴장일](https://www.nasdaq.com/market-activity/stock-market-holiday-schedule)
 
 4단계 완료와 5단계 착수는 위 확인을 마친 뒤 진행합니다. [단계별 실행 순서](learning-prototype.md#실행-순서와-완료-기준)
