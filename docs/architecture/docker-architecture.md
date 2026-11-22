@@ -7,7 +7,7 @@
 **목차**
 
 - [1. 관리 범위](#1-관리-범위) · [2. 단일 Compose 구성](#2-단일-compose-구성) · [3. 실행과 기존 설치 전환](#3-실행과-기존-설치-전환)
-- [4. 네트워크 기준](#4-네트워크-기준) · [5. 민감정보 기준](#5-민감정보-기준) · [6. 다음 확장](#6-다음-확장)
+- [Java 17 보안 패치 적용](#java-17-보안-패치-적용) · [4. 네트워크 기준](#4-네트워크-기준) · [5. 민감정보 기준](#5-민감정보-기준) · [6. 다음 확장](#6-다음-확장)
 
 ![Ubuntu 백엔드와 Windows 앱 시스템 구조](../images/system-architecture-ubuntu.png)
 
@@ -42,7 +42,7 @@ docker-compose.yml
 
 ## 3. 실행과 기존 설치 전환
 
-처음 설치할 때는 루트 `.env.example`을 `.env`로 복사해 비밀번호와 Provider 설정을 입력합니다. 같은 PC에서만 접근한다면 기본 프록시 바인딩 `127.0.0.1`을 유지합니다. Windows 앱이 Ubuntu 서버에 접근해야 한다면 `SAGOPALGO_PROXY_BIND_ADDRESS=0.0.0.0`, `SAGOPALGO_ALLOWED_CLIENT_IP=<Windows PC의 사설 IP>`로 설정하고 Ubuntu 방화벽에서도 해당 PC만 8081 포트에 접근하도록 제한합니다. `.env`는 저장소에 커밋하지 않습니다.
+처음 설치할 때는 루트 `.env.example`을 `.env`로 복사해 비밀번호와 Provider 설정을 입력합니다. 같은 PC에서만 접근한다면 기본 프록시 바인딩 `127.0.0.1`을 유지합니다. Windows 앱이 Ubuntu 서버에 접근해야 한다면 `SAGOPALGO_PROXY_BIND_ADDRESS=<Ubuntu의 사설 IP>`, `SAGOPALGO_ALLOWED_CLIENT_IP=<Windows PC의 사설 IP>`로 설정하고 Ubuntu 방화벽에서도 해당 PC만 8081 포트에 접근하도록 제한합니다. `.env`는 저장소에 커밋하지 않습니다.
 
 ```bash
 cp .env.example .env
@@ -72,6 +72,29 @@ docker compose --env-file .env ps
 ```
 
 Ubuntu 방화벽에서는 Windows PC만 프록시 포트에 접근하도록 제한합니다. 외부 인터넷 접속에는 포트포워딩 대신 VPN과 HTTPS를 먼저 구성합니다.
+
+### Java 17 보안 패치 적용
+
+Spring 이미지는 빌드용 JDK와 런타임 JRE에 Java4Shell(`CVE-2026-114938`)을 수정한 Azul Zulu `17.0.21.1+2`를 사용합니다. 각 이미지의 다이제스트를 고정했고 공식 매니페스트는 Linux `amd64`와 `arm64`를 제공합니다. 2026-11-20 공식 Temurin 컨테이너의 동일 수정 버전 태그가 조회되지 않아 Ubuntu 기반의 공식 Azul Zulu 이미지를 선택했습니다. [Azul 보안 공지](https://support.azul.com/hc/en-us/articles/55793255806100-Java4Shell-for-Zulu-and-Zing-CVE-2026-114938) · [Azul 공식 이미지](https://hub.docker.com/r/azul/zulu-openjdk)
+
+가동 중인 서비스와 별도 태그로 먼저 빌드하면 검증 중에도 관찰을 계속할 수 있습니다. 배포 전에 다음 명령으로 새 이미지의 수정 버전을 확인합니다.
+
+```bash
+docker build --pull -t sagopalgo-java4shell-verification:17.0.21.1 Back/spring-server
+docker run --rm --network none --entrypoint java sagopalgo-java4shell-verification:17.0.21.1 -version
+```
+
+2026-11-17~22 U07-D 관찰 수집기는 별도 컨테이너와 DB를 사용하면서 약 1분 간격으로 주 Spring API의 실시간 수집이 `DISABLED`인지 확인합니다. 주 API가 재시작 중이라 응답하지 않으면 관찰 수집기가 중단되고 해당 구간에 공백이 생길 수 있습니다. 11월 22일 15:45 KST 마지막 휴장 체크포인트와 관찰 결과 파일 두 개(`session-observation.json`, `operations-status.json`)가 생성된 뒤 교체합니다. [U07-D 관찰 일정과 보고서](../market-data/kis-session-observation-20261117.md)
+
+교체 시 다음 명령으로 Spring 서비스만 갱신합니다. 실행 JVM에서 `17.0.21.1+2`를 확인하고 Spring의 읽기 전용 API와 기존 수집 상태, 프록시를 사용하는 앱의 접근을 점검합니다. `/health`는 Nginx의 자체 응답입니다. API와 DB 연결 확인에는 별도의 읽기 전용 조회를 사용합니다. [수동 테스트 가이드](../operations/manual-test-guide.md)
+
+```bash
+docker compose build --pull spring-api
+docker compose up -d --no-deps --no-build --force-recreate spring-api
+docker compose exec -T spring-api java -version
+```
+
+교체한 Spring의 직접 API는 정상인데 프록시가 `502`를 반환하면 Nginx 로그에서 이전 컨테이너 주소를 사용하고 있는지 확인합니다. 해당 원인이 확인되면 `docker compose exec -T reverse-proxy nginx -t`로 설정을 검증하고 `docker compose exec -T reverse-proxy nginx -s reload`로 반영한 뒤 API를 다시 조회합니다.
 
 ### 기존 Ubuntu DB의 KB 점검 이력 테이블
 
@@ -121,6 +144,8 @@ Windows에서 `scripts/check-kb-probe.ps1 -ApiBaseUrl 'http://<Ubuntu-IP>:8081'`
 | Flutter Windows API | `http://ubuntu-server.local:8081` | `Front/app_version/.env`에 설정 |
 
 MySQL `3306`, Spring `8080`, Python AI `8000`은 Docker 호스트의 `127.0.0.1`에만 바인딩하며 외부에서는 접근할 수 없습니다. Nginx는 `SAGOPALGO_ALLOWED_CLIENT_IP`에 지정한 Windows PC만 API 경로에 접근하도록 제한합니다. 개인용이라도 인증 계층이 없으므로 프록시 공개 범위를 넓히지 않습니다.
+
+같은 PC에서만 앱을 사용한다면 실제 Nginx의 포트 매핑도 `127.0.0.1:8081`인지 `docker compose ps reverse-proxy`로 확인합니다. 사설망 IP나 `0.0.0.0`에 바인딩하면 LAN의 다른 기기에서도 호스트 방화벽이 허용하는 범위로 포트에 접근할 수 있습니다. 인터넷 접근 여부는 라우터 포트포워딩과 터널 등 외부 연결 설정에도 좌우됩니다. Nginx가 보는 요청 출발지는 Docker 환경에서 바뀔 수 있으므로 LAN 모드에서는 별도 허용·비허용 기기로 검증합니다. [Docker 포트 공개 동작](https://docs.docker.com/engine/network/port-publishing/)
 
 ## 5. 민감정보 기준
 
