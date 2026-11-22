@@ -29,4 +29,4 @@ $env:SAGOPALGO_VERIFY_FROZEN_DAILY = '1'
 
 Docker Compose는 기존 `AI/ai-server/research-artifacts/daily-learning-v1/`를 Python 컨테이너에 읽기 전용으로 연결합니다. 해당 폴더에 2단계의 원본 `005930-model.json`과 `000660-model.json`이 있어야 합니다. 자료와 모델은 로컬에 보관합니다. 모델 경로가 비거나 파일이 변하면 해당 종목이 보류됩니다. Python을 직접 실행할 때는 `AI/ai-server`를 작업 디렉터리로 사용하거나 `SAGOPALGO_DAILY_MODEL_DIR`로 기존 모델 폴더를 지정합니다.
 
-11월 22일 마지막 휴장 관찰 종료 및 관찰 보고서 생성 후, 새 서버·앱으로 두 종목의 실제 KIS 일봉을 같은 날짜의 오프라인 계산과 대조합니다. 장 마감 직후와 20:15 이후의 양쪽 시세 가용성, 앱 추천 상세·이력에 저장된 확률과 만료 표시를 확인합니다. 3단계의 실환경 확인을 마친 뒤 4단계 수동 모의매매에 착수합니다. [관찰 일정과 종료 기준](../market-data/kis-session-observation-20261117.md)
+11월 22일 휴장 관찰 종료 후 로컬 운영 서버와 Windows 앱에서 11월 20일의 확정 KIS 일봉, 추천 상세·이력의 확률과 만료를 확인했습니다. 장 마감 직후부터 20:15까지 공급자의 가용·정정 시각은 별도 관측 범위입니다. [3단계 실환경 대조](daily-live-verification-20261122.md) · [관찰 일정과 종료 기준](../market-data/kis-session-observation-20261117.md)
