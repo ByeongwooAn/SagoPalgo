@@ -38,6 +38,8 @@
 
 ## 데이터·운영 검증 기록
 
+2026-11-20 로컬 Spring 컨테이너 두 개에서 Java4Shell 수정 전 Temurin `17.0.21+9`를 확인했습니다. 로컬 JVM에 노출된 CPU는 해당 실행 조건을 충족하지 않았습니다. Ubuntu 운영 서버의 JVM·네트워크 상태 확인과 수정판 재배포 검증이 남았습니다. [Java4Shell 운영 영향 평가](../operations/java4shell-security-assessment-20261120.md)
+
 <details>
 <summary>2026년 11월 6~18일 데이터·운영 검증 기록 펼치기</summary>
 

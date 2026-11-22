@@ -11,6 +11,7 @@
 ## 설치, 테스트, 시스템 구조
 
 - 백엔드 설치·업데이트, 네트워크와 민감정보 설정을 확인합니다. [Docker 배포 구조](architecture/docker-architecture.md)
+- Spring 서버의 Java4Shell 영향과 운영 패치·접근 점검 순서를 확인합니다. [Java4Shell 운영 영향 평가](operations/java4shell-security-assessment-20261120.md)
 - 서버를 실행하고 API, Flutter 화면, 주문 상태를 점검합니다. [수동 테스트 가이드](operations/manual-test-guide.md)
 - 실시간 수집부터 학습·주문까지의 목표 흐름과 초기 설계 이력을 확인합니다. [목표 시스템 구조](architecture/target-system-architecture.md) · [기존 설계·구현 이력](architecture/personal-windows-investment-assistant.md)
 - 파일 게시 중 Windows 잠금이 발생했을 때의 재시도와 실패 처리를 확인합니다. [Windows 파일 게시 복구](operations/windows-file-publication.md)
