@@ -145,7 +145,9 @@ Windows에서 `scripts/check-kb-probe.ps1 -ApiBaseUrl 'http://<Ubuntu-IP>:8081'`
 
 MySQL `3306`, Spring `8080`, Python AI `8000`은 Docker 호스트의 `127.0.0.1`에만 바인딩하며 외부에서는 접근할 수 없습니다. Nginx는 `SAGOPALGO_ALLOWED_CLIENT_IP`에 지정한 Windows PC만 API 경로에 접근하도록 제한합니다. 개인용이라도 인증 계층이 없으므로 프록시 공개 범위를 넓히지 않습니다.
 
-같은 PC에서만 앱을 사용한다면 실제 Nginx의 포트 매핑도 `127.0.0.1:8081`인지 `docker compose ps reverse-proxy`로 확인합니다. 사설망 IP나 `0.0.0.0`에 바인딩하면 LAN의 다른 기기에서도 호스트 방화벽이 허용하는 범위로 포트에 접근할 수 있습니다. 인터넷 접근 여부는 라우터 포트포워딩과 터널 등 외부 연결 설정에도 좌우됩니다. Nginx가 보는 요청 출발지는 Docker 환경에서 바뀔 수 있으므로 LAN 모드에서는 별도 허용·비허용 기기로 검증합니다. [Docker 포트 공개 동작](https://docs.docker.com/engine/network/port-publishing/)
+같은 PC에서 Nginx를 통해 앱을 사용한다면 실제 포트 매핑이 `127.0.0.1:8081`인지 `docker compose ps reverse-proxy`로 확인하고, 앱의 `SAGOPALGO_API_BASE_URL`을 `http://127.0.0.1:8081`로 맞춥니다. 이미 빌드한 Windows 실행본을 계속 사용한다면 실행본에 포함된 `.env`의 API 주소도 확인합니다.
+
+사설망 IP나 `0.0.0.0`에 바인딩하면 LAN의 다른 기기에서도 호스트 방화벽이 허용하는 범위로 포트에 접근할 수 있습니다. 인터넷 접근 여부는 라우터 포트포워딩과 터널 등 외부 연결 설정에도 좌우됩니다. Nginx가 보는 요청 출발지는 Docker 환경에서 바뀔 수 있으므로 LAN 모드에서는 별도 허용·비허용 기기로 검증합니다. [Docker 포트 공개 동작](https://docs.docker.com/engine/network/port-publishing/)
 
 ## 5. 민감정보 기준
 

@@ -6,7 +6,9 @@
 - [초기 로드맵 착수 기록](#r0-착수-기록--2026-11-02) · [기존 11단계 진척도](#기존-11단계-진척도-기록) · [화면 기준 실행 계획](#화면-기준-실행-계획)
 - [당시 단계의 경계](#이번-단계의-경계) · [당시 다음 우선순위](#다음-우선순위)
 
-2026-11-20 Spring 빌드·런타임에 Java4Shell 수정판을 지정했습니다. Linux `amd64`에서 JAR과 컨테이너를 빌드하고 `17.0.21.1+2` 런타임, 격리 MySQL 초기화와 수집 상태 API `DISABLED` 응답을 확인했습니다. 패치된 JDK에서 Spring 테스트 669건을 통과했고 조건부 테스트 155건은 건너뛰었습니다. 주 API 교체는 U07-D 마지막 체크포인트와 결과 파일 생성 이후에 진행합니다. 교체한 JVM 버전과 읽기 전용 API를 확인하면 완료입니다. [Java 17 보안 패치 적용](../architecture/docker-architecture.md#java-17-보안-패치-적용)
+2026-11-22 U07-D 관찰 수집기의 정상 종료와 두 보고서 생성을 확인한 뒤 Windows Docker Desktop의 Spring API에 Java4Shell 수정판인 Azul Zulu `17.0.21.1+2`를 배포했습니다. Nginx를 `127.0.0.1:8081`에 바인딩하고 Windows Release 앱 설정을 같은 주소로 맞췄습니다. 루프백에서 관심종목과 실시간 수집 상태를 정상 조회했고 수집 상태는 `DISABLED`였습니다. 이전 사설망 주소로의 연결은 실패했습니다. Spring과 Nginx만 재생성했으며 MySQL과 AI 서비스는 계속 가동했습니다. [Java 17 보안 패치 적용](../architecture/docker-architecture.md#java-17-보안-패치-적용) · [네트워크 기준](../architecture/docker-architecture.md#4-네트워크-기준)
+
+2026-11-20 Spring 빌드·런타임에 Java4Shell 수정판을 지정했습니다. Linux `amd64`에서 JAR과 컨테이너를 빌드하고 `17.0.21.1+2` 런타임, 격리 MySQL 초기화와 수집 상태 API `DISABLED` 응답을 확인했습니다. 패치된 JDK에서 Spring 테스트 669건을 통과했고 조건부 테스트 155건은 건너뛰었습니다. 주 API 교체는 U07-D 마지막 체크포인트와 결과 파일 생성 이후로 정했습니다. [Java 17 보안 패치 적용](../architecture/docker-architecture.md#java-17-보안-패치-적용)
 
 ## 1차 학습 프로토타입 기록
 
