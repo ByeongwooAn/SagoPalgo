@@ -9,7 +9,7 @@ SagoPalgo는 개인용 Windows 투자 프로그램입니다. 최종 목표는 KB
 
 삼성전자(005930)·SK하이닉스(000660)와 애플(AAPL)·엔비디아(NVDA)에 **L2 로지스틱 회귀를 한 종목당 하나씩** 적용합니다. 확정된 현지 일봉의 가격·거래량 특징 7개로 다음 개장일에 종가가 시가보다 높을 확률을 추정합니다. [로지스틱 회귀 설계](docs/project/logistic-regression-baseline.md)
 
-종목별 가격 모델을 학습하고 검증에서 임곗값을 정해 공통 142일을 독립 평가했습니다. 기본 비용에서 삼성전자는 0회 진입, SK하이닉스는 70회 진입해 −47.91%였습니다. 3단계에서 수동 추천에 장 마감 모델 신호를 연결하고 두 종목 284건의 같은 날짜 확률을 대조했습니다. 실제 KIS 일봉과 앱의 통합 검증은 11월 22일 관찰 종료 및 보고서 생성 후 진행합니다. [평가 결과](docs/project/daily-learning-evaluation.md) · [장 마감 모델 연결과 대조 결과](docs/project/daily-inference-integration.md) · [단계별 계획](docs/project/learning-prototype.md#실행-순서와-완료-기준)
+종목별 가격 모델을 학습하고 검증에서 임곗값을 정해 공통 142일을 독립 평가했습니다. 기본 비용에서 삼성전자는 0회 진입, SK하이닉스는 70회 진입해 −47.91%였습니다. 3단계에서 수동 추천에 장 마감 모델 신호를 연결하고 두 종목 284건의 같은 날짜 확률을 대조했습니다. 11월 22일에는 네 종목의 실제 KIS 확정 일봉을 로컬 운영 서버와 Windows 앱에서 확인했습니다. [평가 결과](docs/project/daily-learning-evaluation.md) · [3단계 실환경 대조](docs/project/daily-live-verification-20261122.md) · [단계별 계획](docs/project/learning-prototype.md#실행-순서와-완료-기준)
 
 애플·엔비디아는 각각 NASDAQ 원주가 753거래일을 감사하고 공통 143일을 독립 평가했습니다. 애플은 기본 비용에서 4회 진입해 +0.37%였고 엔비디아는 0회 진입했습니다. 미국주식 시세 화면의 장 마감 모델과 로컬 평가 화면을 연결했습니다. [미국 모델 학습·평가](docs/project/us-daily-learning-evaluation.md)
 
