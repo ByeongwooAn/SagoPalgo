@@ -30,6 +30,11 @@ final class NasdaqDailySignalCalendar {
         return !date.isBefore(START) && !date.isAfter(END);
     }
 
+    static boolean isRegularSession(OffsetDateTime time) {
+        return SESSIONS.contains(time.toLocalDate()) && !time.toLocalTime().isBefore(LocalTime.of(9, 30))
+            && time.isBefore(close(time.toLocalDate()));
+    }
+
     static LocalDate latestClosed(OffsetDateTime now) {
         return SESSIONS.stream().filter(date -> !now.isBefore(close(date))).reduce((a, b) -> b).orElse(null);
     }

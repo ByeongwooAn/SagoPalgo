@@ -76,7 +76,8 @@ void main() {
   testWidgets('paper trading screen renders metrics and executes trades', (
     tester,
   ) async {
-    final repository = _FakePaperTradingRepository();
+    final repository = _FakePaperTradingRepository()
+      ..loseFirstBuyResponse = true;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -93,7 +94,7 @@ void main() {
 
     expect(find.text('AI 모의매매'), findsOneWidget);
     expect(find.text('1,010,000원'), findsOneWidget);
-    expect(find.text('삼성전자 · 강한 매수'), findsOneWidget);
+    expect(find.text('삼성전자 · 매수 관찰'), findsOneWidget);
     expect(find.text('보유 포지션 1'), findsOneWidget);
 
     await tester.tap(find.text('AI 신호로 모의매수'));
@@ -104,6 +105,10 @@ void main() {
 
     expect(repository.buyRecommendationId, 11);
     expect(repository.buyQuantity, 3.5);
+    await tester.tap(find.text('같은 주문으로 결과 확인'));
+    await tester.pumpAndSettle();
+    expect(repository.buyRequestIds, hasLength(2));
+    expect(repository.buyRequestIds.toSet(), hasLength(1));
     expect(find.text('삼성전자 모의매수가 체결되었습니다.'), findsOneWidget);
 
     await tester.ensureVisible(find.text('모의매도'));
@@ -116,6 +121,30 @@ void main() {
     expect(repository.sellStockCode, '005930');
     expect(repository.sellQuantity, 2);
     expect(find.text('삼성전자 모의매도가 체결되었습니다.'), findsOneWidget);
+  });
+
+  testWidgets('expired daily signal disables the KRW buy action', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: PaperTradingScreen(
+            repository: _FakePaperTradingRepository(),
+            recommendation: _dailyRecommendation(
+              DateTime.now().subtract(const Duration(seconds: 1)),
+            ),
+            active: true,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final buy = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'AI 신호로 모의매수'),
+    );
+    expect(buy.onPressed, isNull);
+    expect(find.text('유효한 장 마감 모델 매수 관찰 신호가 필요합니다.'), findsOneWidget);
   });
 }
 
@@ -169,19 +198,33 @@ class _FakeUsPaperRepository extends _FakePaperTradingRepository
   }
 }
 
-const _recommendation = InvestmentRecommendation(
-  recommendationId: 11,
-  stockName: '삼성전자',
-  stockCode: '005930',
-  market: 'KOSPI',
-  status: '강한 매수',
-  recommendationType: 'BUY',
-  score: 87,
-  entryPrice: 70000,
-  stopLossRate: -5,
-  aiSummary: '테스트 추천',
-  reasons: [],
+final _recommendation = _dailyRecommendation(
+  DateTime.now().add(const Duration(hours: 1)),
 );
+
+InvestmentRecommendation _dailyRecommendation(DateTime expiry) =>
+    InvestmentRecommendation(
+      recommendationId: 11,
+      stockName: '삼성전자',
+      stockCode: '005930',
+      market: 'KOSPI',
+      status: '보유 유지',
+      recommendationType: 'HOLD',
+      score: 87,
+      entryPrice: 70000,
+      stopLossRate: -5,
+      aiSummary: '테스트 추천',
+      reasons: [],
+      evidence: AnalysisEvidence(
+        modelVersion: 'test',
+        dailySignal: DailyModelSignal(
+          decision: 'BUY_WATCH',
+          basisDate: '2026-11-20',
+          expiresAt: expiry,
+          contributions: const {},
+        ),
+      ),
+    );
 
 final _snapshot = PaperTradingSnapshot(
   summary: const PaperTradingSummary(
@@ -234,6 +277,8 @@ class _FakePaperTradingRepository implements PaperTradingRepository {
   int fetchCount = 0;
   int? buyRecommendationId;
   double? buyQuantity;
+  bool loseFirstBuyResponse = false;
+  final buyRequestIds = <String>[];
   String? sellStockCode;
   double? sellQuantity;
 
@@ -246,10 +291,15 @@ class _FakePaperTradingRepository implements PaperTradingRepository {
   @override
   Future<PaperTradingSnapshot> buyFromRecommendation(
     int recommendationId,
-    double quantity,
-  ) async {
+    double quantity, {
+    required String requestId,
+  }) async {
     buyRecommendationId = recommendationId;
     buyQuantity = quantity;
+    buyRequestIds.add(requestId);
+    if (loseFirstBuyResponse && buyRequestIds.length == 1) {
+      throw TimeoutException('응답 유실');
+    }
     return _snapshot;
   }
 
@@ -258,6 +308,7 @@ class _FakePaperTradingRepository implements PaperTradingRepository {
     required String stockCode,
     required String market,
     required double quantity,
+    required String requestId,
   }) async {
     sellStockCode = stockCode;
     sellQuantity = quantity;

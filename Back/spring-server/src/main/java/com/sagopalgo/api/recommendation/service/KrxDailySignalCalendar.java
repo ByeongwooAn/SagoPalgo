@@ -33,6 +33,12 @@ final class KrxDailySignalCalendar {
         return !date.isBefore(START) && !date.isAfter(END);
     }
 
+    static boolean isRegularSession(OffsetDateTime time) {
+        LocalDate date = time.toLocalDate();
+        LocalTime open = LocalTime.of(date.equals(CSAT) || date.equals(LocalDate.of(2026, 1, 2)) ? 10 : 9, 0);
+        return SESSIONS.contains(date) && !time.toLocalTime().isBefore(open) && time.isBefore(close(date));
+    }
+
     static LocalDate latestClosed(OffsetDateTime now) {
         return SESSIONS.stream().filter(date -> !now.isBefore(close(date))).reduce((a, b) -> b).orElse(null);
     }

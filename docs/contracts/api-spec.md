@@ -707,6 +707,12 @@ KOSPI 삼성전자(`005930`)·SK하이닉스(`000660`) 수동 분석의 `evidenc
 
 국내주식 모의매매는 `trade_records.execution_mode=PAPER` 원장에 기록합니다. 초기 자본은 개인 사용자의 `user_capital.available_capital`을 사용하며, 매수와 매도 체결가는 서버가 조회한 실제 현재가만 허용합니다. 모든 Provider가 실패한 `FALLBACK` 시세로는 체결하지 않습니다. 국내와 미국 모의매매 모두 앱 서버에서 가상 체결합니다.
 
+삼성전자·SK하이닉스·애플·엔비디아는 장 마감 모델 대상입니다. 이 네 종목의 매수·매도는 검증 달력상 정규장에 KIS 당일 체결을 조회하고 가격과 공급자 체결 시각을 같은 응답 행에서 선택합니다. 체결 시각은 서버 시계보다 미래일 수 없고 주문 처리 시점에 15초 이내여야 합니다. 출처·시각 미확인 또는 지연은 `EXTERNAL_DATA_ERROR`, 휴장·장외는 `VALIDATION_ERROR`입니다. 나머지 종목은 기존 현재가 경로를 사용합니다.
+
+체결 이력은 확인된 `quoteProvider`, `quoteMarketAt`, `quoteReceivedAt` 및 모델 매수에 사용된 `signalBasisDate`, `signalModelSha256`, `signalExpiresAt`을 반환합니다. 시세·신호 시각은 UTC 오프셋으로 반환합니다. 기존 `tradeDate`는 서버 체결 시각이며, 기존 원장에 없는 증거는 응답에서 생략합니다.
+
+KRW 매수·매도는 32자리 소문자 16진수 `requestId`를 필수 입력으로 받습니다. 같은 사용자·ID·주문 입력이 이미 체결된 경우 기존 체결을 포함한 현재 현황을 반환합니다. 같은 ID로 추천·종목·시장·방향·수량을 바꾸면 `DUPLICATE_RESOURCE`를 반환합니다. 기존 환경에서는 백업 후 028 및 [029 마이그레이션](../../Back/database/migrations/029_paper_trade_validation.sql)을 확인하고 Spring과 Windows 앱을 함께 갱신합니다.
+
 ### 14.1 모의매매 현황 조회
 
 `GET /api/v1/paper-trading`
@@ -719,11 +725,12 @@ KOSPI 삼성전자(`005930`)·SK하이닉스(`000660`) 수동 분석의 `evidenc
 
 ```json
 {
-  "quantity": 10
+  "quantity": 10,
+  "requestId": "0123456789abcdef0123456789abcdef"
 }
 ```
 
-현재 사용자에게 저장된 `BUY` 추천만 사용할 수 있습니다. 서버가 실제 현재가를 다시 조회하고 모의 현금 잔액을 검증한 뒤 가상 매수 원장을 저장합니다.
+삼성전자·SK하이닉스는 현재 사용자에게 저장된 추천의 장 마감 모델 증거가 `BUY_WATCH`이고 만료 전이어야 합니다. 이 두 종목에서는 장 마감 모델 판정을 적용합니다. 나머지 종목은 현재 사용자에게 저장된 `BUY` 추천을 사용합니다. 서버는 시세·현금 검증 후 가상 매수 원장을 저장합니다.
 
 ### 14.3 모의 포지션 매도
 
@@ -733,7 +740,8 @@ KOSPI 삼성전자(`005930`)·SK하이닉스(`000660`) 수동 분석의 `evidenc
 {
   "stockCode": "005930",
   "market": "KOSPI",
-  "quantity": 4
+  "quantity": 4,
+  "requestId": "fedcba9876543210fedcba9876543210"
 }
 ```
 
@@ -750,6 +758,7 @@ KOSPI 삼성전자(`005930`)·SK하이닉스(`000660`) 수동 분석의 `evidenc
 | `POST /api/v1/paper-trading/us/trades` | `{"stockCode":"AAPL","market":"NASDAQ","side":"BUY","quantity":"1.2500","requestId":"0123456789abcdef0123456789abcdef"}` 형식으로 현재가 가상 체결을 요청합니다. `SELL`은 보유 수량 안에서 처리합니다. |
 
 - 현재가는 미국주식 조회 경로로 확인합니다. 조회 실패나 USD 현금·주식 부족 시 원장에 체결을 쓰지 않습니다. 조회가 실패한 보유 종목은 매입 원가로 평가하고 출처를 `FALLBACK`으로 표시합니다.
+- 애플·엔비디아 매수는 서버가 해당 티커의 장 마감 모델을 다시 조회해 만료 전 `BUY_WATCH`를 확인합니다. 매도는 장 마감 매수 신호 없이 정규장 체결 시세와 보유 수량을 검증합니다.
 - 수량과 단가는 소수점 넷째 자리까지 보존하며 체결 금액과 손익은 센트 단위로 계산합니다. 부분 매도는 잔여 매입 원가에서 비례 배분하며, 전량 매도는 나머지 원가를 모두 실현합니다. 환전·수수료·세금은 가상 체결 계산 범위 밖입니다.
 - 사용자별 `requestId`로 동일 주문 재전송을 중복 체결 없이 처리합니다. 같은 ID에서 티커·거래소·방향·수량이 달라지면 `DUPLICATE_RESOURCE`를 반환합니다.
 - 기존 DB에는 [028 마이그레이션](../../Back/database/migrations/028_us_paper_trading.sql)을 적용합니다. 국내 모의매매 경로의 `currency`는 `KRW`입니다.

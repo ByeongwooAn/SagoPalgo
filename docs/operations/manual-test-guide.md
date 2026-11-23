@@ -355,26 +355,29 @@ Invoke-RestMethod `
 
 ```powershell
 $recommendationId = 1
+$buyRequestId = [Guid]::NewGuid().ToString('N')
+$sellRequestId = [Guid]::NewGuid().ToString('N')
 
 Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/paper-trading'
 
 Invoke-RestMethod `
   -Method Post `
   -ContentType 'application/json' `
-  -Body '{"quantity":10}' `
+  -Body (@{quantity=10; requestId=$buyRequestId} | ConvertTo-Json -Compress) `
   -Uri "http://localhost:8080/api/v1/paper-trading/recommendations/$recommendationId/buy"
 
 Invoke-RestMethod `
   -Method Post `
   -ContentType 'application/json' `
-  -Body '{"stockCode":"005930","market":"KOSPI","quantity":4}' `
+  -Body (@{stockCode='005930'; market='KOSPI'; quantity=4; requestId=$sellRequestId} | ConvertTo-Json -Compress) `
   -Uri 'http://localhost:8080/api/v1/paper-trading/sell'
 ```
 
-1. `recommendationId`를 현재 사용자의 저장된 `BUY` 추천 ID로 바꿉니다.
+1. `recommendationId`를 같은 종목의 저장 추천 ID로 바꿉니다. 모의 자금과 보유 수량에 맞게 예시 수량을 조정합니다. 삼성전자·SK하이닉스는 만료 전 장 마감 매수 관찰과 정규장 KIS 체결 시세가 필요합니다. 나머지 종목은 저장된 `BUY` 추천을 사용합니다.
 2. 매수·매도 뒤 `trade_records.execution_mode`가 `PAPER`이고 실제 주문 API 호출이나 KB 잔고 변화가 없는지 확인합니다.
 3. 모의 현금 잔액과 보유 수량을 초과한 요청이 `VALIDATION_ERROR`로 거부되는지 확인합니다.
 4. 매도 뒤 `realizedProfit`, `totalProfit`, `winRate`, `maxLoss`, `turnoverRate`가 원장 기준으로 갱신되는지 확인합니다.
+5. 동일 요청을 재전송할 때 기존 요청 ID와 본문을 그대로 사용합니다. 추가 체결과 잔고 변화가 없어야 합니다. 같은 ID의 수량을 변경하면 `DUPLICATE_RESOURCE`가 반환됩니다. [모의매매 API와 원장 증거](../contracts/api-spec.md#14-모의매매-api)
 
 주문 사전검증 API 확인:
 

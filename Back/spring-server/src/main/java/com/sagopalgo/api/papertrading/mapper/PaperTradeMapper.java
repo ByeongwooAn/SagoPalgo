@@ -20,22 +20,25 @@ public interface PaperTradeMapper {
 
     @Insert("""
         INSERT INTO trade_records (
-          user_id, recommendation_id, stock_code, stock_name, market,
+          user_id, recommendation_id, request_id, stock_code, stock_name, market,
           trade_type, execution_mode, trade_price, quantity, realized_profit,
-          trade_date, memo
+          trade_date, memo, quote_provider, quote_market_at, quote_received_at,
+          signal_basis_date, signal_model_sha256, signal_expires_at
         ) VALUES (
-          #{userId}, #{recommendationId}, #{stockCode}, #{stockName}, #{market},
+          #{userId}, #{recommendationId}, #{requestId}, #{stockCode}, #{stockName}, #{market},
           #{tradeType}, 'PAPER', #{tradePrice}, #{quantity}, #{realizedProfit},
-          #{tradeDate}, #{memo}
+          #{tradeDate}, #{memo}, #{quoteProvider}, #{quoteMarketAt}, #{quoteReceivedAt},
+          #{signalBasisDate}, #{signalModelSha256}, #{signalExpiresAt}
         )
         """)
     @Options(useGeneratedKeys = true, keyProperty = "tradeRecordId", keyColumn = "trade_record_id")
     int insert(PaperTradeRecord record);
 
     @Select("""
-        SELECT trade_record_id, user_id, recommendation_id, stock_code, stock_name,
+        SELECT trade_record_id, user_id, recommendation_id, request_id, stock_code, stock_name,
                market, trade_type, execution_mode, trade_price, quantity,
-               realized_profit, trade_date, memo, created_at
+               realized_profit, trade_date, memo, created_at, quote_provider, quote_market_at, quote_received_at,
+               signal_basis_date, signal_model_sha256, signal_expires_at
         FROM trade_records
         WHERE user_id = #{userId}
           AND execution_mode = 'PAPER'
@@ -52,10 +55,13 @@ public interface PaperTradeMapper {
     @Insert("""
         INSERT INTO paper_us_trades (
           user_id, request_id, stock_code, stock_name, market, trade_type,
-          trade_price, quantity, realized_profit, trade_date, memo
+          trade_price, quantity, realized_profit, trade_date, memo, quote_provider, quote_market_at, quote_received_at,
+          signal_basis_date, signal_model_sha256, signal_expires_at
         ) VALUES (
           #{userId}, #{requestId}, #{stockCode}, #{stockName}, #{market}, #{tradeType},
-          #{tradePrice}, #{quantity}, #{realizedProfit}, #{tradeDate}, #{memo}
+          #{tradePrice}, #{quantity}, #{realizedProfit}, #{tradeDate}, #{memo},
+          #{quoteProvider}, #{quoteMarketAt}, #{quoteReceivedAt},
+          #{signalBasisDate}, #{signalModelSha256}, #{signalExpiresAt}
         )
         """)
     @Options(useGeneratedKeys = true, keyProperty = "tradeRecordId", keyColumn = "trade_record_id")
@@ -63,7 +69,8 @@ public interface PaperTradeMapper {
 
     @Select("""
         SELECT trade_record_id, user_id, request_id, stock_code, stock_name, market,
-               trade_type, trade_price, quantity, realized_profit, trade_date, memo
+               trade_type, trade_price, quantity, realized_profit, trade_date, memo,
+               quote_provider, quote_market_at, quote_received_at, signal_basis_date, signal_model_sha256, signal_expires_at
         FROM paper_us_trades
         WHERE user_id = #{userId}
         ORDER BY trade_record_id

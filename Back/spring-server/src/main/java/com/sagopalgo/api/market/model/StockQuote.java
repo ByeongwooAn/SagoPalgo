@@ -19,6 +19,14 @@ public record StockQuote(
     BigDecimal highPrice,
     BigDecimal lowPrice,
     BigDecimal previousClose,
-    Instant receivedAt
+    Instant receivedAt,
+    Instant marketAt
 ) {
+    public StockQuote(String provider, String stockCode, String stockName, String market,
+        BigDecimal currentPrice, BigDecimal changePrice, BigDecimal changeRate, BigDecimal volume,
+        BigDecimal openPrice, BigDecimal highPrice, BigDecimal lowPrice, BigDecimal previousClose,
+        Instant receivedAt) {
+        this(provider, stockCode, stockName, market, currentPrice, changePrice, changeRate, volume,
+            openPrice, highPrice, lowPrice, previousClose, receivedAt, null);
+    }
 }

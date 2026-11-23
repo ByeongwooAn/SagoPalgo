@@ -44,8 +44,9 @@ class PaperTradingScreen extends StatefulWidget {
 class _PaperTradingScreenState extends State<PaperTradingScreen> {
   Future<PaperTradingSnapshot>? _snapshotFuture;
   bool _submitting = false;
-  UsPaperOrder? _pendingUsTrade;
-  String? _usTradeError;
+  ({Future<PaperTradingSnapshot> Function() send, String message})?
+  _pendingTrade;
+  String? _tradeError;
 
   bool get _usd => widget.usRepository != null;
 
@@ -160,7 +161,7 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
         ? _usActions(snapshot)
         : _RecommendationAction(
             recommendation: widget.recommendation,
-            submitting: _submitting,
+            submitting: _submitting || _pendingTrade != null,
             onBuy: _buyFromRecommendation,
             onAnalysisOpen: widget.onAnalysisOpen,
           );
@@ -177,6 +178,12 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
             ),
           ),
           const SizedBox(height: 18),
+          if (_tradeError != null) TextBody(_tradeError!),
+          if (_pendingTrade case final pending? when !_submitting)
+            TextButton(
+              onPressed: () => _sendTrade(pending.send, pending.message),
+              child: const Text('같은 주문으로 결과 확인'),
+            ),
           AdaptiveColumns(
             first: _usd ? actions : summary,
             second: _usd ? summary : actions,
@@ -209,7 +216,7 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
                 child: _PositionCard(
                   position: position,
                   usd: _usd,
-                  submitting: _submitting || _pendingUsTrade != null,
+                  submitting: _submitting || _pendingTrade != null,
                   onSell: () => _sellPosition(position),
                 ),
               ),
@@ -238,7 +245,6 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
 
   Widget _usActions(PaperTradingSnapshot snapshot) {
     final hasAccount = snapshot.summary.initialCapital > 0;
-    final pending = _pendingUsTrade;
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,26 +253,17 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
           const SizedBox(height: 8),
           TextCaption(
             hasAccount
-                ? '서버가 확인한 현재가로 가상 체결합니다.'
+                ? '애플·엔비디아 매수는 서버가 매수 관찰 신호와 정규장 체결 시세를 확인합니다.'
                 : '원화 모의계좌와 별도로 사용할 달러 시작 자금을 입력하세요.',
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
-            onPressed: _submitting || pending != null
+            onPressed: _submitting || _pendingTrade != null
                 ? null
                 : (hasAccount ? _buyUs : _openUsAccount),
             icon: const Icon(Icons.add),
             label: Text(hasAccount ? '미국주식 모의매수' : 'USD 시작 자금 설정'),
           ),
-          if (_usTradeError != null) ...[
-            const SizedBox(height: 8),
-            TextBody(_usTradeError!),
-          ],
-          if (pending != null && !_submitting)
-            TextButton(
-              onPressed: () => _sendUsTrade(pending),
-              child: const Text('같은 주문으로 결과 확인'),
-            ),
         ],
       ),
     );
@@ -305,19 +302,27 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
     ));
   }
 
-  Future<void> _sendUsTrade(UsPaperOrder order) async {
+  Future<void> _sendUsTrade(UsPaperOrder order) => _sendTrade(
+    () => widget.usRepository!.tradeUs(order),
+    '${order.stockCode} 모의 주문 결과를 확인했습니다.',
+  );
+
+  Future<void> _sendTrade(
+    Future<PaperTradingSnapshot> Function() send,
+    String message,
+  ) async {
     if (_submitting) return;
     setState(() {
-      _pendingUsTrade = order;
-      _usTradeError = null;
+      _pendingTrade = (send: send, message: message);
+      _tradeError = null;
     });
     await _submit(
       () async {
-        final result = await widget.usRepository!.tradeUs(order);
-        if (mounted) setState(() => _pendingUsTrade = null);
+        final result = await send();
+        if (mounted) setState(() => _pendingTrade = null);
         return result;
       },
-      '${order.stockCode} 모의 주문 결과를 확인했습니다.',
+      message,
       onError: (error) {
         setState(() {
           if (error is PaperTradingRepositoryException &&
@@ -328,10 +333,10 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
                 'RESOURCE_NOT_FOUND',
                 'EXTERNAL_DATA_ERROR',
               }.contains(error.code)) {
-            _pendingUsTrade = null;
-            _usTradeError = error.message;
+            _pendingTrade = null;
+            _tradeError = error.message;
           } else {
-            _usTradeError = '체결 결과를 확인하지 못했습니다. 같은 주문으로 다시 확인할 수 있습니다.';
+            _tradeError = '체결 결과를 확인하지 못했습니다. 같은 주문으로 다시 확인할 수 있습니다.';
           }
         });
       },
@@ -358,10 +363,12 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
       actionLabel: '모의매수',
     );
     if (quantity == null || !mounted) return;
-    await _submit(
+    final requestId = _newRequestId();
+    await _sendTrade(
       () => widget.repository.buyFromRecommendation(
         recommendationId,
         double.parse(quantity),
+        requestId: requestId,
       ),
       '${recommendation.stockName} 모의매수가 체결되었습니다.',
     );
@@ -384,11 +391,13 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
       ));
       return;
     }
-    await _submit(
+    final requestId = _newRequestId();
+    await _sendTrade(
       () => widget.repository.sellPosition(
         stockCode: position.stockCode,
         market: position.market,
         quantity: double.parse(quantity),
+        requestId: requestId,
       ),
       '${position.stockName} 모의매도가 체결되었습니다.',
     );
@@ -758,9 +767,18 @@ class _RecommendationAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final item = recommendation;
+    final usesDailyModel =
+        item?.market == 'KOSPI' &&
+        (item?.stockCode == '005930' || item?.stockCode == '000660');
+    final signal = item?.evidence?.dailySignal;
+    final expires = signal?.expiresAt;
     final canBuy =
         item?.recommendationId != null &&
-        item?.recommendationType.toUpperCase() == 'BUY';
+        (usesDailyModel
+            ? signal?.decision == 'BUY_WATCH' &&
+                  expires != null &&
+                  DateTime.now().isBefore(expires)
+            : item?.recommendationType.toUpperCase() == 'BUY');
     return AppCard(
       soft: true,
       child: Column(
@@ -774,14 +792,18 @@ class _RecommendationAction extends StatelessWidget {
                 child: CardTitle(
                   item == null
                       ? 'AI 매수 신호 없음'
-                      : '${item.stockName} · ${item.status}',
+                      : '${item.stockName} · ${canBuy && usesDailyModel ? '매수 관찰' : item.status}',
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           TextBody(
-            canBuy
+            usesDailyModel
+                ? (canBuy
+                      ? '${signal?.basisDate ?? ''} 기준 장 마감 모델 매수 관찰 · 정규장에만 체결'
+                      : '유효한 장 마감 모델 매수 관찰 신호가 필요합니다.')
+                : canBuy
                 ? '${item!.stockCode} · ${item.market} · 점수 ${item.score}점의 저장된 신호입니다.'
                 : '저장된 BUY 추천이 생성되면 현재가 기준 모의매수를 시작할 수 있습니다.',
           ),
@@ -946,6 +968,12 @@ class _TradeCard extends StatelessWidget {
                 TextCaption(
                   '${_formatQuantity(trade.quantity)}주 · ${_formatMoney(trade.tradePrice, usd, unitPrice: true)} · ${_formatDateTime(trade.tradeDate)}',
                 ),
+                if (trade.quoteMarketAt case final marketAt?)
+                  TextCaption(
+                    '${trade.quoteProvider ?? ''} 거래소 체결 시각 ${_formatDateTime(marketAt.toLocal())}',
+                  ),
+                if (trade.signalBasisDate case final date?)
+                  TextCaption('장 마감 신호 기준일 $date'),
                 if (!isBuy) ...[
                   const SizedBox(height: 4),
                   Text(
@@ -1070,7 +1098,7 @@ String _formatQuantity(double value) {
 
 String _formatDateTime(DateTime value) {
   String two(int number) => number.toString().padLeft(2, '0');
-  return '${value.year}.${two(value.month)}.${two(value.day)} ${two(value.hour)}:${two(value.minute)}';
+  return '${value.year}.${two(value.month)}.${two(value.day)} ${two(value.hour)}:${two(value.minute)}:${two(value.second)}';
 }
 
 Color _profitColor(double value, AppPalette palette) {

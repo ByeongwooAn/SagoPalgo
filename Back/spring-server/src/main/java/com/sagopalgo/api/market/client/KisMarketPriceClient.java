@@ -22,9 +22,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Locale;
 import java.util.Comparator;
 import java.util.List;
@@ -48,6 +50,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class KisMarketPriceClient implements MarketDataProvider {
 
     private static final Logger log = LoggerFactory.getLogger(KisMarketPriceClient.class);
+    private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
+    private static final DateTimeFormatter TRADE_TIME = DateTimeFormatter.ofPattern("HHmmss")
+        .withResolverStyle(ResolverStyle.STRICT);
 
     private volatile MarketIndexSnapshot cachedIndex;
     private volatile Instant indexCheckedAt;
@@ -396,6 +401,56 @@ public class KisMarketPriceClient implements MarketDataProvider {
             false, false));
     }
 
+    /**
+     * 당일 체결 조회에서 가격과 공급자 체결 시각을 같은 행으로 가져옵니다.
+     * 일반 현재가 조회 및 평가용 대체 경로와 분리합니다.
+     */
+    public StockQuote todayTradeQuote(MarketDataRequest request, Instant requestedAt) {
+        ensureQuoteConfigured();
+        var exchange = UsStockExchange.fromMarket(request.market());
+        JsonNode rows;
+        if (exchange.isPresent()) {
+            URI uri = usQuotation("/inquire-ccnl", request.stockCode(), exchange.orElseThrow())
+                .queryParam("TDAY", "1").queryParam("KEYB", "").build().encode().toUri();
+            rows = readJson(uri, "HHDFS76200300", "US_TRADE_QUOTE", "미국주식 당일 체결").path("output2");
+        } else {
+            URI uri = UriComponentsBuilder.fromUri(endpoint("/uapi/domestic-stock/v1/quotations/inquire-time-itemconclusion"))
+                .queryParam("FID_COND_MRKT_DIV_CODE", "J").queryParam("FID_INPUT_ISCD", request.stockCode())
+                .queryParam("FID_INPUT_HOUR_1", requestedAt.atZone(SEOUL).format(TRADE_TIME)).build().encode().toUri();
+            rows = readJson(uri, "FHPST01060000", "KRX_TRADE_QUOTE", "국내주식 당일 체결").path("output2");
+        }
+        return parseTodayTradeQuote(request, rows, exchange.isPresent(), Instant.now());
+    }
+
+    static StockQuote parseTodayTradeQuote(MarketDataRequest request, JsonNode rows, boolean us, Instant receivedAt) {
+        if (rows.isArray()) {
+            StockQuote latest = null;
+            LocalDate seoulDate = receivedAt.atZone(SEOUL).toLocalDate();
+            for (JsonNode row : rows) {
+                BigDecimal volume = decimal(row.path(us ? "evol" : "cnqn").asText());
+                if (volume.signum() <= 0) continue;
+                try {
+                    LocalTime time = LocalTime.parse(row.path(us ? "khms" : "stck_cntg_hour").asText(), TRADE_TIME);
+                    Instant marketAt = seoulDate.atTime(time).atZone(SEOUL).toInstant();
+                    // 미국 정규장은 한국 자정을 지나므로 자정 직전 체결을 전날 시각으로 해석합니다.
+                    if (us && marketAt.isAfter(receivedAt.plusSeconds(5))) {
+                        marketAt = seoulDate.minusDays(1).atTime(time).atZone(SEOUL).toInstant();
+                    }
+                    if (latest == null || marketAt.isAfter(latest.marketAt())) {
+                        String price = us ? row.path("last").asText()
+                            : row.path("stck_prpr").asText(row.path("stck_pbpr").asText());
+                        latest = new StockQuote(PROVIDER_CODE, request.stockCode(), "", request.market(),
+                            decimal(price), null, null, volume, null, null, null, null, receivedAt, marketAt);
+                    }
+                } catch (DateTimeParseException exception) {
+                    throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KIS 당일 체결 시각을 해석할 수 없습니다.");
+                }
+            }
+            if (latest != null && latest.currentPrice().signum() > 0) return latest;
+        }
+        throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "KIS 당일 체결 가격과 시각을 확인할 수 없습니다.");
+    }
+
     private StockQuote usQuote(MarketDataRequest request, UsStockExchange exchange) {
         URI uri = usQuotation("/price", request.stockCode(), exchange).build().encode().toUri();
         JsonNode item = readJson(uri, "HHDFS00000300", "US_QUOTE", "미국주식 현재가").path("output");
@@ -659,7 +714,7 @@ public class KisMarketPriceClient implements MarketDataProvider {
         }
     }
 
-    private BigDecimal decimal(String value) {
+    private static BigDecimal decimal(String value) {
         if (!StringUtils.hasText(value)) {
             return BigDecimal.ZERO;
         }

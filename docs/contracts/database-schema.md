@@ -335,6 +335,8 @@ AI 매수 신호와 사용자의 모의매도 결과를 실제 증권사 주문�
 
 `trade_records`는 국내 원화 모의매매에 사용합니다. [028 마이그레이션](../../Back/database/migrations/028_us_paper_trading.sql)의 `paper_us_accounts`는 사용자별 USD 시작 자금 `DECIMAL(18,2)`을 저장합니다. `paper_us_trades`는 단가·수량을 `DECIMAL(18,4)`, 실현손익을 `DECIMAL(18,2)`로 저장합니다. `(user_id, request_id)` 고유 키로 요청 재전송을 식별하고 체결 ID 순서로 USD 잔고와 손익을 재구성합니다. `order_prechecks`는 주문 전 검증 결과를 저장합니다. `device_tokens`는 설계에 포함되어 있으며 외부 푸시 구현 시 사용합니다. `recommendations`, `recommendation_reasons`, `analysis_snapshots`는 통합 분석 실행 시 함께 저장합니다.
 
+[029 마이그레이션](../../Back/database/migrations/029_paper_trade_validation.sql)은 KRW 원장에 사용자별 `(user_id, request_id)` 고유 키를 추가합니다. 두 원장에 시세 공급자, 거래소 체결·서버 수신 시각(UTC), 장 마감 신호 기준일·모델 SHA-256·만료(UTC)를 저장합니다. 기존 행에는 새 증거가 없으므로 해당 열은 `NULL`로 남습니다.
+
 ## 022. 전송 전 예약 중단 감사
 
 `manual_order_reservation_aborts`는 command_id PK/전송기록 FK, user_id FK, execution_key, account_fingerprint, aborted_at(DATETIME(6))을 저장합니다. `manual_order_dispatches.phase` CHECK에 ABORTED를 추가하며 원본 주문과 가드는 변경하지 않습니다. 실제 pending 제외는 감사와 전송 기록의 소유권·키·계좌·시각·미시작 조건 일치를 요구합니다. 기존 DB는 [022 백업·적용](../orders/reserved-order-abort.md)이 필요하고 신규 schema.sql에도 포함됩니다. 메인 PC 021까지 점검 이후 022 운영 적용은 미실행입니다.

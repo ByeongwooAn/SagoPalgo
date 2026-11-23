@@ -6,13 +6,15 @@ abstract class PaperTradingRepository {
 
   Future<PaperTradingSnapshot> buyFromRecommendation(
     int recommendationId,
-    double quantity,
-  );
+    double quantity, {
+    required String requestId,
+  });
 
   Future<PaperTradingSnapshot> sellPosition({
     required String stockCode,
     required String market,
     required double quantity,
+    required String requestId,
   });
 }
 

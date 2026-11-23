@@ -3,6 +3,7 @@ package com.sagopalgo.api.papertrading.service;
 import com.sagopalgo.api.capital.service.CapitalService;
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
+import com.sagopalgo.api.market.client.KisMarketPriceClient;
 import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockQuote;
 import com.sagopalgo.api.market.model.UsStockExchange;
@@ -16,17 +17,23 @@ import com.sagopalgo.api.papertrading.dto.PaperTradingSummaryResponse;
 import com.sagopalgo.api.papertrading.dto.UsPaperTradeRequest;
 import com.sagopalgo.api.papertrading.mapper.PaperTradeMapper;
 import com.sagopalgo.api.papertrading.model.PaperTradeRecord;
-import com.sagopalgo.api.recommendation.dto.RecommendationResponse;
+import com.sagopalgo.api.recommendation.dto.DailySignal;
+import com.sagopalgo.api.recommendation.service.DailySignalService;
 import com.sagopalgo.api.recommendation.service.RecommendationService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,22 +47,40 @@ public class PaperTradingService {
     private static final int QUANTITY_SCALE = 4;
     private static final int RATE_SCALE = 2;
     private static final int USD_PRICE_SCALE = 4;
+    private static final long QUOTE_MAX_AGE_SECONDS = 15;
 
     private final PaperTradeMapper tradeMapper;
     private final CapitalService capitalService;
     private final RecommendationService recommendationService;
     private final MarketPriceService marketPriceService;
+    private final KisMarketPriceClient kis;
+    private final DailySignalService dailySignals;
+    private final Clock clock;
 
+    @Autowired
     public PaperTradingService(
         PaperTradeMapper tradeMapper,
         CapitalService capitalService,
         RecommendationService recommendationService,
-        MarketPriceService marketPriceService
+        MarketPriceService marketPriceService,
+        KisMarketPriceClient kis,
+        DailySignalService dailySignals
+    ) {
+        this(tradeMapper, capitalService, recommendationService, marketPriceService, kis, dailySignals,
+            Clock.systemDefaultZone());
+    }
+
+    PaperTradingService(
+        PaperTradeMapper tradeMapper, CapitalService capitalService, RecommendationService recommendationService,
+        MarketPriceService marketPriceService, KisMarketPriceClient kis, DailySignalService dailySignals, Clock clock
     ) {
         this.tradeMapper = tradeMapper;
         this.capitalService = capitalService;
         this.recommendationService = recommendationService;
         this.marketPriceService = marketPriceService;
+        this.kis = kis;
+        this.dailySignals = dailySignals;
+        this.clock = clock;
     }
 
     @Transactional(readOnly = true)
@@ -100,14 +125,7 @@ public class PaperTradingService {
             throw new ApiException(ErrorCode.PAPER_CAPITAL_REQUIRED, "USD 모의계좌와 시작 자금을 먼저 설정하세요.");
         }
         List<PaperTradeRecord> records = tradeMapper.findUsTrades(userId);
-        for (PaperTradeRecord existing : records) {
-            if (!order.requestId().equals(existing.getRequestId())) continue;
-            if (!symbol.stockCode().equals(existing.getStockCode())
-                || !symbol.market().equals(existing.getMarket())
-                || !order.side().name().equals(existing.getTradeType())
-                || quantity.compareTo(existing.getQuantity()) != 0) {
-                throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "같은 요청 ID에 다른 모의주문을 사용할 수 없습니다.");
-            }
+        if (isReplay(records, order.requestId(), symbol, order.side().name(), quantity, null)) {
             return snapshot(capital, records, true, null);
         }
 
@@ -118,7 +136,12 @@ public class PaperTradingService {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "보유한 미국주식 모의 수량보다 많이 매도할 수 없습니다.");
         }
 
-        StockQuote quote = marketPriceService.getUsQuote(symbol.stockCode(), symbol.market());
+        DailySignal signal = null;
+        if (buy && DailySignalService.supportsUs(symbol.stockCode(), symbol.market())) {
+            signal = dailySignals.analyze(symbol.stockCode(), symbol.market());
+            requireBuySignal(signal, clock.instant());
+        }
+        StockQuote quote = executionQuote(symbol, true);
         BigDecimal price = quote.currentPrice().setScale(USD_PRICE_SCALE, RoundingMode.HALF_UP);
         BigDecimal amount = tradeAmount(price, quantity, true);
         if (amount.signum() <= 0) {
@@ -132,6 +155,7 @@ public class PaperTradingService {
             userId, symbol.stockCode(), stockName, symbol.market(), order.side().name(), price, quantity
         );
         record.setRequestId(order.requestId());
+        recordExecutionEvidence(record, quote, signal);
         record.setRealizedProfit(buy ? BigDecimal.ZERO : amount.subtract(position.usCostForSale(quantity)));
         record.setMemo(quote.provider() + " 현재가 미국주식 모의" + (buy ? "매수" : "매도"));
         tradeMapper.insertUsTrade(record);
@@ -147,17 +171,26 @@ public class PaperTradingService {
         PaperBuyRequest request
     ) {
         tradeMapper.lockUser(userId);
-        RecommendationResponse recommendation = recommendationService.findOne(userId, recommendationId);
-        if (!"BUY".equalsIgnoreCase(recommendation.recommendationType())) {
+        BigDecimal quantity = normalizeQuantity(request.quantity());
+        BigDecimal initialCapital = initialCapital(userId);
+        List<PaperTradeRecord> records = tradeMapper.findAllByUserId(userId);
+        if (isReplay(records, request.requestId(), null, "BUY", quantity, recommendationId)) {
+            return snapshot(initialCapital, records);
+        }
+        var recommendation = recommendationService.findOne(userId, recommendationId);
+        var symbol = MarketDataRequest.forLookup(recommendation.stockCode(), recommendation.market());
+        DailySignal signal = null;
+        if (DailySignalService.supportsDomestic(symbol.stockCode(), symbol.market())) {
+            signal = recommendation.evidence() == null ? null : recommendation.evidence().dailySignal();
+            requireBuySignal(signal, clock.instant());
+        } else if (!"BUY".equalsIgnoreCase(recommendation.recommendationType())) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "매수 AI 신호만 모의매수할 수 있습니다.");
         }
 
-        BigDecimal quantity = normalizeQuantity(request.quantity());
-        StockQuote quote = executionQuote(recommendation.stockCode(), recommendation.market());
+        StockQuote quote = executionQuote(symbol, false);
         BigDecimal price = normalizeMoney(quote.currentPrice());
         BigDecimal amount = price.multiply(quantity);
-        BigDecimal initialCapital = initialCapital(userId);
-        Ledger ledger = ledger(initialCapital, tradeMapper.findAllByUserId(userId), false);
+        Ledger ledger = ledger(initialCapital, records, false);
         if (amount.compareTo(ledger.cashBalance) > 0) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "모의매매 현금 잔액이 부족합니다.");
         }
@@ -172,8 +205,10 @@ public class PaperTradingService {
             quantity
         );
         record.setRecommendationId(recommendationId);
+        record.setRequestId(request.requestId());
+        recordExecutionEvidence(record, quote, signal);
         record.setRealizedProfit(BigDecimal.ZERO);
-        record.setMemo("AI " + recommendation.statusLabel() + " 신호 모의매수");
+        record.setMemo(signal == null ? "AI " + recommendation.statusLabel() + " 신호 모의매수" : "장 마감 모델 매수 관찰");
         tradeMapper.insert(record);
         return snapshot(initialCapital, tradeMapper.findAllByUserId(userId));
     }
@@ -186,6 +221,10 @@ public class PaperTradingService {
         BigDecimal quantity = normalizeQuantity(request.quantity());
         BigDecimal initialCapital = initialCapital(userId);
         List<PaperTradeRecord> records = tradeMapper.findAllByUserId(userId);
+        var symbol = new MarketDataRequest(stockCode, market);
+        if (isReplay(records, request.requestId(), symbol, "SELL", quantity, null)) {
+            return snapshot(initialCapital, records);
+        }
         Ledger ledger = ledger(initialCapital, records, false);
         PositionState position = ledger.positions.get(positionKey(stockCode, market));
         if (position == null || position.quantity.signum() <= 0) {
@@ -195,7 +234,7 @@ public class PaperTradingService {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "보유한 모의 수량보다 많이 매도할 수 없습니다.");
         }
 
-        StockQuote quote = executionQuote(stockCode, market);
+        StockQuote quote = executionQuote(symbol, false);
         BigDecimal price = normalizeMoney(quote.currentPrice());
         BigDecimal realizedProfit = price.subtract(position.averagePrice())
             .multiply(quantity)
@@ -210,6 +249,8 @@ public class PaperTradingService {
             quantity
         );
         record.setRealizedProfit(realizedProfit);
+        record.setRequestId(request.requestId());
+        recordExecutionEvidence(record, quote, null);
         record.setMemo("모의 포지션 현재가 매도");
         tradeMapper.insert(record);
         return snapshot(initialCapital, tradeMapper.findAllByUserId(userId));
@@ -351,13 +392,89 @@ public class PaperTradingService {
         return ledger;
     }
 
-    private StockQuote executionQuote(String stockCode, String market) {
-        StockQuote quote = marketPriceService.quoteMarket(new MarketDataRequest(stockCode, market));
-        if (quote.currentPrice() == null || quote.currentPrice().signum() <= 0
+    private boolean isReplay(List<PaperTradeRecord> records, String requestId, MarketDataRequest symbol,
+        String side, BigDecimal quantity, Long recommendationId) {
+        for (PaperTradeRecord record : records) {
+            if (!requestId.equals(record.getRequestId())) continue;
+            if (!side.equals(record.getTradeType()) || quantity.compareTo(record.getQuantity()) != 0
+                || !Objects.equals(recommendationId, record.getRecommendationId())
+                || (symbol != null && (!symbol.stockCode().equals(record.getStockCode())
+                    || !symbol.market().equals(record.getMarket())))) {
+                throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "같은 요청 ID에 다른 모의주문을 사용할 수 없습니다.");
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void requireBuySignal(DailySignal signal, Instant at) {
+        if (signal == null || !"BUY_WATCH".equals(signal.decision()) || signal.basisDate() == null
+            || signal.modelSha256() == null || !signal.modelSha256().matches("[a-f0-9]{64}")
+            || signal.evaluatedAt() == null || signal.evaluatedAt().toInstant().isAfter(at)
+            || signal.expiresAt() == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "장 마감 모델의 매수 관찰 신호가 필요합니다.");
+        }
+        if (!at.isBefore(signal.expiresAt().toInstant())) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "장 마감 모델의 매수 신호가 만료되었습니다.");
+        }
+    }
+
+    private StockQuote executionQuote(MarketDataRequest symbol, boolean usd) {
+        if (DailySignalService.supportsDomestic(symbol.stockCode(), symbol.market())
+            || DailySignalService.supportsUs(symbol.stockCode(), symbol.market())) {
+            Instant started = clock.instant();
+            requireRegularSession(symbol, started);
+            StockQuote quote = kis.todayTradeQuote(symbol, started);
+            Instant now = clock.instant();
+            requireRegularSession(symbol, now);
+            if (quote == null || quote.marketAt() == null || quote.receivedAt() == null
+                || quote.marketAt().isAfter(quote.receivedAt()) || quote.receivedAt().isAfter(now)
+                || quote.marketAt().isBefore(now.minusSeconds(QUOTE_MAX_AGE_SECONDS))
+                || !DailySignalService.isRegularSession(symbol, quote.marketAt())) {
+                throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "15초 이내의 정규장 체결 시각을 확인할 수 없습니다.");
+            }
+            return requireExecutionPrice(quote);
+        }
+        return requireExecutionPrice(usd ? marketPriceService.getUsQuote(symbol.stockCode(), symbol.market())
+            : marketPriceService.quoteMarket(symbol));
+    }
+
+    private void requireRegularSession(MarketDataRequest symbol, Instant now) {
+        if (!DailySignalService.isRegularSession(symbol, now)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "정규장에만 이 종목의 모의 주문을 체결할 수 있습니다.");
+        }
+    }
+
+    private StockQuote requireExecutionPrice(StockQuote quote) {
+        if (quote == null || quote.currentPrice() == null || quote.currentPrice().signum() <= 0
             || "FALLBACK".equalsIgnoreCase(quote.provider())) {
             throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "실제 현재가를 확인할 수 없어 모의 체결하지 않았습니다.");
         }
         return quote;
+    }
+
+    private void recordExecutionEvidence(PaperTradeRecord record, StockQuote quote, DailySignal signal) {
+        Instant executedAt = clock.instant();
+        if (signal != null) {
+            requireBuySignal(signal, executedAt);
+            record.setSignalBasisDate(signal.basisDate());
+            record.setSignalModelSha256(signal.modelSha256());
+            record.setSignalExpiresAt(utc(signal.expiresAt().toInstant()));
+        }
+        if (quote.marketAt() != null) {
+            requireRegularSession(new MarketDataRequest(record.getStockCode(), record.getMarket()), executedAt);
+            if (quote.marketAt().isBefore(executedAt.minusSeconds(QUOTE_MAX_AGE_SECONDS))) {
+                throw new ApiException(ErrorCode.EXTERNAL_DATA_ERROR, "모의 주문 처리 중 시세가 지연되었습니다.");
+            }
+        }
+        record.setTradeDate(LocalDateTime.ofInstant(executedAt, clock.getZone()));
+        record.setQuoteProvider(quote.provider());
+        record.setQuoteMarketAt(utc(quote.marketAt()));
+        record.setQuoteReceivedAt(utc(quote.receivedAt()));
+    }
+
+    private LocalDateTime utc(Instant at) {
+        return at == null ? null : LocalDateTime.ofInstant(at, ZoneOffset.UTC);
     }
 
     private PaperTradeRecord baseRecord(
@@ -378,7 +495,6 @@ public class PaperTradingService {
         record.setExecutionMode("PAPER");
         record.setTradePrice(price);
         record.setQuantity(quantity);
-        record.setTradeDate(LocalDateTime.now());
         return record;
     }
 
@@ -395,7 +511,13 @@ public class PaperTradingService {
             money(tradeAmount(record.getTradePrice(), record.getQuantity(), usd)),
             money(record.getRealizedProfit() == null ? BigDecimal.ZERO : record.getRealizedProfit()),
             record.getTradeDate(),
-            record.getMemo()
+            record.getMemo(),
+            record.getQuoteProvider(),
+            record.getQuoteMarketAt() == null ? null : record.getQuoteMarketAt().atOffset(ZoneOffset.UTC),
+            record.getQuoteReceivedAt() == null ? null : record.getQuoteReceivedAt().atOffset(ZoneOffset.UTC),
+            record.getSignalBasisDate(),
+            record.getSignalModelSha256(),
+            record.getSignalExpiresAt() == null ? null : record.getSignalExpiresAt().atOffset(ZoneOffset.UTC)
         );
     }
 

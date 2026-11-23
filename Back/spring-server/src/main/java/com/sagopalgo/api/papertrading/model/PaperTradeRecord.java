@@ -1,6 +1,7 @@
 package com.sagopalgo.api.papertrading.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -23,6 +24,12 @@ public class PaperTradeRecord {
     private LocalDateTime tradeDate;
     private String memo;
     private LocalDateTime createdAt;
+    private String quoteProvider;
+    private LocalDateTime quoteMarketAt;
+    private LocalDateTime quoteReceivedAt;
+    private LocalDate signalBasisDate;
+    private String signalModelSha256;
+    private LocalDateTime signalExpiresAt;
 
     public Long getTradeRecordId() { return tradeRecordId; }
     public void setTradeRecordId(Long tradeRecordId) { this.tradeRecordId = tradeRecordId; }
@@ -54,4 +61,16 @@ public class PaperTradeRecord {
     public void setMemo(String memo) { this.memo = memo; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getQuoteProvider() { return quoteProvider; }
+    public void setQuoteProvider(String quoteProvider) { this.quoteProvider = quoteProvider; }
+    public LocalDateTime getQuoteMarketAt() { return quoteMarketAt; }
+    public void setQuoteMarketAt(LocalDateTime quoteMarketAt) { this.quoteMarketAt = quoteMarketAt; }
+    public LocalDateTime getQuoteReceivedAt() { return quoteReceivedAt; }
+    public void setQuoteReceivedAt(LocalDateTime quoteReceivedAt) { this.quoteReceivedAt = quoteReceivedAt; }
+    public LocalDate getSignalBasisDate() { return signalBasisDate; }
+    public void setSignalBasisDate(LocalDate signalBasisDate) { this.signalBasisDate = signalBasisDate; }
+    public String getSignalModelSha256() { return signalModelSha256; }
+    public void setSignalModelSha256(String signalModelSha256) { this.signalModelSha256 = signalModelSha256; }
+    public LocalDateTime getSignalExpiresAt() { return signalExpiresAt; }
+    public void setSignalExpiresAt(LocalDateTime signalExpiresAt) { this.signalExpiresAt = signalExpiresAt; }
 }

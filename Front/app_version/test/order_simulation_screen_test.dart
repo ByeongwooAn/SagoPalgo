@@ -875,12 +875,14 @@ class FakeSimulation
   @override
   Future<PaperTradingSnapshot> buyFromRecommendation(
     int recommendationId,
-    double quantity,
-  ) => throw UnimplementedError();
+    double quantity, {
+    required String requestId,
+  }) => throw UnimplementedError();
   @override
   Future<PaperTradingSnapshot> sellPosition({
     required String stockCode,
     required String market,
     required double quantity,
+    required String requestId,
   }) => throw UnimplementedError();
 }
