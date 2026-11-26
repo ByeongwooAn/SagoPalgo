@@ -117,14 +117,15 @@ class SpringPaperTradingRepository
   @override
   Future<PaperTradingSnapshot> buyFromRecommendation(
     int recommendationId,
-    double quantity,
-  ) async {
+    double quantity, {
+    required String requestId,
+  }) async {
     final response = await client.post(
       Uri.parse(
         '${config.paperTradingBaseUrl}/recommendations/$recommendationId/buy',
       ),
       headers: _headers(contentType: true),
-      body: jsonEncode({'quantity': quantity}),
+      body: jsonEncode({'quantity': quantity, 'requestId': requestId}),
     );
     return _snapshot(response);
   }
@@ -134,6 +135,7 @@ class SpringPaperTradingRepository
     required String stockCode,
     required String market,
     required double quantity,
+    required String requestId,
   }) async {
     final response = await client.post(
       Uri.parse('${config.paperTradingBaseUrl}/sell'),
@@ -142,6 +144,7 @@ class SpringPaperTradingRepository
         'stockCode': stockCode,
         'market': market,
         'quantity': quantity,
+        'requestId': requestId,
       }),
     );
     return _snapshot(response);

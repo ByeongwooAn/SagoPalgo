@@ -12,6 +12,7 @@ import com.sagopalgo.api.capital.dto.CapitalResponse;
 import com.sagopalgo.api.capital.service.CapitalService;
 import com.sagopalgo.api.common.exception.ApiException;
 import com.sagopalgo.api.common.exception.ErrorCode;
+import com.sagopalgo.api.market.client.KisMarketPriceClient;
 import com.sagopalgo.api.market.model.MarketDataRequest;
 import com.sagopalgo.api.market.model.StockQuote;
 import com.sagopalgo.api.market.service.MarketPriceService;
@@ -23,6 +24,7 @@ import com.sagopalgo.api.papertrading.dto.UsPaperTradeRequest.Side;
 import com.sagopalgo.api.papertrading.mapper.PaperTradeMapper;
 import com.sagopalgo.api.papertrading.model.PaperTradeRecord;
 import com.sagopalgo.api.recommendation.dto.RecommendationResponse;
+import com.sagopalgo.api.recommendation.service.DailySignalService;
 import com.sagopalgo.api.recommendation.service.RecommendationService;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -51,6 +53,12 @@ class PaperTradingServiceTest {
     @Mock
     private MarketPriceService marketPriceService;
 
+    @Mock
+    private KisMarketPriceClient kis;
+
+    @Mock
+    private DailySignalService dailySignals;
+
     private final List<PaperTradeRecord> records = new ArrayList<>();
     private final List<PaperTradeRecord> usRecords = new ArrayList<>();
     private PaperTradingService service;
@@ -61,7 +69,9 @@ class PaperTradingServiceTest {
             tradeMapper,
             capitalService,
             recommendationService,
-            marketPriceService
+            marketPriceService,
+            kis,
+            dailySignals
         );
         lenient().when(capitalService.findByUserId(1L)).thenReturn(new CapitalResponse(
             new BigDecimal("1000000"),
@@ -81,7 +91,7 @@ class PaperTradingServiceTest {
     @Test
     void usdLedgerReconcilesRoundedFractionalFillsWithoutChangingKrwLedger() {
         stubUsLedger("1000");
-        when(marketPriceService.getUsQuote("AAPL", "NASDAQ"))
+        when(marketPriceService.getUsQuote("MSFT", "NASDAQ"))
             .thenReturn(usQuote("222.2222"), usQuote("250.1234"), usQuote("260.0100"));
 
         var buy = service.tradeUs(1L, usOrder(Side.BUY, "1.5000", 1));
@@ -108,7 +118,7 @@ class PaperTradingServiceTest {
     @Test
     void retryUsesSameUsFillAndUnpricedPositionsRemainAtCost() {
         stubUsLedger("500");
-        when(marketPriceService.getUsQuote("AAPL", "NASDAQ"))
+        when(marketPriceService.getUsQuote("MSFT", "NASDAQ"))
             .thenReturn(usQuote("123.45"))
             .thenThrow(new ApiException(ErrorCode.EXTERNAL_DATA_ERROR));
         var order = usOrder(Side.BUY, "2", 1);
@@ -129,7 +139,7 @@ class PaperTradingServiceTest {
     @Test
     void usTradeChecksUsdCashAndHoldingsBeforeWriting() {
         when(tradeMapper.findUsCapital(1L)).thenReturn(new BigDecimal("100"));
-        when(marketPriceService.getUsQuote("AAPL", "NASDAQ")).thenReturn(usQuote("123.45"));
+        when(marketPriceService.getUsQuote("MSFT", "NASDAQ")).thenReturn(usQuote("123.45"));
         assertThatThrownBy(() -> service.tradeUs(1L, usOrder(Side.BUY, "1", 1)))
             .isInstanceOf(ApiException.class).hasMessage("USD 모의 현금 잔액이 부족합니다.");
         assertThatThrownBy(() -> service.tradeUs(1L, usOrder(Side.SELL, "1", 2)))
@@ -160,11 +170,11 @@ class PaperTradingServiceTest {
     }
 
     private UsPaperTradeRequest usOrder(Side side, String quantity, int id) {
-        return new UsPaperTradeRequest(" aapl ", "nasdaq", side, new BigDecimal(quantity), "%032x".formatted(id));
+        return new UsPaperTradeRequest(" msft ", "nasdaq", side, new BigDecimal(quantity), "%032x".formatted(id));
     }
 
     private StockQuote usQuote(String price) {
-        return new StockQuote("KIS", "AAPL", "", "NASDAQ", new BigDecimal(price),
+        return new StockQuote("KIS", "MSFT", "", "NASDAQ", new BigDecimal(price),
             BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
             BigDecimal.ZERO, BigDecimal.ZERO, Instant.now());
     }
@@ -173,13 +183,13 @@ class PaperTradingServiceTest {
     @DisplayName("BUY AI 추천을 현재가로 가상 체결하고 현금과 포지션을 계산한다")
     void buysFromAiRecommendation() {
         when(recommendationService.findOne(1L, 11L)).thenReturn(recommendation("BUY"));
-        when(marketPriceService.quoteMarket(new MarketDataRequest("005930", "KOSPI")))
+        when(marketPriceService.quoteMarket(new MarketDataRequest("035420", "KOSPI")))
             .thenReturn(quote("100"));
 
         PaperTradingSnapshotResponse response = service.buyFromRecommendation(
             1L,
             11L,
-            new PaperBuyRequest(new BigDecimal("10"))
+            new PaperBuyRequest(new BigDecimal("10"), requestId(1))
         );
 
         assertThat(records).singleElement().satisfies(record -> {
@@ -200,12 +210,12 @@ class PaperTradingServiceTest {
     @DisplayName("가상 포지션 일부를 매도하면 실현손익과 승률 및 최대 손실을 계산한다")
     void sellsPaperPositionAndCalculatesMetrics() {
         records.add(buyRecord());
-        when(marketPriceService.quoteMarket(new MarketDataRequest("005930", "KOSPI")))
+        when(marketPriceService.quoteMarket(new MarketDataRequest("035420", "KOSPI")))
             .thenReturn(quote("90"));
 
         PaperTradingSnapshotResponse response = service.sell(
             1L,
-            new PaperSellRequest("005930", "KOSPI", new BigDecimal("4"))
+            new PaperSellRequest("035420", "KOSPI", new BigDecimal("4"), requestId(2))
         );
 
         assertThat(response.summary().realizedProfit()).isEqualByComparingTo("-40");
@@ -227,7 +237,7 @@ class PaperTradingServiceTest {
         assertThatThrownBy(() -> service.buyFromRecommendation(
             1L,
             11L,
-            new PaperBuyRequest(BigDecimal.ONE)
+            new PaperBuyRequest(BigDecimal.ONE, requestId(1))
         ))
             .isInstanceOf(ApiException.class)
             .hasMessage("매수 AI 신호만 모의매수할 수 있습니다.");
@@ -239,9 +249,9 @@ class PaperTradingServiceTest {
     @DisplayName("실제 현재가를 얻지 못하면 모의 체결을 차단한다")
     void rejectsFallbackExecutionQuote() {
         when(recommendationService.findOne(1L, 11L)).thenReturn(recommendation("BUY"));
-        when(marketPriceService.quoteMarket(new MarketDataRequest("005930", "KOSPI")))
+        when(marketPriceService.quoteMarket(new MarketDataRequest("035420", "KOSPI")))
             .thenReturn(new StockQuote(
-                "FALLBACK", "005930", "삼성전자", "KOSPI",
+                "FALLBACK", "035420", "NAVER", "KOSPI",
                 new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO,
                 BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
                 BigDecimal.ZERO, Instant.now()
@@ -250,7 +260,7 @@ class PaperTradingServiceTest {
         assertThatThrownBy(() -> service.buyFromRecommendation(
             1L,
             11L,
-            new PaperBuyRequest(BigDecimal.ONE)
+            new PaperBuyRequest(BigDecimal.ONE, requestId(1))
         ))
             .isInstanceOf(ApiException.class)
             .hasMessage("실제 현재가를 확인할 수 없어 모의 체결하지 않았습니다.");
@@ -265,7 +275,7 @@ class PaperTradingServiceTest {
 
         assertThatThrownBy(() -> service.sell(
             1L,
-            new PaperSellRequest("005930", "KOSPI", new BigDecimal("11"))
+            new PaperSellRequest("035420", "KOSPI", new BigDecimal("11"), requestId(2))
         ))
             .isInstanceOf(ApiException.class)
             .hasMessage("보유한 모의 수량보다 많이 매도할 수 없습니다.");
@@ -277,11 +287,12 @@ class PaperTradingServiceTest {
     void recordedTradesSurviveServiceRestartAndCapitalChangeDoesNotRewriteThem() {
         when(recommendationService.findOne(1L, 11L)).thenReturn(recommendation("BUY"));
         when(marketPriceService.quoteMarket(any())).thenReturn(quote("100"));
-        service.buyFromRecommendation(1L, 11L, new PaperBuyRequest(new BigDecimal("3")));
+        service.buyFromRecommendation(1L, 11L, new PaperBuyRequest(new BigDecimal("3"), requestId(1)));
         when(marketPriceService.quoteMarket(any())).thenReturn(quote("110"));
-        service.sell(1L, new PaperSellRequest("005930", "KOSPI", BigDecimal.ONE));
+        service.sell(1L, new PaperSellRequest("035420", "KOSPI", BigDecimal.ONE, requestId(2)));
 
-        var restarted = new PaperTradingService(tradeMapper, capitalService, recommendationService, marketPriceService);
+        var restarted = new PaperTradingService(tradeMapper, capitalService, recommendationService,
+            marketPriceService, kis, dailySignals);
         var restored = restarted.getSnapshot(1L);
         assertThat(restored.trades()).hasSize(2);
         assertThat(restored.summary().cashBalance()).isEqualByComparingTo("999810");
@@ -309,8 +320,8 @@ class PaperTradingServiceTest {
     private RecommendationResponse recommendation(String recommendationType) {
         return new RecommendationResponse(
             11L,
-            "005930",
-            "삼성전자",
+            "035420",
+            "NAVER",
             "KOSPI",
             recommendationType,
             "BUY_STRONG",
@@ -326,13 +337,17 @@ class PaperTradingServiceTest {
         );
     }
 
+    private String requestId(int id) {
+        return "%032x".formatted(id);
+    }
+
     private PaperTradeRecord buyRecord() {
         PaperTradeRecord record = new PaperTradeRecord();
         record.setTradeRecordId(1L);
         record.setUserId(1L);
         record.setRecommendationId(11L);
-        record.setStockCode("005930");
-        record.setStockName("삼성전자");
+        record.setStockCode("035420");
+        record.setStockName("NAVER");
         record.setMarket("KOSPI");
         record.setTradeType("BUY");
         record.setExecutionMode("PAPER");
@@ -345,7 +360,7 @@ class PaperTradingServiceTest {
 
     private StockQuote quote(String currentPrice) {
         return new StockQuote(
-            "KB", "005930", "삼성전자", "KOSPI",
+            "KB", "035420", "NAVER", "KOSPI",
             new BigDecimal(currentPrice), BigDecimal.ZERO, BigDecimal.ZERO,
             BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
             BigDecimal.ZERO, Instant.now()

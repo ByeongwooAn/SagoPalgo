@@ -9,6 +9,7 @@ import com.sagopalgo.api.recommendation.client.AiAnalysisGateway;
 import com.sagopalgo.api.recommendation.dto.DailyInference;
 import com.sagopalgo.api.recommendation.dto.DailySignal;
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -44,7 +45,7 @@ public class DailySignalService {
 
     public DailySignal analyze(String stockCode, String market) {
         boolean us = supportsUs(stockCode, market);
-        if (!us && (!"KOSPI".equals(market) || !("005930".equals(stockCode) || "000660".equals(stockCode)))) return null;
+        if (!us && !supportsDomestic(stockCode, market)) return null;
         Clock marketClock = us ? clock.withZone(NasdaqDailySignalCalendar.NEW_YORK) : clock;
         OffsetDateTime now = OffsetDateTime.now(marketClock);
         boolean covered = us ? NasdaqDailySignalCalendar.covers(now.toLocalDate())
@@ -102,6 +103,18 @@ public class DailySignalService {
 
     public static boolean supportsUs(String stockCode, String market) {
         return "NASDAQ".equals(market) && ("AAPL".equals(stockCode) || "NVDA".equals(stockCode));
+    }
+
+    public static boolean supportsDomestic(String stockCode, String market) {
+        return "KOSPI".equals(market) && ("005930".equals(stockCode) || "000660".equals(stockCode));
+    }
+
+    public static boolean isRegularSession(MarketDataRequest request, Instant time) {
+        if (supportsUs(request.stockCode(), request.market())) {
+            return NasdaqDailySignalCalendar.isRegularSession(time.atZone(NasdaqDailySignalCalendar.NEW_YORK).toOffsetDateTime());
+        }
+        return supportsDomestic(request.stockCode(), request.market())
+            && KrxDailySignalCalendar.isRegularSession(time.atZone(KrxDailySignalCalendar.SEOUL).toOffsetDateTime());
     }
 
     private List<StockCandle> usWindow(MarketDataRequest request, LocalDate first, LocalDate last) {

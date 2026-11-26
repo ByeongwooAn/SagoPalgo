@@ -133,8 +133,8 @@ KB 주문 이력 읽기 전용 점검 결과를 저장하는 버전부터는 기
 ## 모의매매
 
 - `GET /api/v1/paper-trading`: 모의 자산, 성과 지표, 포지션, 체결 이력 조회
-- `POST /api/v1/paper-trading/recommendations/{recommendationId}/buy`: 저장된 `BUY` 추천을 실제 현재가로 가상 매수
-- `POST /api/v1/paper-trading/sell`: 보유한 모의 포지션을 실제 현재가로 가상 매도
+- `POST /api/v1/paper-trading/recommendations/{recommendationId}/buy`: 저장 추천의 유효한 매수 신호와 시세로 가상 매수. 본문에 `requestId` 필수
+- `POST /api/v1/paper-trading/sell`: 보유한 모의 포지션을 시세로 가상 매도. 본문에 `requestId` 필수
 - 모든 거래는 `execution_mode=PAPER`로 저장되며 KB 주문 API를 호출하지 않습니다.
 - `FALLBACK` 현재가는 평가 기준으로만 사용할 수 있고 가상 체결에는 사용할 수 없습니다.
 

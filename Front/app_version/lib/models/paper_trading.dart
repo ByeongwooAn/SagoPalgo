@@ -130,6 +130,9 @@ class PaperTrade {
     required this.realizedProfit,
     required this.tradeDate,
     required this.memo,
+    this.quoteProvider,
+    this.quoteMarketAt,
+    this.signalBasisDate,
   });
 
   final int tradeRecordId;
@@ -144,6 +147,9 @@ class PaperTrade {
   final double realizedProfit;
   final DateTime tradeDate;
   final String? memo;
+  final String? quoteProvider;
+  final DateTime? quoteMarketAt;
+  final String? signalBasisDate;
 
   factory PaperTrade.fromJson(Map<String, dynamic> json) {
     return PaperTrade(
@@ -161,6 +167,9 @@ class PaperTrade {
       realizedProfit: _readDouble(json['realizedProfit']),
       tradeDate: DateTime.parse(json['tradeDate'] as String),
       memo: json['memo'] as String?,
+      quoteProvider: json['quoteProvider'] as String?,
+      quoteMarketAt: DateTime.tryParse(json['quoteMarketAt'] as String? ?? ''),
+      signalBasisDate: json['signalBasisDate'] as String?,
     );
   }
 }

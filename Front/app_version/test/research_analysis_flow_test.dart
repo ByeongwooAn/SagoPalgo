@@ -474,12 +474,14 @@ class _Paper implements PaperTradingRepository {
   @override
   Future<PaperTradingSnapshot> buyFromRecommendation(
     int recommendationId,
-    double quantity,
-  ) async => throw UnimplementedError();
+    double quantity, {
+    required String requestId,
+  }) async => throw UnimplementedError();
   @override
   Future<PaperTradingSnapshot> sellPosition({
     required String stockCode,
     required String market,
     required double quantity,
+    required String requestId,
   }) async => throw UnimplementedError();
 }

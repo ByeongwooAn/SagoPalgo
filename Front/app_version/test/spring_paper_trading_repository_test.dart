@@ -77,12 +77,19 @@ void main() {
           request.url.path,
           '/api/v1/paper-trading/recommendations/11/buy',
         );
-        expect(jsonDecode(request.body), {'quantity': 3.5});
+        expect(jsonDecode(request.body), {
+          'quantity': 3.5,
+          'requestId': '0123456789abcdef0123456789abcdef',
+        });
         return _successResponse();
       }),
     );
 
-    final snapshot = await repository.buyFromRecommendation(11, 3.5);
+    final snapshot = await repository.buyFromRecommendation(
+      11,
+      3.5,
+      requestId: '0123456789abcdef0123456789abcdef',
+    );
 
     expect(snapshot.positions.single.quantity, 10);
   });
@@ -98,6 +105,7 @@ void main() {
           'stockCode': '005930',
           'market': 'KOSPI',
           'quantity': 2,
+          'requestId': '0123456789abcdef0123456789abcdef',
         });
         return _successResponse();
       }),
@@ -107,6 +115,7 @@ void main() {
       stockCode: '005930',
       market: 'KOSPI',
       quantity: 2,
+      requestId: '0123456789abcdef0123456789abcdef',
     );
   });
 

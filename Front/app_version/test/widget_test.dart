@@ -252,14 +252,16 @@ class FakePaperTradingRepository implements PaperTradingRepository {
   @override
   Future<PaperTradingSnapshot> buyFromRecommendation(
     int recommendationId,
-    double quantity,
-  ) async => _testPaperTrading;
+    double quantity, {
+    required String requestId,
+  }) async => _testPaperTrading;
 
   @override
   Future<PaperTradingSnapshot> sellPosition({
     required String stockCode,
     required String market,
     required double quantity,
+    required String requestId,
   }) async => _testPaperTrading;
 }
 

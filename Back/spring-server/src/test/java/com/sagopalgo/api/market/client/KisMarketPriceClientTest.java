@@ -10,6 +10,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 
 import com.sagopalgo.api.common.exception.ApiException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sagopalgo.api.common.exception.ErrorCode;
 import com.sagopalgo.api.config.KisMarketProperties;
 import com.sagopalgo.api.holding.model.Holding;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.net.ConnectException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -50,6 +52,55 @@ class KisMarketPriceClientTest {
         RestClient.Builder builder = RestClient.builder();
         server = MockRestServiceServer.bindTo(builder).build();
         client = new KisMarketPriceClient(kisProperties(), builder.build());
+    }
+
+    @Test
+    void domesticTradeQuoteRequestsKrxAndReadsPriceAndTimeFromTheSameFill() {
+        expectToken();
+        server.expect(requestTo("https://kis.test/uapi/domestic-stock/v1/quotations/inquire-time-itemconclusion"
+                + "?FID_COND_MRKT_DIV_CODE=J&FID_INPUT_ISCD=005930&FID_INPUT_HOUR_1=101203"))
+            .andExpect(method(HttpMethod.GET)).andExpect(header("tr_id", "FHPST01060000"))
+            .andRespond(withSuccess("""
+                {"rt_cd":"0","output2":[
+                  {"stck_cntg_hour":"101159","stck_prpr":"70000","cnqn":"1"},
+                  {"stck_cntg_hour":"101202","stck_prpr":"70500","cnqn":"2"}
+                ]}
+                """, MediaType.APPLICATION_JSON));
+        var quote = client.todayTradeQuote(new MarketDataRequest("005930", "KOSPI"),
+            Instant.parse("2026-11-23T01:12:03Z"));
+        assertThat(quote.currentPrice()).isEqualByComparingTo("70500");
+        assertThat(quote.marketAt().atZone(ZoneId.of("Asia/Seoul")).toLocalTime().toString()).isEqualTo("10:12:02");
+        server.verify();
+    }
+
+    @Test
+    void usTradeQuoteRequestsTodayAndKeepsTheProviderExchangeTime() throws Exception {
+        expectToken();
+        server.expect(requestTo("https://kis.test/uapi/overseas-price/v1/quotations/inquire-ccnl"
+                + "?AUTH=&EXCD=NAS&SYMB=AAPL&TDAY=1&KEYB="))
+            .andExpect(method(HttpMethod.GET)).andExpect(header("tr_id", "HHDFS76200300"))
+            .andRespond(withSuccess("""
+                {"rt_cd":"0","output1":{"nrec":"1"},
+                 "output2":[{"khms":"235959","last":"180.1234","evol":"8"}]}
+                """, MediaType.APPLICATION_JSON));
+        var request = new MarketDataRequest("AAPL", "NASDAQ");
+        var response = client.todayTradeQuote(request, Instant.parse("2026-11-23T15:00:03Z"));
+        assertThat(response.currentPrice()).isEqualByComparingTo("180.1234");
+        var parsed = KisMarketPriceClient.parseTodayTradeQuote(request, new ObjectMapper().readTree("""
+            [{"khms":"235959","last":"180.1234","evol":"8"}]
+            """), true, Instant.parse("2026-11-23T15:00:03Z"));
+        assertThat(parsed.marketAt()).isEqualTo(Instant.parse("2026-11-23T14:59:59Z"));
+        server.verify();
+    }
+
+    @Test
+    void absentOrInvalidProviderTradeTimeNeverFallsBackToReceptionTime() throws Exception {
+        var request = new MarketDataRequest("AAPL", "NASDAQ");
+        var rows = new ObjectMapper().readTree("""
+            [{"khms":"240000","last":"180.00","evol":"8"}]
+            """);
+        assertThatThrownBy(() -> KisMarketPriceClient.parseTodayTradeQuote(request, rows, true, Instant.now()))
+            .isInstanceOf(ApiException.class).extracting("errorCode").isEqualTo(ErrorCode.EXTERNAL_DATA_ERROR);
     }
 
     @Test
