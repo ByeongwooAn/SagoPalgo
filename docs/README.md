@@ -27,6 +27,7 @@
 
 - 시세 수집·저장·내보내기, 입력 수신과 소켓 복구를 확인합니다. [실시간 수집 구조](market-data/realtime-data-pipeline.md) · [시장 데이터 문서 전체](market-data/)
 - 호가 단위, 체결 추정·대조, 거래 비용·세금의 근거를 찾습니다. [과거 호가 단위](execution-research/historical-tick-rules.md) · [체결 품질 검증](execution-research/quote-execution-quality.md) · [체결 연구 문서 전체](execution-research/)
+- 종목별 가상 매매 규칙, Docker 테스트와 일별·최종 보고서를 확인합니다. [모의매매 테스트](paper-trading/README.md)
 
 ## 과거 데이터와 재현
 
