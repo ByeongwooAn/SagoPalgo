@@ -2,6 +2,8 @@
 
 from decimal import Decimal as D
 
+from strategy import CUT, PREVIOUS_CLOSE_RULE, SMA_CUT, SMA_RULE
+
 
 def money(value):
     return '미확정' if value is None else f'{D(value):,.2f}원'
@@ -39,6 +41,12 @@ def daily_report(config, day, daily, totals, change, state):
         f"- 마감 순자산 {money(totals['equity'])} · 누적 실현손익 {money(mark['realized'])}",
         '', '일일 순손익은 이전 마감 순자산 대비 증감입니다. 첫날은 가상 시작 현금과 비교합니다. '
         '마감 순자산은 가상 현금과 보유분 예상 순매도대금의 합입니다.', '', '## 주문과 체결', '']
+    if daily.get('entry_average') is not None:
+        average = D(daily['entry_average'])
+        threshold = min(average * SMA_CUT, D(daily['prior']))
+        evidence = ', '.join(f'{date} {money(price)}' for date, price in daily['entry_closes'])
+        info[4:4] = [f'- 최초 매수 기준 {money(threshold)} · 5거래일 종가 평균 {money(average)}',
+                     f'- 평균 입력 {evidence}']
     if not daily['events']:
         info += ['기록된 주문과 체결이 없습니다.', '']
     for event in daily['events']:
@@ -111,3 +119,52 @@ def publish(folder, state, config, costs, finished, write):
     for day, daily, values, change in summaries:
         lines += [f"| [{day}](daily/{day}.md) | {daily['observations']:,} | {values['buy']} | {values['sell']} | {money(change)} | {money(values['equity'])} |"]
     update(folder / 'final.md', '\n'.join(lines) + '\n')
+
+
+def dashboard(state, config, costs, current, reference_day, sma_start, sma_applies):
+    days = sorted(state['days'].items())
+    fills = []
+    closes = []
+    previous = D(config['cash'])
+    mark_price, mark_source = None, None
+    for day, daily in days:
+        for event in daily['events']:
+            if event['kind'] == '체결':
+                fields = ('id', 'at', 'side', 'rule', 'threshold', 'price', 'quantity', 'gross',
+                          'fee', 'tax', 'realized', 'cash', 'held')
+                fills.append({key: event[key] for key in fields})
+        if daily.get('last_price') is not None:
+            mark_price, mark_source = D(daily['last_price']), '장중 관측가'
+        if daily['close'] is not None:
+            if daily['close']['price'] is not None:
+                mark_price, mark_source = D(daily['close']['price']), '정규장 종가'
+            totals = stats(day, daily, state, costs)
+            value = totals['equity']
+            change = value - previous if value is not None and previous is not None else None
+            closes.append(dict(date=day, closePrice=daily['close']['price'],
+                               profit=None if change is None else str(change),
+                               buyCount=totals['buy'], sellCount=totals['sell']))
+            previous = value
+    held, cash, basis = (D(state[key]) for key in ('quantity', 'cash', 'cost'))
+    liquidation = D(0) if not held else None
+    if held and mark_price is not None and not state['hold']:
+        liquidation = costs.proceeds(held * mark_price)
+    daily = state['days'].get(str(reference_day), {})
+    average, prior = daily.get('entry_average'), daily.get('prior')
+    threshold = None
+    if sma_applies and average is not None and prior is not None:
+        threshold = min(D(average) * SMA_CUT, D(prior))
+    elif not sma_applies and prior is not None:
+        threshold = D(prior) * CUT
+    return dict(schemaVersion=1, runId=config['id'], stockCode=config['symbol'], stockName=config['name'],
+        status=current['status'], publishedAt=current['asof'], startedAt=state['started'],
+        endDate=max(config['sessions']), lastMarketAt=current['last_market_at'],
+        entry=dict(rule=SMA_RULE if sma_applies else PREVIOUS_CLOSE_RULE, appliesOn=str(reference_day),
+                   effectiveFrom=None if sma_start is None else str(sma_start),
+                   eligible=not held and state['last_sale'] is None, previousClose=prior,
+                   averageClose=average, threshold=None if threshold is None else str(threshold)),
+        portfolio=dict(initialCash=config['cash'], cash=str(cash), quantity=str(held),
+                       realizedProfit=state['realized'], markPrice=None if mark_price is None else str(mark_price),
+                       markSource=mark_source, unrealizedProfit=None if liquidation is None else str(liquidation - basis),
+                       netAsset=None if liquidation is None else str(cash + liquidation)),
+        fillCount=len(fills), fills=list(reversed(fills[-100:])), closedDays=list(reversed(closes[-30:])))

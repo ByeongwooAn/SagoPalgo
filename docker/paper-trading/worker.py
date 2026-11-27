@@ -12,8 +12,9 @@ import re
 from time import sleep
 
 from market import DataError, KST, KisMarket, now
-from reports import publish
-from strategy import Costs, D, apply_tick, day_state, finish_order, initial_state, mark_risk
+from reports import dashboard, publish
+from strategy import (Costs, D, PREVIOUS_CLOSE_RULE, SMA_RULE, apply_tick, day_state,
+                      finish_order, initial_state, mark_risk)
 
 
 POLL_SECONDS = 10
@@ -38,7 +39,7 @@ def atomic_write(path, string, durable=False):
 
 
 class Trial:
-    def __init__(self, config_path, storage, reports, market_factory=KisMarket, clock=now):
+    def __init__(self, config_path, storage, reports, market_factory=KisMarket, clock=now, sma_start=None):
         raw = config_path.read_bytes()
         self.config = json.loads(raw)
         cfg = self.config
@@ -60,6 +61,7 @@ class Trial:
                 self.costs.fee_bps, self.costs.sell_tax_bps) < 0 or self.costs.fee_bps + self.costs.sell_tax_bps >= 10000:
             raise ValueError('잘못된 모의실험 비용 또는 세션 설정입니다.')
         self.finish_at = self.sessions[max(self.sessions)][1] + timedelta(minutes=2)
+        self.sma_start = sma_start
         self.clock = clock
         self.folder = storage / trial_id
         self.folder.mkdir(parents=True, exist_ok=True)
@@ -94,6 +96,30 @@ class Trial:
             daily['open'] = self.market.is_open(day)
         return daily['open']
 
+    def sma_applies(self, day):
+        return self.sma_start is not None and day >= self.sma_start
+
+    def prepare_reference(self, day, daily):
+        first_entry = not D(self.state['quantity']) and self.state['last_sale'] is None
+        need_sma = self.sma_applies(day) and first_entry
+        rule = SMA_RULE if self.sma_applies(day) else PREVIOUS_CLOSE_RULE
+        if daily.get('entry_rule', rule) != rule and daily['observations']:
+            raise DataError('장중 최초 매수 규칙 변경 확인 필요')
+        if daily['prior'] is not None and (not need_sma or daily.get('entry_average') is not None):
+            return
+        rows = self.market.recent_closes(day, 5) if need_sma else [self.market.previous_close(day)]
+        closes = []
+        for session, price in rows:
+            recorded = self.state['days'].get(str(session), {}).get('close')
+            # A same-session KRX close already observed by this trial takes priority over later daily lookups.
+            price = D(recorded['price']) if recorded and recorded['price'] else price
+            closes.append((session, price))
+        prior_date, prior = closes[-1]
+        daily.update(prior=str(prior), prior_date=prior_date.isoformat(), entry_rule=rule)
+        if need_sma:
+            daily['entry_average'] = str(sum(price for _, price in closes) / 5)
+            daily['entry_closes'] = [[session.isoformat(), str(price)] for session, price in closes]
+
     def monitor(self, day, opening, closing):
         daily = day_state(self.state, day)
         try:
@@ -101,10 +127,7 @@ class Trial:
                 return
             if self.state['hold']:
                 raise DataError('기준가 변경 확인 필요로 전략 중지')
-            if daily['prior'] is None:
-                prior_date, price = self.market.previous_close(day)
-                daily['prior'] = str(price)
-                daily['prior_date'] = prior_date.isoformat()
+            self.prepare_reference(day, daily)
             base, tick = self.market.live(day, opening, closing)
             if base != D(daily['prior']):
                 self.state['hold'] = dict(day=str(day), prior=daily['prior'], base=str(base))
@@ -129,6 +152,7 @@ class Trial:
             LOG.info('KRX 정규장 시세 수신 재개')
             self.last_issue = None
         daily['last'] = tick.at.isoformat()
+        daily['last_price'] = str(tick.price)
         daily['observations'] += 1
         before = len(daily['events'])
         mark_risk(self.state, tick.price, self.costs)
@@ -191,6 +215,11 @@ class Trial:
                        observed=day.get('observations', 0), last_issue=self.last_issue,
                        pending=self.state['pending'] is not None, hold=self.state['hold'])
         atomic_write(self.report_path / 'status.json', json.dumps(current, ensure_ascii=False, indent=2) + '\n')
+        reference_day = next((session for session in sorted(self.sessions) if at < self.sessions[session][1]),
+                             max(self.sessions))
+        snapshot = dashboard(self.state, self.config, self.costs, current, reference_day,
+                             self.sma_start, self.sma_applies(reference_day))
+        atomic_write(self.report_path / 'dashboard.json', json.dumps(snapshot, ensure_ascii=False) + '\n')
         self.last_status = status
         publish(self.report_path, self.state, self.config, self.costs, at >= self.finish_at, atomic_write)
         return status
@@ -201,9 +230,10 @@ def main():
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--storage', type=Path, default=Path('/state'))
     parser.add_argument('--reports', type=Path, default=Path('/reports'))
+    parser.add_argument('--sma-start', type=date.fromisoformat)
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-    trial = Trial(args.config, args.storage, args.reports)
+    trial = Trial(args.config, args.storage, args.reports, sma_start=args.sma_start)
     LOG.info('%s 가상 원장 준비 (최초 기동 %s, 종료 %s)',
              trial.config['id'], trial.state['started'], trial.finish_at.isoformat())
     while True:
