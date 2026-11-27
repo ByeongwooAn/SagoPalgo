@@ -1,0 +1,17 @@
+name: sagopalgo-paper-trading
+
+services:
+  trial:
+    build: ./docker/paper-trading
+    restart: unless-stopped
+    environment:
+      SAGOPALGO_KIS_BASE_URL: ${SAGOPALGO_KIS_BASE_URL:?KIS market-data URL required}
+      SAGOPALGO_KIS_APP_KEY: ${SAGOPALGO_KIS_APP_KEY:?KIS market-data app key required}
+      SAGOPALGO_KIS_APP_SECRET: ${SAGOPALGO_KIS_APP_SECRET:?KIS market-data app secret required}
+    command: ["python", "worker.py", "--config", "trials/${SAGOPALGO_PAPER_TRIAL_ID:-2026-11-27-000660}.json"]
+    volumes:
+      - trial-state:/state
+      - ./docs/paper-trading/reports:/reports
+
+volumes:
+  trial-state:
