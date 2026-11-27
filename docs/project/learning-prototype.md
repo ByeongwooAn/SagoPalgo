@@ -194,6 +194,7 @@ KIS에서 두 종목 모두 고정 가격 표본 730거래일의 수급 행을 �
 
 ## 투자자별 수급·공시·뉴스 비교 기준
 
+- KRX 수급 수신 증거는 거래일별 원문·해시와 20:15 KST까지 수신한 응답을 남기고 익일 같은 거래일의 응답과 대조합니다. [자동 관측 일정과 가용 판정](krx-investor-flow-capture.md)
 - 수급은 두 보통주 각각의 종목코드·KRX 영업일·시장 범위를 일봉에 일치시킵니다. 개인·기관·외국인의 매수와 매도 원본을 보존하고, 단위와 분류가 일치하는 수량·대금에서 각각 `매수 − 매도`가 제공 순매수와 맞는지 검사합니다. 음수는 순매도입니다. 첫 특징은 투자자별 순매수 수량을 같은 범위의 전체 거래량으로 나눈 값으로 시작합니다. 장중 잠정치·장후 값과 수정 이력은 확인 가능한 범위에서 구분합니다. 신호 시각의 가용성이 확인된 수급만 사용하고 조회 누락·미확정과 실제 순매수 0을 구분합니다. [KIS 일별 수급 조회 예제](https://github.com/koreainvestment/open-trading-api/blob/main/examples_llm/domestic_stock/investor_trade_by_stock_daily/investor_trade_by_stock_daily.py) · [KIS 수급 응답 필드 예제](https://github.com/koreainvestment/open-trading-api/blob/main/examples_llm/domestic_stock/investor_trade_by_stock_daily/chk_investor_trade_by_stock_daily.py)
 - 각 신호의 입력은 그 시각까지 사용할 수 있었던 정보로 구성합니다. 공식 공개 시각, 시스템 최초 확보 시각, 정정본 가용 시각을 보존합니다. 과거의 가용 시점을 입증할 수 없는 행은 해당 시점의 입력에서 제외하고, 수집 범위가 불완전한 날짜는 확인된 무사건 날짜와 구분합니다.
 - 공시·기사 공개 전후의 가격 움직임은 별도 사건 분석으로 기록합니다. 발표 전 1~5거래일을 비교하고, 장 마감 뒤 발표는 당일 종가→다음 거래일 시가와 다음 거래일 시가→종가를 구분합니다. 공개 전 패턴을 시험할 때는 당시 가격·거래량과 이미 공개된 일정으로 신호를 만듭니다.
