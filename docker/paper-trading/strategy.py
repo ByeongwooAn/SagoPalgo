@@ -10,6 +10,9 @@ ZERO = D(0)
 UNIT = D('0.0001')
 CUT = D('0.95')
 TARGET = D('1.05')
+SMA_CUT = D('0.98')
+SMA_RULE = '직전 5거래일 종가 평균의 98%와 전일 종가 중 낮은 가격 이하'
+PREVIOUS_CLOSE_RULE = '직전 정규장 종가 × 0.95'
 
 
 @dataclass(frozen=True)
@@ -68,7 +71,7 @@ def mark_risk(state, price, costs):
     state['drawdown'] = str(max(D(state['drawdown']), (peak - value) / peak))
 
 
-def condition(state, prior, tick, costs):
+def condition(state, prior, tick, costs, entry_average=None):
     held = D(state['quantity'])
     if held:
         selling = state['liquidation']
@@ -82,8 +85,14 @@ def condition(state, prior, tick, costs):
         rule, base = '직전 매수 평균 체결가 × 0.95', D(state['last_buy'])
     elif state['last_sale'] is not None:
         rule, base = '직전 청산 평균 체결가 × 0.95', D(state['last_sale'])
+    elif entry_average is not None:
+        threshold = min(entry_average * SMA_CUT, prior)
+        if tick.price <= threshold:
+            return dict(side='BUY', rule=SMA_RULE, basis=str(entry_average),
+                        threshold=str(threshold), observed=str(tick.price))
+        return None
     else:
-        rule, base = '직전 정규장 종가 × 0.95', prior
+        rule, base = PREVIOUS_CLOSE_RULE, prior
     if tick.price <= base * CUT:
         return dict(side='BUY', rule=rule, basis=str(base), threshold=str(base * CUT),
                     observed=str(tick.price))
@@ -109,7 +118,8 @@ def apply_tick(state, day, tick, costs, amount):
             evidence = {key: order[key] for key in ('side', 'rule', 'basis', 'threshold')}
             evidence['observed'] = str(tick.price)
     else:
-        evidence = condition(state, D(day['prior']), tick, costs)
+        average = day.get('entry_average')
+        evidence = condition(state, D(day['prior']), tick, costs, D(average) if average is not None else None)
     if order is None:
         if evidence is None:
             return

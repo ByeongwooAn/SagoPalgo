@@ -719,6 +719,8 @@ KRW 매수·매도는 32자리 소문자 16진수 `requestId`를 필수 입력�
 
 응답은 `summary`, `positions`, `trades`를 포함합니다. `summary`에는 초기 자본, 현금, 포지션 평가액, 총자산, 실현·평가·총손익, 수익률, 완료 매도 횟수, 승률, 최대 단일 손실, 회전율이 포함됩니다. 포지션 현재가를 조회할 수 없을 때는 평균 매수가로 평가하되 Provider를 `FALLBACK`으로 표시합니다.
 
+`GET /api/v1/paper-trading/automated`는 개인 모드에서 독립 자동 모의매매의 공개 요약만 조회합니다. `data.available`과 `data.online`으로 요약 존재 여부와 작업자 갱신 여부를 표시합니다. `data.snapshot`은 `schemaVersion`, `runId`, 종목, 적용 거래일과 `entry`, `portfolio`, `fillCount`, 최근 `fills` 최대 100건, `closedDays` 최대 30일을 제공합니다. 가격·수량·손익은 10진 문자열이며 아직 확정되지 않은 값은 비어 있습니다. 작업자 갱신이 120초 이상 지연되면 마지막 데이터를 `online=false`로 제공합니다. 경로에 실행 ID를 받지 않으며 주문 또는 원장 수정 요청을 제공하지 않습니다. [자동 모의매매 문서](../paper-trading/README.md)
+
 ### 14.2 AI 신호 모의매수
 
 `POST /api/v1/paper-trading/recommendations/{recommendationId}/buy`

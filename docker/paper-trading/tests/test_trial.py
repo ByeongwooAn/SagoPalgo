@@ -69,6 +69,24 @@ class Strategy(unittest.TestCase):
         self.assertGreaterEqual(D(self.state['cash']), D(0))
         self.assertGreater(D(self.state['max_invested']), D(950000))
 
+    def test_sma_entry_requires_both_bounds_and_does_not_change_add_on(self):
+        self.day.update(prior='1053000', entry_average='1087800')
+        self.tick('1053001')
+        self.assertIsNone(self.state['pending'])
+        self.tick('1053000')
+        self.assertEqual(D(self.state['pending']['threshold']), D('1053000'))
+        self.tick('1053001')
+        self.assertFalse(self.fills())
+        self.day['entry_average'] = '1000000'
+        self.tick('980001')
+        self.assertIsNone(self.state['pending'])
+        self.tick('980000')
+        self.tick('980000')
+        self.tick('931001')
+        self.assertIsNone(self.state['pending'])
+        self.tick('931000')
+        self.assertEqual(D(self.state['pending']['threshold']), D('931000'))
+
     def test_partial_buy_preserves_order_basis_and_budget(self):
         self.tick('900000')
         self.tick('880000', '.05')
@@ -122,6 +140,9 @@ class FakeMarket:
     def previous_close(self, day):
         return day - timedelta(days=1), D(1000000)
 
+    def recent_closes(self, day, count):
+        return [(day - timedelta(days=offset), D(1000000)) for offset in range(count, 0, -1)]
+
     def live(self, day, opening, closing):
         return self.base, Tick(self.clock[0], self.price, D(10))
 
@@ -168,8 +189,37 @@ class Integration(unittest.TestCase):
             self.assertEqual(report.count('매수 체결\n'), 1)
             self.assertIn('관측 공백 2건', report)
             self.assertIn('최종 순손익 1,913.00원', final.read_text(encoding='utf-8'))
+            dashboard = json.loads((root / 'reports/test-trial/dashboard.json').read_text(encoding='utf-8'))
+            self.assertEqual(dashboard['fillCount'], 1)
+            self.assertEqual(D(dashboard['portfolio']['netAsset']), D('1001913'))
+            self.assertEqual(D(dashboard['closedDays'][0]['profit']), D('1913'))
             self.assertIsNone(trial.state['pending'])
             trial.lock.close()
+
+    def test_new_rule_waits_for_complete_history_and_publishes_basis(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            config = root / 'test.json'
+            config.write_text(json.dumps(dict(id='test-trial', symbol='000660', name='SK하이닉스',
+                cash='1000000', order_amount='100000', fee_bps='5', sell_tax_bps='20',
+                sessions={str(DAY): ['09:00', '15:30']})), encoding='utf-8')
+            clock = [START]
+            market = FakeMarket(clock)
+            market.price = D(970000)
+            trial = Trial(config, root / 'state', root / 'reports', lambda *_: market,
+                          lambda: clock[0], sma_start=DAY)
+            self.addCleanup(trial.lock.close)
+            with patch.object(market, 'recent_closes', side_effect=DataError('종가 누락')):
+                self.assertEqual(trial.step(), '시세 확인 대기')
+            self.assertIsNone(trial.state['pending'])
+            clock[0] += timedelta(seconds=10)
+            self.assertEqual(trial.step(), '정규장 관측')
+            self.assertIsNotNone(trial.state['pending'])
+            data = root / 'reports/test-trial/dashboard.json'
+            entry = json.loads(data.read_text(encoding='utf-8'))['entry']
+            self.assertEqual(D(entry['averageClose']), D(1000000))
+            self.assertEqual(D(entry['threshold']), D(980000))
+            self.assertEqual(entry['effectiveFrom'], str(DAY))
 
     def test_rejects_stale_and_halted_quotes(self):
         market = object.__new__(KisMarket)

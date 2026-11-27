@@ -115,16 +115,29 @@ class KisMarket:
         return self.quotes(endpoint, tr_id,
                            dict(FID_COND_MRKT_DIV_CODE='J', FID_INPUT_ISCD=self.symbol, **params))
 
-    def is_open(self, day):
+    def calendar(self, day):
         key = day.strftime('%Y%m%d')
         payload = self.quotes('chk-holiday', 'CTCA0903R', dict(BASS_DT=key, CTX_AREA_NK='', CTX_AREA_FK=''))
         output = payload.get('output')
         if not isinstance(output, list):
             raise DataError('KIS 개장 응답 형식 오류')
-        rows = [row for row in output if isinstance(row, dict) and row.get('bass_dt') == key]
-        if len(rows) != 1 or rows[0].get('opnd_yn') not in {'Y', 'N'}:
+        days = {}
+        try:
+            for row in output:
+                day = datetime.strptime(row['bass_dt'], '%Y%m%d').date()
+                flag = row['opnd_yn']
+                if day in days or flag not in {'Y', 'N'}:
+                    raise ValueError('invalid calendar row')
+                days[day] = flag == 'Y'
+        except (KeyError, TypeError, ValueError):
+            raise DataError('KIS 개장 응답 형식 오류') from None
+        return days
+
+    def is_open(self, day):
+        result = self.calendar(day).get(day)
+        if result is None:
             raise DataError('KIS 개장 날짜 미확인')
-        return rows[0]['opnd_yn'] == 'Y'
+        return result
 
     def bars(self, start, end):
         payload = self.domestic('inquire-daily-itemchartprice', 'FHKST03010100',
@@ -147,11 +160,21 @@ class KisMarket:
         return rows
 
     def previous_close(self, day):
-        rows = self.bars(day - timedelta(days=14), day - timedelta(days=1))
-        prior = max((date for date in rows if date < day), default=None)
-        if prior is None or not self.is_open(prior):
-            raise DataError('KIS 직전 정규장 종가 미확인')
-        return prior, rows[prior]
+        return self.recent_closes(day, 1)[0]
+
+    def recent_closes(self, day, count):
+        start = day - timedelta(days=14)
+        calendar = self.calendar(start)
+        candidate_days = [start + timedelta(days=offset) for offset in range(14)]
+        if any(candidate not in calendar for candidate in candidate_days):
+            raise DataError('KIS 이전 거래일 달력 범위 미확인')
+        sessions = [candidate for candidate in candidate_days if calendar[candidate]][-count:]
+        if len(sessions) != count:
+            raise DataError('KIS 이전 거래일 수 부족')
+        rows = self.bars(sessions[0], sessions[-1])
+        if any(session not in rows for session in sessions):
+            raise DataError('KIS 이전 정규장 종가 미확인')
+        return [(session, rows[session]) for session in sessions]
 
     def close(self, day):
         return self.bars(day, day).get(day)

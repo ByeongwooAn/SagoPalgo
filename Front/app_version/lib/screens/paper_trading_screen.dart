@@ -12,6 +12,7 @@ import '../widgets/app_text.dart';
 import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
 import '../widgets/responsive_layout.dart';
+import 'automated_paper_trading_screen.dart';
 import 'dashboard_screen.dart';
 import 'order_simulation_screen.dart';
 import '../repositories/order_simulation_repository.dart';
@@ -105,7 +106,8 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
     final repository = widget.repository;
     if (_usd ||
         (repository is! OrderSimulationRepository &&
-            repository is! UsPaperTradingRepository)) {
+            repository is! UsPaperTradingRepository &&
+            repository is! AutomatedPaperTradingRepository)) {
       return content;
     }
     return Column(
@@ -117,6 +119,19 @@ class _PaperTradingScreenState extends State<PaperTradingScreen> {
             runSpacing: 8,
             alignment: WrapAlignment.center,
             children: [
+              if (repository is AutomatedPaperTradingRepository)
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => AutomatedPaperTradingScreen(
+                        repository:
+                            repository as AutomatedPaperTradingRepository,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.insights_outlined),
+                  label: const Text('AI 자동 모의매매'),
+                ),
               if (repository is UsPaperTradingRepository)
                 OutlinedButton.icon(
                   onPressed: () => Navigator.of(context).push(

@@ -12,7 +12,8 @@ class SpringPaperTradingRepository
     implements
         PaperTradingRepository,
         OrderSimulationRepository,
-        UsPaperTradingRepository {
+        UsPaperTradingRepository,
+        AutomatedPaperTradingRepository {
   SpringPaperTradingRepository({
     required this.accessToken,
     ApiConfig? config,
@@ -23,6 +24,22 @@ class SpringPaperTradingRepository
   final String accessToken;
   final ApiConfig config;
   final http.Client client;
+
+  @override
+  Future<AutomatedPaperSnapshot?> fetchAutomatedSnapshot() async {
+    final response = await client
+        .get(
+          Uri.parse('${config.paperTradingBaseUrl}/automated'),
+          headers: _headers(),
+        )
+        .timeout(const Duration(seconds: 10));
+    final data = _responseData(response) as Map<String, dynamic>;
+    if (data['available'] != true) return null;
+    return AutomatedPaperSnapshot.fromJson(
+      data['snapshot'] as Map<String, dynamic>,
+      online: data['online'] == true,
+    );
+  }
 
   @override
   Future<PaperTradingSnapshot> fetchUsSnapshot() => _usRequest('GET', '/us');
@@ -150,13 +167,16 @@ class SpringPaperTradingRepository
     return _snapshot(response);
   }
 
-  PaperTradingSnapshot _snapshot(http.Response response) {
+  PaperTradingSnapshot _snapshot(http.Response response) =>
+      PaperTradingSnapshot.fromJson(
+        _responseData(response) as Map<String, dynamic>,
+      );
+
+  Object? _responseData(http.Response response) {
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
     final success = decoded['success'] as bool? ?? false;
     if (response.statusCode >= 200 && response.statusCode < 300 && success) {
-      return PaperTradingSnapshot.fromJson(
-        decoded['data'] as Map<String, dynamic>,
-      );
+      return decoded['data'];
     }
     final error = decoded['error'] as Map<String, dynamic>?;
     throw PaperTradingRepositoryException(

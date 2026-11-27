@@ -32,6 +32,10 @@ abstract interface class UsPaperTradingRepository {
   Future<PaperTradingSnapshot> tradeUs(UsPaperOrder order);
 }
 
+abstract interface class AutomatedPaperTradingRepository {
+  Future<AutomatedPaperSnapshot?> fetchAutomatedSnapshot();
+}
+
 class PaperTradingRepositoryException implements Exception {
   const PaperTradingRepositoryException(this.message, {this.code});
 

@@ -174,6 +174,123 @@ class PaperTrade {
   }
 }
 
+class AutomatedPaperSnapshot {
+  AutomatedPaperSnapshot.fromJson(
+    Map<String, dynamic> json, {
+    required this.online,
+  }) : stockCode = json['stockCode'] as String,
+       stockName = json['stockName'] as String,
+       status = json['status'] as String,
+       publishedAt = DateTime.parse(json['publishedAt'] as String),
+       lastMarketAt = DateTime.tryParse(json['lastMarketAt'] as String? ?? ''),
+       endDate = json['endDate'] as String,
+       entry = AutomatedPaperEntry.fromJson(
+         json['entry'] as Map<String, dynamic>,
+       ),
+       portfolio = AutomatedPaperPortfolio.fromJson(
+         json['portfolio'] as Map<String, dynamic>,
+       ),
+       fillCount = _readInt(json['fillCount']),
+       fills = (json['fills'] as List)
+           .cast<Map<String, dynamic>>()
+           .map(AutomatedPaperFill.fromJson)
+           .toList(),
+       closedDays = (json['closedDays'] as List)
+           .cast<Map<String, dynamic>>()
+           .map(AutomatedPaperDay.fromJson)
+           .toList();
+
+  final String stockCode;
+  final String stockName;
+  final String status;
+  final DateTime publishedAt;
+  final DateTime? lastMarketAt;
+  final String endDate;
+  final bool online;
+  final AutomatedPaperEntry entry;
+  final AutomatedPaperPortfolio portfolio;
+  final int fillCount;
+  final List<AutomatedPaperFill> fills;
+  final List<AutomatedPaperDay> closedDays;
+}
+
+class AutomatedPaperEntry {
+  AutomatedPaperEntry.fromJson(Map<String, dynamic> json)
+    : rule = json['rule'] as String,
+      appliesOn = json['appliesOn'] as String,
+      eligible = json['eligible'] as bool,
+      previousClose = _optionalDouble(json['previousClose']),
+      averageClose = _optionalDouble(json['averageClose']),
+      threshold = _optionalDouble(json['threshold']);
+
+  final String rule;
+  final String appliesOn;
+  final bool eligible;
+  final double? previousClose;
+  final double? averageClose;
+  final double? threshold;
+}
+
+class AutomatedPaperPortfolio {
+  AutomatedPaperPortfolio.fromJson(Map<String, dynamic> json)
+    : initialCash = _readDouble(json['initialCash']),
+      cash = _readDouble(json['cash']),
+      quantity = _readDouble(json['quantity']),
+      realizedProfit = _readDouble(json['realizedProfit']),
+      unrealizedProfit = _optionalDouble(json['unrealizedProfit']),
+      netAsset = _optionalDouble(json['netAsset']),
+      markPrice = _optionalDouble(json['markPrice']),
+      markSource = json['markSource'] as String?;
+
+  final double initialCash;
+  final double cash;
+  final double quantity;
+  final double realizedProfit;
+  final double? unrealizedProfit;
+  final double? netAsset;
+  final double? markPrice;
+  final String? markSource;
+}
+
+class AutomatedPaperFill {
+  AutomatedPaperFill.fromJson(Map<String, dynamic> json)
+    : id = _readInt(json['id']),
+      at = DateTime.parse(json['at'] as String),
+      side = json['side'] as String,
+      rule = json['rule'] as String,
+      threshold = _readDouble(json['threshold']),
+      price = _readDouble(json['price']),
+      quantity = _readDouble(json['quantity']),
+      costs = _readDouble(json['fee']) + _readDouble(json['tax']),
+      realizedProfit = _readDouble(json['realized']);
+
+  final int id;
+  final DateTime at;
+  final String side;
+  final String rule;
+  final double threshold;
+  final double price;
+  final double quantity;
+  final double costs;
+  final double realizedProfit;
+}
+
+class AutomatedPaperDay {
+  AutomatedPaperDay.fromJson(Map<String, dynamic> json)
+    : date = json['date'] as String,
+      profit = _optionalDouble(json['profit']),
+      buyCount = _readInt(json['buyCount']),
+      sellCount = _readInt(json['sellCount']);
+
+  final String date;
+  final double? profit;
+  final int buyCount;
+  final int sellCount;
+}
+
+double? _optionalDouble(Object? value) =>
+    value == null ? null : _readDouble(value);
+
 int _readInt(Object? value) {
   return switch (value) {
     int number => number,

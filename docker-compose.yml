@@ -74,6 +74,7 @@ services:
     restart: unless-stopped
     volumes:
       - sagopalgo-stream-operations:/app/data/stream-operations
+      - ./docs/paper-trading/reports:/app/data/paper-trading:ro
     ports:
       - "127.0.0.1:${SAGOPALGO_API_PORT:-8080}:8080"
     depends_on:
@@ -81,6 +82,8 @@ services:
         condition: service_healthy
     environment:
       SAGOPALGO_SERVER_PORT: 8080
+      SAGOPALGO_PAPER_TRIAL_DIRECTORY: /app/data/paper-trading
+      SAGOPALGO_PAPER_TRIAL_ID: ${SAGOPALGO_PAPER_TRIAL_ID:-2026-11-27-000660}
       SAGOPALGO_DB_URL: jdbc:mysql://mysql:3306/${SAGOPALGO_MYSQL_DATABASE}?serverTimezone=UTC&characterEncoding=UTF-8
       SAGOPALGO_DB_USERNAME: root
       SAGOPALGO_DB_PASSWORD: ${SAGOPALGO_MYSQL_ROOT_PASSWORD:?Set a non-empty MySQL password in .env}

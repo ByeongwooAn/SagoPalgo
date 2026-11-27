@@ -8,7 +8,7 @@ services:
       SAGOPALGO_KIS_BASE_URL: ${SAGOPALGO_KIS_BASE_URL:?KIS market-data URL required}
       SAGOPALGO_KIS_APP_KEY: ${SAGOPALGO_KIS_APP_KEY:?KIS market-data app key required}
       SAGOPALGO_KIS_APP_SECRET: ${SAGOPALGO_KIS_APP_SECRET:?KIS market-data app secret required}
-    command: ["python", "worker.py", "--config", "trials/${SAGOPALGO_PAPER_TRIAL_ID:-2026-11-27-000660}.json"]
+    command: ["python", "worker.py", "--config", "trials/${SAGOPALGO_PAPER_TRIAL_ID:-2026-11-27-000660}.json", "--sma-start", "${SAGOPALGO_PAPER_SMA_START:-2026-11-30}"]
     volumes:
       - trial-state:/state
       - ./docs/paper-trading/reports:/reports
